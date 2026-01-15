@@ -38,6 +38,10 @@ export default function HomePage() {
               <strong>Events</strong>
               <div className="list-meta">Lightweight calendar entries for plans.</div>
             </div>
+            <div className="list-item">
+              <strong>Music</strong>
+              <div className="list-meta">Share tracks, rate them, and leave notes.</div>
+            </div>
           </div>
         </div>
         <div>

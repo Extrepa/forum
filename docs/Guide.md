@@ -9,9 +9,11 @@ This is a quick, personal checklist to run, deploy, and maintain the forum.
 
 ## What This Project Is
 - A simple forum + announcements + events space
+- A music feed for sharing YouTube/SoundCloud tracks
 - No login required
 - Users claim a unique username once per browser
 - Runs on Cloudflare Workers + D1
+- Posts support simple formatting (bold, italic, underline, headings, links)
 
 ## Local Dev
 1) Install deps:
@@ -53,6 +55,19 @@ npx wrangler d1 migrations apply errl_forum_db --remote
 npx wrangler secret put ADMIN_RESET_TOKEN
 ```
 
+6) Create R2 bucket for uploads (images):
+```
+npx wrangler r2 bucket create errl-forum-uploads
+```
+
+7) Allow image uploads (choose one):
+- Allow specific usernames:
+  - Set `IMAGE_UPLOAD_ALLOWLIST` to a comma-separated list (example: `chriss,extrepa`)
+  - `npx wrangler secret put IMAGE_UPLOAD_ALLOWLIST`
+- Allow all claimed users:
+  - Set `IMAGE_UPLOAD_ALLOWLIST` to `*`
+  - `npx wrangler secret put IMAGE_UPLOAD_ALLOWLIST`
+
 ## Build + Deploy
 1) Build Next.js:
 ```
@@ -79,6 +94,13 @@ In Cloudflare dashboard:
 To wipe all usernames and content:
 - POST `/api/admin/reset-users`
 - Header: `x-admin-token: ADMIN_RESET_TOKEN`
+
+## Formatting Cheatsheet
+- Bold: `**text**`
+- Italic: `*text*`
+- Underline: `<u>text</u>`
+- Heading: `## Heading` or `### Heading`
+- Link: `[label](https://example.com)`
 
 ## Useful URLs
 - Worker URL (after deploy): shown by `wrangler deploy`

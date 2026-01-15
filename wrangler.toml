@@ -9,3 +9,7 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 binding = "DB"
 database_name = "errl_forum_db"
 database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "errl-forum-uploads"

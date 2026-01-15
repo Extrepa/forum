@@ -21,6 +21,7 @@ export default function RootLayout({ children }) {
               <a href="/timeline">Announcements</a>
               <a href="/forum">Forum</a>
               <a href="/events">Events</a>
+              <a href="/music">Music</a>
             </nav>
             <SessionBadge />
           </header>

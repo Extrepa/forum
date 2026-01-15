@@ -1,5 +1,6 @@
 import PostForm from '../../components/PostForm';
 import { getDb } from '../../lib/db';
+import { renderMarkdown } from '../../lib/markdown';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,8 @@ export default async function TimelinePage({ searchParams }) {
   const { results } = await db
     .prepare(
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
-              timeline_updates.created_at, users.username AS author_name
+              timeline_updates.created_at, timeline_updates.image_key,
+              users.username AS author_name
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        ORDER BY timeline_updates.created_at DESC
@@ -20,6 +22,12 @@ export default async function TimelinePage({ searchParams }) {
   const notice =
     error === 'claim'
       ? 'Claim a username before posting announcements.'
+      : error === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : error === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : error === 'invalid_type'
+      ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title and body are required.'
       : null;
@@ -36,6 +44,7 @@ export default async function TimelinePage({ searchParams }) {
           bodyLabel="Update"
           buttonLabel="Post announcement"
           titleRequired={false}
+          showImage
         />
       </section>
 
@@ -48,7 +57,18 @@ export default async function TimelinePage({ searchParams }) {
             results.map((row) => (
               <div key={row.id} className="list-item">
                 <h3>{row.title || 'Update'}</h3>
-                <p>{row.body}</p>
+                {row.image_key ? (
+                  <img
+                    src={`/api/media/${row.image_key}`}
+                    alt=""
+                    className="post-image"
+                    loading="lazy"
+                  />
+                ) : null}
+                <div
+                  className="post-body"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(row.body) }}
+                />
                 <div className="list-meta">
                   {row.author_name} · {new Date(row.created_at).toLocaleString()}
                 </div>

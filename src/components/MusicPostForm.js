@@ -14,16 +14,7 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-export default function PostForm({
-  action,
-  titleLabel,
-  bodyLabel,
-  buttonLabel,
-  showDate = false,
-  titleRequired = true,
-  bodyRequired = true,
-  showImage = false
-}) {
+export default function MusicPostForm() {
   const bodyRef = useRef(null);
 
   const apply = (before, after) => {
@@ -34,7 +25,7 @@ export default function PostForm({
   };
 
   return (
-    <form action={action} method="post" encType="multipart/form-data">
+    <form action="/api/music/posts" method="post" encType="multipart/form-data">
       <div className="formatting-toolbar">
         <button type="button" onClick={() => apply('**', '**')}>Bold</button>
         <button type="button" onClick={() => apply('*', '*')}>Italic</button>
@@ -43,32 +34,41 @@ export default function PostForm({
         <button type="button" onClick={() => apply('### ', '')}>H3</button>
         <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
       </div>
+
       <label>
-        <div className="muted">{titleLabel}</div>
-        <input name="title" placeholder="Title" required={titleRequired} />
+        <div className="muted">Title</div>
+        <input name="title" placeholder="Song title" required />
       </label>
-      {showDate ? (
-        <label>
-          <div className="muted">Date and time</div>
-          <input name="starts_at" type="datetime-local" required />
-        </label>
-      ) : null}
-      {showImage ? (
-        <label>
-          <div className="muted">Image (optional)</div>
-          <input name="image" type="file" accept="image/*" />
-        </label>
-      ) : null}
+
       <label>
-        <div className="muted">{bodyLabel}</div>
-        <textarea
-          ref={bodyRef}
-          name="body"
-          placeholder="Share the details..."
-          required={bodyRequired}
-        />
+        <div className="muted">Embed type</div>
+        <select name="type" defaultValue="youtube" required>
+          <option value="youtube">YouTube</option>
+          <option value="soundcloud">SoundCloud</option>
+        </select>
       </label>
-      <button type="submit">{buttonLabel}</button>
+
+      <label>
+        <div className="muted">URL</div>
+        <input name="url" placeholder="Paste the YouTube or SoundCloud link" required />
+      </label>
+
+      <label>
+        <div className="muted">Tags (comma separated)</div>
+        <input name="tags" placeholder="ambient, friend, live" />
+      </label>
+
+      <label>
+        <div className="muted">Image (optional)</div>
+        <input name="image" type="file" accept="image/*" />
+      </label>
+
+      <label>
+        <div className="muted">Notes</div>
+        <textarea ref={bodyRef} name="body" placeholder="Why you love this..." />
+      </label>
+
+      <button type="submit">Post to music feed</button>
     </form>
   );
 }
