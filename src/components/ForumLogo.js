@@ -11,11 +11,11 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
     const checkStatus = async () => {
       try {
         const response = await fetch('/api/status');
-        if (response.ok) {
-          const data = await response.json();
-          setIsOnline(data.online);
-        }
+        // Parse JSON even for non-200 responses (like 503) to get online status
+        const data = await response.json();
+        setIsOnline(data.online === true);
       } catch (error) {
+        // Network errors or JSON parsing errors - assume offline
         setIsOnline(false);
       }
     };
