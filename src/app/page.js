@@ -42,6 +42,10 @@ export default function HomePage() {
               <strong>Music</strong>
               <div className="list-meta">Share tracks, rate them, and leave notes.</div>
             </div>
+            <div className="list-item">
+              <strong>Projects</strong>
+              <div className="list-meta">Work in progress and project updates.</div>
+            </div>
           </div>
         </div>
       </section>

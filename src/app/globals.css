@@ -98,6 +98,9 @@ nav {
 
 nav a {
   padding: 8px 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.2);
   transition: all 0.2s ease;
@@ -197,6 +200,7 @@ select {
   border-radius: 12px;
   border: 1px solid rgba(52, 225, 255, 0.35);
   padding: 10px 12px;
+  min-height: 44px;
   font-size: 16px;
   font-family: inherit;
   background: rgba(2, 7, 10, 0.6);
@@ -231,6 +235,8 @@ textarea {
 
 .post-image {
   width: 100%;
+  max-width: 100%;
+  height: auto;
   max-height: 360px;
   object-fit: cover;
   border-radius: 14px;
@@ -243,6 +249,7 @@ button {
   border: none;
   border-radius: 999px;
   padding: 10px 18px;
+  min-height: 44px;
   background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
   color: #001018;
   font-weight: 600;
@@ -300,6 +307,7 @@ button:hover {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .post-link {
@@ -309,12 +317,14 @@ button:hover {
 
 .embed-frame {
   width: 100%;
+  max-width: 100%;
   margin: 12px 0;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(52, 225, 255, 0.4);
   box-shadow: 0 0 22px rgba(52, 225, 255, 0.2);
   background: rgba(2, 7, 10, 0.7);
+  position: relative;
 }
 
 .embed-frame iframe {
@@ -330,6 +340,7 @@ button:hover {
 
 .embed-frame.soundcloud {
   height: 166px;
+  min-height: 166px;
 }
 
 .tag-row {
@@ -354,6 +365,63 @@ button:hover {
   margin-top: 12px;
   font-size: 13px;
   color: var(--muted);
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  border: 1px solid;
+}
+
+.status-badge.status-active {
+  background: rgba(0, 245, 160, 0.2);
+  border-color: rgba(0, 245, 160, 0.6);
+  color: rgba(0, 245, 160, 1);
+}
+
+.status-badge.status-on-hold {
+  background: rgba(245, 255, 183, 0.2);
+  border-color: rgba(245, 255, 183, 0.6);
+  color: rgba(245, 255, 183, 1);
+}
+
+.status-badge.status-completed {
+  background: rgba(52, 225, 255, 0.2);
+  border-color: rgba(52, 225, 255, 0.6);
+  color: rgba(52, 225, 255, 1);
+}
+
+.status-badge.status-archived {
+  background: rgba(142, 183, 199, 0.2);
+  border-color: rgba(142, 183, 199, 0.6);
+  color: var(--muted);
+}
+
+.project-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.project-link {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid rgba(52, 225, 255, 0.4);
+  background: rgba(13, 51, 68, 0.6);
+  color: var(--errl-accent);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.project-link:hover {
+  border-color: rgba(52, 225, 255, 0.8);
+  background: rgba(13, 51, 68, 0.9);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.3);
 }
 
 footer {
@@ -443,16 +511,73 @@ header::before {
   animation-duration: 7.1s;
 }
 
+/* Tablet breakpoint */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .site {
+    padding: 28px 18px 44px;
+  }
+
+  header {
+    padding: 16px 18px;
+  }
+
+  nav {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .formatting-toolbar {
+    max-width: 200px;
+    gap: 5px;
+  }
+
+  .formatting-toolbar button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .post-header {
+    gap: 10px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .project-links {
+    gap: 10px;
+  }
+}
+
+/* Mobile breakpoint */
 @media (max-width: 640px) {
   header {
     align-items: flex-start;
     gap: 12px;
     padding: 14px 16px;
+    flex-direction: column;
+  }
+
+  .brand {
+    width: 100%;
   }
 
   nav {
     width: 100%;
     gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    flex: 1 1 auto;
+    min-width: calc(50% - 4px);
+    justify-content: center;
+    font-size: 14px;
+    padding: 10px 8px;
   }
 
   .site {
@@ -461,6 +586,10 @@ header::before {
 
   .brand h1 {
     font-size: 22px;
+  }
+
+  .brand p {
+    font-size: 13px;
   }
 
   .section-title {
@@ -475,6 +604,14 @@ header::before {
     padding: 12px 14px;
   }
 
+  .list-item h3 {
+    font-size: 16px;
+  }
+
+  .list-item h4 {
+    font-size: 15px;
+  }
+
   .grid-tiles {
     grid-template-columns: 1fr;
   }
@@ -484,8 +621,116 @@ header::before {
     justify-self: stretch;
   }
 
+  .formatting-toolbar {
+    position: static;
+    max-width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: rgba(13, 51, 68, 0.3);
+    border-radius: 8px;
+  }
+
   .formatting-toolbar button {
     width: auto;
     justify-self: auto;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  textarea {
+    padding-top: 12px;
+  }
+
+  .post-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .post-header h2,
+  .post-header h3 {
+    width: 100%;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .project-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .project-link {
+    width: 100%;
+    text-align: center;
+    padding: 8px 14px;
+  }
+
+  .rating-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tag-row {
+    gap: 6px;
+  }
+
+  .tag-pill {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .embed-frame.soundcloud {
+    height: 150px;
+    min-height: 150px;
+  }
+
+  .post-image {
+    max-height: 280px;
+  }
+
+  .list-meta {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .post-body {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  .split {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1025px) {
+  .site {
+    padding: 36px 24px 52px;
+  }
+
+  header {
+    padding: 18px 24px;
+  }
+
+  .card {
+    padding: 24px;
+  }
+
+  .list-item {
+    padding: 16px 20px;
   }
 }
