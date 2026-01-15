@@ -14,10 +14,8 @@ export default function RootLayout({ children }) {
         <div className="site">
           <header>
             <div className="brand">
-              <h1>
-                <ForumLogo variant="header" href="/" showText={false} />
-                Errl Forum
-              </h1>
+              <ForumLogo variant="header" href="/" showText={false} />
+              <h1>Errl Forum</h1>
               <p>Announcements, ideas, and planning in one spot.</p>
             </div>
             <nav>

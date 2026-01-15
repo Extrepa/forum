@@ -1,30 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 export default function ForumLogo({ variant = 'nav', href = '/forum', showText = true }) {
-  const [isOnline, setIsOnline] = useState(true);
   const [isClicked, setIsClicked] = useState(false);
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const response = await fetch('/api/status');
-        // Parse JSON even for non-200 responses (like 503) to get online status
-        const data = await response.json();
-        setIsOnline(data.online === true);
-      } catch (error) {
-        // Network errors or JSON parsing errors - assume offline
-        setIsOnline(false);
-      }
-    };
-
-    checkStatus();
-    const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleClick = () => {
     setIsClicked(true);
@@ -34,9 +14,23 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
   const isNav = variant === 'nav';
   const size = isNav ? 24 : 32;
 
+  // Generate aria-label for Link based on href
+  const getLinkAriaLabel = () => {
+    if (href === '/') {
+      return 'Navigate to home';
+    }
+    if (href === '/forum') {
+      return 'Navigate to Forum';
+    }
+    // For other hrefs, use the path name or full href
+    const pathName = href.split('/').filter(Boolean).pop() || href;
+    return `Navigate to ${pathName}`;
+  };
+
   return (
     <Link
       href={href}
+      aria-label={getLinkAriaLabel()}
       className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''}`}
       onClick={handleClick}
     >
@@ -49,6 +43,8 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
             height={size}
             preserveAspectRatio="xMidYMid meet"
             className="forum-logo-face"
+            aria-label="Errl Forum logo"
+            role="img"
           >
             <g transform="translate(50,-50) scale(.8)">
               <g id="region-face">
@@ -101,13 +97,6 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
               </g>
             </g>
           </svg>
-          {isOnline && (
-            <span
-              className="forum-logo-status"
-              aria-label="Online"
-              title="Online"
-            />
-          )}
         </div>
         {showText && <span className="forum-logo-text">Forum</span>}
       </div>
