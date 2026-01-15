@@ -20,6 +20,12 @@ export async function POST(request) {
     'DELETE FROM timeline_updates',
     'DELETE FROM forum_threads',
     'DELETE FROM events',
+    'DELETE FROM music_ratings',
+    'DELETE FROM music_comments',
+    'DELETE FROM music_posts',
+    'DELETE FROM project_comments',
+    'DELETE FROM project_updates',
+    'DELETE FROM projects',
     'DELETE FROM users'
   ];
 
