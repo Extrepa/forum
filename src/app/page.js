@@ -25,7 +25,7 @@ export default function HomePage() {
       <section className="card split">
         <div>
           <h3 className="section-title">Where to start</h3>
-          <div className="stack">
+          <div className="list grid-tiles">
             <div className="list-item">
               <strong>Announcements</strong>
               <div className="list-meta">Official updates, pinned notes, releases.</div>
@@ -43,13 +43,6 @@ export default function HomePage() {
               <div className="list-meta">Share tracks, rate them, and leave notes.</div>
             </div>
           </div>
-        </div>
-        <div>
-          <h3 className="section-title">Theme sync</h3>
-          <p className="muted">
-            The forum styling uses CSS variables so we can plug in the same palette
-            used on the main portal. We can also load a shared stylesheet later.
-          </p>
         </div>
       </section>
     </div>

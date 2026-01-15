@@ -4,6 +4,23 @@ import { createToken } from '../../../lib/tokens';
 import { getSessionToken, setSessionCookie } from '../../../lib/session';
 import { validateUsername } from '../../../lib/username';
 
+export async function GET() {
+  const db = await getDb();
+  const existingToken = getSessionToken();
+
+  if (existingToken) {
+    const existingUser = await db
+      .prepare('SELECT username FROM users WHERE session_token = ?')
+      .bind(existingToken)
+      .first();
+    if (existingUser) {
+      return NextResponse.json({ username: existingUser.username });
+    }
+  }
+
+  return NextResponse.json({ username: null });
+}
+
 export async function POST(request) {
   const db = await getDb();
   const existingToken = getSessionToken();

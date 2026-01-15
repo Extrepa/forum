@@ -1,10 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function ClaimUsernameForm() {
   const [status, setStatus] = useState({ type: 'idle', message: '' });
   const [username, setUsername] = useState('');
+  const [lockedName, setLockedName] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const response = await fetch('/api/claim', { method: 'GET' });
+        const payload = await response.json();
+        if (!active) {
+          return;
+        }
+        if (payload.username) {
+          setLockedName(payload.username);
+          setStatus({ type: 'success', message: `You are ${payload.username}.` });
+        }
+      } catch (error) {
+        // ignore, stays claimable
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -23,11 +47,21 @@ export default function ClaimUsernameForm() {
       }
 
       setStatus({ type: 'success', message: `You are now ${payload.username}.` });
+      setLockedName(payload.username);
       setUsername('');
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
   };
+
+  if (lockedName) {
+    return (
+      <div className="card">
+        <div className="notice">Username locked: {lockedName}</div>
+        <p className="muted">To change it, an admin reset is required.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={submit} className="card">
