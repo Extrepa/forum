@@ -14,19 +14,21 @@ export default function RootLayout({ children }) {
         <div className="site">
           <header>
             <div className="brand">
-              <ForumLogo variant="header" href="/" showText={false} />
               <h1>Errl Forum</h1>
               <p>Announcements, ideas, and planning in one spot.</p>
             </div>
             <nav>
               <a href="/">Home</a>
               <a href="/timeline">Announcements</a>
-              <ForumLogo variant="nav" href="/forum" />
               <a href="/events">Events</a>
+              <a href="/forum">Forum</a>
               <a href="/music">Music</a>
               <a href="/projects">Projects</a>
             </nav>
-            <SessionBadge />
+            <div className="header-right">
+              <ForumLogo variant="header" href="/" showText={false} />
+              <SessionBadge />
+            </div>
           </header>
           <main>{children}</main>
           <footer>Designed to visually match the main portal. Theme tokens can be shared.</footer>
