@@ -1,0 +1,11 @@
+name = "errl-portal-forum"
+compatibility_date = "2026-01-14"
+main = ".open-next/worker.js"
+compatibility_flags = ["nodejs_compat"]
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+
+# D1 database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "errl_forum_db"
+database_id = "PASTE_DATABASE_ID_HERE"
