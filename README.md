@@ -2,6 +2,9 @@
 
 A standalone forum + announcements service for the Errl Portal.
 
+Note: This repo is effectively private, but it has to be public for hosting reasons.
+If you found it by accident, this is a personal project and not a public template or contribution target.
+
 ## MVP Goals
 - Guest read access
 - Claim-once usernames for posting (cookie session)
@@ -47,6 +50,4 @@ A standalone forum + announcements service for the Errl Portal.
 - `ADMIN_RESET_TOKEN` - required for `POST /api/admin/reset-users`
 
 ## Docs
-Start here:
-- `docs/00-Architecture.md`
-- `docs/09-Work-Plan-Cursor.md`
+- `docs/Guide.md`
