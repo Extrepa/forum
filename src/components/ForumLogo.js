@@ -11,9 +11,6 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
     setTimeout(() => setIsClicked(false), 400);
   };
 
-  const isNav = variant === 'nav';
-  const size = isNav ? 24 : 32;
-
   // Generate aria-label for Link based on href
   const getLinkAriaLabel = () => {
     if (href === '/') {
@@ -39,8 +36,6 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 1000 1000"
-            width={size}
-            height={size}
             preserveAspectRatio="xMidYMid meet"
             className="forum-logo-face"
             aria-label="Errl Forum logo"
