@@ -1,5 +1,6 @@
 import './globals.css';
 import SessionBadge from '../components/SessionBadge';
+import ForumLogo from '../components/ForumLogo';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -13,13 +14,16 @@ export default function RootLayout({ children }) {
         <div className="site">
           <header>
             <div className="brand">
-              <h1>Errl Forum</h1>
+              <h1>
+                <ForumLogo variant="header" href="/" showText={false} />
+                Errl Forum
+              </h1>
               <p>Announcements, ideas, and planning in one spot.</p>
             </div>
             <nav>
               <a href="/">Home</a>
               <a href="/timeline">Announcements</a>
-              <a href="/forum">Forum</a>
+              <ForumLogo variant="nav" href="/forum" />
               <a href="/events">Events</a>
               <a href="/music">Music</a>
               <a href="/projects">Projects</a>
