@@ -26,14 +26,6 @@ export default function MusicPostForm() {
 
   return (
     <form action="/api/music/posts" method="post" encType="multipart/form-data">
-      <div className="formatting-toolbar">
-        <button type="button" onClick={() => apply('**', '**')}>Bold</button>
-        <button type="button" onClick={() => apply('*', '*')}>Italic</button>
-        <button type="button" onClick={() => apply('<u>', '</u>')}>Underline</button>
-        <button type="button" onClick={() => apply('## ', '')}>H2</button>
-        <button type="button" onClick={() => apply('### ', '')}>H3</button>
-        <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
-      </div>
 
       <label>
         <div className="muted">Title</div>
@@ -63,8 +55,16 @@ export default function MusicPostForm() {
         <input name="image" type="file" accept="image/*" />
       </label>
 
-      <label>
+      <label className="text-field">
         <div className="muted">Notes</div>
+        <div className="formatting-toolbar">
+          <button type="button" onClick={() => apply('**', '**')}>Bold</button>
+          <button type="button" onClick={() => apply('*', '*')}>Italic</button>
+          <button type="button" onClick={() => apply('<u>', '</u>')}>Underline</button>
+          <button type="button" onClick={() => apply('## ', '')}>H2</button>
+          <button type="button" onClick={() => apply('### ', '')}>H3</button>
+          <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
+        </div>
         <textarea ref={bodyRef} name="body" placeholder="Why you love this..." />
       </label>
 

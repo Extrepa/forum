@@ -35,14 +35,6 @@ export default function PostForm({
 
   return (
     <form action={action} method="post" encType="multipart/form-data">
-      <div className="formatting-toolbar">
-        <button type="button" onClick={() => apply('**', '**')}>Bold</button>
-        <button type="button" onClick={() => apply('*', '*')}>Italic</button>
-        <button type="button" onClick={() => apply('<u>', '</u>')}>Underline</button>
-        <button type="button" onClick={() => apply('## ', '')}>H2</button>
-        <button type="button" onClick={() => apply('### ', '')}>H3</button>
-        <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
-      </div>
       <label>
         <div className="muted">{titleLabel}</div>
         <input name="title" placeholder="Title" required={titleRequired} />
@@ -59,8 +51,16 @@ export default function PostForm({
           <input name="image" type="file" accept="image/*" />
         </label>
       ) : null}
-      <label>
+      <label className="text-field">
         <div className="muted">{bodyLabel}</div>
+        <div className="formatting-toolbar">
+          <button type="button" onClick={() => apply('**', '**')}>Bold</button>
+          <button type="button" onClick={() => apply('*', '*')}>Italic</button>
+          <button type="button" onClick={() => apply('<u>', '</u>')}>Underline</button>
+          <button type="button" onClick={() => apply('## ', '')}>H2</button>
+          <button type="button" onClick={() => apply('### ', '')}>H3</button>
+          <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
+        </div>
         <textarea
           ref={bodyRef}
           name="body"

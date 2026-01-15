@@ -155,22 +155,37 @@ form {
   gap: 12px;
 }
 
+.text-field {
+  position: relative;
+}
+
 .formatting-toolbar {
+  position: absolute;
+  top: 30px;
+  right: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  max-width: 220px;
+  justify-content: flex-end;
+  z-index: 1;
 }
 
 .formatting-toolbar button {
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 5px 10px;
+  font-size: 12px;
   border-radius: 999px;
-  background: rgba(13, 51, 68, 0.8);
+  background: rgba(13, 51, 68, 0.45);
   color: var(--errl-accent-3);
-  box-shadow: 0 0 10px rgba(52, 225, 255, 0.25);
+  box-shadow: 0 0 10px rgba(52, 225, 255, 0.18);
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.formatting-toolbar button:hover {
+.formatting-toolbar button:hover,
+.formatting-toolbar button:focus-visible,
+.formatting-toolbar button:active {
+  opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 0 16px rgba(255, 52, 245, 0.4);
 }
@@ -197,6 +212,7 @@ input[type="file"] {
 textarea {
   min-height: 120px;
   resize: vertical;
+  padding-top: 44px;
 }
 
 .post-body {
