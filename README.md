@@ -46,6 +46,12 @@ If you found it by accident, this is a personal project and not a public templat
 - Preview locally:
   - `npm run preview`
 
+## Deployment
+- **Quick deploy**: `./deploy.sh "Your commit message"` or `npm run deploy:full`
+- **Manual deploy**: 
+  - `npm run build:cf` (build worker)
+  - `npm run deploy` (deploy to Cloudflare)
+
 ## Environment Variables
 - `ADMIN_RESET_TOKEN` - required for `POST /api/admin/reset-users`
 

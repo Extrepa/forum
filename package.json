@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "preview": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "deploy:full": "./deploy.sh"
   },
   "dependencies": {
     "marked": "^12.0.2",
