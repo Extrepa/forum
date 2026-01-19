@@ -12,3 +12,22 @@
 - Confirmed “Posting as …” (SessionBadge) and claim flow messages (“You are …”, “Username locked …”) render the username via `<Username />`.
 - No linter diagnostics reported for the touched files.
 
+## Deploy notes
+
+- Initial deploy attempt failed at `git push` due to non-interactive HTTPS auth; retrying outside the sandbox succeeded.
+- `deploy.sh` then completed `npm run build:cf` and `npm run deploy` successfully.
+- Deployed URL: `https://errl-portal-forum.extrepatho.workers.dev`
+
+## UI polish
+
+- Made the header Errl face appear larger without increasing its container by adjusting the SVG transform for the `ForumLogo` header variant (`src/components/ForumLogo.js`).
+- Replaced the footer “notes”/placeholder copy with an “Errl Portal / Errl Forum — Created by Extrepa — Errl since 2015” footer + tagline, and styled it for a cleaner finish (`src/app/layout.js`, `src/app/globals.css`).
+
+## Verification (UI polish)
+
+- Reviewed `src/app/layout.js`: footer markup uses `.footer-line`, `.footer-brand`, `.footer-sep`, `.footer-tagline` and matches CSS.
+- Reviewed `src/app/globals.css`: `.forum-logo-header .forum-logo-face-wrapper` remains `80px` x `80px` (mobile `64px` x `64px`), so the header box size is unchanged.
+- Reviewed `src/components/ForumLogo.js`: only the **SVG transform** changes for `variant="header"` to increase visual fill without affecting layout sizing.
+- Local lint check: `npm run lint` prompts for interactive ESLint setup (Next 15 behavior) so it can’t be run non-interactively as-is.
+- Local build: `NEXT_DISABLE_ESLINT=1 npm run build` succeeded (ran outside sandbox after a sandbox `EPERM kill` error).
+

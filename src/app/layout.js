@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
             <div className="brand">
               <div className="brand-left">
                 <h1>Errl Forum</h1>
-                <p>Announcements, ideas, and planning in one spot.</p>
+                <p>Announcements, drops, and devlog vibes for the Errl community.</p>
               </div>
               <ForumLogo variant="header" href="/" showText={false} />
             </div>
@@ -31,7 +31,16 @@ export default function RootLayout({ children }) {
             </div>
           </header>
           <main>{children}</main>
-          <footer>Designed to visually match the main portal. Theme tokens can be shared.</footer>
+          <footer>
+            <div className="footer-line">
+              <span className="footer-brand">Errl Portal / Errl Forum</span>
+              <span className="footer-sep">•</span>
+              <span>Created by Extrepa</span>
+              <span className="footer-sep">•</span>
+              <span>Errl since 2015</span>
+            </div>
+            <div className="footer-tagline">Keep it weird. Keep it real. Keep it Errl.</div>
+          </footer>
         </div>
       </body>
     </html>

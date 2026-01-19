@@ -592,10 +592,41 @@ button:hover {
 }
 
 footer {
-  margin-top: 32px;
+  margin-top: 36px;
   text-align: center;
   color: var(--muted);
   font-size: 13px;
+  padding: 18px 14px 8px;
+  border-top: 1px solid rgba(22, 58, 74, 0.45);
+  background: linear-gradient(180deg, transparent, rgba(2, 7, 10, 0.35));
+}
+
+.footer-line {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  letter-spacing: 0.2px;
+}
+
+.footer-brand {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.footer-sep {
+  opacity: 0.65;
+}
+
+.footer-tagline {
+  margin-top: 10px;
+  font-family: "Unbounded", "Space Grotesk", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(245, 255, 183, 0.85);
+  text-shadow: 0 0 10px rgba(245, 255, 183, 0.16);
 }
 
 header::before,

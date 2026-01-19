@@ -24,6 +24,11 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
     return `Navigate to ${pathName}`;
   };
 
+  // Make the face fill more of the same box in the header variant
+  // (bigger look without increasing layout dimensions).
+  const faceTransform =
+    variant === 'header' ? 'translate(30,-70) scale(.92)' : 'translate(50,-50) scale(.8)';
+
   return (
     <Link
       href={href}
@@ -41,7 +46,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
             aria-label="Errl Forum logo"
             role="img"
           >
-            <g transform="translate(50,-50) scale(.8)">
+            <g transform={faceTransform}>
               <g id="region-face">
                 <path
                   data-region="face"
