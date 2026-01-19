@@ -1,4 +1,4 @@
-import MusicPostForm from '../../components/MusicPostForm';
+import MusicClient from './MusicClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { safeEmbedFromUrl } from '../../lib/embeds';
@@ -22,6 +22,13 @@ export default async function MusicPage({ searchParams }) {
     )
     .all();
 
+  // Pre-render markdown and embed info for server component
+  const posts = results.map(row => ({
+    ...row,
+    bodyHtml: row.body ? renderMarkdown(row.body) : null,
+    embed: safeEmbedFromUrl(row.type, row.url)
+  }));
+
   const error = searchParams?.error;
   const notice =
     error === 'claim'
@@ -38,77 +45,5 @@ export default async function MusicPage({ searchParams }) {
       ? 'Only image files are allowed.'
       : null;
 
-  return (
-    <div className="stack">
-      <section className="card">
-        <h2 className="section-title">Friends Music</h2>
-        <p className="muted">Drop tracks, rate them, and leave notes for the crew.</p>
-        {notice ? <div className="notice">{notice}</div> : null}
-        <MusicPostForm />
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Latest Drops</h3>
-        <div className="list">
-          {results.length === 0 ? (
-            <p className="muted">No music posts yet. Be the first to share a track.</p>
-          ) : (
-            results.map((row) => {
-              const embed = safeEmbedFromUrl(row.type, row.url);
-              const tags = row.tags ? row.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
-              return (
-                <div key={row.id} className="list-item">
-                  <div className="post-header">
-                    <h3>{row.title}</h3>
-                    <a className="post-link" href={`/music/${row.id}`}>
-                      View
-                    </a>
-                  </div>
-                  <div className="list-meta">
-                    {row.author_name} · {new Date(row.created_at).toLocaleString()}
-                  </div>
-                  {embed ? (
-                    <div className={`embed-frame ${embed.aspect}`}>
-                      <iframe
-                        src={embed.src}
-                        title={row.title}
-                        allow={embed.allow}
-                        allowFullScreen={embed.allowFullScreen}
-                      />
-                    </div>
-                  ) : null}
-                  {row.image_key ? (
-                    <img
-                      src={`/api/media/${row.image_key}`}
-                      alt=""
-                      className="post-image"
-                      loading="lazy"
-                    />
-                  ) : null}
-                  {row.body ? (
-                    <div
-                      className="post-body"
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(row.body) }}
-                    />
-                  ) : null}
-                  {tags.length ? (
-                    <div className="tag-row">
-                      {tags.map((tag) => (
-                        <span key={tag} className="tag-pill">{tag}</span>
-                      ))}
-                    </div>
-                  ) : null}
-                  <div className="rating-row">
-                    <span>Rating: {row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—'}</span>
-                    <span>{row.rating_count} votes</span>
-                    <span>{row.comment_count} comments</span>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </section>
-    </div>
-  );
+  return <MusicClient posts={posts} notice={notice} />;
 }

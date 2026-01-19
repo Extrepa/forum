@@ -1,9 +1,9 @@
-import ForumClient from './ForumClient';
+import ShitpostsClient from './ShitpostsClient';
 import { getDb } from '../../lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ForumPage({ searchParams }) {
+export default async function ShitpostsPage({ searchParams }) {
   const db = await getDb();
   const { results } = await db
     .prepare(
@@ -13,6 +13,7 @@ export default async function ForumPage({ searchParams }) {
               (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.image_key IS NOT NULL
        ORDER BY forum_threads.created_at DESC
        LIMIT 50`
     )
@@ -32,5 +33,5 @@ export default async function ForumPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  return <ForumClient threads={results} notice={notice} />;
+  return <ShitpostsClient posts={results} notice={notice} />;
 }

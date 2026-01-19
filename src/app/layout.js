@@ -1,6 +1,7 @@
 import './globals.css';
 import SessionBadge from '../components/SessionBadge';
 import ForumLogo from '../components/ForumLogo';
+import SearchBar from '../components/SearchBar';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -21,11 +22,14 @@ export default function RootLayout({ children }) {
               <a href="/">Home</a>
               <a href="/timeline">Announcements</a>
               <a href="/events">Events</a>
-              <a href="/forum">Forum</a>
+              <a href="/forum">General</a>
+              <a href="/shitposts">Shitposts</a>
               <a href="/music">Music</a>
               <a href="/projects">Projects</a>
+              <a href="/search">Search</a>
             </nav>
             <div className="header-right">
+              <SearchBar />
               <ForumLogo variant="header" href="/" showText={false} />
               <SessionBadge />
             </div>

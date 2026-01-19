@@ -1,4 +1,4 @@
-import PostForm from '../../components/PostForm';
+import TimelineClient from './TimelineClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 
@@ -18,6 +18,12 @@ export default async function TimelinePage({ searchParams }) {
     )
     .all();
 
+  // Pre-render markdown for server component
+  const updates = results.map(row => ({
+    ...row,
+    bodyHtml: renderMarkdown(row.body)
+  }));
+
   const error = searchParams?.error;
   const notice =
     error === 'claim'
@@ -32,51 +38,5 @@ export default async function TimelinePage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  return (
-    <div className="stack">
-      <section className="card">
-        <h2 className="section-title">Announcements</h2>
-        <p className="muted">Official updates and pinned notes for the community.</p>
-        {notice ? <div className="notice">{notice}</div> : null}
-        <PostForm
-          action="/api/timeline"
-          titleLabel="Title"
-          bodyLabel="Update"
-          buttonLabel="Post announcement"
-          titleRequired={false}
-          showImage
-        />
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Latest</h3>
-        <div className="list">
-          {results.length === 0 ? (
-            <p className="muted">No announcements yet. Be the first to post.</p>
-          ) : (
-            results.map((row) => (
-              <div key={row.id} className="list-item">
-                <h3>{row.title || 'Update'}</h3>
-                {row.image_key ? (
-                  <img
-                    src={`/api/media/${row.image_key}`}
-                    alt=""
-                    className="post-image"
-                    loading="lazy"
-                  />
-                ) : null}
-                <div
-                  className="post-body"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(row.body) }}
-                />
-                <div className="list-meta">
-                  {row.author_name} · {new Date(row.created_at).toLocaleString()}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-    </div>
-  );
+  return <TimelineClient updates={updates} notice={notice} />;
 }
