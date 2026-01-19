@@ -1,5 +1,6 @@
 import ShitpostsClient from './ShitpostsClient';
 import { getDb } from '../../lib/db';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,5 +34,15 @@ export default async function ShitpostsPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  return <ShitpostsClient posts={results} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/shitposts', label: 'Shitposts' },
+        ]}
+      />
+      <ShitpostsClient posts={results} notice={notice} />
+    </>
+  );
 }

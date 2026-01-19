@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUserWithRole, isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
+import Breadcrumbs from '../../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/projects', label: 'Projects' },
+          { href: `/projects/${project.id}`, label: project.title },
+        ]}
+      />
       <section className="card">
         <div className="post-header">
           <h2 className="section-title">{project.title}</h2>

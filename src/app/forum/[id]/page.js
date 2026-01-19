@@ -2,6 +2,7 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
+import Breadcrumbs from '../../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +51,13 @@ export default async function ForumThreadPage({ params, searchParams }) {
 
   return (
     <div className="stack">
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/forum', label: 'General' },
+          { href: `/forum/${thread.id}`, label: thread.title },
+        ]}
+      />
       <section className="card thread-container">
         {/* Original Post */}
         <div className="thread-post">

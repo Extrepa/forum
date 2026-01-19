@@ -2,6 +2,7 @@ import MusicClient from './MusicClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { safeEmbedFromUrl } from '../../lib/embeds';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,5 +46,15 @@ export default async function MusicPage({ searchParams }) {
       ? 'Only image files are allowed.'
       : null;
 
-  return <MusicClient posts={posts} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/music', label: 'Music' },
+        ]}
+      />
+      <MusicClient posts={posts} notice={notice} />
+    </>
+  );
 }

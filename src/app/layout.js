@@ -1,6 +1,8 @@
 import './globals.css';
 import ForumLogo from '../components/ForumLogo';
 import SearchBar from '../components/SearchBar';
+import BackButton from '../components/BackButton';
+import NavLinks from '../components/NavLinks';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -21,14 +23,9 @@ export default function RootLayout({ children }) {
               <ForumLogo variant="header" href="/" showText={false} />
             </div>
             <div className="header-nav-section">
+              <BackButton />
               <nav>
-                <a href="/">Home</a>
-                <a href="/timeline">Announcements</a>
-                <a href="/events">Events</a>
-                <a href="/forum">General</a>
-                <a href="/music">Music</a>
-                <a href="/projects">Projects</a>
-                <a href="/shitposts">Shitposts</a>
+                <NavLinks />
               </nav>
               <SearchBar />
             </div>

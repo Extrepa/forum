@@ -161,6 +161,13 @@ nav a:hover {
   color: var(--errl-accent-3);
 }
 
+nav a.active {
+  border-color: rgba(52, 225, 255, 0.6);
+  background: rgba(13, 51, 68, 0.8);
+  box-shadow: 0 0 18px rgba(52, 225, 255, 0.3);
+  color: var(--errl-accent-3);
+}
+
 main {
   margin-top: 28px;
   display: grid;
@@ -1024,6 +1031,77 @@ header::before {
   flex-shrink: 0;
 }
 
+/* Back button styling */
+.back-button {
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  transition: all 0.2s ease;
+  background: rgba(2, 7, 10, 0.4);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.back-button svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.back-button:hover {
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(13, 51, 68, 0.6);
+  box-shadow: 0 0 18px rgba(255, 52, 245, 0.45);
+  color: var(--errl-accent-3);
+}
+
+/* Breadcrumbs styling */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumbs a {
+  color: var(--errl-accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: var(--errl-accent-3);
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: var(--muted);
+  margin: 0 4px;
+}
+
+.breadcrumb-current {
+  color: var(--ink);
+  font-weight: 500;
+}
+
 .header-search-toggle:hover {
   border-color: rgba(255, 52, 245, 0.8);
   background: rgba(13, 51, 68, 0.6);
@@ -1116,6 +1194,23 @@ header::before {
   .header-nav-section {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .back-button {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .back-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .breadcrumbs {
+    font-size: 13px;
+    margin-bottom: 12px;
   }
 
   .header-nav-section .header-search-container {

@@ -2,6 +2,7 @@ import ProjectsClient from './ProjectsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUserWithRole, isAdminUser } from '../../lib/admin';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,5 +50,15 @@ export default async function ProjectsPage({ searchParams }) {
       ? 'Title, description, and status are required.'
       : null;
 
-  return <ProjectsClient projects={projects} isAdmin={isAdmin} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/projects', label: 'Projects' },
+        ]}
+      />
+      <ProjectsClient projects={projects} isAdmin={isAdmin} notice={notice} />
+    </>
+  );
 }

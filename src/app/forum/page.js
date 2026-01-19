@@ -1,5 +1,6 @@
 import ForumClient from './ForumClient';
 import { getDb } from '../../lib/db';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,5 +33,15 @@ export default async function ForumPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  return <ForumClient threads={results} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/forum', label: 'General' },
+        ]}
+      />
+      <ForumClient threads={results} notice={notice} />
+    </>
+  );
 }

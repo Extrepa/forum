@@ -1,6 +1,7 @@
 import TimelineClient from './TimelineClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,5 +39,15 @@ export default async function TimelinePage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  return <TimelineClient updates={updates} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/timeline', label: 'Announcements' },
+        ]}
+      />
+      <TimelineClient updates={updates} notice={notice} />
+    </>
+  );
 }

@@ -1,6 +1,7 @@
 import EventsClient from './EventsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,5 +39,15 @@ export default async function EventsPage({ searchParams }) {
       ? 'Title and date are required.'
       : null;
 
-  return <EventsClient events={events} notice={notice} />;
+  return (
+    <>
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/events', label: 'Events' },
+        ]}
+      />
+      <EventsClient events={events} notice={notice} />
+    </>
+  );
 }

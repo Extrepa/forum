@@ -1,6 +1,7 @@
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
+import Breadcrumbs from '../../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +57,13 @@ export default async function MusicDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/music', label: 'Music' },
+          { href: `/music/${post.id}`, label: post.title },
+        ]}
+      />
       <section className="card">
         <h2 className="section-title">{post.title}</h2>
         <div className="list-meta">
