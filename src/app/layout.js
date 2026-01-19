@@ -29,7 +29,6 @@ export default function RootLayout({ children }) {
                 <a href="/forum">General</a>
                 <a href="/music">Music</a>
                 <a href="/projects">Projects</a>
-                <a href="/search">Search</a>
                 <a href="/shitposts">Shitposts</a>
               </nav>
               <SessionBadge />

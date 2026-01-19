@@ -58,13 +58,14 @@ a {
 header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: var(--radius);
   background: var(--card);
   padding: 16px 20px;
   box-shadow: var(--shadow);
   position: relative;
+  z-index: 1000;
   isolation: isolate;
   backdrop-filter: blur(12px);
 }
@@ -75,6 +76,7 @@ header {
   align-items: center;
   gap: 16px;
   width: 100%;
+  min-height: 0;
 }
 
 .brand-left {
@@ -102,6 +104,7 @@ header {
   gap: 12px;
   flex-wrap: wrap;
   width: 100%;
+  min-height: 0;
 }
 
 nav {
@@ -315,6 +318,24 @@ button:hover {
 .list-meta {
   font-size: 13px;
   color: var(--muted);
+}
+
+.section-stats {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.section-stats a {
+  color: var(--errl-accent-3);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.section-stats a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .post-header {
@@ -881,7 +902,9 @@ header::before {
 .header-search-section {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   width: 100%;
+  min-height: 0;
 }
 
 .header-search-container {
@@ -923,7 +946,7 @@ header::before {
   border-radius: var(--radius);
   padding: 12px;
   box-shadow: var(--shadow);
-  z-index: 100;
+  z-index: 1001;
   min-width: 300px;
 }
 
