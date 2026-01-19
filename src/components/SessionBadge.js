@@ -1,5 +1,7 @@
 import { getDb } from '../lib/db';
 import { getSessionToken } from '../lib/session';
+import Username from './Username';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default async function SessionBadge() {
   const token = getSessionToken();
@@ -22,5 +24,9 @@ export default async function SessionBadge() {
     return <div className="muted">Guest reader</div>;
   }
 
-  return <div className="muted">Posting as {user.username}</div>;
+  return (
+    <div className="muted">
+      Posting as <Username name={user.username} colorIndex={getUsernameColorIndex(user.username)} />
+    </div>
+  );
 }

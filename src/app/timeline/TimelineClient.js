@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 export default function TimelineClient({ updates, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,27 +28,43 @@ export default function TimelineClient({ updates, notice }) {
           {updates.length === 0 ? (
             <p className="muted">No announcements yet. Be the first to post.</p>
           ) : (
-            updates.map((row) => (
-              <div key={row.id} className="list-item">
-                <h3>{row.title || 'Update'}</h3>
-                {row.image_key ? (
-                  <img
-                    src={`/api/media/${row.image_key}`}
-                    alt=""
-                    className="post-image"
-                    loading="lazy"
-                  />
-                ) : null}
-                <div
-                  className="post-body"
-                  dangerouslySetInnerHTML={{ __html: row.bodyHtml }}
-                />
-                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{row.author_name}</span>
-                  <span>{new Date(row.created_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ))
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return updates.map((row) => {
+                const colorIndex = getUsernameColorIndex(row.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = row.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={row.id} className="list-item">
+                    <h3>{row.title || 'Update'}</h3>
+                    {row.image_key ? (
+                      <img
+                        src={`/api/media/${row.image_key}`}
+                        alt=""
+                        className="post-image"
+                        loading="lazy"
+                      />
+                    ) : null}
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                    <div
+                      className="list-meta"
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>
+                        <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>{new Date(row.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </section>

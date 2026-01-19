@@ -1,6 +1,8 @@
 import ClaimUsernameForm from '../components/ClaimUsernameForm';
 import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
+import Username from '../components/Username';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
@@ -209,7 +211,10 @@ export default async function HomePage() {
 
       {hasUsername && (
         <section className="card">
-          <h2 className="section-title">Welcome back{user?.username ? ` ${user.username}` : ''}</h2>
+          <h2 className="section-title">
+            Welcome back{' '}
+            {user?.username ? <Username name={user.username} force="purple" /> : null}
+          </h2>
           <p className="muted" style={{ marginBottom: '20px' }}>
             Check out all the new posts in:
           </p>
@@ -233,7 +238,11 @@ export default async function HomePage() {
                               {sectionData.timeline.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.timeline.recent.author} {sectionData.timeline.recent.timeAgo}
+                            <Username
+                              name={sectionData.timeline.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.timeline.recent.author)}
+                            />{' '}
+                            {sectionData.timeline.recent.timeAgo}
                           </span>
                         )}
                       </>
@@ -262,7 +271,11 @@ export default async function HomePage() {
                               {sectionData.forum.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.forum.recent.author} {sectionData.forum.recent.timeAgo}
+                            <Username
+                              name={sectionData.forum.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.forum.recent.author)}
+                            />{' '}
+                            {sectionData.forum.recent.timeAgo}
                           </span>
                         )}
                       </>
@@ -291,7 +304,11 @@ export default async function HomePage() {
                               {sectionData.events.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.events.recent.author} {sectionData.events.recent.timeAgo}
+                            <Username
+                              name={sectionData.events.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.events.recent.author)}
+                            />{' '}
+                            {sectionData.events.recent.timeAgo}
                           </span>
                         )}
                       </>
@@ -320,7 +337,11 @@ export default async function HomePage() {
                               {sectionData.music.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.music.recent.author} {sectionData.music.recent.timeAgo}
+                            <Username
+                              name={sectionData.music.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.music.recent.author)}
+                            />{' '}
+                            {sectionData.music.recent.timeAgo}
                           </span>
                         )}
                       </>
@@ -349,7 +370,11 @@ export default async function HomePage() {
                               {sectionData.projects.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.projects.recent.author} {sectionData.projects.recent.timeAgo}
+                            <Username
+                              name={sectionData.projects.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.projects.recent.author)}
+                            />{' '}
+                            {sectionData.projects.recent.timeAgo}
                           </span>
                         )}
                       </>
@@ -378,7 +403,11 @@ export default async function HomePage() {
                               {sectionData.shitposts.recent.title}
                             </a>
                             {' by '}
-                            {sectionData.shitposts.recent.author} {sectionData.shitposts.recent.timeAgo}
+                            <Username
+                              name={sectionData.shitposts.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.shitposts.recent.author)}
+                            />{' '}
+                            {sectionData.shitposts.recent.timeAgo}
                           </span>
                         )}
                       </>

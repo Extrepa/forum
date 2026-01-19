@@ -2,6 +2,8 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
 import Breadcrumbs from '../../../components/Breadcrumbs';
+import Username from '../../../components/Username';
+import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +69,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
       <section className="card">
         <h2 className="section-title">{post.title}</h2>
         <div className="list-meta">
-          {post.author_name} · {new Date(post.created_at).toLocaleString()}
+          <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} /> ·{' '}
+          {new Date(post.created_at).toLocaleString()}
         </div>
         {embed ? (
           <div className={`embed-frame ${embed.aspect}`}>
@@ -134,18 +137,34 @@ export default async function MusicDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            comments.map((comment) => (
-              <div key={comment.id} className="list-item">
-                <div
-                  className="post-body"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }}
-                />
-                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{comment.author_name}</span>
-                  <span>{new Date(comment.created_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ))
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return comments.map((comment) => {
+                const colorIndex = getUsernameColorIndex(comment.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = comment.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={comment.id} className="list-item">
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                    <div
+                      className="list-meta"
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>
+                        <Username name={comment.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>{new Date(comment.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </section>

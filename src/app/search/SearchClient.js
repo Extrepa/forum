@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 export default function SearchClient({ query: initialQuery, results }) {
   const router = useRouter();
@@ -70,58 +72,85 @@ export default function SearchClient({ query: initialQuery, results }) {
           </h3>
           {results.length > 0 && (
             <div className="list">
-              {results.map((result) => (
-                <div key={`${result.type}-${result.id}`} className="list-item">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <div>
-                      <h3>
-                        <a href={result.url} style={{ color: 'inherit', textDecoration: 'none' }}>
-                          {result.title || result.thread_title || 'Untitled'}
-                        </a>
-                      </h3>
-                      <span className="muted" style={{ fontSize: '14px' }}>
-                        {getTypeLabel(result.type)}
-                        {result.type === 'reply' && result.thread_title && ` in "${result.thread_title}"`}
-                      </span>
-                    </div>
-                  </div>
-                  {result.image_key && (
-                    <img
-                      src={`/api/media/${result.image_key}`}
-                      alt=""
-                      className="post-image"
-                      loading="lazy"
-                      style={{ maxHeight: '200px', width: 'auto', marginBottom: '8px' }}
-                    />
-                  )}
-                  {(result.bodyHtml || result.detailsHtml || result.descriptionHtml) && (
-                    <div
-                      className="post-body"
-                      style={{ marginBottom: '8px' }}
-                      dangerouslySetInnerHTML={{ 
-                        __html: result.bodyHtml || result.detailsHtml || result.descriptionHtml
-                      }}
-                    />
-                  )}
-                  {result.body && !result.bodyHtml && (
-                    <p className="muted" style={{ marginBottom: '8px' }}>
-                      {truncateText(result.body)}
-                    </p>
-                  )}
-                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{result.author_name}</span>
-                    <span>
-                      {new Date(result.created_at).toLocaleString()}
-                      {result.reply_count !== undefined && ` · ${result.reply_count} ${result.reply_count === 1 ? 'reply' : 'replies'}`}
-                      {result.status && (
-                        <span className={`status-badge status-${result.status}`} style={{ marginLeft: '8px' }}>
-                          {result.status}
-                        </span>
+              {(() => {
+                let lastName = null;
+                let lastIndex = null;
+
+                return results.map((result) => {
+                  const colorIndex = getUsernameColorIndex(result.author_name, {
+                    avoidIndex: lastIndex,
+                    avoidName: lastName,
+                  });
+                  lastName = result.author_name;
+                  lastIndex = colorIndex;
+
+                  return (
+                    <div key={`${result.type}-${result.id}`} className="list-item">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <div>
+                          <h3>
+                            <a href={result.url} style={{ color: 'inherit', textDecoration: 'none' }}>
+                              {result.title || result.thread_title || 'Untitled'}
+                            </a>
+                          </h3>
+                          <span className="muted" style={{ fontSize: '14px' }}>
+                            {getTypeLabel(result.type)}
+                            {result.type === 'reply' && result.thread_title && ` in "${result.thread_title}"`}
+                          </span>
+                        </div>
+                      </div>
+                      {result.image_key && (
+                        <img
+                          src={`/api/media/${result.image_key}`}
+                          alt=""
+                          className="post-image"
+                          loading="lazy"
+                          style={{ maxHeight: '200px', width: 'auto', marginBottom: '8px' }}
+                        />
                       )}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                      {(result.bodyHtml || result.detailsHtml || result.descriptionHtml) && (
+                        <div
+                          className="post-body"
+                          style={{ marginBottom: '8px' }}
+                          dangerouslySetInnerHTML={{
+                            __html: result.bodyHtml || result.detailsHtml || result.descriptionHtml,
+                          }}
+                        />
+                      )}
+                      {result.body && !result.bodyHtml && (
+                        <p className="muted" style={{ marginBottom: '8px' }}>
+                          {truncateText(result.body)}
+                        </p>
+                      )}
+                      <div
+                        className="list-meta"
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span>
+                          <Username name={result.author_name} colorIndex={colorIndex} />
+                        </span>
+                        <span>
+                          {new Date(result.created_at).toLocaleString()}
+                          {result.reply_count !== undefined &&
+                            ` · ${result.reply_count} ${result.reply_count === 1 ? 'reply' : 'replies'}`}
+                          {result.status && (
+                            <span className={`status-badge status-${result.status}`} style={{ marginLeft: '8px' }}>
+                              {result.status}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
         </section>

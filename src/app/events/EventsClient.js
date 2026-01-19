@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 export default function EventsClient({ events, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,29 +28,45 @@ export default function EventsClient({ events, notice }) {
           {events.length === 0 ? (
             <p className="muted">No events yet. Add the first plan.</p>
           ) : (
-            events.map((row) => (
-              <div key={row.id} className="list-item">
-                <h3>{row.title}</h3>
-                {row.image_key ? (
-                  <img
-                    src={`/api/media/${row.image_key}`}
-                    alt=""
-                    className="post-image"
-                    loading="lazy"
-                  />
-                ) : null}
-                {row.details ? (
-                  <div
-                    className="post-body"
-                    dangerouslySetInnerHTML={{ __html: row.detailsHtml }}
-                  />
-                ) : null}
-                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{row.author_name}</span>
-                  <span>{new Date(row.starts_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ))
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return events.map((row) => {
+                const colorIndex = getUsernameColorIndex(row.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = row.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={row.id} className="list-item">
+                    <h3>{row.title}</h3>
+                    {row.image_key ? (
+                      <img
+                        src={`/api/media/${row.image_key}`}
+                        alt=""
+                        className="post-image"
+                        loading="lazy"
+                      />
+                    ) : null}
+                    {row.details ? (
+                      <div className="post-body" dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                    ) : null}
+                    <div
+                      className="list-meta"
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>
+                        <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>{new Date(row.starts_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </section>

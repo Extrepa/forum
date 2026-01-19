@@ -5,6 +5,8 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUserWithRole, isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
+import Username from '../../../components/Username';
+import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,7 +111,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           <span className={`status-badge status-${project.status}`}>{project.status}</span>
         </div>
         <div className="list-meta">
-          {project.author_name} · {new Date(project.created_at).toLocaleString()}
+          <Username name={project.author_name} colorIndex={getUsernameColorIndex(project.author_name)} /> ·{' '}
+          {new Date(project.created_at).toLocaleString()}
           {project.updated_at ? ` · Updated ${new Date(project.updated_at).toLocaleString()}` : null}
         </div>
         {project.image_key ? (
@@ -160,26 +163,38 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           {updates.length === 0 ? (
             <p className="muted">No updates yet.</p>
           ) : (
-            updates.map((update) => (
-              <div key={update.id} className="list-item">
-                <h4>{update.title}</h4>
-                {update.image_key ? (
-                  <img
-                    src={`/api/media/${update.image_key}`}
-                    alt=""
-                    className="post-image"
-                    loading="lazy"
-                  />
-                ) : null}
-                <div
-                  className="post-body"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }}
-                />
-                <div className="list-meta">
-                  {update.author_name} · {new Date(update.created_at).toLocaleString()}
-                </div>
-              </div>
-            ))
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return updates.map((update) => {
+                const colorIndex = getUsernameColorIndex(update.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = update.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={update.id} className="list-item">
+                    <h4>{update.title}</h4>
+                    {update.image_key ? (
+                      <img
+                        src={`/api/media/${update.image_key}`}
+                        alt=""
+                        className="post-image"
+                        loading="lazy"
+                      />
+                    ) : null}
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
+                    <div className="list-meta">
+                      <Username name={update.author_name} colorIndex={colorIndex} /> ·{' '}
+                      {new Date(update.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </section>
@@ -198,18 +213,34 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            comments.map((comment) => (
-              <div key={comment.id} className="list-item">
-                <div
-                  className="post-body"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }}
-                />
-                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{comment.author_name}</span>
-                  <span>{new Date(comment.created_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ))
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return comments.map((comment) => {
+                const colorIndex = getUsernameColorIndex(comment.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = comment.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={comment.id} className="list-item">
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                    <div
+                      className="list-meta"
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>
+                        <Username name={comment.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>{new Date(comment.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </section>

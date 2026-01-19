@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Username from './Username';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default function ClaimUsernameForm() {
-  const [status, setStatus] = useState({ type: 'idle', message: '' });
+  const [status, setStatus] = useState({ type: 'idle', message: null });
   const [username, setUsername] = useState('');
   const [lockedName, setLockedName] = useState('');
 
@@ -18,7 +20,15 @@ export default function ClaimUsernameForm() {
         }
         if (payload.username) {
           setLockedName(payload.username);
-          setStatus({ type: 'success', message: `You are ${payload.username}.` });
+          const colorIndex = getUsernameColorIndex(payload.username);
+          setStatus({
+            type: 'success',
+            message: (
+              <span>
+                You are <Username name={payload.username} colorIndex={colorIndex} />.
+              </span>
+            )
+          });
         }
       } catch (error) {
         // ignore, stays claimable
@@ -46,7 +56,15 @@ export default function ClaimUsernameForm() {
         throw new Error(payload.error || 'Unable to claim that username.');
       }
 
-      setStatus({ type: 'success', message: `You are now ${payload.username}.` });
+      const colorIndex = getUsernameColorIndex(payload.username);
+      setStatus({
+        type: 'success',
+        message: (
+          <span>
+            You are now <Username name={payload.username} colorIndex={colorIndex} />.
+          </span>
+        )
+      });
       setLockedName(payload.username);
       setUsername('');
     } catch (error) {
@@ -57,7 +75,10 @@ export default function ClaimUsernameForm() {
   if (lockedName) {
     return (
       <div className="card">
-        <div className="notice">Username locked: {lockedName}</div>
+        <div className="notice">
+          Username locked:{' '}
+          <Username name={lockedName} colorIndex={getUsernameColorIndex(lockedName)} />
+        </div>
         <p className="muted">To change it, an admin reset is required.</p>
       </div>
     );

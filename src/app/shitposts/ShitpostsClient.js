@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 export default function ShitpostsClient({ posts, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,32 +42,53 @@ export default function ShitpostsClient({ posts, notice }) {
           {posts.length === 0 ? (
             <p className="muted">No posts yet. Be the first to share something.</p>
           ) : (
-            posts.map((row) => (
-              <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
-                <a href={`/forum/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <h3>{row.title}</h3>
-                  {row.image_key ? (
-                    <img
-                      src={`/api/media/${row.image_key}`}
-                      alt=""
-                      className="post-image"
-                      loading="lazy"
-                      style={{ maxHeight: '200px', width: 'auto' }}
-                    />
-                  ) : null}
-                  <p className="muted" style={{ marginBottom: '8px' }}>
-                    {truncateBody(row.body)}
-                  </p>
-                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{row.author_name}</span>
-                    <span>
-                      {new Date(row.created_at).toLocaleString()}
-                      {row.reply_count > 0 ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}` : ''}
-                    </span>
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return posts.map((row) => {
+                const colorIndex = getUsernameColorIndex(row.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = row.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
+                    <a href={`/forum/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <h3>{row.title}</h3>
+                      {row.image_key ? (
+                        <img
+                          src={`/api/media/${row.image_key}`}
+                          alt=""
+                          className="post-image"
+                          loading="lazy"
+                          style={{ maxHeight: '200px', width: 'auto' }}
+                        />
+                      ) : null}
+                      <p className="muted" style={{ marginBottom: '8px' }}>
+                        {truncateBody(row.body)}
+                      </p>
+                      <div
+                        className="list-meta"
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span>
+                          <Username name={row.author_name} colorIndex={colorIndex} />
+                        </span>
+                        <span>
+                          {new Date(row.created_at).toLocaleString()}
+                          {row.reply_count > 0
+                            ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                            : ''}
+                        </span>
+                      </div>
+                    </a>
                   </div>
-                </a>
-              </div>
-            ))
+                );
+              });
+            })()
           )}
         </div>
       </section>

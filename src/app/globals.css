@@ -11,6 +11,7 @@
   --errl-accent: #34e1ff;
   --errl-accent-2: #ff34f5;
   --errl-accent-3: #f5ffb7;
+  --errl-accent-4: #00f5a0;
   --errl-accent-soft: #0d3344;
 
   --bg: var(--errl-bg);
@@ -193,6 +194,32 @@ main {
 
 .muted {
   color: var(--muted);
+}
+
+.username {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.username--0 {
+  color: var(--errl-accent-2);
+  text-shadow: 0 0 10px rgba(255, 52, 245, 0.35);
+}
+
+.username--1 {
+  color: var(--errl-accent);
+  text-shadow: 0 0 10px rgba(52, 225, 255, 0.25);
+}
+
+.username--2 {
+  color: var(--errl-accent-3);
+  text-shadow: 0 0 10px rgba(245, 255, 183, 0.25);
+}
+
+.username--3 {
+  color: var(--errl-accent-4);
+  text-shadow: 0 0 10px rgba(0, 245, 160, 0.25);
 }
 
 .stack {

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 export default function ForumClient({ threads, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,23 +42,44 @@ export default function ForumClient({ threads, notice }) {
           {threads.length === 0 ? (
             <p className="muted">No threads yet. Start the first conversation.</p>
           ) : (
-            threads.map((row) => (
-              <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
-                <a href={`/forum/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <h3>{row.title}</h3>
-                  <p className="muted" style={{ marginBottom: '8px' }}>
-                    {truncateBody(row.body)}
-                  </p>
-                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{row.author_name}</span>
-                    <span>
-                      {new Date(row.created_at).toLocaleString()}
-                      {row.reply_count > 0 ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}` : ''}
-                    </span>
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+
+              return threads.map((row) => {
+                const colorIndex = getUsernameColorIndex(row.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = row.author_name;
+                lastIndex = colorIndex;
+
+                return (
+                  <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
+                    <a href={`/forum/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <h3>{row.title}</h3>
+                      <p className="muted" style={{ marginBottom: '8px' }}>
+                        {truncateBody(row.body)}
+                      </p>
+                      <div
+                        className="list-meta"
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span>
+                          <Username name={row.author_name} colorIndex={colorIndex} />
+                        </span>
+                        <span>
+                          {new Date(row.created_at).toLocaleString()}
+                          {row.reply_count > 0
+                            ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                            : ''}
+                        </span>
+                      </div>
+                    </a>
                   </div>
-                </a>
-              </div>
-            ))
+                );
+              });
+            })()
           )}
         </div>
       </section>

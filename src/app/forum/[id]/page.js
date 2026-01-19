@@ -3,6 +3,8 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
+import Username from '../../../components/Username';
+import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,7 +65,8 @@ export default async function ForumThreadPage({ params, searchParams }) {
         <div className="thread-post">
           <h2 className="section-title">{thread.title}</h2>
           <div className="list-meta">
-            {thread.author_name} · {formatDateTime(thread.created_at)}
+            <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
+            {formatDateTime(thread.created_at)}
           </div>
           {thread.image_key ? (
             <img
@@ -86,18 +89,39 @@ export default async function ForumThreadPage({ params, searchParams }) {
           
           {replies.length > 0 && (
             <div className="replies-list">
-              {replies.map((reply) => (
-                <div key={reply.id} className="reply-item">
-                  <div className="reply-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span className="reply-author">{reply.author_name}</span>
-                    <span className="reply-time">{formatDateTime(reply.created_at)}</span>
-                  </div>
-                  <div
-                    className="reply-body"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }}
-                  />
-                </div>
-              ))}
+              {(() => {
+                let lastName = null;
+                let lastIndex = null;
+
+                return replies.map((reply) => {
+                  const colorIndex = getUsernameColorIndex(reply.author_name, {
+                    avoidIndex: lastIndex,
+                    avoidName: lastName,
+                  });
+                  lastName = reply.author_name;
+                  lastIndex = colorIndex;
+
+                  return (
+                    <div key={reply.id} className="reply-item">
+                      <div
+                        className="reply-meta"
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <span className="reply-author">
+                          <Username name={reply.author_name} colorIndex={colorIndex} />
+                        </span>
+                        <span className="reply-time">{formatDateTime(reply.created_at)}</span>
+                      </div>
+                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }} />
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
 
