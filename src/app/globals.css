@@ -1001,10 +1001,12 @@ header::before {
 }
 
 .header-search-toggle {
-  padding: 8px 12px;
-  min-height: 44px;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.2);
   transition: all 0.2s ease;
@@ -1014,6 +1016,12 @@ header::before {
   font-size: 14px;
   font-family: inherit;
   cursor: pointer;
+}
+
+.header-search-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .header-search-toggle:hover {
@@ -1066,16 +1074,16 @@ header::before {
   gap: 12px;
   vertical-align: middle;
   margin-right: 0;
-  padding: 12px 16px;
-  min-width: 80px;
+  padding: 16px 20px;
+  min-width: 100px;
   flex-shrink: 0;
 }
 
 .forum-logo-header .forum-logo-face-wrapper {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   flex-shrink: 0;
-  padding: 6px;
+  padding: 8px;
 }
 
 .forum-logo-header .forum-logo-text {
@@ -1133,8 +1141,8 @@ header::before {
   }
   
   .forum-logo-header .forum-logo-face-wrapper {
-    width: 44px;
-    height: 44px;
+    width: 56px;
+    height: 56px;
   }
 
   .forum-logo-header .forum-logo-text {

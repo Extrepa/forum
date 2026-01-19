@@ -1,5 +1,4 @@
 import './globals.css';
-import SessionBadge from '../components/SessionBadge';
 import ForumLogo from '../components/ForumLogo';
 import SearchBar from '../components/SearchBar';
 
@@ -19,7 +18,6 @@ export default function RootLayout({ children }) {
                 <h1>Errl Forum</h1>
                 <p>Announcements, ideas, and planning in one spot.</p>
               </div>
-              <SessionBadge />
               <ForumLogo variant="header" href="/" showText={false} />
             </div>
             <div className="header-nav-section">

@@ -209,9 +209,9 @@ export default async function HomePage() {
 
       {hasUsername && (
         <section className="card">
-          <h2 className="section-title">Welcome back</h2>
+          <h2 className="section-title">Welcome back{user?.username ? ` ${user.username}` : ''}</h2>
           <p className="muted" style={{ marginBottom: '20px' }}>
-            Check out all the new posts in
+            Check out all the new posts in:
           </p>
           <div className="list grid-tiles">
               <a href="/timeline" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
