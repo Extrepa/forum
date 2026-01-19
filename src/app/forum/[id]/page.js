@@ -88,8 +88,9 @@ export default async function ForumThreadPage({ params, searchParams }) {
                   className="post-body"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }}
                 />
-                <div className="list-meta">
-                  {reply.author_name} · {new Date(reply.created_at).toLocaleString()}
+                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{reply.author_name}</span>
+                  <span>{new Date(reply.created_at).toLocaleString()}</span>
                 </div>
               </div>
             ))

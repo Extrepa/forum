@@ -56,9 +56,12 @@ export default function ShitpostsClient({ posts, notice }) {
                   <p className="muted" style={{ marginBottom: '8px' }}>
                     {truncateBody(row.body)}
                   </p>
-                  <div className="list-meta">
-                    {row.author_name} · {new Date(row.created_at).toLocaleString()}
-                    {row.reply_count > 0 ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}` : ''}
+                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{row.author_name}</span>
+                    <span>
+                      {new Date(row.created_at).toLocaleString()}
+                      {row.reply_count > 0 ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}` : ''}
+                    </span>
                   </div>
                 </a>
               </div>

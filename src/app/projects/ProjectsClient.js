@@ -60,8 +60,12 @@ export default function ProjectsClient({ projects, isAdmin, notice }) {
                     </a>
                   ) : null}
                 </div>
-                <div className="list-meta">
-                  {row.author_name} · {new Date(row.created_at).toLocaleString()}
+                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{row.author_name}</span>
+                  <span>
+                    {new Date(row.created_at).toLocaleString()}
+                    {row.comment_count > 0 ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'comment' : 'comments'}` : ''}
+                  </span>
                 </div>
               </div>
             ))

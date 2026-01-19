@@ -41,8 +41,9 @@ export default function TimelineClient({ updates, notice }) {
                   className="post-body"
                   dangerouslySetInnerHTML={{ __html: row.bodyHtml }}
                 />
-                <div className="list-meta">
-                  {row.author_name} · {new Date(row.created_at).toLocaleString()}
+                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{row.author_name}</span>
+                  <span>{new Date(row.created_at).toLocaleString()}</span>
                 </div>
               </div>
             ))

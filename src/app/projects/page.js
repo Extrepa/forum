@@ -12,7 +12,8 @@ export default async function ProjectsPage({ searchParams }) {
       `SELECT projects.id, projects.title, projects.description, projects.status,
               projects.github_url, projects.demo_url, projects.image_key,
               projects.created_at, projects.updated_at,
-              users.username AS author_name
+              users.username AS author_name,
+              (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS comment_count
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        ORDER BY projects.created_at DESC

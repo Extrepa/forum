@@ -108,14 +108,17 @@ export default function SearchClient({ query: initialQuery, results }) {
                       {truncateText(result.body)}
                     </p>
                   )}
-                  <div className="list-meta">
-                    {result.author_name} · {new Date(result.created_at).toLocaleString()}
-                    {result.reply_count !== undefined && ` · ${result.reply_count} ${result.reply_count === 1 ? 'reply' : 'replies'}`}
-                    {result.status && (
-                      <span className={`status-badge status-${result.status}`} style={{ marginLeft: '8px' }}>
-                        {result.status}
-                      </span>
-                    )}
+                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{result.author_name}</span>
+                    <span>
+                      {new Date(result.created_at).toLocaleString()}
+                      {result.reply_count !== undefined && ` · ${result.reply_count} ${result.reply_count === 1 ? 'reply' : 'replies'}`}
+                      {result.status && (
+                        <span className={`status-badge status-${result.status}`} style={{ marginLeft: '8px' }}>
+                          {result.status}
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </div>
               ))}

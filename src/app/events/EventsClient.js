@@ -43,8 +43,9 @@ export default function EventsClient({ events, notice }) {
                     dangerouslySetInnerHTML={{ __html: row.detailsHtml }}
                   />
                 ) : null}
-                <div className="list-meta">
-                  {new Date(row.starts_at).toLocaleString()} · {row.author_name}
+                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{row.author_name}</span>
+                  <span>{new Date(row.starts_at).toLocaleString()}</span>
                 </div>
               </div>
             ))

@@ -15,23 +15,27 @@ export default function RootLayout({ children }) {
         <div className="site">
           <header>
             <div className="brand">
-              <h1>Errl Forum</h1>
-              <p>Announcements, ideas, and planning in one spot.</p>
-            </div>
-            <nav>
-              <a href="/">Home</a>
-              <a href="/timeline">Announcements</a>
-              <a href="/events">Events</a>
-              <a href="/forum">General</a>
-              <a href="/shitposts">Shitposts</a>
-              <a href="/music">Music</a>
-              <a href="/projects">Projects</a>
-              <a href="/search">Search</a>
-            </nav>
-            <div className="header-right">
-              <SearchBar />
+              <div className="brand-left">
+                <h1>Errl Forum</h1>
+                <p>Announcements, ideas, and planning in one spot.</p>
+              </div>
               <ForumLogo variant="header" href="/" showText={false} />
+            </div>
+            <div className="header-nav-section">
+              <nav>
+                <a href="/">Home</a>
+                <a href="/timeline">Announcements</a>
+                <a href="/events">Events</a>
+                <a href="/forum">General</a>
+                <a href="/music">Music</a>
+                <a href="/projects">Projects</a>
+                <a href="/search">Search</a>
+                <a href="/shitposts">Shitposts</a>
+              </nav>
               <SessionBadge />
+            </div>
+            <div className="header-search-section">
+              <SearchBar />
             </div>
           </header>
           <main>{children}</main>

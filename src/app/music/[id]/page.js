@@ -132,8 +132,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   className="post-body"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }}
                 />
-                <div className="list-meta">
-                  {comment.author_name} · {new Date(comment.created_at).toLocaleString()}
+                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{comment.author_name}</span>
+                  <span>{new Date(comment.created_at).toLocaleString()}</span>
                 </div>
               </div>
             ))

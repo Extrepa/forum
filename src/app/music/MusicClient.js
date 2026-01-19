@@ -36,8 +36,9 @@ export default function MusicClient({ posts, notice }) {
                       View
                     </a>
                   </div>
-                  <div className="list-meta">
-                    {row.author_name} · {new Date(row.created_at).toLocaleString()}
+                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{row.author_name}</span>
+                    <span>{new Date(row.created_at).toLocaleString()}</span>
                   </div>
                   {row.embed ? (
                     <div className={`embed-frame ${row.embed.aspect}`}>
