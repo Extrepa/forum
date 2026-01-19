@@ -1,6 +1,7 @@
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
+import { formatDateTime } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,53 +50,62 @@ export default async function ForumThreadPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <section className="card">
-        <h2 className="section-title">{thread.title}</h2>
-        <div className="list-meta">
-          {thread.author_name} · {new Date(thread.created_at).toLocaleString()}
-        </div>
-        {thread.image_key ? (
-          <img
-            src={`/api/media/${thread.image_key}`}
-            alt=""
-            className="post-image"
-            loading="lazy"
+      <section className="card thread-container">
+        {/* Original Post */}
+        <div className="thread-post">
+          <h2 className="section-title">{thread.title}</h2>
+          <div className="list-meta">
+            {thread.author_name} · {formatDateTime(thread.created_at)}
+          </div>
+          {thread.image_key ? (
+            <img
+              src={`/api/media/${thread.image_key}`}
+              alt=""
+              className="post-image"
+              loading="lazy"
+            />
+          ) : null}
+          <div
+            className="post-body"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }}
           />
-        ) : null}
-        <div
-          className="post-body"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }}
-        />
-      </section>
+        </div>
 
-      <section className="card">
-        <h3 className="section-title">Replies ({replies.length})</h3>
-        {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list" style={{ marginBottom: replies.length > 0 ? '20px' : '0' }}>
-          {replies.length === 0 ? (
-            <p className="muted">No replies yet. Be the first to reply.</p>
-          ) : (
-            replies.map((reply) => (
-              <div key={reply.id} className="reply-item">
-                <div className="reply-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span className="reply-author">{reply.author_name}</span>
-                  <span className="reply-time">{new Date(reply.created_at).toLocaleString()}</span>
+        {/* Replies Section */}
+        <div className="thread-replies">
+          <h3 className="section-title" style={{ marginTop: '24px', marginBottom: '16px' }}>Replies ({replies.length})</h3>
+          {notice ? <div className="notice">{notice}</div> : null}
+          
+          {replies.length > 0 && (
+            <div className="replies-list">
+              {replies.map((reply) => (
+                <div key={reply.id} className="reply-item">
+                  <div className="reply-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span className="reply-author">{reply.author_name}</span>
+                    <span className="reply-time">{formatDateTime(reply.created_at)}</span>
+                  </div>
+                  <div
+                    className="reply-body"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }}
+                  />
                 </div>
-                <div
-                  className="reply-body"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }}
-                />
-              </div>
-            ))
+              ))}
+            </div>
+          )}
+
+          {/* Reply Form */}
+          <form action={`/api/forum/${thread.id}/replies`} method="post" className="reply-form">
+            <label>
+              <div className="muted" style={{ marginBottom: '8px' }}>Add a reply</div>
+              <textarea name="body" placeholder="Write your reply..." required />
+            </label>
+            <button type="submit">Post reply</button>
+          </form>
+
+          {replies.length === 0 && (
+            <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>
           )}
         </div>
-        <form action={`/api/forum/${thread.id}/replies`} method="post" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(22, 58, 74, 0.3)' }}>
-          <label>
-            <div className="muted" style={{ marginBottom: '8px' }}>Add a reply</div>
-            <textarea name="body" placeholder="Write your reply..." required />
-          </label>
-          <button type="submit">Post reply</button>
-        </form>
       </section>
     </div>
   );
