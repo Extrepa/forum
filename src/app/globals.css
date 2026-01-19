@@ -1152,16 +1152,16 @@ header::before {
   gap: 12px;
   vertical-align: middle;
   margin-right: 0;
-  padding: 16px 20px;
-  min-width: 100px;
+  padding: 8px 12px;
+  min-width: 80px;
   flex-shrink: 0;
 }
 
 .forum-logo-header .forum-logo-face-wrapper {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
-  padding: 8px;
+  padding: 4px;
 }
 
 .forum-logo-header .forum-logo-text {
@@ -1231,13 +1231,14 @@ header::before {
   }
 
   .forum-logo-header {
-    min-width: 64px;
-    padding: 10px 12px;
+    min-width: 60px;
+    padding: 6px 8px;
   }
   
   .forum-logo-header .forum-logo-face-wrapper {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
+    padding: 3px;
   }
 
   .forum-logo-header .forum-logo-text {
