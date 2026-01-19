@@ -596,7 +596,7 @@ footer {
   text-align: center;
   color: var(--muted);
   font-size: 13px;
-  padding: 18px 14px 8px;
+  padding: 12px 14px 8px;
   border-top: 1px solid rgba(22, 58, 74, 0.45);
   background: linear-gradient(180deg, transparent, rgba(2, 7, 10, 0.35));
 }
@@ -620,7 +620,7 @@ footer {
 }
 
 .footer-tagline {
-  margin-top: 10px;
+  margin-top: 6px;
   font-family: "Unbounded", "Space Grotesk", sans-serif;
   font-size: 12px;
   letter-spacing: 0.8px;
@@ -975,6 +975,13 @@ header::before {
   color: inherit;
   transition: all 0.3s ease;
   position: relative;
+  --logo-hue: 190;
+}
+
+.forum-logo-path {
+  fill: hsl(var(--logo-hue) 70% 14%);
+  stroke: hsl(var(--logo-hue) 95% 72%);
+  transition: fill 7s ease-in-out, stroke 7s ease-in-out;
 }
 
 .forum-logo:focus-visible {
@@ -1000,7 +1007,9 @@ header::before {
 .forum-logo-face {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 4px rgba(52, 225, 255, 0.4));
+  filter:
+    drop-shadow(0 0 4px hsl(var(--logo-hue) 95% 70% / 0.35))
+    drop-shadow(0 0 10px hsl(var(--logo-hue) 95% 60% / 0.22));
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
@@ -1210,7 +1219,7 @@ header::before {
   gap: 12px;
   vertical-align: middle;
   margin-right: 0;
-  padding: 8px 12px;
+  padding: 4px 8px;
   min-width: 80px;
   flex-shrink: 0;
 }
@@ -1219,7 +1228,7 @@ header::before {
   width: 80px;
   height: 80px;
   flex-shrink: 0;
-  padding: 4px;
+  padding: 1px;
 }
 
 .forum-logo-header .forum-logo-text {
@@ -1290,13 +1299,13 @@ header::before {
 
   .forum-logo-header {
     min-width: 60px;
-    padding: 6px 8px;
+    padding: 4px 6px;
   }
   
   .forum-logo-header .forum-logo-face-wrapper {
     width: 64px;
     height: 64px;
-    padding: 3px;
+    padding: 1px;
   }
 
   .forum-logo-header .forum-logo-text {

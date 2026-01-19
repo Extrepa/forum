@@ -17,11 +17,14 @@
 - Initial deploy attempt failed at `git push` due to non-interactive HTTPS auth; retrying outside the sandbox succeeded.
 - `deploy.sh` then completed `npm run build:cf` and `npm run deploy` successfully.
 - Deployed URL: `https://errl-portal-forum.extrepatho.workers.dev`
+- 2026-01-18: Ran `./deploy.sh "Polish header logo + refresh footer"`; commit `46e7507` pushed and deployed successfully (Cloudflare Version ID `6678673b-a955-4d54-b075-35e7f4a8c96d`).
 
 ## UI polish
 
 - Made the header Errl face appear larger without increasing its container by adjusting the SVG transform for the `ForumLogo` header variant (`src/components/ForumLogo.js`).
 - Replaced the footer “notes”/placeholder copy with an “Errl Portal / Errl Forum — Created by Extrepa — Errl since 2015” footer + tagline, and styled it for a cleaner finish (`src/app/layout.js`, `src/app/globals.css`).
+- Reduced header logo padding so the face is less clipped and the header stays tighter; reduced footer top padding so the footer copy sits higher (`src/components/ForumLogo.js`, `src/app/globals.css`).
+- Added a slow “random rainbow drift” effect to the Errl SVG by animating a CSS hue variable over time (respects `prefers-reduced-motion`) (`src/components/ForumLogo.js`, `src/app/globals.css`).
 
 ## Verification (UI polish)
 

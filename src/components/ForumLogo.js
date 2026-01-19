@@ -1,15 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function ForumLogo({ variant = 'nav', href = '/forum', showText = true }) {
   const [isClicked, setIsClicked] = useState(false);
+  const [logoHue, setLogoHue] = useState(() => Math.floor(Math.random() * 360));
 
   const handleClick = () => {
     setIsClicked(true);
     setTimeout(() => setIsClicked(false), 400);
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let cancelled = false;
+    let timeoutId = null;
+
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const nextHue = Math.floor(Math.random() * 360);
+      setLogoHue(nextHue);
+
+      // Slowly drift to a new random hue every ~8–14s.
+      const nextDelayMs = 8000 + Math.floor(Math.random() * 6000);
+      timeoutId = window.setTimeout(scheduleNext, nextDelayMs);
+    };
+
+    // Start after a short pause so the first render is stable.
+    timeoutId = window.setTimeout(scheduleNext, 1500);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   // Generate aria-label for Link based on href
   const getLinkAriaLabel = () => {
@@ -27,7 +54,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
   // Make the face fill more of the same box in the header variant
   // (bigger look without increasing layout dimensions).
   const faceTransform =
-    variant === 'header' ? 'translate(30,-70) scale(.92)' : 'translate(50,-50) scale(.8)';
+    variant === 'header' ? 'translate(38,-62) scale(.88)' : 'translate(50,-50) scale(.8)';
 
   return (
     <Link
@@ -35,6 +62,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
       aria-label={getLinkAriaLabel()}
       className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''}`}
       onClick={handleClick}
+      style={{ '--logo-hue': String(logoHue) }}
     >
       <div className="forum-logo-container">
         <div className="forum-logo-face-wrapper">
@@ -49,6 +77,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
             <g transform={faceTransform}>
               <g id="region-face">
                 <path
+                  className="forum-logo-path"
                   data-region="face"
                   fill="#000000"
                   stroke="#e5eef7"
@@ -61,6 +90,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
               </g>
               <g id="region-eyeL">
                 <path
+                  className="forum-logo-path"
                   data-region="eyeL"
                   fill="#000000"
                   stroke="#e5eef7"
@@ -73,6 +103,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
               </g>
               <g id="region-eyeR">
                 <path
+                  className="forum-logo-path"
                   data-region="eyeR"
                   fill="#000000"
                   stroke="#e5eef7"
@@ -85,6 +116,7 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
               </g>
               <g id="region-mouth">
                 <path
+                  className="forum-logo-path"
                   data-region="mouth"
                   fill="#000000"
                   stroke="#e5eef7"
