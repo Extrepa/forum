@@ -19,6 +19,7 @@ export default function RootLayout({ children }) {
                 <h1>Errl Forum</h1>
                 <p>Announcements, ideas, and planning in one spot.</p>
               </div>
+              <SessionBadge />
               <ForumLogo variant="header" href="/" showText={false} />
             </div>
             <div className="header-nav-section">
@@ -31,9 +32,6 @@ export default function RootLayout({ children }) {
                 <a href="/projects">Projects</a>
                 <a href="/shitposts">Shitposts</a>
               </nav>
-              <SessionBadge />
-            </div>
-            <div className="header-search-section">
               <SearchBar />
             </div>
           </header>

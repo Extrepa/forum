@@ -12,7 +12,7 @@ export default function MusicClient({ posts, notice }) {
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Friends Music</h2>
+            <h2 className="section-title">Music</h2>
             <p className="muted">Drop tracks, rate them, and leave notes for the crew.</p>
           </div>
           <button onClick={() => setIsModalOpen(true)}>Create Post</button>

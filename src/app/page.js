@@ -186,33 +186,34 @@ export default async function HomePage() {
 
   return (
     <div className="stack">
-      <section className="card">
-        <h2 className="section-title">{hasUsername ? 'Welcome back' : 'Welcome'}</h2>
-        <p className="muted">
-          {hasUsername
-            ? "Check out what's new in the community and see the latest posts from all sections."
-            : 'This is the public spot to share ideas, post announcements, and plan meetups. Reading is open to everyone. Posting requires claiming a username once per browser.'}
-        </p>
-      </section>
-
       {!hasUsername && (
-        <section className="card split">
-          <div>
-            <h3 className="section-title">Claim your username</h3>
+        <>
+          <section className="card">
+            <h2 className="section-title">Welcome</h2>
             <p className="muted">
-              Usernames are one per person. Once claimed, the browser gets a private session token
-              so no one else can take that name unless the admin resets the system.
+              This is the public spot to share ideas, post announcements, and plan meetups. Reading is open to everyone. Posting requires claiming a username once per browser.
             </p>
-          </div>
-          <ClaimUsernameForm />
-        </section>
+          </section>
+          <section className="card split">
+            <div>
+              <h3 className="section-title">Claim your username</h3>
+              <p className="muted">
+                Usernames are one per person. Once claimed, the browser gets a private session token
+                so no one else can take that name unless the admin resets the system.
+              </p>
+            </div>
+            <ClaimUsernameForm />
+          </section>
+        </>
       )}
 
       {hasUsername && (
-        <section className="card split">
-          <div>
-            <h3 className="section-title">Check out all the new posts in</h3>
-            <div className="list grid-tiles">
+        <section className="card">
+          <h2 className="section-title">Welcome back</h2>
+          <p className="muted" style={{ marginBottom: '20px' }}>
+            Check out all the new posts in
+          </p>
+          <div className="list grid-tiles">
               <a href="/timeline" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <strong>Announcements</strong>
                 <div className="list-meta">Official updates, pinned notes, releases.</div>
@@ -387,7 +388,6 @@ export default async function HomePage() {
                   </div>
                 )}
               </a>
-            </div>
           </div>
         </section>
       )}
