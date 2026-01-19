@@ -71,31 +71,31 @@ export default async function ForumThreadPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Replies ({replies.length})</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-        <form action={`/api/forum/${thread.id}/replies`} method="post">
-          <label>
-            <div className="muted">Add a reply</div>
-            <textarea name="body" placeholder="Write your reply..." required />
-          </label>
-          <button type="submit">Post reply</button>
-        </form>
-        <div className="list">
+        <div className="list" style={{ marginBottom: replies.length > 0 ? '20px' : '0' }}>
           {replies.length === 0 ? (
             <p className="muted">No replies yet. Be the first to reply.</p>
           ) : (
             replies.map((reply) => (
-              <div key={reply.id} className="list-item">
+              <div key={reply.id} className="reply-item">
+                <div className="reply-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span className="reply-author">{reply.author_name}</span>
+                  <span className="reply-time">{new Date(reply.created_at).toLocaleString()}</span>
+                </div>
                 <div
-                  className="post-body"
+                  className="reply-body"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }}
                 />
-                <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{reply.author_name}</span>
-                  <span>{new Date(reply.created_at).toLocaleString()}</span>
-                </div>
               </div>
             ))
           )}
         </div>
+        <form action={`/api/forum/${thread.id}/replies`} method="post" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(22, 58, 74, 0.3)' }}>
+          <label>
+            <div className="muted" style={{ marginBottom: '8px' }}>Add a reply</div>
+            <textarea name="body" placeholder="Write your reply..." required />
+          </label>
+          <button type="submit">Post reply</button>
+        </form>
       </section>
     </div>
   );
