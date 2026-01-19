@@ -18,6 +18,7 @@
 - `deploy.sh` then completed `npm run build:cf` and `npm run deploy` successfully.
 - Deployed URL: `https://errl-portal-forum.extrepatho.workers.dev`
 - 2026-01-18: Ran `./deploy.sh "Polish header logo + refresh footer"`; commit `46e7507` pushed and deployed successfully (Cloudflare Version ID `6678673b-a955-4d54-b075-35e7f4a8c96d`).
+- 2026-01-18: Ran `./deploy.sh "Tighten logo/footer spacing + add rainbow drift"`; commit `844beb5` pushed and deployed successfully (Cloudflare Version ID `ef2fcac2-ecc3-4fa8-a546-3b2bda1d755c`).
 
 ## UI polish
 
@@ -25,6 +26,7 @@
 - Replaced the footer “notes”/placeholder copy with an “Errl Portal / Errl Forum — Created by Extrepa — Errl since 2015” footer + tagline, and styled it for a cleaner finish (`src/app/layout.js`, `src/app/globals.css`).
 - Reduced header logo padding so the face is less clipped and the header stays tighter; reduced footer top padding so the footer copy sits higher (`src/components/ForumLogo.js`, `src/app/globals.css`).
 - Added a slow “random rainbow drift” effect to the Errl SVG by animating a CSS hue variable over time (respects `prefers-reduced-motion`) (`src/components/ForumLogo.js`, `src/app/globals.css`).
+- Made the footer “Errl Portal / Errl Forum” brand text link to `https://errl.wtf` (`src/app/layout.js`, `src/app/globals.css`).
 
 ## Verification (UI polish)
 

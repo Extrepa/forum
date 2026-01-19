@@ -615,6 +615,12 @@ footer {
   font-weight: 600;
 }
 
+.footer-brand:hover,
+.footer-brand:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .footer-sep {
   opacity: 0.65;
 }

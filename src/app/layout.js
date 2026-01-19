@@ -33,7 +33,9 @@ export default function RootLayout({ children }) {
           <main>{children}</main>
           <footer>
             <div className="footer-line">
-              <span className="footer-brand">Errl Portal / Errl Forum</span>
+              <a className="footer-brand" href="https://errl.wtf">
+                Errl Portal / Errl Forum
+              </a>
               <span className="footer-sep">•</span>
               <span>Created by Extrepa</span>
               <span className="footer-sep">•</span>
