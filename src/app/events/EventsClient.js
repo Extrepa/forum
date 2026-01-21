@@ -12,6 +12,11 @@ export default function EventsClient({ events, notice }) {
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">{strings.cards.events.title}</h2>
+        <p className="muted">{strings.cards.events.description}</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -77,11 +82,6 @@ export default function EventsClient({ events, notice }) {
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">{strings.cards.events.title}</h2>
-        <p className="muted">{strings.cards.events.description}</p>
       </section>
     </div>
   );

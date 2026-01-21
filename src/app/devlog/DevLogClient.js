@@ -17,6 +17,11 @@ export default function DevLogClient({ logs, notice }) {
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">Development</h2>
+        <p className="muted">Updates, notes, and builds in progress.</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -109,11 +114,6 @@ export default function DevLogClient({ logs, notice }) {
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">Development</h2>
-        <p className="muted">Updates, notes, and builds in progress.</p>
       </section>
     </div>
   );

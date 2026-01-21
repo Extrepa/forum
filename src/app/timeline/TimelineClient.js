@@ -12,6 +12,11 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">{strings.cards.announcements.title}</h2>
+        <p className="muted">{strings.cards.announcements.description}</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -75,11 +80,6 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">{strings.cards.announcements.title}</h2>
-        <p className="muted">{strings.cards.announcements.description}</p>
       </section>
     </div>
   );

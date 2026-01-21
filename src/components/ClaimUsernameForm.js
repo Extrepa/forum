@@ -7,7 +7,7 @@ import { useUiPrefs } from './UiPrefsProvider';
 
 export default function ClaimUsernameForm() {
   const [status, setStatus] = useState({ type: 'idle', message: null });
-  const [mode, setMode] = useState('signup'); // signup | login
+  const [mode, setMode] = useState('login'); // signup | login
   const { loreEnabled, setLoreEnabled } = useUiPrefs();
 
   const [me, setMe] = useState(null);
@@ -461,95 +461,98 @@ export default function ClaimUsernameForm() {
   return (
     <div className="card">
       <div className="stack" style={{ gap: 12 }}>
-        <div className="list" style={{ marginTop: 0 }}>
-          <button
-            type="button"
-            className={mode === 'signup' ? 'active' : ''}
-            onClick={() => {
-              setStatus({ type: 'idle', message: null });
-              setMode('signup');
-            }}
-          >
-            Create account
-          </button>
-          <button
-            type="button"
-            className={mode === 'login' ? 'active' : ''}
-            onClick={() => {
-              setStatus({ type: 'idle', message: null });
-              setMode('login');
-            }}
-          >
-            Sign in
-          </button>
-        </div>
-
-        {mode === 'signup' ? (
-          <form onSubmit={submitSignup} className="card" style={{ padding: 12 }}>
-            <label>
-              <div className="muted">Email</div>
-              <input
-                name="email"
-                value={signupEmail}
-                onChange={(event) => setSignupEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Username (lowercase, 3 to 20 chars)</div>
-              <input
-                name="username"
-                value={signupUsername}
-                onChange={(event) => setSignupUsername(event.target.value)}
-                placeholder="errlmember"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Password (8+ chars)</div>
-              <input
-                name="password"
-                type="password"
-                value={signupPassword}
-                onChange={(event) => setSignupPassword(event.target.value)}
-                placeholder="Password"
-                required
-                pattern="[^\\s]{8,}"
-                title="Password must be at least 8 characters and contain no spaces."
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
+        {mode === 'login' ? (
+          <>
+            <form onSubmit={submitLogin} className="card" style={{ padding: 12 }}>
+              <label>
+                <div className="muted">Email (or username for legacy accounts)</div>
+                <input
+                  name="identifier"
+                  value={loginIdentifier}
+                  onChange={(event) => setLoginIdentifier(event.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
+              <label>
+                <div className="muted">Password</div>
+                <input
+                  name="password"
+                  type="password"
+                  value={loginPassword}
+                  onChange={(event) => setLoginPassword(event.target.value)}
+                  placeholder="Password"
+                  required
+                />
+              </label>
+              <button type="submit" disabled={status.type === 'loading'}>
+                Sign in
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus({ type: 'idle', message: null });
+                setMode('signup');
+              }}
+              disabled={status.type === 'loading'}
+              style={{ marginTop: '-8px' }}
+            >
               Create account
             </button>
-          </form>
+          </>
         ) : (
-          <form onSubmit={submitLogin} className="card" style={{ padding: 12 }}>
-            <label>
-              <div className="muted">Email (or username for legacy accounts)</div>
-              <input
-                name="identifier"
-                value={loginIdentifier}
-                onChange={(event) => setLoginIdentifier(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Password</div>
-              <input
-                name="password"
-                type="password"
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                placeholder="Password"
-                required
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
+          <>
+            <form onSubmit={submitSignup} className="card" style={{ padding: 12 }}>
+              <label>
+                <div className="muted">Email</div>
+                <input
+                  name="email"
+                  value={signupEmail}
+                  onChange={(event) => setSignupEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
+              <label>
+                <div className="muted">Username (lowercase, 3 to 20 chars)</div>
+                <input
+                  name="username"
+                  value={signupUsername}
+                  onChange={(event) => setSignupUsername(event.target.value)}
+                  placeholder="errlmember"
+                  required
+                />
+              </label>
+              <label>
+                <div className="muted">Password (8+ chars)</div>
+                <input
+                  name="password"
+                  type="password"
+                  value={signupPassword}
+                  onChange={(event) => setSignupPassword(event.target.value)}
+                  placeholder="Password"
+                  required
+                  pattern="[^\\s]{8,}"
+                  title="Password must be at least 8 characters and contain no spaces."
+                />
+              </label>
+              <button type="submit" disabled={status.type === 'loading'}>
+                Create account
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus({ type: 'idle', message: null });
+                setMode('login');
+              }}
+              disabled={status.type === 'loading'}
+              style={{ marginTop: '-8px' }}
+            >
               Sign in
             </button>
-          </form>
+          </>
         )}
 
         {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}

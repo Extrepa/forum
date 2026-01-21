@@ -377,4 +377,32 @@ If you want explicit per-file commands (run in this order):
 - **Build**:
   - `npm run build` succeeded (outside sandbox).
 
+### Issues and Upgrades Implementation Review (2026-01-21)
+- **Completed 10 out of 14 items** from `IssuesAndUpgrades-1.txt`:
+  - ✅ RSVP/attendees feature (migration 0018, API, component)
+  - ✅ Section title/description placement (all 13 clients fixed)
+  - ✅ Tagline update ("Keep it drippy")
+  - ✅ Sign in/sign up flow (proper toggle)
+  - ✅ Navigation dropdown (horizontal, scrollable)
+  - ✅ Combined pages (Art+Nostalgia, Bugs+Rants)
+  - ✅ Removed About page
+  - ✅ Footer wrapping improvements
+  - ✅ Welcome notification on signup
+  - ✅ Announcements on Feed (already implemented)
+- **Remaining items**:
+  - ⚠️ Enhanced calendar features (basic RSVP done, enhancements pending)
+  - ❓ Welcome text update (needs clarification)
+  - ⚠️ Browser-based login detection (not started)
+  - ⚠️ Default landing page preference (not started)
+  - ⚠️ Home page section cards expansion (not started)
+- **Documentation created**:
+  - `IMPLEMENTATION_STATUS_2026-01-21.md`
+  - `VERIFICATION_NOTES_2026-01-21.md`
+  - `NEXT_PHASE_PLAN.md`
+  - `COMPLETION_SUMMARY_2026-01-21.md`
+  - `FINAL_REVIEW_2026-01-21.md`
+- **Migration required**: `0018_event_attendees.sql` (created, needs application)
+- **Code quality**: All changes follow patterns, include error handling, rollout-safe
+- **Next phase**: See `NEXT_PHASE_PLAN.md` for detailed implementation plans
+
 

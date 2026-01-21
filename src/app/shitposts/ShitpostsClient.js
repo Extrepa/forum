@@ -26,6 +26,11 @@ export default function ShitpostsClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">{strings.cards.shitposts.title}</h2>
+        <p className="muted">{strings.cards.shitposts.description}</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -99,11 +104,6 @@ export default function ShitpostsClient({ posts, notice }) {
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">{strings.cards.shitposts.title}</h2>
-        <p className="muted">{strings.cards.shitposts.description}</p>
       </section>
     </div>
   );

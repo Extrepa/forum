@@ -71,6 +71,27 @@ export async function POST(request) {
     throw error;
   }
 
+  // Create welcome notification
+  try {
+    await db
+      .prepare(
+        `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        crypto.randomUUID(),
+        userId,
+        userId, // Actor is the user themselves for welcome notification
+        'welcome',
+        'account',
+        userId,
+        now
+      )
+      .run();
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
+  }
+
   const response = NextResponse.json({
     ok: true,
     username: validation.normalized,

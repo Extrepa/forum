@@ -21,6 +21,11 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">{strings.cards.projects.title}</h2>
+        <p className="muted">{strings.cards.projects.description}</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -120,11 +125,6 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">{strings.cards.projects.title}</h2>
-        <p className="muted">{strings.cards.projects.description}</p>
       </section>
     </div>
   );

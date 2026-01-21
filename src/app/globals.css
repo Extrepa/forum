@@ -199,19 +199,20 @@ nav {
 
 .nav-inline--more {
   margin-top: 10px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
-  max-height: calc((40px * 2) + 8px);
+  max-height: calc(40px + 4px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .nav-inline--more::-webkit-scrollbar {
   display: none;
 }
 
-.nav-inline--more nav,
-.nav-inline--more {
-  flex-wrap: wrap;
+.nav-inline--more nav {
+  flex-wrap: nowrap;
+  min-width: max-content;
 }
 
 nav a {
@@ -876,12 +877,17 @@ footer {
 }
 
 .footer-line {
-  display: inline-flex;
+  display: flex;
   gap: 10px;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
   letter-spacing: 0.2px;
+  max-width: 100%;
+}
+
+.footer-line > * {
+  white-space: nowrap;
 }
 
 .footer-brand {

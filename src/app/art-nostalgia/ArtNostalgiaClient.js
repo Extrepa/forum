@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 
-export default function BugsClient({ posts, notice }) {
-  const title = useMemo(() => 'Bugs', []);
-  const description = useMemo(() => 'Report issues, weirdness, and broken stuff.', []);
+export default function ArtNostalgiaClient({ posts, notice }) {
+  const title = useMemo(() => 'Art & Nostalgia', []);
+  const description = useMemo(() => 'Image-only posts and memories from the 2000s, childhood, and everything in between.', []);
 
   return (
     <div className="stack">
@@ -20,7 +20,7 @@ export default function BugsClient({ posts, notice }) {
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {posts.length === 0 ? (
-            <p className="muted">No bug reports yet.</p>
+            <p className="muted">No posts yet.</p>
           ) : (
             (() => {
               const latest = posts[0];
@@ -30,18 +30,20 @@ export default function BugsClient({ posts, notice }) {
                 <div key={p.id} className="list-item">
                   <div className="post-header">
                     <h3>
-                      <a href={`/bugs/${p.id}`}>{p.title || 'Bug report'}</a>
+                      <a href={`/${p.type}/${p.id}`}>{p.title || 'Untitled'}</a>
                     </h3>
-                    {p.is_private ? (
-                      <span className="muted" style={{ fontSize: 12 }}>
-                        Members-only
-                      </span>
-                    ) : null}
+                    <span className="muted" style={{ fontSize: 12 }}>
+                      {p.type === 'art' ? 'Art' : 'Nostalgia'}
+                      {p.is_private ? ' · Members-only' : ''}
+                    </span>
                   </div>
                   <div className="list-meta">
                     <Username name={p.author_name} colorIndex={getUsernameColorIndex(p.author_name)} /> ·{' '}
                     {new Date(p.created_at).toLocaleString()}
                   </div>
+                  {!condensed && p.image_key ? (
+                    <img src={`/api/media/${p.image_key}`} alt="" className="post-image" loading="lazy" />
+                  ) : null}
                   {!condensed && p.bodyHtml ? <div className="post-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                 </div>
               );
@@ -65,4 +67,3 @@ export default function BugsClient({ posts, notice }) {
     </div>
   );
 }
-

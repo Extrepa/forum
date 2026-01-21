@@ -30,7 +30,6 @@ export default function SearchClient({ query: initialQuery, results }) {
       nostalgia: 'Nostalgia',
       lore: 'Lore',
       memories: 'Memories',
-      about: 'About'
     };
     return labels[type] || type;
   };

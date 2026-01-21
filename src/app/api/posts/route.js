@@ -74,9 +74,9 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  redirectUrl.pathname = `/${type === 'about' ? 'about' : type}`;
+  redirectUrl.pathname = `/${type}`;
 
-  // Lore/Memories/About can have empty title; others default.
+  // Lore/Memories can have empty title; others default.
   const finalTitle = title || (type === 'bugs' ? 'Bug report' : type === 'art' ? 'Untitled' : 'Untitled');
   if (!body && type !== 'art') {
     redirectUrl.searchParams.set('error', 'missing');

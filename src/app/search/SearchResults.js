@@ -229,7 +229,7 @@ export default async function SearchResults({ query }) {
     replies = out?.results || [];
   }
 
-  // Search shared posts (art/bugs/rant/nostalgia/lore/memories/about)
+  // Search shared posts (art/bugs/rant/nostalgia/lore/memories)
   let posts = [];
   try {
     const out = await db

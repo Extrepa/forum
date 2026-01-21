@@ -14,6 +14,11 @@ export default function MemoriesClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
+        <h2 className="section-title">{title}</h2>
+        <p className="muted">{description}</p>
+      </section>
+
+      <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
@@ -59,11 +64,6 @@ export default function MemoriesClient({ posts, notice }) {
             })()
           )}
         </div>
-      </section>
-
-      <section className="card">
-        <h2 className="section-title">{title}</h2>
-        <p className="muted">{description}</p>
       </section>
     </div>
   );

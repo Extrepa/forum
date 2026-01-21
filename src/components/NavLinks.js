@@ -21,11 +21,8 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   ];
 
   const moreLinks = [
-    { href: '/about', label: 'About' },
-    { href: '/art', label: 'Art' },
-    { href: '/bugs', label: 'Bugs' },
-    { href: '/rant', label: 'Rant' },
-    { href: '/nostalgia', label: 'Nostalgia' },
+    { href: '/art-nostalgia', label: 'Art & Nostalgia' },
+    { href: '/bugs-rant', label: 'Bugs & Rants' },
     ...(isSignedIn ? [{ href: '/lore', label: 'Lore' }] : []),
     ...(isSignedIn ? [{ href: '/memories', label: 'Memories' }] : []),
   ];

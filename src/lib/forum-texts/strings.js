@@ -62,7 +62,7 @@ export const errlForumStrings = {
     like: 'Like'
   },
   footer: {
-    tagline: 'Keep it weird. Keep it real. Keep it Errl.'
+    tagline: 'Keep it weird. Keep it drippy. Keep it Errl.'
   },
   easterEggs: [
     'Errl is not lost. Errl is exploring.',

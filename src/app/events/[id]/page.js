@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import EventRSVP from '../../../components/EventRSVP';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +73,38 @@ export default async function EventDetailPage({ params, searchParams }) {
 
   const user = await getSessionUser();
 
+  // Get RSVP status and attendees
+  let userAttending = false;
+  let attendees = [];
+  if (user) {
+    try {
+      const rsvp = await db
+        .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
+        .bind(params.id, user.id)
+        .first();
+      userAttending = !!rsvp;
+    } catch (e) {
+      // Table might not exist yet
+    }
+
+    try {
+      const out = await db
+        .prepare(
+          `SELECT event_attendees.id, event_attendees.created_at,
+                  users.username, users.id AS user_id
+           FROM event_attendees
+           JOIN users ON users.id = event_attendees.user_id
+           WHERE event_attendees.event_id = ?
+           ORDER BY event_attendees.created_at ASC`
+        )
+        .bind(params.id)
+        .all();
+      attendees = out?.results || [];
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
@@ -107,6 +140,8 @@ export default async function EventDetailPage({ params, searchParams }) {
           <p className="muted">No details yet.</p>
         )}
       </section>
+
+      <EventRSVP eventId={event.id} initialAttending={userAttending} initialAttendees={attendees} />
 
       <section className="card">
         <h3 className="section-title">Comments</h3>
