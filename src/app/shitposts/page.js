@@ -23,7 +23,9 @@ export default async function ShitpostsPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Claim a username before posting.'
+      ? 'Sign in before posting.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'

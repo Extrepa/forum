@@ -33,7 +33,9 @@ export default async function MusicPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Claim a username before posting to the music feed.'
+      ? 'Sign in before posting to the music feed.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'invalid'
       ? 'We only support YouTube and SoundCloud links right now.'
       : error === 'missing'

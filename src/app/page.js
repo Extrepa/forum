@@ -193,15 +193,16 @@ export default async function HomePage() {
           <section className="card">
             <h2 className="section-title">Welcome</h2>
             <p className="muted">
-              This is the public spot to share ideas, post announcements, and plan meetups. Reading is open to everyone. Posting requires claiming a username once per browser.
+              This is the public spot to share ideas, post announcements, and plan meetups. Reading is open to everyone.
+              Posting requires an account so you can sign in from any device.
             </p>
           </section>
           <section className="card split">
             <div>
-              <h3 className="section-title">Claim your username</h3>
+              <h3 className="section-title">Sign in</h3>
               <p className="muted">
-                Usernames are one per person. Once claimed, the browser gets a private session token
-                so no one else can take that name unless the admin resets the system.
+                Create an account (email + username + password) or sign in to post.
+                Legacy users can sign in with their username + password and then add an email.
               </p>
             </div>
             <ClaimUsernameForm />

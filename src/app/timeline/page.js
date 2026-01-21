@@ -28,7 +28,9 @@ export default async function TimelinePage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Claim a username before posting announcements.'
+      ? 'Sign in before posting announcements.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'

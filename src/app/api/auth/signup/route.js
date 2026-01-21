@@ -1,0 +1,77 @@
+import { NextResponse } from 'next/server';
+import { getDb } from '../../../../lib/db';
+import { createToken } from '../../../../lib/tokens';
+import { setSessionCookie } from '../../../../lib/session';
+import { validateUsername } from '../../../../lib/username';
+import { hashPassword, normalizeEmail } from '../../../../lib/passwords';
+
+export async function POST(request) {
+  const db = await getDb();
+
+  let payload = {};
+  try {
+    payload = await request.json();
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+  }
+
+  const validation = validateUsername(payload.username);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.message }, { status: 400 });
+  }
+
+  const email = normalizeEmail(payload.email);
+  if (!email || !email.includes('@')) {
+    return NextResponse.json({ error: 'Please provide a valid email.' }, { status: 400 });
+  }
+
+  const password = String(payload.password || '');
+  let passwordHash = null;
+  try {
+    passwordHash = await hashPassword(password);
+  } catch (error) {
+    return NextResponse.json({ error: error.message || 'Invalid password.' }, { status: 400 });
+  }
+
+  const token = createToken();
+  const userId = crypto.randomUUID();
+  const now = Date.now();
+
+  try {
+    await db
+      .prepare(
+        `INSERT INTO users
+          (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        userId,
+        validation.normalized,
+        validation.normalized,
+        email,
+        email,
+        passwordHash,
+        now,
+        0,
+        token,
+        'user',
+        now
+      )
+      .run();
+  } catch (error) {
+    if (String(error).includes('UNIQUE')) {
+      return NextResponse.json({ error: 'That username or email is already taken.' }, { status: 409 });
+    }
+    throw error;
+  }
+
+  const response = NextResponse.json({
+    ok: true,
+    username: validation.normalized,
+    email,
+    mustChangePassword: false
+  });
+  setSessionCookie(response, token);
+  return response;
+}
+

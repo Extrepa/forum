@@ -46,7 +46,9 @@ export default async function ForumThreadPage({ params, searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Claim a username before replying.'
+      ? 'Sign in before replying.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'missing'
       ? 'Reply text is required.'
       : null;

@@ -91,7 +91,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   
   const commentNotice =
     error === 'claim'
-      ? 'Claim a username before commenting.'
+      ? 'Sign in before commenting.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;

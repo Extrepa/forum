@@ -28,7 +28,9 @@ export default async function EventsPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Claim a username before adding an event.'
+      ? 'Sign in before adding an event.'
+      : error === 'password'
+      ? 'Change your password to continue posting.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'

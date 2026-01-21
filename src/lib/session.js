@@ -16,3 +16,14 @@ export function setSessionCookie(response, token) {
     maxAge: 60 * 60 * 24 * 365
   });
 }
+
+export function clearSessionCookie(response) {
+  response.cookies.set({
+    name: COOKIE_NAME,
+    value: '',
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0
+  });
+}

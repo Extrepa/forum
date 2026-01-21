@@ -13,6 +13,10 @@ export async function POST(request) {
     redirectUrl.searchParams.set('error', 'claim');
     return NextResponse.redirect(redirectUrl, 303);
   }
+  if (user.must_change_password) {
+    redirectUrl.searchParams.set('error', 'password');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
 
   if (!postId || !body) {
     redirectUrl.searchParams.set('error', 'missing');
