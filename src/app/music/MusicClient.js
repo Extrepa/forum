@@ -58,21 +58,11 @@ export default function MusicClient({ posts, notice }) {
                     {!condensed && row.bodyHtml ? (
                       <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>{new Date(row.created_at).toLocaleString()}</span>
                     {!condensed && row.embed ? (
                       <div 
                         className={`embed-frame ${row.embed.aspect}`}
                         style={{
+                          marginBottom: '8px',
                           ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
                         }}
                       >
@@ -91,13 +81,11 @@ export default function MusicClient({ posts, notice }) {
                         alt=""
                         className="post-image"
                         loading="lazy"
+                        style={{ marginBottom: '8px' }}
                       />
                     ) : null}
-                    {!condensed && row.bodyHtml ? (
-                      <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
-                    ) : null}
                     {!condensed && tags.length ? (
-                      <div className="tag-row">
+                      <div className="tag-row" style={{ marginBottom: '8px' }}>
                         {tags.map((tag) => (
                           <span key={tag} className="tag-pill">
                             {tag}
@@ -105,10 +93,24 @@ export default function MusicClient({ posts, notice }) {
                         ))}
                       </div>
                     ) : null}
-                    <div className="rating-row" style={{ fontSize: '12px', marginTop: condensed ? '4px' : '6px' }}>
-                      <span>Rating: {row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—'}</span>
-                      <span>{row.rating_count} votes</span>
-                      <span>{row.comment_count} comments</span>
+                    {!condensed ? (
+                      <div className="rating-row" style={{ fontSize: '12px', marginBottom: '8px' }}>
+                        <span>Rating: {row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—'}</span>
+                        <span>{row.rating_count} votes</span>
+                        <span>{row.comment_count} comments</span>
+                      </div>
+                    ) : null}
+                    <div
+                      className="list-meta"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
+                    >
+                      <span>{new Date(row.created_at).toLocaleString()}</span>
                     </div>
                   </a>
                 );
