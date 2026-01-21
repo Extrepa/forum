@@ -3,7 +3,8 @@ import SearchBar from '../components/SearchBar';
 import BackButton from '../components/BackButton';
 import NavLinks from '../components/NavLinks';
 import NotificationsLogoTrigger from '../components/NotificationsLogoTrigger';
-import HeaderAccountControls from '../components/HeaderAccountControls';
+import HeaderAccountButton from '../components/HeaderAccountButton';
+import HeaderSetupBanner from '../components/HeaderSetupBanner';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -28,9 +29,10 @@ export default function RootLayout({ children }) {
               <nav>
                 <NavLinks />
               </nav>
+              <HeaderAccountButton />
               <SearchBar />
             </div>
-            <HeaderAccountControls />
+            <HeaderSetupBanner />
           </header>
           <main>{children}</main>
           <footer>
