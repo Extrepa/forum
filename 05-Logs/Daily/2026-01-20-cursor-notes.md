@@ -35,6 +35,7 @@
 - Deploy note: OpenNext `build:cf` can fail with `ENOTEMPTY` on `.open-next`; removing the folder and re-running deploy resolves it.
 - Account popover UX: reordered account setup so **email + password** come first; notification prefs are shown only after setup. Added **phone number storage** and a `set-phone` API endpoint to support future SMS notifications.
 - Outbound notifications: added optional **Resend (email)** + **Twilio (SMS)** delivery for forum reply notifications when provider secrets are configured (best-effort; won’t block posting if sending fails).
+- Account setup hardening: disallow passwords containing spaces (server + client), lock email behind an explicit “Change email” action, disable SMS toggle until a phone number is provided, and make account/notifications popovers scroll within the viewport.
 
 ## Ready-to-test checklist (2026-01-21)
 

@@ -402,10 +402,17 @@ button:hover {
   top: calc(100% + 10px);
   width: min(560px, 95vw);
   z-index: 1200;
+  max-height: min(78vh, calc(100vh - 160px));
+  overflow: auto;
 }
 
 .header-account-popover .card {
   padding: 12px;
+}
+
+.notifications-popover {
+  max-height: min(78vh, calc(100vh - 160px));
+  overflow: auto;
 }
 
 .notice {

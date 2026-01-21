@@ -18,8 +18,11 @@ export async function POST(request) {
 
   const oldPassword = String(payload.oldPassword || '');
   const newPassword = String(payload.newPassword || '');
-  if (!newPassword) {
-    return NextResponse.json({ error: 'Missing new password.' }, { status: 400 });
+  if (!newPassword || newPassword.length < 8) {
+    return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+  }
+  if (/\s/.test(newPassword)) {
+    return NextResponse.json({ error: 'Password cannot contain spaces.' }, { status: 400 });
   }
 
   const db = await getDb();

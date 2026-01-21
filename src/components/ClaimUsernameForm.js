@@ -9,6 +9,7 @@ export default function ClaimUsernameForm() {
   const [mode, setMode] = useState('signup'); // signup | login
 
   const [me, setMe] = useState(null);
+  const [editingEmail, setEditingEmail] = useState(false);
 
   // signup
   const [signupEmail, setSignupEmail] = useState('');
@@ -27,6 +28,13 @@ export default function ClaimUsernameForm() {
   const [notifyEmailEnabled, setNotifyEmailEnabled] = useState(false);
   const [notifySmsEnabled, setNotifySmsEnabled] = useState(false);
 
+  const validatePassword = (value) => {
+    const pw = String(value || '');
+    if (pw.length < 8) return 'Password must be at least 8 characters.';
+    if (/\s/.test(pw)) return 'Password cannot contain spaces.';
+    return null;
+  };
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -37,6 +45,8 @@ export default function ClaimUsernameForm() {
           return;
         }
         setMe(payload.user || null);
+        setEditingEmail(false);
+        setNewEmail(payload.user?.email || '');
         setNewPhone(payload.user?.phone || '');
         setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
         setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
@@ -55,6 +65,8 @@ export default function ClaimUsernameForm() {
       const response = await fetch('/api/auth/me', { method: 'GET' });
       const payload = await response.json();
       setMe(payload.user || null);
+      setEditingEmail(false);
+      setNewEmail(payload.user?.email || '');
       setNewPhone(payload.user?.phone || '');
       setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
       setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
@@ -68,6 +80,9 @@ export default function ClaimUsernameForm() {
     setStatus({ type: 'loading', message: 'Saving notification settings...' });
     try {
       const phoneTrimmed = String(newPhone || '').trim();
+      if (notifySmsEnabled && !phoneTrimmed) {
+        throw new Error('Enter a phone number before enabling SMS notifications.');
+      }
       const phoneResponse = await fetch('/api/auth/set-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,6 +111,11 @@ export default function ClaimUsernameForm() {
 
   const submitSignup = async (event) => {
     event.preventDefault();
+    const pwError = validatePassword(signupPassword);
+    if (pwError) {
+      setStatus({ type: 'error', message: pwError });
+      return;
+    }
     setStatus({ type: 'loading', message: 'Creating account...' });
 
     try {
@@ -165,6 +185,9 @@ export default function ClaimUsernameForm() {
 
   const submitSetEmail = async (event) => {
     event.preventDefault();
+    if (me?.email && !editingEmail) {
+      return;
+    }
     setStatus({ type: 'loading', message: 'Saving email...' });
     try {
       const response = await fetch('/api/auth/set-email', {
@@ -177,7 +200,7 @@ export default function ClaimUsernameForm() {
         throw new Error(payload.error || 'Unable to set email.');
       }
       setStatus({ type: 'success', message: 'Email saved.' });
-      setNewEmail('');
+      setEditingEmail(false);
       await refreshMe();
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -186,6 +209,11 @@ export default function ClaimUsernameForm() {
 
   const submitChangePassword = async (event) => {
     event.preventDefault();
+    const pwError = validatePassword(newPassword);
+    if (pwError) {
+      setStatus({ type: 'error', message: pwError });
+      return;
+    }
     setStatus({ type: 'loading', message: 'Saving password...' });
     try {
       const response = await fetch('/api/auth/change-password', {
@@ -229,19 +257,52 @@ export default function ClaimUsernameForm() {
 
         <div className="stack" style={{ gap: 12 }}>
           <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
-            <label>
-              <div className="muted">Email</div>
-              <input
-                name="email"
-                value={newEmail}
-                onChange={(event) => setNewEmail(event.target.value)}
-                placeholder={me.email || 'you@example.com'}
-                required
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Set email
-            </button>
+            <div className="muted" style={{ marginBottom: 8 }}>
+              Email
+            </div>
+            {me.email && !editingEmail ? (
+              <div className="stack" style={{ gap: 10 }}>
+                <input name="email" value={me.email} disabled />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatus({ type: 'idle', message: null });
+                    setEditingEmail(true);
+                    setNewEmail(me.email || '');
+                  }}
+                  disabled={status.type === 'loading'}
+                >
+                  Change email
+                </button>
+              </div>
+            ) : (
+              <div className="stack" style={{ gap: 10 }}>
+                <input
+                  name="email"
+                  value={newEmail}
+                  onChange={(event) => setNewEmail(event.target.value)}
+                  placeholder={me.email || 'you@example.com'}
+                  required
+                />
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button type="submit" disabled={status.type === 'loading'}>
+                    {me.email ? 'Save email' : 'Set email'}
+                  </button>
+                  {me.email ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingEmail(false);
+                        setNewEmail(me.email || '');
+                      }}
+                      disabled={status.type === 'loading'}
+                    >
+                      Cancel
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            )}
           </form>
 
           <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
@@ -267,6 +328,8 @@ export default function ClaimUsernameForm() {
                 onChange={(event) => setNewPassword(event.target.value)}
                 placeholder="New password (8+ chars)"
                 required
+                pattern="[^\\s]{8,}"
+                title="Password must be at least 8 characters and contain no spaces."
               />
             </label>
             <button type="submit" disabled={status.type === 'loading'}>
@@ -302,8 +365,14 @@ export default function ClaimUsernameForm() {
                   type="checkbox"
                   checked={notifySmsEnabled}
                   onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                  disabled={!String(newPhone || '').trim()}
                 />
               </label>
+              {!String(newPhone || '').trim() ? (
+                <div className="muted" style={{ fontSize: 13 }}>
+                  Add a phone number to enable SMS.
+                </div>
+              ) : null}
               <button type="submit" disabled={status.type === 'loading'}>
                 Save notification settings
               </button>
@@ -377,6 +446,8 @@ export default function ClaimUsernameForm() {
                 onChange={(event) => setSignupPassword(event.target.value)}
                 placeholder="Password"
                 required
+                pattern="[^\\s]{8,}"
+                title="Password must be at least 8 characters and contain no spaces."
               />
             </label>
             <button type="submit" disabled={status.type === 'loading'}>
