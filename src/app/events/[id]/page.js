@@ -1,0 +1,161 @@
+import { redirect } from 'next/navigation';
+import { getDb } from '../../../lib/db';
+import { renderMarkdown } from '../../../lib/markdown';
+import { getSessionUser } from '../../../lib/auth';
+import Breadcrumbs from '../../../components/Breadcrumbs';
+import Username from '../../../components/Username';
+import { getUsernameColorIndex } from '../../../lib/usernameColor';
+
+export const dynamic = 'force-dynamic';
+
+function destUrlFor(type, id) {
+  switch (type) {
+    case 'forum_thread':
+      return `/forum/${id}`;
+    case 'project':
+      return `/projects/${id}`;
+    case 'music_post':
+      return `/music/${id}`;
+    case 'timeline_update':
+      return `/timeline/${id}`;
+    case 'event':
+      return `/events/${id}`;
+    case 'dev_log':
+      return `/devlog/${id}`;
+    default:
+      return null;
+  }
+}
+
+export default async function EventDetailPage({ params, searchParams }) {
+  const db = await getDb();
+  const event = await db
+    .prepare(
+      `SELECT events.id, events.title, events.details, events.starts_at,
+              events.created_at, events.image_key,
+              events.moved_to_type, events.moved_to_id,
+              users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       WHERE events.id = ?`
+    )
+    .bind(params.id)
+    .first();
+
+  if (!event) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This event does not exist.</p>
+      </section>
+    );
+  }
+
+  if (event.moved_to_id) {
+    const to = destUrlFor(event.moved_to_type, event.moved_to_id);
+    if (to) {
+      redirect(to);
+    }
+  }
+
+  const { results: comments } = await db
+    .prepare(
+      `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+              users.username AS author_name
+       FROM event_comments
+       JOIN users ON users.id = event_comments.author_user_id
+       WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
+       ORDER BY event_comments.created_at ASC`
+    )
+    .bind(params.id)
+    .all();
+
+  const user = await getSessionUser();
+
+  const error = searchParams?.error;
+  const commentNotice =
+    error === 'claim'
+      ? 'Sign in before commenting.'
+      : error === 'password'
+      ? 'Set your password to continue posting.'
+      : error === 'missing'
+      ? 'Comment text is required.'
+      : null;
+
+  return (
+    <div className="stack">
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/events', label: 'Events' },
+          { href: `/events/${event.id}`, label: event.title },
+        ]}
+      />
+
+      <section className="card">
+        <h2 className="section-title">{event.title}</h2>
+        <div className="list-meta">
+          <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} /> ·{' '}
+          {new Date(event.starts_at).toLocaleString()}
+        </div>
+        {event.image_key ? (
+          <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
+        ) : null}
+        {event.details ? (
+          <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(event.details) }} />
+        ) : (
+          <p className="muted">No details yet.</p>
+        )}
+      </section>
+
+      <section className="card">
+        <h3 className="section-title">Comments</h3>
+        {commentNotice ? <div className="notice">{commentNotice}</div> : null}
+        {user ? (
+          <form action={`/api/events/${event.id}/comments`} method="post">
+            <label>
+              <div className="muted">Say something</div>
+              <textarea name="body" placeholder="Leave a comment" required />
+            </label>
+            <button type="submit">Post comment</button>
+          </form>
+        ) : (
+          <p className="muted">Sign in to comment.</p>
+        )}
+        <div className="list">
+          {comments.length === 0 ? (
+            <p className="muted">No comments yet.</p>
+          ) : (
+            (() => {
+              let lastName = null;
+              let lastIndex = null;
+              return comments.map((c) => {
+                const colorIndex = getUsernameColorIndex(c.author_name, {
+                  avoidIndex: lastIndex,
+                  avoidName: lastName,
+                });
+                lastName = c.author_name;
+                lastIndex = colorIndex;
+                return (
+                  <div key={c.id} className="list-item">
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                    <div
+                      className="list-meta"
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <span>
+                        <Username name={c.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>{new Date(c.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+

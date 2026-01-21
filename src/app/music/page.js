@@ -8,20 +8,41 @@ export const dynamic = 'force-dynamic';
 
 export default async function MusicPage({ searchParams }) {
   const db = await getDb();
-  const { results } = await db
-    .prepare(
-      `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
-              music_posts.type, music_posts.tags, music_posts.image_key,
-              music_posts.created_at, users.username AS author_name,
-              (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
-              (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-              (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
-       FROM music_posts
-       JOIN users ON users.id = music_posts.author_user_id
-       ORDER BY music_posts.created_at DESC
-       LIMIT 50`
-    )
-    .all();
+  let results = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at, users.username AS author_name,
+                (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE music_posts.moved_to_id IS NULL
+         ORDER BY music_posts.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at, users.username AS author_name,
+                (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         ORDER BY music_posts.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  }
 
   // Pre-render markdown and embed info for server component
   const posts = results.map(row => ({

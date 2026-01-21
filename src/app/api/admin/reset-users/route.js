@@ -15,8 +15,12 @@ export async function POST(request) {
   const statements = [
     'DELETE FROM likes',
     'DELETE FROM reports',
+    'DELETE FROM content_moves',
+    'DELETE FROM dev_log_comments',
     'DELETE FROM timeline_comments',
+    'DELETE FROM event_comments',
     'DELETE FROM forum_replies',
+    'DELETE FROM dev_logs',
     'DELETE FROM timeline_updates',
     'DELETE FROM forum_threads',
     'DELETE FROM events',

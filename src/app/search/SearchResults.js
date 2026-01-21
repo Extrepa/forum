@@ -11,96 +11,219 @@ export default async function SearchResults({ query }) {
   const searchTerm = `%${query}%`;
 
   // Search forum threads
-  const { results: threads } = await db
-    .prepare(
-      `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-              forum_threads.created_at, forum_threads.image_key,
-              users.username AS author_name,
-              (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
-       FROM forum_threads
-       JOIN users ON users.id = forum_threads.author_user_id
-       WHERE forum_threads.title LIKE ? OR forum_threads.body LIKE ?
-       ORDER BY forum_threads.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm, searchTerm)
-    .all();
+  let threads = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.moved_to_id IS NULL
+           AND (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    threads = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    threads = out?.results || [];
+  }
 
   // Search timeline updates
-  const { results: updates } = await db
-    .prepare(
-      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
-              timeline_updates.created_at, timeline_updates.image_key,
-              users.username AS author_name
-       FROM timeline_updates
-       JOIN users ON users.id = timeline_updates.author_user_id
-       WHERE (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
-       ORDER BY timeline_updates.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm, searchTerm)
-    .all();
+  let updates = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.image_key,
+                users.username AS author_name
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE timeline_updates.moved_to_id IS NULL
+           AND (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    updates = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.image_key,
+                users.username AS author_name
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    updates = out?.results || [];
+  }
 
   // Search events
-  const { results: events } = await db
-    .prepare(
-      `SELECT events.id, events.title, events.details, events.starts_at,
-              events.created_at, events.image_key,
-              users.username AS author_name
-       FROM events
-       JOIN users ON users.id = events.author_user_id
-       WHERE events.title LIKE ? OR events.details LIKE ?
-       ORDER BY events.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm, searchTerm)
-    .all();
+  let events = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT events.id, events.title, events.details, events.starts_at,
+                events.created_at, events.image_key,
+                users.username AS author_name
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE events.moved_to_id IS NULL
+           AND (events.title LIKE ? OR events.details LIKE ?)
+         ORDER BY events.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    events = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT events.id, events.title, events.details, events.starts_at,
+                events.created_at, events.image_key,
+                users.username AS author_name
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE (events.title LIKE ? OR events.details LIKE ?)
+         ORDER BY events.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    events = out?.results || [];
+  }
 
   // Search music posts
-  const { results: music } = await db
-    .prepare(
-      `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
-              music_posts.type, music_posts.tags, music_posts.image_key,
-              music_posts.created_at, users.username AS author_name
-       FROM music_posts
-       JOIN users ON users.id = music_posts.author_user_id
-       WHERE music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?
-       ORDER BY music_posts.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm, searchTerm, searchTerm)
-    .all();
+  let music = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at, users.username AS author_name
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE music_posts.moved_to_id IS NULL
+           AND (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
+         ORDER BY music_posts.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm, searchTerm)
+      .all();
+    music = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at, users.username AS author_name
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
+         ORDER BY music_posts.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm, searchTerm)
+      .all();
+    music = out?.results || [];
+  }
 
   // Search projects
-  const { results: projects } = await db
-    .prepare(
-      `SELECT projects.id, projects.title, projects.description, projects.status,
-              projects.github_url, projects.demo_url, projects.image_key,
-              projects.created_at, users.username AS author_name
-       FROM projects
-       JOIN users ON users.id = projects.author_user_id
-       WHERE projects.title LIKE ? OR projects.description LIKE ?
-       ORDER BY projects.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm, searchTerm)
-    .all();
+  let projects = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT projects.id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, users.username AS author_name
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE projects.moved_to_id IS NULL
+           AND (projects.title LIKE ? OR projects.description LIKE ?)
+         ORDER BY projects.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    projects = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT projects.id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, users.username AS author_name
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE (projects.title LIKE ? OR projects.description LIKE ?)
+         ORDER BY projects.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    projects = out?.results || [];
+  }
 
   // Search forum replies
-  const { results: replies } = await db
-    .prepare(
-      `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
-              forum_replies.thread_id, users.username AS author_name,
-              forum_threads.title AS thread_title
-       FROM forum_replies
-       JOIN users ON users.id = forum_replies.author_user_id
-       JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
-       WHERE forum_replies.body LIKE ? AND forum_replies.is_deleted = 0
-       ORDER BY forum_replies.created_at DESC
-       LIMIT 20`
-    )
-    .bind(searchTerm)
-    .all();
+  let replies = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
+                forum_replies.thread_id, users.username AS author_name,
+                forum_threads.title AS thread_title
+         FROM forum_replies
+         JOIN users ON users.id = forum_replies.author_user_id
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         WHERE forum_replies.body LIKE ?
+           AND forum_replies.is_deleted = 0
+           AND forum_threads.moved_to_id IS NULL
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm)
+      .all();
+    replies = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
+                forum_replies.thread_id, users.username AS author_name,
+                forum_threads.title AS thread_title
+         FROM forum_replies
+         JOIN users ON users.id = forum_replies.author_user_id
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         WHERE forum_replies.body LIKE ? AND forum_replies.is_deleted = 0
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm)
+      .all();
+    replies = out?.results || [];
+  }
 
   // Pre-render markdown for results
   const processedThreads = threads.map(t => ({
@@ -114,14 +237,14 @@ export default async function SearchResults({ query }) {
     ...u,
     bodyHtml: renderMarkdown(u.body),
     type: 'announcement',
-    url: '/timeline'
+    url: `/timeline/${u.id}`
   }));
 
   const processedEvents = events.map(e => ({
     ...e,
     detailsHtml: e.details ? renderMarkdown(e.details) : null,
     type: 'event',
-    url: '/events'
+    url: `/events/${e.id}`
   }));
 
   const processedMusic = music.map(m => ({

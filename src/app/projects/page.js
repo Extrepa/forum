@@ -8,19 +8,39 @@ export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage({ searchParams }) {
   const db = await getDb();
-  const { results } = await db
-    .prepare(
-      `SELECT projects.id, projects.title, projects.description, projects.status,
-              projects.github_url, projects.demo_url, projects.image_key,
-              projects.created_at, projects.updated_at,
-              users.username AS author_name,
-              (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS comment_count
-       FROM projects
-       JOIN users ON users.id = projects.author_user_id
-       ORDER BY projects.created_at DESC
-       LIMIT 50`
-    )
-    .all();
+  let results = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT projects.id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, projects.updated_at,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS comment_count
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE projects.moved_to_id IS NULL
+         ORDER BY projects.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT projects.id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, projects.updated_at,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS comment_count
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         ORDER BY projects.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  }
 
   const user = await getSessionUser();
   const canCreate = !!user && !user.must_change_password && !!user.password_hash;

@@ -5,19 +5,21 @@ import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
 
 export default function TimelineClient({ updates, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const strings = getForumStrings({ useLore: isLoreEnabled() });
 
   return (
     <div className="stack">
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Announcements</h2>
-            <p className="muted">Official updates and pinned notes for the community.</p>
+            <h2 className="section-title">{strings.cards.announcements.title}</h2>
+            <p className="muted">{strings.cards.announcements.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>Create Post</button>
+          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -26,7 +28,7 @@ export default function TimelineClient({ updates, notice }) {
         <h3 className="section-title">Latest</h3>
         <div className="list">
           {updates.length === 0 ? (
-            <p className="muted">No announcements yet. Be the first to post.</p>
+            <p className="muted">{strings.cards.announcements.empty}</p>
           ) : (
             (() => {
               let lastName = null;
@@ -42,7 +44,9 @@ export default function TimelineClient({ updates, notice }) {
 
                 return (
                   <div key={row.id} className="list-item">
-                    <h3>{row.title || 'Update'}</h3>
+                    <h3>
+                      <a href={`/timeline/${row.id}`}>{row.title || 'Update'}</a>
+                    </h3>
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}

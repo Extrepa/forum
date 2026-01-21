@@ -6,19 +6,39 @@ export const dynamic = 'force-dynamic';
 
 export default async function ShitpostsPage({ searchParams }) {
   const db = await getDb();
-  const { results } = await db
-    .prepare(
-      `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-              forum_threads.created_at, forum_threads.image_key,
-              users.username AS author_name,
-              (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
-       FROM forum_threads
-       JOIN users ON users.id = forum_threads.author_user_id
-       WHERE forum_threads.image_key IS NOT NULL
-       ORDER BY forum_threads.created_at DESC
-       LIMIT 50`
-    )
-    .all();
+  let results = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL
+           AND forum_threads.moved_to_id IS NULL
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  }
 
   const error = searchParams?.error;
   const notice =

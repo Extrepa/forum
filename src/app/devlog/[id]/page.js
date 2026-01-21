@@ -1,4 +1,5 @@
 import DevLogForm from '../../../components/DevLogForm';
+import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { isAdminUser } from '../../../lib/admin';
@@ -8,6 +9,25 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
+
+function destUrlFor(type, id) {
+  switch (type) {
+    case 'forum_thread':
+      return `/forum/${id}`;
+    case 'project':
+      return `/projects/${id}`;
+    case 'music_post':
+      return `/music/${id}`;
+    case 'timeline_update':
+      return `/timeline/${id}`;
+    case 'event':
+      return `/events/${id}`;
+    case 'dev_log':
+      return `/devlog/${id}`;
+    default:
+      return null;
+  }
+}
 
 export default async function DevLogDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
@@ -31,6 +51,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                 dev_logs.is_locked,
                 dev_logs.created_at, dev_logs.updated_at,
+                dev_logs.moved_to_type, dev_logs.moved_to_id,
                 users.username AS author_name
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
@@ -39,7 +60,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       .bind(params.id)
       .first();
   } catch (e) {
-    // Rollout compatibility if the is_locked column isn't migrated yet.
+    // Rollout compatibility if columns aren't migrated yet.
     try {
       log = await db
         .prepare(
@@ -54,6 +75,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         .first();
       if (log) {
         log.is_locked = 0;
+        log.moved_to_id = null;
+        log.moved_to_type = null;
       }
     } catch (e2) {
       dbUnavailable = true;
@@ -77,6 +100,13 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         <p className="muted">This dev log post does not exist.</p>
       </section>
     );
+  }
+
+  if (log.moved_to_id) {
+    const to = destUrlFor(log.moved_to_type, log.moved_to_id);
+    if (to) {
+      redirect(to);
+    }
   }
 
   let comments = [];

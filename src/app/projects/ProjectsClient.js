@@ -5,20 +5,22 @@ import ProjectForm from '../../components/ProjectForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
 
 export default function ProjectsClient({ projects, canCreate, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const strings = getForumStrings({ useLore: isLoreEnabled() });
 
   return (
     <div className="stack">
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Projects</h2>
-            <p className="muted">Current and past projects with updates and progress.</p>
+            <h2 className="section-title">{strings.cards.projects.title}</h2>
+            <p className="muted">{strings.cards.projects.description}</p>
           </div>
           {canCreate && (
-            <button onClick={() => setIsModalOpen(true)}>Create Post</button>
+            <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
           )}
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
@@ -28,7 +30,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
         <h3 className="section-title">All Projects</h3>
         <div className="list">
           {projects.length === 0 ? (
-            <p className="muted">No projects yet.</p>
+            <p className="muted">{strings.cards.projects.empty}</p>
           ) : (
             (() => {
               let lastName = null;

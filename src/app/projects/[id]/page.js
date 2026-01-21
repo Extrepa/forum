@@ -1,5 +1,6 @@
 import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
 import ProjectForm from '../../../components/ProjectForm';
+import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
@@ -9,20 +10,61 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
+function destUrlFor(type, id) {
+  switch (type) {
+    case 'forum_thread':
+      return `/forum/${id}`;
+    case 'project':
+      return `/projects/${id}`;
+    case 'music_post':
+      return `/music/${id}`;
+    case 'timeline_update':
+      return `/timeline/${id}`;
+    case 'event':
+      return `/events/${id}`;
+    case 'dev_log':
+      return `/devlog/${id}`;
+    default:
+      return null;
+  }
+}
+
 export default async function ProjectDetailPage({ params, searchParams }) {
   const db = await getDb();
-  const project = await db
-    .prepare(
-      `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
-              projects.github_url, projects.demo_url, projects.image_key,
-              projects.created_at, projects.updated_at,
-              users.username AS author_name
-       FROM projects
-       JOIN users ON users.id = projects.author_user_id
-       WHERE projects.id = ?`
-    )
-    .bind(params.id)
-    .first();
+  let project = null;
+  try {
+    project = await db
+      .prepare(
+        `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, projects.updated_at,
+                projects.moved_to_type, projects.moved_to_id,
+                users.username AS author_name
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE projects.id = ?`
+      )
+      .bind(params.id)
+      .first();
+  } catch (e) {
+    // Rollout compatibility if moved columns aren't migrated yet.
+    project = await db
+      .prepare(
+        `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
+                projects.github_url, projects.demo_url, projects.image_key,
+                projects.created_at, projects.updated_at,
+                users.username AS author_name
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE projects.id = ?`
+      )
+      .bind(params.id)
+      .first();
+    if (project) {
+      project.moved_to_id = null;
+      project.moved_to_type = null;
+    }
+  }
 
   if (!project) {
     return (
@@ -31,6 +73,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         <p className="muted">This project does not exist.</p>
       </div>
     );
+  }
+
+  if (project.moved_to_id) {
+    const to = destUrlFor(project.moved_to_type, project.moved_to_id);
+    if (to) {
+      redirect(to);
+    }
   }
 
   const { results: updates } = await db

@@ -7,17 +7,35 @@ export const dynamic = 'force-dynamic';
 
 export default async function TimelinePage({ searchParams }) {
   const db = await getDb();
-  const { results } = await db
-    .prepare(
-      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
-              timeline_updates.created_at, timeline_updates.image_key,
-              users.username AS author_name
-       FROM timeline_updates
-       JOIN users ON users.id = timeline_updates.author_user_id
-       ORDER BY timeline_updates.created_at DESC
-       LIMIT 50`
-    )
-    .all();
+  let results = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.image_key,
+                users.username AS author_name
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE timeline_updates.moved_to_id IS NULL
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.image_key,
+                users.username AS author_name
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  }
 
   // Pre-render markdown for server component
   const updates = results.map(row => ({

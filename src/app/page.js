@@ -3,6 +3,12 @@ import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
 import Username from '../components/Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import {
+  getForumStrings,
+  getTimeBasedGreetingTemplate,
+  isLoreEnabled,
+  renderTemplateParts
+} from '../lib/forum-texts';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +29,20 @@ function formatTimeAgo(timestamp) {
 export default async function HomePage() {
   const user = await getSessionUser();
   const hasUsername = !!user;
+  const useLore = isLoreEnabled();
+  const strings = getForumStrings({ useLore });
+
+  const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
+    try {
+      const stmt = db.prepare(primarySql);
+      const bound = primaryBinds?.length ? stmt.bind(...primaryBinds) : stmt;
+      return await bound.first();
+    } catch (e) {
+      const stmt = db.prepare(fallbackSql);
+      const bound = fallbackBinds?.length ? stmt.bind(...fallbackBinds) : stmt;
+      return await bound.first();
+    }
+  };
 
   // Fetch section data for logged-in users
   let sectionData = null;
@@ -30,85 +50,168 @@ export default async function HomePage() {
     const db = await getDb();
 
     // Timeline/Announcements
-    const timelineCount = await db.prepare('SELECT COUNT(*) as count FROM timeline_updates').first();
-    const timelineRecent = await db
-      .prepare(
-        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
-                users.username AS author_name
-         FROM timeline_updates
-         JOIN users ON users.id = timeline_updates.author_user_id
-         ORDER BY timeline_updates.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const timelineCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM timeline_updates WHERE moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM timeline_updates',
+      []
+    );
+    const timelineRecent = await safeFirst(
+      db,
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
+              users.username AS author_name
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       WHERE timeline_updates.moved_to_id IS NULL
+       ORDER BY timeline_updates.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
+              users.username AS author_name
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       ORDER BY timeline_updates.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     // Forum/General
-    const forumCount = await db.prepare('SELECT COUNT(*) as count FROM forum_threads').first();
-    const forumRecent = await db
-      .prepare(
-        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-                users.username AS author_name
-         FROM forum_threads
-         JOIN users ON users.id = forum_threads.author_user_id
-         ORDER BY forum_threads.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const forumCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM forum_threads WHERE moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM forum_threads',
+      []
+    );
+    const forumRecent = await safeFirst(
+      db,
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.moved_to_id IS NULL
+       ORDER BY forum_threads.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       ORDER BY forum_threads.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     // Events
-    const eventsCount = await db.prepare('SELECT COUNT(*) as count FROM events').first();
-    const eventsRecent = await db
-      .prepare(
-        `SELECT events.id, events.title, events.created_at,
-                users.username AS author_name
-         FROM events
-         JOIN users ON users.id = events.author_user_id
-         ORDER BY events.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const eventsCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM events WHERE moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM events',
+      []
+    );
+    const eventsRecent = await safeFirst(
+      db,
+      `SELECT events.id, events.title, events.created_at,
+              users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       WHERE events.moved_to_id IS NULL
+       ORDER BY events.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT events.id, events.title, events.created_at,
+              users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       ORDER BY events.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     // Music
-    const musicCount = await db.prepare('SELECT COUNT(*) as count FROM music_posts').first();
-    const musicRecent = await db
-      .prepare(
-        `SELECT music_posts.id, music_posts.title, music_posts.created_at,
-                users.username AS author_name
-         FROM music_posts
-         JOIN users ON users.id = music_posts.author_user_id
-         ORDER BY music_posts.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const musicCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM music_posts WHERE moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM music_posts',
+      []
+    );
+    const musicRecent = await safeFirst(
+      db,
+      `SELECT music_posts.id, music_posts.title, music_posts.created_at,
+              users.username AS author_name
+       FROM music_posts
+       JOIN users ON users.id = music_posts.author_user_id
+       WHERE music_posts.moved_to_id IS NULL
+       ORDER BY music_posts.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT music_posts.id, music_posts.title, music_posts.created_at,
+              users.username AS author_name
+       FROM music_posts
+       JOIN users ON users.id = music_posts.author_user_id
+       ORDER BY music_posts.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     // Projects
-    const projectsCount = await db.prepare('SELECT COUNT(*) as count FROM projects').first();
-    const projectsRecent = await db
-      .prepare(
-        `SELECT projects.id, projects.title, projects.created_at,
-                users.username AS author_name
-         FROM projects
-         JOIN users ON users.id = projects.author_user_id
-         ORDER BY projects.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const projectsCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM projects WHERE moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM projects',
+      []
+    );
+    const projectsRecent = await safeFirst(
+      db,
+      `SELECT projects.id, projects.title, projects.created_at,
+              users.username AS author_name
+       FROM projects
+       JOIN users ON users.id = projects.author_user_id
+       WHERE projects.moved_to_id IS NULL
+       ORDER BY projects.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT projects.id, projects.title, projects.created_at,
+              users.username AS author_name
+       FROM projects
+       JOIN users ON users.id = projects.author_user_id
+       ORDER BY projects.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     // Shitposts
-    const shitpostsCount = await db
-      .prepare('SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL')
-      .first();
-    const shitpostsRecent = await db
-      .prepare(
-        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-                users.username AS author_name
-         FROM forum_threads
-         JOIN users ON users.id = forum_threads.author_user_id
-         WHERE forum_threads.image_key IS NOT NULL
-         ORDER BY forum_threads.created_at DESC
-         LIMIT 1`
-      )
-      .first();
+    const shitpostsCount = await safeFirst(
+      db,
+      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND moved_to_id IS NULL',
+      [],
+      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL',
+      []
+    );
+    const shitpostsRecent = await safeFirst(
+      db,
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.image_key IS NOT NULL
+         AND forum_threads.moved_to_id IS NULL
+       ORDER BY forum_threads.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.image_key IS NOT NULL
+       ORDER BY forum_threads.created_at DESC
+       LIMIT 1`,
+      []
+    );
 
     sectionData = {
       timeline: {
@@ -212,17 +315,31 @@ export default async function HomePage() {
 
       {hasUsername && (
         <section className="card">
-          <h2 className="section-title">
-            Welcome back{' '}
-            {user?.username ? <Username name={user.username} force="purple" /> : null}
-          </h2>
+          {(() => {
+            const { template } = getTimeBasedGreetingTemplate({ date: new Date(), useLore });
+            const parts = renderTemplateParts(template, 'username');
+
+            return (
+              <h2 className="section-title">
+                {parts.hasVar ? (
+                  <>
+                    {parts.before}
+                    {user?.username ? <Username name={user.username} force="purple" /> : 'friend'}
+                    {parts.after}
+                  </>
+                ) : (
+                  parts.before
+                )}
+              </h2>
+            );
+          })()}
           <p className="muted" style={{ marginBottom: '20px' }}>
-            Check out all the new posts in:
+            {strings.hero.subline}
           </p>
           <div className="list grid-tiles">
               <a href="/timeline" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>Announcements</strong>
-                <div className="list-meta">Official updates, pinned notes, releases.</div>
+                <strong>{strings.cards.announcements.title}</strong>
+                <div className="list-meta">{strings.cards.announcements.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.timeline.count > 0 ? (
@@ -248,14 +365,14 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.announcements.empty}</span>
                     )}
                   </div>
                 )}
               </a>
               <a href="/forum" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>General</strong>
-                <div className="list-meta">Post whatever you want - general discussion and conversations.</div>
+                <strong>{strings.cards.general.title}</strong>
+                <div className="list-meta">{strings.cards.general.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.forum.count > 0 ? (
@@ -281,14 +398,14 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.general.empty}</span>
                     )}
                   </div>
                 )}
               </a>
               <a href="/events" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>Events</strong>
-                <div className="list-meta">Lightweight calendar entries for plans.</div>
+                <strong>{strings.cards.events.title}</strong>
+                <div className="list-meta">{strings.cards.events.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.events.count > 0 ? (
@@ -314,14 +431,14 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.events.empty}</span>
                     )}
                   </div>
                 )}
               </a>
               <a href="/music" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>Music</strong>
-                <div className="list-meta">Share tracks, rate them, and leave notes.</div>
+                <strong>{strings.cards.music.title}</strong>
+                <div className="list-meta">{strings.cards.music.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.music.count > 0 ? (
@@ -347,14 +464,14 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.music.empty}</span>
                     )}
                   </div>
                 )}
               </a>
               <a href="/projects" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>Projects</strong>
-                <div className="list-meta">Work in progress and project updates.</div>
+                <strong>{strings.cards.projects.title}</strong>
+                <div className="list-meta">{strings.cards.projects.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.projects.count > 0 ? (
@@ -380,14 +497,14 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.projects.empty}</span>
                     )}
                   </div>
                 )}
               </a>
               <a href="/shitposts" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <strong>Shitposts</strong>
-                <div className="list-meta">Post whatever you want - photos, memes, random thoughts.</div>
+                <strong>{strings.cards.shitposts.title}</strong>
+                <div className="list-meta">{strings.cards.shitposts.description}</div>
                 {sectionData && (
                   <div className="section-stats">
                     {sectionData.shitposts.count > 0 ? (
@@ -413,7 +530,7 @@ export default async function HomePage() {
                         )}
                       </>
                     ) : (
-                      <span>No posts yet</span>
+                      <span>{strings.cards.shitposts.empty}</span>
                     )}
                   </div>
                 )}

@@ -6,6 +6,7 @@ import NotificationsLogoTrigger from '../components/NotificationsLogoTrigger';
 import HeaderAccountButton from '../components/HeaderAccountButton';
 import HeaderSetupBanner from '../components/HeaderSetupBanner';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
+import { getEasterEgg, getForumStrings, isLoreEnabled } from '../lib/forum-texts';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -16,6 +17,9 @@ export default async function RootLayout({ children }) {
   const user = await getSessionUserWithRole();
   const isAdmin = isAdminUser(user);
   const isSignedIn = !!user;
+  const useLore = isLoreEnabled();
+  const strings = getForumStrings({ useLore });
+  const easterEgg = getEasterEgg({ useLore });
 
   return (
     <html lang="en">
@@ -25,7 +29,7 @@ export default async function RootLayout({ children }) {
             <div className="brand">
               <div className="brand-left">
                 <h1>Errl Forum</h1>
-                <p>Announcements, drops, and devlog vibes for the Errl community.</p>
+                <p>{strings.header.subtitle}</p>
               </div>
               <NotificationsLogoTrigger />
             </div>
@@ -52,7 +56,9 @@ export default async function RootLayout({ children }) {
               <span className="footer-sep">•</span>
               <span>Errl since 2015</span>
             </div>
-            <div className="footer-tagline">Keep it weird. Keep it real. Keep it Errl.</div>
+            <div className="footer-tagline" title={easterEgg || undefined}>
+              {strings.footer.tagline}
+            </div>
           </footer>
         </div>
       </body>

@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getForumStrings, isLoreEnabled } from '../lib/forum-texts';
 
 export default function SearchBar() {
   const router = useRouter();
+  const strings = getForumStrings({ useLore: isLoreEnabled() });
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const formRef = useRef(null);
@@ -54,7 +56,7 @@ export default function SearchBar() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
+            placeholder={strings.search.placeholder}
             className="header-search-input"
             autoFocus
           />

@@ -5,19 +5,21 @@ import MusicPostForm from '../../components/MusicPostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
 
 export default function MusicClient({ posts, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const strings = getForumStrings({ useLore: isLoreEnabled() });
 
   return (
     <div className="stack">
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Music</h2>
-            <p className="muted">Drop tracks, rate them, and leave notes for the crew.</p>
+            <h2 className="section-title">{strings.cards.music.title}</h2>
+            <p className="muted">{strings.cards.music.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>Create Post</button>
+          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -26,7 +28,7 @@ export default function MusicClient({ posts, notice }) {
         <h3 className="section-title">Latest Drops</h3>
         <div className="list">
           {posts.length === 0 ? (
-            <p className="muted">No music posts yet. Be the first to share a track.</p>
+            <p className="muted">{strings.cards.music.empty}</p>
           ) : (
             (() => {
               let lastName = null;

@@ -7,17 +7,35 @@ export const dynamic = 'force-dynamic';
 
 export default async function EventsPage({ searchParams }) {
   const db = await getDb();
-  const { results } = await db
-    .prepare(
-      `SELECT events.id, events.title, events.details, events.starts_at,
-              events.created_at, events.image_key,
-              users.username AS author_name
-       FROM events
-       JOIN users ON users.id = events.author_user_id
-       ORDER BY events.starts_at ASC
-       LIMIT 50`
-    )
-    .all();
+  let results = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT events.id, events.title, events.details, events.starts_at,
+                events.created_at, events.image_key,
+                users.username AS author_name
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE events.moved_to_id IS NULL
+         ORDER BY events.starts_at ASC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT events.id, events.title, events.details, events.starts_at,
+                events.created_at, events.image_key,
+                users.username AS author_name
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         ORDER BY events.starts_at ASC
+         LIMIT 50`
+      )
+      .all();
+    results = out?.results || [];
+  }
 
   // Pre-render markdown for server component
   const events = results.map(row => ({

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
@@ -7,21 +8,64 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
+function destUrlFor(type, id) {
+  switch (type) {
+    case 'forum_thread':
+      return `/forum/${id}`;
+    case 'project':
+      return `/projects/${id}`;
+    case 'music_post':
+      return `/music/${id}`;
+    case 'timeline_update':
+      return `/timeline/${id}`;
+    case 'event':
+      return `/events/${id}`;
+    case 'dev_log':
+      return `/devlog/${id}`;
+    default:
+      return null;
+  }
+}
+
 export default async function MusicDetailPage({ params, searchParams }) {
   const db = await getDb();
-  const post = await db
-    .prepare(
-      `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
-              music_posts.type, music_posts.tags, music_posts.image_key,
-              music_posts.created_at, users.username AS author_name,
-              (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
-              (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count
-       FROM music_posts
-       JOIN users ON users.id = music_posts.author_user_id
-       WHERE music_posts.id = ?`
-    )
-    .bind(params.id)
-    .first();
+  let post = null;
+  try {
+    post = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at,
+                music_posts.moved_to_type, music_posts.moved_to_id,
+                users.username AS author_name,
+                (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE music_posts.id = ?`
+      )
+      .bind(params.id)
+      .first();
+  } catch (e) {
+    // Rollout compatibility if moved columns aren't migrated yet.
+    post = await db
+      .prepare(
+        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                music_posts.type, music_posts.tags, music_posts.image_key,
+                music_posts.created_at, users.username AS author_name,
+                (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE music_posts.id = ?`
+      )
+      .bind(params.id)
+      .first();
+    if (post) {
+      post.moved_to_id = null;
+      post.moved_to_type = null;
+    }
+  }
 
   if (!post) {
     return (
@@ -30,6 +74,13 @@ export default async function MusicDetailPage({ params, searchParams }) {
         <p className="muted">This music post does not exist.</p>
       </div>
     );
+  }
+
+  if (post.moved_to_id) {
+    const to = destUrlFor(post.moved_to_type, post.moved_to_id);
+    if (to) {
+      redirect(to);
+    }
   }
 
   const { results: comments } = await db

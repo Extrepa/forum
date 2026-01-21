@@ -5,9 +5,11 @@ import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
 
 export default function ShitpostsClient({ posts, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const strings = getForumStrings({ useLore: isLoreEnabled() });
 
   const truncateBody = (body, maxLength = 150) => {
     if (!body) return '';
@@ -28,10 +30,10 @@ export default function ShitpostsClient({ posts, notice }) {
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Shitposts</h2>
-            <p className="muted">Post whatever you want - photos, memes, random thoughts.</p>
+            <h2 className="section-title">{strings.cards.shitposts.title}</h2>
+            <p className="muted">{strings.cards.shitposts.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>Create Post</button>
+          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -40,7 +42,7 @@ export default function ShitpostsClient({ posts, notice }) {
         <h3 className="section-title">Latest Posts</h3>
         <div className="list">
           {posts.length === 0 ? (
-            <p className="muted">No posts yet. Be the first to share something.</p>
+            <p className="muted">{strings.cards.shitposts.empty}</p>
           ) : (
             (() => {
               let lastName = null;
@@ -96,13 +98,13 @@ export default function ShitpostsClient({ posts, notice }) {
       <CreatePostModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create Shitpost"
+        title={strings.actions.newPost}
       >
         <PostForm
           action="/api/shitposts"
           titleLabel="Title (optional)"
           bodyLabel="Post whatever you want"
-          buttonLabel="Post"
+          buttonLabel={strings.actions.newPost}
           titleRequired={false}
           showImage={true}
         />

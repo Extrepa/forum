@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
@@ -8,19 +9,59 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
+function destUrlFor(type, id) {
+  switch (type) {
+    case 'forum_thread':
+      return `/forum/${id}`;
+    case 'project':
+      return `/projects/${id}`;
+    case 'music_post':
+      return `/music/${id}`;
+    case 'timeline_update':
+      return `/timeline/${id}`;
+    case 'event':
+      return `/events/${id}`;
+    case 'dev_log':
+      return `/devlog/${id}`;
+    default:
+      return null;
+  }
+}
+
 export default async function ForumThreadPage({ params, searchParams }) {
   const db = await getDb();
-  const thread = await db
-    .prepare(
-      `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-              forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-              users.username AS author_name
-       FROM forum_threads
-       JOIN users ON users.id = forum_threads.author_user_id
-       WHERE forum_threads.id = ?`
-    )
-    .bind(params.id)
-    .first();
+  let thread = null;
+  try {
+    thread = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                forum_threads.moved_to_type, forum_threads.moved_to_id,
+                users.username AS author_name
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.id = ?`
+      )
+      .bind(params.id)
+      .first();
+  } catch (e) {
+    // Rollout compatibility if moved columns aren't migrated yet.
+    thread = await db
+      .prepare(
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                users.username AS author_name
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.id = ?`
+      )
+      .bind(params.id)
+      .first();
+    if (thread) {
+      thread.moved_to_id = null;
+      thread.moved_to_type = null;
+    }
+  }
 
   if (!thread) {
     return (
@@ -29,6 +70,13 @@ export default async function ForumThreadPage({ params, searchParams }) {
         <p className="muted">This thread does not exist.</p>
       </div>
     );
+  }
+
+  if (thread.moved_to_id) {
+    const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
+    if (to) {
+      redirect(to);
+    }
   }
 
   const { results: replies } = await db
@@ -45,8 +93,6 @@ export default async function ForumThreadPage({ params, searchParams }) {
 
   const viewer = await getSessionUser();
   const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
-  const canMoveToProjects = !!viewer && viewer.role === 'admin';
-  const isMoved = String(thread.title || '').startsWith('[Moved to Projects]');
 
   const error = searchParams?.error;
   const notice =
@@ -94,23 +140,12 @@ export default async function ForumThreadPage({ params, searchParams }) {
             className="post-body"
             dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }}
           />
-          {(canToggleLock || canMoveToProjects) ? (
+          {canToggleLock ? (
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {canToggleLock ? (
-                <form action={`/api/forum/${thread.id}/lock`} method="post">
-                  <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
-                  <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
-                </form>
-              ) : null}
-              {canMoveToProjects ? (
-                isMoved ? (
-                  <a className="project-link" href={`/projects/${thread.id}`}>View in Projects</a>
-                ) : (
-                  <form action={`/api/forum/${thread.id}/move-to-project`} method="post">
-                    <button type="submit">Move to Projects</button>
-                  </form>
-                )
-              ) : null}
+              <form action={`/api/forum/${thread.id}/lock`} method="post">
+                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
+                <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
+              </form>
             </div>
           ) : null}
         </div>

@@ -37,7 +37,7 @@ export default function PostForm({
     <form action={action} method="post" encType="multipart/form-data">
       <label>
         <div className="muted">{titleLabel}</div>
-        <input name="title" placeholder="Title" required={titleRequired} />
+        <input name="title" placeholder={titleLabel || 'Title'} required={titleRequired} />
       </label>
       {showDate ? (
         <label>
@@ -64,7 +64,7 @@ export default function PostForm({
         <textarea
           ref={bodyRef}
           name="body"
-          placeholder="Share the details..."
+          placeholder={bodyLabel || 'Share the details...'}
           required={bodyRequired}
         />
       </label>
