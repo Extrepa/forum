@@ -4,7 +4,7 @@ import { getSessionUser } from '../../../lib/auth';
 
 export async function POST(request) {
   const user = await getSessionUser();
-  const redirectUrl = new URL('/forum', request.url);
+  const redirectUrl = new URL('/lobby', request.url);
 
   if (!user) {
     redirectUrl.searchParams.set('error', 'claim');

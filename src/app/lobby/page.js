@@ -47,47 +47,68 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
 
     // Add unread status for logged-in users
     if (userId && threads.length > 0) {
-      const threadIds = threads.map(t => t.id);
-      const placeholders = threadIds.map(() => '?').join(',');
-      const readStates = await db
-        .prepare(
-          `SELECT thread_id, last_read_reply_id FROM forum_thread_reads 
-           WHERE user_id = ? AND thread_id IN (${placeholders})`
-        )
-        .bind(userId, ...threadIds)
-        .all();
+      try {
+        const threadIds = threads.map(t => t.id);
+        if (threadIds.length > 0) {
+          const placeholders = threadIds.map(() => '?').join(',');
+          const readStates = await db
+            .prepare(
+              `SELECT thread_id, last_read_reply_id FROM forum_thread_reads 
+               WHERE user_id = ? AND thread_id IN (${placeholders})`
+            )
+            .bind(userId, ...threadIds)
+            .all();
 
-      const readMap = new Map();
-      (readStates?.results || []).forEach(r => {
-        readMap.set(r.thread_id, r.last_read_reply_id);
-      });
+          const readMap = new Map();
+          (readStates?.results || []).forEach(r => {
+            readMap.set(r.thread_id, r.last_read_reply_id);
+          });
 
-      // Get latest reply IDs for each thread
-      const latestReplies = await db
-        .prepare(
-          `SELECT r1.thread_id, r1.id AS latest_reply_id 
-           FROM forum_replies r1
-           INNER JOIN (
-             SELECT thread_id, MAX(created_at) AS max_created_at
-             FROM forum_replies
-             WHERE thread_id IN (${placeholders}) AND is_deleted = 0
-             GROUP BY thread_id
-           ) r2 ON r1.thread_id = r2.thread_id AND r1.created_at = r2.max_created_at
-           WHERE r1.is_deleted = 0`
-        )
-        .bind(...threadIds, ...threadIds)
-        .all();
+          // Get latest reply IDs for each thread
+          try {
+            const latestReplies = await db
+              .prepare(
+                `SELECT r1.thread_id, r1.id AS latest_reply_id 
+                 FROM forum_replies r1
+                 INNER JOIN (
+                   SELECT thread_id, MAX(created_at) AS max_created_at
+                   FROM forum_replies
+                   WHERE thread_id IN (${placeholders}) AND is_deleted = 0
+                   GROUP BY thread_id
+                 ) r2 ON r1.thread_id = r2.thread_id AND r1.created_at = r2.max_created_at
+                 WHERE r1.is_deleted = 0`
+              )
+              .bind(...threadIds, ...threadIds)
+              .all();
 
-      const latestReplyMap = new Map();
-      (latestReplies?.results || []).forEach(r => {
-        latestReplyMap.set(r.thread_id, r.latest_reply_id);
-      });
+            const latestReplyMap = new Map();
+            (latestReplies?.results || []).forEach(r => {
+              latestReplyMap.set(r.thread_id, r.latest_reply_id);
+            });
 
-      threads.forEach(thread => {
-        const lastReadReplyId = readMap.get(thread.id);
-        const latestReplyId = latestReplyMap.get(thread.id);
-        thread.is_unread = !lastReadReplyId || (latestReplyId && lastReadReplyId !== latestReplyId);
-      });
+            threads.forEach(thread => {
+              const lastReadReplyId = readMap.get(thread.id);
+              const latestReplyId = latestReplyMap.get(thread.id);
+              thread.is_unread = !lastReadReplyId || (latestReplyId && lastReadReplyId !== latestReplyId);
+            });
+          } catch (e) {
+            // Latest replies query failed, just use read states
+            threads.forEach(thread => {
+              const lastReadReplyId = readMap.get(thread.id);
+              thread.is_unread = !lastReadReplyId;
+            });
+          }
+        } else {
+          threads.forEach(thread => {
+            thread.is_unread = false;
+          });
+        }
+      } catch (e) {
+        // forum_thread_reads table doesn't exist yet, mark all as read
+        threads.forEach(thread => {
+          thread.is_unread = false;
+        });
+      }
     } else {
       threads.forEach(thread => {
         thread.is_unread = false;
@@ -97,29 +118,81 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
     return threads;
   } catch (e) {
     // Fallback to simpler query if migrations haven't been applied
-    const fallbackQuery = `
-      SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-             forum_threads.created_at, forum_threads.image_key,
-             users.username AS author_name,
-             (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
-      FROM forum_threads
-      JOIN users ON users.id = forum_threads.author_user_id
-      ${whereClause}
-      ORDER BY ${orderBy}
-      LIMIT ${limit}
-    `;
-    const out = await db.prepare(fallbackQuery).all();
-    const threads = out?.results || [];
-    threads.forEach(t => {
-      t.views = 0;
-      t.is_pinned = 0;
-      t.is_locked = 0;
-      t.is_announcement = 0;
-      t.last_activity_at = t.created_at;
-      t.last_post_author = t.author_name;
-      t.is_unread = false;
-    });
-    return threads;
+    // Use a safe WHERE clause that doesn't reference potentially missing columns
+    let safeWhereClause = whereClause;
+    // Remove references to is_announcement if it might not exist
+    // Also handle case where moved_to_id might not exist
+    if (safeWhereClause.includes('is_announcement') || safeWhereClause.includes('moved_to_id')) {
+      // Simplify: just check basic conditions, skip moved_to_id check if column doesn't exist
+      if (safeWhereClause.includes("users.role = 'admin'")) {
+        // Announcements query - just check role, skip moved_to_id check
+        safeWhereClause = `WHERE users.role = 'admin'`;
+      } else if (safeWhereClause.includes('is_pinned = 1')) {
+        // Stickies query - check pinned, exclude admin
+        safeWhereClause = `WHERE forum_threads.is_pinned = 1 AND users.role != 'admin'`;
+      } else {
+        // Normal threads - check not pinned, not admin
+        safeWhereClause = `WHERE forum_threads.is_pinned = 0 AND users.role != 'admin'`;
+      }
+    }
+    
+    // Use created_at for ordering in fallback (last_activity_at might not work)
+    const safeOrderBy = orderBy.includes('last_activity_at') ? 'forum_threads.created_at DESC' : orderBy;
+    
+    try {
+      const fallbackQuery = `
+        SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+               forum_threads.created_at, forum_threads.image_key,
+               users.username AS author_name,
+               (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+        FROM forum_threads
+        JOIN users ON users.id = forum_threads.author_user_id
+        ${safeWhereClause}
+        ORDER BY ${safeOrderBy}
+        LIMIT ${limit}
+      `;
+      const out = await db.prepare(fallbackQuery).all();
+      const threads = out?.results || [];
+      threads.forEach(t => {
+        t.views = 0;
+        t.is_pinned = 0;
+        t.is_locked = 0;
+        t.is_announcement = 0;
+        t.last_activity_at = t.created_at;
+        t.last_post_author = t.author_name;
+        t.is_unread = false;
+      });
+      return threads;
+    } catch (e2) {
+      // Even fallback failed - try absolute simplest query
+      try {
+        const simpleQuery = `
+          SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                 forum_threads.created_at, forum_threads.image_key,
+                 users.username AS author_name,
+                 (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+          FROM forum_threads
+          JOIN users ON users.id = forum_threads.author_user_id
+          ORDER BY forum_threads.created_at DESC
+          LIMIT ${limit}
+        `;
+        const out = await db.prepare(simpleQuery).all();
+        const threads = out?.results || [];
+        threads.forEach(t => {
+          t.views = 0;
+          t.is_pinned = 0;
+          t.is_locked = 0;
+          t.is_announcement = 0;
+          t.last_activity_at = t.created_at;
+          t.last_post_author = t.author_name;
+          t.is_unread = false;
+        });
+        return threads;
+      } catch (e3) {
+        // Even simplest query failed, return empty array
+        return [];
+      }
+    }
   }
 }
 
@@ -129,31 +202,101 @@ export default async function LobbyPage({ searchParams }) {
   const userId = user?.id || null;
 
   // Get announcements (admin-authored threads, or is_announcement = 1)
-  const announcements = await getThreadsWithMetadata(
-    db,
-    `WHERE (users.role = 'admin' OR forum_threads.is_announcement = 1) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
-    'forum_threads.created_at DESC',
-    10,
-    userId
-  );
+  let announcements = [];
+  try {
+    announcements = await getThreadsWithMetadata(
+      db,
+      `WHERE (users.role = 'admin' OR forum_threads.is_announcement = 1) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      'forum_threads.created_at DESC',
+      10,
+      userId
+    );
+  } catch (e) {
+    // Fallback if query fails
+    announcements = [];
+  }
 
   // Get stickies (pinned threads, excluding announcements)
-  const stickies = await getThreadsWithMetadata(
-    db,
-    `WHERE forum_threads.is_pinned = 1 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
-    'last_activity_at DESC',
-    20,
-    userId
-  );
+  let stickies = [];
+  try {
+    stickies = await getThreadsWithMetadata(
+      db,
+      `WHERE forum_threads.is_pinned = 1 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      'last_activity_at DESC',
+      20,
+      userId
+    );
+  } catch (e) {
+    // Fallback if query fails
+    stickies = [];
+  }
 
   // Get normal threads (not pinned, not announcements)
-  const threads = await getThreadsWithMetadata(
-    db,
-    `WHERE forum_threads.is_pinned = 0 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
-    'last_activity_at DESC',
-    50,
-    userId
-  );
+  let threads = [];
+  try {
+    threads = await getThreadsWithMetadata(
+      db,
+      `WHERE forum_threads.is_pinned = 0 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      'last_activity_at DESC',
+      50,
+      userId
+    );
+  } catch (e) {
+    // Fallback if query fails - try simpler query without new columns
+    try {
+      const out = await db
+        .prepare(
+          `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                  forum_threads.created_at, forum_threads.image_key,
+                  users.username AS author_name,
+                  (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+           FROM forum_threads
+           JOIN users ON users.id = forum_threads.author_user_id
+           WHERE (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
+           ORDER BY forum_threads.created_at DESC
+           LIMIT 50`
+        )
+        .all();
+      threads = (out?.results || []).map(t => ({
+        ...t,
+        views: 0,
+        is_pinned: 0,
+        is_locked: 0,
+        is_announcement: 0,
+        last_activity_at: t.created_at,
+        last_post_author: t.author_name,
+        is_unread: false
+      }));
+    } catch (e2) {
+      // Even simpler fallback - no moved_to_id check
+      try {
+        const out = await db
+          .prepare(
+            `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                    forum_threads.created_at, forum_threads.image_key,
+                    users.username AS author_name,
+                    (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+             FROM forum_threads
+             JOIN users ON users.id = forum_threads.author_user_id
+             ORDER BY forum_threads.created_at DESC
+             LIMIT 50`
+          )
+          .all();
+        threads = (out?.results || []).map(t => ({
+          ...t,
+          views: 0,
+          is_pinned: 0,
+          is_locked: 0,
+          is_announcement: 0,
+          last_activity_at: t.created_at,
+          last_post_author: t.author_name,
+          is_unread: false
+        }));
+      } catch (e3) {
+        threads = [];
+      }
+    }
+  }
 
   const error = searchParams?.error;
   const notice =

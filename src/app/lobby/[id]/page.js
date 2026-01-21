@@ -50,21 +50,27 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       .bind(params.id)
       .first();
   } catch (e) {
-    thread = await db
-      .prepare(
-        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-                forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                users.username AS author_name,
-                0 AS like_count
-         FROM forum_threads
-         JOIN users ON users.id = forum_threads.author_user_id
-         WHERE forum_threads.id = ?`
-      )
-      .bind(params.id)
-      .first();
-    if (thread) {
-      thread.moved_to_id = null;
-      thread.moved_to_type = null;
+    // Fallback if post_likes table or moved columns don't exist
+    try {
+      thread = await db
+        .prepare(
+          `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                  forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                  users.username AS author_name,
+                  0 AS like_count
+           FROM forum_threads
+           JOIN users ON users.id = forum_threads.author_user_id
+           WHERE forum_threads.id = ?`
+        )
+        .bind(params.id)
+        .first();
+      if (thread) {
+        thread.moved_to_id = null;
+        thread.moved_to_type = null;
+      }
+    } catch (e2) {
+      // Even simpler fallback
+      thread = null;
     }
   }
 
@@ -92,26 +98,37 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   const offset = (currentPage - 1) * REPLIES_PER_PAGE;
 
   // Get total reply count
-  const totalRepliesResult = await db
-    .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
-    .bind(params.id)
-    .first();
-  const totalReplies = totalRepliesResult?.count || 0;
+  let totalReplies = 0;
+  try {
+    const totalRepliesResult = await db
+      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
+      .bind(params.id)
+      .first();
+    totalReplies = totalRepliesResult?.count || 0;
+  } catch (e) {
+    totalReplies = 0;
+  }
   const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
 
   // Get replies for current page
-  const { results: replies } = await db
-    .prepare(
-      `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
-              users.username AS author_name
-       FROM forum_replies
-       JOIN users ON users.id = forum_replies.author_user_id
-       WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
-       ORDER BY forum_replies.created_at ASC
-       LIMIT ? OFFSET ?`
-    )
-    .bind(params.id, REPLIES_PER_PAGE, offset)
-    .all();
+  let replies = [];
+  try {
+    const result = await db
+      .prepare(
+        `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
+                users.username AS author_name
+         FROM forum_replies
+         JOIN users ON users.id = forum_replies.author_user_id
+         WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
+         ORDER BY forum_replies.created_at ASC
+         LIMIT ? OFFSET ?`
+      )
+      .bind(params.id, REPLIES_PER_PAGE, offset)
+      .all();
+    replies = result?.results || [];
+  } catch (e) {
+    replies = [];
+  }
 
   // Calculate first unread reply ID
   let firstUnreadId = null;

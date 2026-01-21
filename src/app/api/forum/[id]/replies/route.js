@@ -7,7 +7,7 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
-  const redirectUrl = new URL(`/forum/${params.id}`, request.url);
+  const redirectUrl = new URL(`/lobby/${params.id}`, request.url);
 
   if (!user) {
     redirectUrl.searchParams.set('error', 'claim');
