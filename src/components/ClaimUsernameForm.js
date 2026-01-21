@@ -502,6 +502,25 @@ export default function ClaimUsernameForm() {
                   Save landing page preference
                 </button>
               </form>
+
+              <div style={{ 
+                marginTop: '24px', 
+                paddingTop: '24px', 
+                borderTop: '1px solid var(--border)',
+                opacity: 0.5,
+                pointerEvents: 'none',
+                cursor: 'not-allowed'
+              }}>
+                <div className="muted" style={{ marginBottom: 8, fontSize: 14, fontWeight: 600 }}>
+                  Future Settings
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="muted" style={{ fontSize: 13 }}>Feed preferences</div>
+                  <div className="muted" style={{ fontSize: 13 }}>Notification preferences</div>
+                  <div className="muted" style={{ fontSize: 13 }}>Color settings</div>
+                  <div className="muted" style={{ fontSize: 13 }}>Movement/animation settings</div>
+                </div>
+              </div>
             </section>
 
             <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px' }}>

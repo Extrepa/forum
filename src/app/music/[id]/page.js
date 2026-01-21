@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
+import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
@@ -69,6 +70,31 @@ export default async function MusicDetailPage({ params, searchParams }) {
       post.moved_to_type = null;
       post.embed_style = null; // Will default to 'auto' in safeEmbedFromUrl
     }
+  } catch (e2) {
+    // Final fallback: remove is_deleted filter in case column doesn't exist
+    try {
+      post = await db
+        .prepare(
+          `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                  music_posts.type, music_posts.tags, music_posts.image_key,
+                  music_posts.created_at, users.username AS author_name,
+                  (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                  (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                  0 AS like_count
+           FROM music_posts
+           JOIN users ON users.id = music_posts.author_user_id
+           WHERE music_posts.id = ?`
+        )
+        .bind(params.id)
+        .first();
+      if (post) {
+        post.moved_to_id = null;
+        post.moved_to_type = null;
+        post.embed_style = null;
+      }
+    } catch (e3) {
+      post = null;
+    }
   }
 
   if (!post) {
@@ -87,17 +113,39 @@ export default async function MusicDetailPage({ params, searchParams }) {
     }
   }
 
-  const { results: comments } = await db
-    .prepare(
-      `SELECT music_comments.id, music_comments.body, music_comments.created_at,
-              users.username AS author_name
-       FROM music_comments
-       JOIN users ON users.id = music_comments.author_user_id
-       WHERE music_comments.post_id = ? AND music_comments.is_deleted = 0
-       ORDER BY music_comments.created_at ASC`
-    )
-    .bind(params.id)
-    .all();
+  let comments = [];
+  try {
+    const result = await db
+      .prepare(
+        `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+                users.username AS author_name
+         FROM music_comments
+         JOIN users ON users.id = music_comments.author_user_id
+         WHERE music_comments.post_id = ? AND music_comments.is_deleted = 0
+         ORDER BY music_comments.created_at ASC`
+      )
+      .bind(params.id)
+      .all();
+    comments = result?.results || [];
+  } catch (e) {
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const result = await db
+        .prepare(
+          `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+                  users.username AS author_name
+           FROM music_comments
+           JOIN users ON users.id = music_comments.author_user_id
+           WHERE music_comments.post_id = ?
+           ORDER BY music_comments.created_at ASC`
+        )
+        .bind(params.id)
+        .all();
+      comments = result?.results || [];
+    } catch (e2) {
+      comments = [];
+    }
+  }
 
   const error = searchParams?.error;
   const notice =
@@ -111,6 +159,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       ? 'Pick a rating between 1 and 5.'
       : null;
 
+  const user = await getSessionUser();
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   

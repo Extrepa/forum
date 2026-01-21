@@ -75,8 +75,27 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_type = null;
       }
     } catch (e2) {
-      // Even simpler fallback
-      thread = null;
+      // Final fallback: remove is_deleted filter in case column doesn't exist
+      try {
+        thread = await db
+          .prepare(
+            `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                    forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                    users.username AS author_name,
+                    0 AS like_count
+             FROM forum_threads
+             JOIN users ON users.id = forum_threads.author_user_id
+             WHERE forum_threads.id = ?`
+          )
+          .bind(params.id)
+          .first();
+        if (thread) {
+          thread.moved_to_id = null;
+          thread.moved_to_type = null;
+        }
+      } catch (e3) {
+        thread = null;
+      }
     }
   }
 
@@ -112,7 +131,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       .first();
     totalReplies = totalRepliesResult?.count || 0;
   } catch (e) {
-    totalReplies = 0;
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const totalRepliesResult = await db
+        .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ?')
+        .bind(params.id)
+        .first();
+      totalReplies = totalRepliesResult?.count || 0;
+    } catch (e2) {
+      totalReplies = 0;
+    }
   }
   const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
 
@@ -133,7 +161,24 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .all();
     replies = result?.results || [];
   } catch (e) {
-    replies = [];
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const result = await db
+        .prepare(
+          `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
+                  users.username AS author_name
+           FROM forum_replies
+           JOIN users ON users.id = forum_replies.author_user_id
+           WHERE forum_replies.thread_id = ?
+           ORDER BY forum_replies.created_at ASC
+           LIMIT ? OFFSET ?`
+        )
+        .bind(params.id, REPLIES_PER_PAGE, offset)
+        .all();
+      replies = result?.results || [];
+    } catch (e2) {
+      replies = [];
+    }
   }
 
   // Calculate first unread reply ID
@@ -147,16 +192,35 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
       if (readState?.last_read_reply_id) {
         // Find first reply after the last read one
-        const firstUnread = await db
-          .prepare(
-            `SELECT id FROM forum_replies 
-             WHERE thread_id = ? AND is_deleted = 0 AND created_at > (
-               SELECT created_at FROM forum_replies WHERE id = ?
-             )
-             ORDER BY created_at ASC LIMIT 1`
-          )
-          .bind(params.id, readState.last_read_reply_id)
-          .first();
+        let firstUnread = null;
+        try {
+          firstUnread = await db
+            .prepare(
+              `SELECT id FROM forum_replies 
+               WHERE thread_id = ? AND is_deleted = 0 AND created_at > (
+                 SELECT created_at FROM forum_replies WHERE id = ?
+               )
+               ORDER BY created_at ASC LIMIT 1`
+            )
+            .bind(params.id, readState.last_read_reply_id)
+            .first();
+        } catch (e) {
+          // Fallback if is_deleted column doesn't exist
+          try {
+            firstUnread = await db
+              .prepare(
+                `SELECT id FROM forum_replies 
+                 WHERE thread_id = ? AND created_at > (
+                   SELECT created_at FROM forum_replies WHERE id = ?
+                 )
+                 ORDER BY created_at ASC LIMIT 1`
+              )
+              .bind(params.id, readState.last_read_reply_id)
+              .first();
+          } catch (e2) {
+            // Ignore
+          }
+        }
         firstUnreadId = firstUnread?.id || null;
       } else {
         // Never read - if there are replies, first reply is unread

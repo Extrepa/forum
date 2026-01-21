@@ -909,45 +909,91 @@ export default async function HomePage({ searchParams }) {
         recentActivity: recentActivityResult?.count || 0
       };
 
-      // Get recent posts from all sections (last 15)
+      // Get recent activity from all sections (posts AND replies/comments)
       try {
-        const recentPostsResult = await db
+        const recentActivityResult = await db
           .prepare(
-            `SELECT 'forum' as section, id, title, created_at, author_user_id, 'forum_thread' as post_type
+            `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
              FROM forum_threads
-             WHERE (is_deleted = 0 OR is_deleted IS NULL)
+             WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
              UNION ALL
-             SELECT 'event' as section, id, title, created_at, author_user_id, 'event' as post_type
+             SELECT 'forum_reply' as activity_type, forum_replies.id, NULL as title, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id as parent_id, forum_threads.title as parent_title, thread_users.username as parent_author, 'forum' as section
+             FROM forum_replies
+             JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+             JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+             WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
+               AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'event_post' as activity_type, events.id, events.title, events.created_at, events.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'event' as section
              FROM events
-             WHERE (is_deleted = 0 OR is_deleted IS NULL)
+             WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
              UNION ALL
-             SELECT 'music' as section, id, title, created_at, author_user_id, 'music_post' as post_type
+             SELECT 'event_comment' as activity_type, event_comments.id, NULL as title, event_comments.created_at, event_comments.author_user_id, events.id as parent_id, events.title as parent_title, event_users.username as parent_author, 'event' as section
+             FROM event_comments
+             JOIN events ON events.id = event_comments.event_id
+             JOIN users AS event_users ON event_users.id = events.author_user_id
+             WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
+               AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'music_post' as activity_type, music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'music' as section
              FROM music_posts
-             WHERE (is_deleted = 0 OR is_deleted IS NULL)
+             WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
              UNION ALL
-             SELECT 'project' as section, id, title, created_at, author_user_id, 'project' as post_type
+             SELECT 'music_comment' as activity_type, music_comments.id, NULL as title, music_comments.created_at, music_comments.author_user_id, music_posts.id as parent_id, music_posts.title as parent_title, music_users.username as parent_author, 'music' as section
+             FROM music_comments
+             JOIN music_posts ON music_posts.id = music_comments.post_id
+             JOIN users AS music_users ON music_users.id = music_posts.author_user_id
+             WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
+               AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'project_post' as activity_type, projects.id, projects.title, projects.created_at, projects.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'project' as section
              FROM projects
-             WHERE (is_deleted = 0 OR is_deleted IS NULL)
+             WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'project_reply' as activity_type, project_replies.id, NULL as title, project_replies.created_at, project_replies.author_user_id, projects.id as parent_id, projects.title as parent_title, project_users.username as parent_author, 'project' as section
+             FROM project_replies
+             JOIN projects ON projects.id = project_replies.project_id
+             JOIN users AS project_users ON project_users.id = projects.author_user_id
+             WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
+               AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'devlog_post' as activity_type, dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'devlog' as section
+             FROM dev_logs
+             WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+             UNION ALL
+             SELECT 'devlog_comment' as activity_type, dev_log_comments.id, NULL as title, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id as parent_id, dev_logs.title as parent_title, devlog_users.username as parent_author, 'devlog' as section
+             FROM dev_log_comments
+             JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+             JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id
+             WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
+               AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
              ORDER BY created_at DESC
              LIMIT 15`
           )
           .all();
 
-        if (recentPostsResult?.results) {
-          for (const post of recentPostsResult.results) {
+        if (recentActivityResult?.results) {
+          for (const activity of recentActivityResult.results) {
             try {
               const authorResult = await db
                 .prepare('SELECT username FROM users WHERE id = ?')
-                .bind(post.author_user_id)
+                .bind(activity.author_user_id)
                 .first();
               
               recentPosts.push({
-                id: post.id,
-                title: post.title,
+                id: activity.id,
+                title: activity.title || activity.parent_title || 'Untitled',
                 author_name: authorResult?.username || 'Unknown',
-                created_at: post.created_at,
-                section: post.section,
-                href: `/${post.section}/${post.id}`
+                created_at: activity.created_at,
+                section: activity.section,
+                activity_type: activity.activity_type,
+                parent_title: activity.parent_title,
+                parent_author: activity.parent_author,
+                href: activity.activity_type.includes('_post') 
+                  ? `/${activity.section}/${activity.id}`
+                  : activity.activity_type.includes('forum_reply')
+                  ? `/lobby/${activity.parent_id}?reply=${activity.id}`
+                  : `/${activity.section}/${activity.parent_id}`
               });
             } catch (e) {
               // Skip if user lookup fails

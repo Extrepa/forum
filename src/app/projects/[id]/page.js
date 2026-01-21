@@ -77,6 +77,29 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       project.moved_to_id = null;
       project.moved_to_type = null;
     }
+  } catch (e2) {
+    // Final fallback: remove is_deleted filter in case column doesn't exist
+    try {
+      project = await db
+        .prepare(
+          `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
+                  projects.github_url, projects.demo_url, projects.image_key,
+                  projects.created_at, projects.updated_at,
+                  users.username AS author_name,
+                  0 AS like_count
+           FROM projects
+           JOIN users ON users.id = projects.author_user_id
+           WHERE projects.id = ?`
+        )
+        .bind(params.id)
+        .first();
+      if (project) {
+        project.moved_to_id = null;
+        project.moved_to_type = null;
+      }
+    } catch (e3) {
+      project = null;
+    }
   }
 
   if (!project) {
@@ -112,8 +135,24 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       .all();
     replies = out?.results || [];
   } catch (e) {
-    replies = [];
-    repliesEnabled = false;
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const out = await db
+        .prepare(
+          `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
+                  users.username AS author_name
+           FROM project_replies
+           JOIN users ON users.id = project_replies.author_user_id
+           WHERE project_replies.project_id = ?
+           ORDER BY project_replies.created_at ASC`
+        )
+        .bind(params.id)
+        .all();
+      replies = out?.results || [];
+    } catch (e2) {
+      replies = [];
+      repliesEnabled = false;
+    }
   }
 
   const user = await getSessionUser();

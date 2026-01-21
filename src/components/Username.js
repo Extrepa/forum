@@ -27,7 +27,7 @@ export default function Username({
   const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
   return (
-    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none' }}>
       {safeName}
     </Link>
   );

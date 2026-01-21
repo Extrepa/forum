@@ -176,16 +176,16 @@ header {
     filter: blur(0px);
   }
   25% { 
-    transform: translate(1px, -1px) scale(1.01);
-    filter: blur(0.3px);
+    transform: translate(3px, -3px) scale(1.03); /* Increased from 1px, 1.01 */
+    filter: blur(0.8px); /* Increased from 0.3px */
   }
   50% { 
-    transform: translate(-1px, 1px) scale(0.99);
-    filter: blur(0.5px);
+    transform: translate(-3px, 3px) scale(0.97); /* Increased from -1px, 0.99 */
+    filter: blur(1.2px); /* Increased from 0.5px */
   }
   75% { 
-    transform: translate(1px, 1px) scale(1.01);
-    filter: blur(0.3px);
+    transform: translate(3px, 3px) scale(1.03); /* Increased from 1px, 1.01 */
+    filter: blur(0.8px); /* Increased from 0.3px */
   }
 }
 
@@ -197,12 +197,12 @@ header {
 
 .forum-title {
   font-family: "Unbounded", "Space Grotesk", sans-serif;
-  font-size: 26px;
+  font-size: 52px; /* Increased from 26px */
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 3px; /* Increased from 0.6px */
   color: var(--accent);
   text-shadow: 0 0 20px rgba(52, 225, 255, 0.5);
-  animation: gooey-slow 8s ease-in-out infinite;
+  animation: gooey-slow 6s ease-in-out infinite; /* Reduced from 8s */
   transition: animation-duration 0.3s ease;
   display: inline-block;
   margin: 0;
@@ -210,7 +210,7 @@ header {
 }
 
 .forum-title:hover {
-  animation-duration: 12s; /* Slower, more still */
+  animation-duration: 10s; /* Adjusted from 12s */
   filter: blur(0px);
 }
 

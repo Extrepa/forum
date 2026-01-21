@@ -66,7 +66,27 @@ export default async function EventDetailPage({ params, searchParams }) {
         event.moved_to_type = null;
       }
     } catch (e2) {
-      event = null;
+      // Final fallback: remove is_deleted filter in case column doesn't exist
+      try {
+        event = await db
+          .prepare(
+              `SELECT events.id, events.title, events.details, events.starts_at,
+                    events.created_at, events.image_key,
+                    users.username AS author_name,
+                    0 AS like_count
+             FROM events
+             JOIN users ON users.id = events.author_user_id
+             WHERE events.id = ?`
+          )
+          .bind(params.id)
+          .first();
+        if (event) {
+          event.moved_to_id = null;
+          event.moved_to_type = null;
+        }
+      } catch (e3) {
+        event = null;
+      }
     }
   }
 
@@ -101,8 +121,23 @@ export default async function EventDetailPage({ params, searchParams }) {
       .all();
     comments = result?.results || [];
   } catch (e) {
-    // event_comments table might not exist yet
-    comments = [];
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const result = await db
+        .prepare(
+          `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+                  users.username AS author_name
+           FROM event_comments
+           JOIN users ON users.id = event_comments.author_user_id
+           WHERE event_comments.event_id = ?
+           ORDER BY event_comments.created_at ASC`
+        )
+        .bind(params.id)
+        .all();
+      comments = result?.results || [];
+    } catch (e2) {
+      comments = [];
+    }
   }
 
   const user = await getSessionUser();

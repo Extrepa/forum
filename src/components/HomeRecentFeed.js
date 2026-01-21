@@ -14,26 +14,44 @@ export default function HomeRecentFeed({ recentPosts }) {
     <section className="card">
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Recent Activity</h3>
       <div className="list">
-        {recentPosts.map((post) => {
-          const colorIndex = getUsernameColorIndex(post.author_name);
+        {recentPosts.map((activity) => {
+          const colorIndex = getUsernameColorIndex(activity.author_name);
+          const isReplyOrComment = activity.activity_type?.includes('_reply') || activity.activity_type?.includes('_comment');
+          
           return (
             <Link
-              key={post.id}
-              href={post.href || `/${post.section}/${post.id}`}
+              key={activity.id}
+              href={activity.href || (isReplyOrComment ? `/${activity.section}/${activity.parent_id}` : `/${activity.section}/${activity.id}`)}
               className="list-item"
               style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
             >
               <div style={{ marginBottom: '4px' }}>
-                <strong>{post.title}</strong>
+                {isReplyOrComment ? (
+                  <>
+                    <Username name={activity.author_name} colorIndex={colorIndex} />
+                    {' replied to '}
+                    <strong>{activity.parent_title}</strong>
+                    {activity.parent_author && (
+                      <>
+                        {' by '}
+                        <Username name={activity.parent_author} colorIndex={getUsernameColorIndex(activity.parent_author)} />
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <strong>{activity.title}</strong>
+                    {' by '}
+                    <Username name={activity.author_name} colorIndex={colorIndex} />
+                  </>
+                )}
               </div>
               <div className="list-meta" style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Username name={post.author_name} colorIndex={colorIndex} />
-                <span>·</span>
-                <span>{formatTimeAgo(post.created_at)}</span>
-                {post.section && (
+                <span>{formatTimeAgo(activity.created_at)}</span>
+                {activity.section && (
                   <>
                     <span>·</span>
-                    <span className="muted">{post.section}</span>
+                    <span className="muted">{activity.section}</span>
                   </>
                 )}
               </div>

@@ -114,8 +114,32 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         log.links = null;
       }
     } catch (e2) {
-      dbUnavailable = true;
-      log = null;
+      // Final fallback: remove is_deleted filter in case column doesn't exist
+      try {
+        log = await db
+          .prepare(
+            `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+                    dev_logs.created_at, dev_logs.updated_at,
+                    users.username AS author_name,
+                    0 AS like_count
+             FROM dev_logs
+             JOIN users ON users.id = dev_logs.author_user_id
+             WHERE dev_logs.id = ?`
+          )
+          .bind(params.id)
+          .first();
+        if (log) {
+          log.is_locked = 0;
+          log.moved_to_id = null;
+          log.moved_to_type = null;
+          log.github_url = null;
+          log.demo_url = null;
+          log.links = null;
+        }
+      } catch (e3) {
+        dbUnavailable = true;
+        log = null;
+      }
     }
   }
 
@@ -162,7 +186,23 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       .all();
     comments = out?.results || [];
   } catch (e) {
-    comments = [];
+    // Fallback if is_deleted column doesn't exist
+    try {
+      const out = await db
+        .prepare(
+          `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
+                  users.username AS author_name
+           FROM dev_log_comments
+           JOIN users ON users.id = dev_log_comments.author_user_id
+           WHERE dev_log_comments.log_id = ?
+           ORDER BY dev_log_comments.created_at ASC`
+        )
+        .bind(params.id)
+        .all();
+      comments = out?.results || [];
+    } catch (e2) {
+      comments = [];
+    }
   }
 
   const error = searchParams?.error;

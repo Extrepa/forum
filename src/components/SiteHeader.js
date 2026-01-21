@@ -56,7 +56,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     <header className={headerClassName}>
       <div className="brand">
         <div className="brand-left">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
             <h1 
               className="forum-title"
               onClick={() => {
