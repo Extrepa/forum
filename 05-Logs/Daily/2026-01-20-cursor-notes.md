@@ -25,3 +25,14 @@
 - If a user is logged in from the old browser-only era (no `password_hash`), the UI now prompts them to set email + password to finish account setup.
 - Posting endpoints now require a password to be set (legacy sessions can still browse, but must set a password to post).
 
+## Ready-to-test checklist (2026-01-21)
+
+- Repo clean and pushed: `origin/main` at commit `6090187`.
+- Cloudflare worker deployed: `https://errl-portal-forum.extrepatho.workers.dev` returns `{"online":true}` on `/api/status`.
+- D1 migrations: `0006_accounts.sql` and `0007_notifications.sql` applied on remote (no pending migrations).
+- Auth upgrade flow:
+  - Logged-in legacy session with no password shows `hasPassword: false` via `/api/auth/me`
+  - Change-password endpoint allows setting first password while logged in
+  - Posting endpoints block until a password exists (`must_change_password || !password_hash`)
+- Notifications: `/api/notifications` returns list + unread count (requires login); reply posting writes notification rows.
+
