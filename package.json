@@ -19,7 +19,7 @@
     "sanitize-html": "^2.12.1"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.14.8",
+    "@opennextjs/cloudflare": "^1.14.10",
     "wrangler": "^4.53.0"
   }
 }
