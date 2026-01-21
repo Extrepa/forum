@@ -50,38 +50,46 @@ async function upsertUserWithTempPassword(db, username, { role, passwordHash, no
 }
 
 export async function POST(request) {
-  const { env } = await getCloudflareContext({ async: true });
-  const adminToken = env.ADMIN_RESET_TOKEN;
-  const provided = request.headers.get('x-admin-token');
-
-  if (!adminToken || provided !== adminToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let payload = {};
   try {
-    payload = await request.json();
+    const { env } = await getCloudflareContext({ async: true });
+    const adminToken = env.ADMIN_RESET_TOKEN;
+    const provided = request.headers.get('x-admin-token');
+
+    if (!adminToken || provided !== adminToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let payload = {};
+    try {
+      payload = await request.json();
+    } catch (error) {
+      // ok, defaults apply
+    }
+
+    const tempPassword = String(payload.tempPassword || 'Password');
+    const now = Date.now();
+    // Hash once and reuse for all 3 users to avoid CPU timeouts.
+    const passwordHash = await hashPassword(tempPassword, { iterations: 120000 });
+
+    const db = await getDb();
+    const results = [];
+
+    // extrepa is admin
+    results.push(await upsertUserWithTempPassword(db, 'extrepa', { role: 'admin', passwordHash, now }));
+    results.push(await upsertUserWithTempPassword(db, 'geofryd', { role: 'user', passwordHash, now }));
+    results.push(await upsertUserWithTempPassword(db, 'ashley', { role: 'user', passwordHash, now }));
+
+    return NextResponse.json({
+      ok: true,
+      tempPasswordPolicy: 'must_change_password',
+      users: results
+    });
   } catch (error) {
-    // ok, defaults apply
+    console.error('bootstrap-accounts failed', error);
+    return NextResponse.json(
+      { error: 'Bootstrap failed.', detail: String(error) },
+      { status: 500 }
+    );
   }
-
-  const tempPassword = String(payload.tempPassword || 'Password');
-  const now = Date.now();
-  // Hash once and reuse for all 3 users to avoid CPU timeouts.
-  const passwordHash = await hashPassword(tempPassword, { iterations: 120000 });
-
-  const db = await getDb();
-  const results = [];
-
-  // extrepa is admin
-  results.push(await upsertUserWithTempPassword(db, 'extrepa', { role: 'admin', passwordHash, now }));
-  results.push(await upsertUserWithTempPassword(db, 'geofryd', { role: 'user', passwordHash, now }));
-  results.push(await upsertUserWithTempPassword(db, 'ashley', { role: 'user', passwordHash, now }));
-
-  return NextResponse.json({
-    ok: true,
-    tempPasswordPolicy: 'must_change_password',
-    users: results
-  });
 }
 
