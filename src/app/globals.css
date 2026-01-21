@@ -767,6 +767,78 @@ button:hover {
 
 .reply-body {
   line-height: 1.6;
+}
+
+/* Unread thread and reply indicators */
+.thread-unread h3 {
+  font-weight: bold;
+}
+
+.reply-unread {
+  border-left: 3px solid var(--accent);
+  padding-left: 11px;
+  background: rgba(52, 225, 255, 0.05);
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.pagination .button.active {
+  font-weight: bold;
+  opacity: 1;
+  background: var(--accent-soft);
+}
+
+.pagination .button:disabled,
+.pagination .button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Enhanced quote styles for nested quotes */
+.reply-body blockquote {
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: rgba(22, 58, 74, 0.3);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.reply-body blockquote blockquote {
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: rgba(22, 58, 74, 0.2);
+  border-left: 2px solid var(--accent);
+  margin-left: 12px;
+}
+
+.reply-body blockquote p:first-child {
+  margin-top: 0;
+}
+
+.reply-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Username link hover */
+.username:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+/* Status icons spacing */
+.list-item h3 span {
+  margin-right: 6px;
+}
   color: var(--ink);
   font-size: 15px;
 }

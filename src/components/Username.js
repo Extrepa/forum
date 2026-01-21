@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default function Username({
@@ -10,6 +11,7 @@ export default function Username({
   colorIndex,
   className = '',
   title,
+  href = '/account',
 }) {
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -22,9 +24,9 @@ export default function Username({
   const classes = ['username', `username--${idx}`, className].filter(Boolean).join(' ');
 
   return (
-    <span className={classes} title={title || safeName}>
+    <Link href={href} className={classes} title={title || safeName} style={{ textDecoration: 'none', color: 'inherit' }}>
       {safeName}
-    </span>
+    </Link>
   );
 }
 

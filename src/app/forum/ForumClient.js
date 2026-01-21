@@ -5,7 +5,21 @@ import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
-export default function ForumClient({ threads, notice, basePath = '/forum' }) {
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  if (hours > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  if (minutes > 0) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+  return 'just now';
+}
+
+export default function ForumClient({ announcements = [], stickies = [], threads = [], notice, basePath = '/forum' }) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -23,6 +37,87 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
     return plainText.substring(0, maxLength) + '...';
   };
 
+  const renderItem = (row, { condensed = false }) => {
+    const colorIndex = getUsernameColorIndex(row.author_name);
+    const isHot = (row.reply_count || 0) > 10;
+    const statusIcons = [];
+    if (row.is_pinned) statusIcons.push('📌');
+    if (row.is_locked) statusIcons.push('🔒');
+    if (row.is_unread) statusIcons.push('🆕');
+    if (isHot) statusIcons.push('🔥');
+
+    const lastActivity = row.last_activity_at || row.created_at;
+    const lastPostAuthor = row.last_post_author || row.author_name;
+
+    return (
+      <a
+        key={row.id}
+        href={`${basePath}/${row.id}`}
+        className={`list-item ${row.is_unread ? 'thread-unread' : ''}`}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+      >
+        <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+          <h3 style={{ marginBottom: 0, display: 'inline', fontWeight: row.is_unread ? 'bold' : 'normal' }}>
+            {statusIcons.length > 0 && <span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>}
+            {row.title}
+          </h3>
+          <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+            by <Username name={row.author_name} colorIndex={colorIndex} />
+          </span>
+        </div>
+        {!condensed ? (
+          <p className="muted" style={{ marginBottom: '6px', fontSize: '13px' }}>
+            {truncateBody(row.body)}
+          </p>
+        ) : null}
+        <div
+          className="list-meta"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12px',
+            marginTop: '4px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}
+        >
+          <span>
+            {row.views !== undefined ? `${row.views || 0} views` : ''}
+            {row.reply_count > 0 && ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`}
+          </span>
+          <span>
+            {lastPostAuthor !== row.author_name && (
+              <>
+                Last post: {formatTimeAgo(lastActivity)} by <Username name={lastPostAuthor} colorIndex={getUsernameColorIndex(lastPostAuthor)} />
+              </>
+            )}
+            {lastPostAuthor === row.author_name && (
+              <>Created {formatTimeAgo(row.created_at)}</>
+            )}
+          </span>
+        </div>
+      </a>
+    );
+  };
+
+  const renderSection = (title, items, showEmpty = true) => {
+    if (items.length === 0 && !showEmpty) return null;
+    
+    return (
+      <section className="card">
+        <h3 className="section-title">{title}</h3>
+        {items.length === 0 ? (
+          <p className="muted">No threads yet.</p>
+        ) : (
+          <div className="list">
+            {items.map((row) => renderItem(row, { condensed: true }))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
   return (
     <div className="stack">
       <section className="card">
@@ -32,85 +127,11 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
         </div>
       </section>
 
-      <section className="card">
-        <h3 className="section-title">Latest</h3>
-        {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
-          {threads.length === 0 ? (
-            <p className="muted">{strings.cards.general.empty}</p>
-          ) : (
-            (() => {
-              let lastName = null;
-              let lastIndex = null;
+      {notice ? <div className="notice">{notice}</div> : null}
 
-              const latest = threads[0];
-              const rest = threads.slice(1);
-
-              const renderItem = (row, { condensed }) => {
-                const colorIndex = getUsernameColorIndex(row.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = row.author_name;
-                lastIndex = colorIndex;
-
-                return (
-                  <a
-                    key={row.id}
-                    href={`${basePath}/${row.id}`}
-                    className="list-item"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
-                  >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username name={row.author_name} colorIndex={colorIndex} />
-                      </span>
-                    </div>
-                    {!condensed ? (
-                      <p className="muted" style={{ marginBottom: '6px', fontSize: '13px' }}>
-                        {truncateBody(row.body)}
-                      </p>
-                    ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>
-                        {new Date(row.created_at).toLocaleString()}
-                      </span>
-                      <span>
-                        {row.reply_count > 0
-                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
-                          : ''}
-                      </span>
-                    </div>
-                  </a>
-                );
-              };
-
-              return (
-                <>
-                  {renderItem(latest, { condensed: false })}
-                  {rest.length ? (
-                    <>
-                      <div className="list-divider" />
-                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
-                      {rest.map((row) => renderItem(row, { condensed: true }))}
-                    </>
-                  ) : null}
-                </>
-              );
-            })()
-          )}
-        </div>
-      </section>
+      {announcements.length > 0 && renderSection('Announcements', announcements, false)}
+      {stickies.length > 0 && renderSection('Pinned Threads', stickies, false)}
+      {renderSection('Latest Threads', threads, true)}
     </div>
   );
 }

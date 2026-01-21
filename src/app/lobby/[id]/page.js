@@ -7,6 +7,9 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
+import ThreadViewTracker from '../../../components/ThreadViewTracker';
+import Pagination from '../../../components/Pagination';
+import ReplyForm from '../../../components/ReplyForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,6 +84,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
 
+  const viewer = await getSessionUser();
+  
+  // Pagination
+  const REPLIES_PER_PAGE = 20;
+  const currentPage = Math.max(1, parseInt(searchParams?.page || '1', 10));
+  const offset = (currentPage - 1) * REPLIES_PER_PAGE;
+
+  // Get total reply count
+  const totalRepliesResult = await db
+    .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
+    .bind(params.id)
+    .first();
+  const totalReplies = totalRepliesResult?.count || 0;
+  const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
+
+  // Get replies for current page
   const { results: replies } = await db
     .prepare(
       `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
@@ -88,12 +107,45 @@ export default async function LobbyThreadPage({ params, searchParams }) {
        FROM forum_replies
        JOIN users ON users.id = forum_replies.author_user_id
        WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
-       ORDER BY forum_replies.created_at ASC`
+       ORDER BY forum_replies.created_at ASC
+       LIMIT ? OFFSET ?`
     )
-    .bind(params.id)
+    .bind(params.id, REPLIES_PER_PAGE, offset)
     .all();
 
-  const viewer = await getSessionUser();
+  // Calculate first unread reply ID
+  let firstUnreadId = null;
+  if (viewer) {
+    try {
+      const readState = await db
+        .prepare('SELECT last_read_reply_id FROM forum_thread_reads WHERE user_id = ? AND thread_id = ?')
+        .bind(viewer.id, params.id)
+        .first();
+
+      if (readState?.last_read_reply_id) {
+        // Find first reply after the last read one
+        const firstUnread = await db
+          .prepare(
+            `SELECT id FROM forum_replies 
+             WHERE thread_id = ? AND is_deleted = 0 AND created_at > (
+               SELECT created_at FROM forum_replies WHERE id = ?
+             )
+             ORDER BY created_at ASC LIMIT 1`
+          )
+          .bind(params.id, readState.last_read_reply_id)
+          .first();
+        firstUnreadId = firstUnread?.id || null;
+      } else {
+        // Never read - if there are replies, first reply is unread
+        // If no replies, thread itself is unread (but no jump needed)
+        if (replies.length > 0) {
+          firstUnreadId = replies[0].id;
+        }
+      }
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
   const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
   
   // Check if current user has liked this thread
@@ -128,6 +180,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   return (
     <div className="stack">
+      <ThreadViewTracker threadId={params.id} />
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
@@ -227,7 +280,27 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         </div>
 
         <div className="thread-replies">
-          <h3 className="section-title">Replies ({replies.length})</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 className="section-title" style={{ margin: 0 }}>Replies ({totalReplies})</h3>
+            {firstUnreadId && (
+              <a 
+                href={`#reply-${firstUnreadId}`}
+                className="button"
+                style={{ fontSize: '14px', padding: '6px 12px' }}
+              >
+                Jump to first unread
+              </a>
+            )}
+            {totalPages > 1 && (
+              <a 
+                href={`#reply-${replies[replies.length - 1]?.id || ''}`}
+                className="button"
+                style={{ fontSize: '14px', padding: '6px 12px', marginLeft: '8px' }}
+              >
+                Jump to bottom
+              </a>
+            )}
+          </div>
           {notice ? <div className="notice">{notice}</div> : null}
 
           {replies.length > 0 && (
@@ -244,8 +317,29 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                   lastName = reply.author_name;
                   lastIndex = colorIndex;
 
-                  return (
-                    <div key={reply.id} className="reply-item">
+                  const isUnread = firstUnreadId && reply.id === firstUnreadId;
+                const currentQuoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
+                const isQuoted = currentQuoteIds.includes(reply.id);
+                
+                // Build quote URL
+                const quoteUrlParams = new URLSearchParams();
+                if (searchParams?.page) quoteUrlParams.set('page', searchParams.page);
+                if (isQuoted) {
+                  // Remove this quote
+                  currentQuoteIds.filter(id => id !== reply.id).forEach(id => quoteUrlParams.append('quote', id));
+                } else {
+                  // Add this quote
+                  currentQuoteIds.forEach(id => quoteUrlParams.append('quote', id));
+                  quoteUrlParams.append('quote', reply.id);
+                }
+                const quoteUrl = quoteUrlParams.toString() ? `?${quoteUrlParams.toString()}` : '';
+                
+                return (
+                    <div 
+                      key={reply.id} 
+                      id={`reply-${reply.id}`}
+                      className={`reply-item ${isUnread ? 'reply-unread' : ''}`}
+                    >
                       <div
                         className="reply-meta"
                         style={{
@@ -258,7 +352,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                         <span className="reply-author">
                           <Username name={reply.author_name} colorIndex={colorIndex} />
                         </span>
-                        <span className="reply-time">{formatDateTime(reply.created_at)}</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span className="reply-time">{formatDateTime(reply.created_at)}</span>
+                          {!thread.is_locked && (
+                            <a
+                              href={quoteUrl}
+                              className="button"
+                              style={{ fontSize: '12px', padding: '4px 8px' }}
+                            >
+                              {isQuoted ? 'Unquote' : 'Quote'}
+                            </a>
+                          )}
+                        </div>
                       </div>
                       <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }} />
                     </div>
@@ -268,20 +373,31 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             </div>
           )}
 
+          {totalPages > 1 && (
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              baseUrl={`/lobby/${thread.id}`}
+            />
+          )}
+
           {thread.is_locked ? (
             <p className="muted" style={{ marginTop: '12px' }}>
               Replies are locked for this thread.
             </p>
           ) : (
-            <form action={`/api/forum/${thread.id}/replies`} method="post" className="reply-form">
-              <label>
-                <div className="muted" style={{ marginBottom: '8px' }}>
-                  Add a reply
-                </div>
-                <textarea name="body" placeholder="Write your reply..." required />
-              </label>
-              <button type="submit">Post reply</button>
-            </form>
+            <ReplyForm 
+              threadId={thread.id}
+              initialQuotes={(() => {
+                const quoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
+                return replies.filter(r => quoteIds.includes(r.id)).map(r => ({
+                  id: r.id,
+                  author_name: r.author_name,
+                  body: r.body
+                }));
+              })()}
+              action={`/api/forum/${thread.id}/replies`}
+            />
           )}
 
           {replies.length === 0 && <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>}

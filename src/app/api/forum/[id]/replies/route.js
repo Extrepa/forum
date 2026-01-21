@@ -125,5 +125,19 @@ export async function POST(request, { params }) {
     // swallow
   }
 
+  // Redirect to last page after posting
+  const db2 = await getDb();
+  const totalRepliesResult = await db2
+    .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
+    .bind(params.id)
+    .first();
+  const totalReplies = totalRepliesResult?.count || 0;
+  const REPLIES_PER_PAGE = 20;
+  const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
+  
+  if (totalPages > 1) {
+    redirectUrl.searchParams.set('page', totalPages.toString());
+  }
+
   return NextResponse.redirect(redirectUrl, 303);
 }
