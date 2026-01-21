@@ -1106,8 +1106,9 @@ export default async function HomePage({ searchParams }) {
                   href="/lore-memories"
                 />
               )}
-          </div>
-        </section>
+            </div>
+          </section>
+        </>
       )}
     </div>
   );
