@@ -1,4 +1,5 @@
 import { getDb } from '../../lib/db';
+import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -34,10 +35,12 @@ async function safeAll(db, primarySql, primaryBinds, fallbackSql, fallbackBinds)
 }
 
 export default async function FeedPage() {
+  const user = await getSessionUser();
+  const isSignedIn = !!user;
   const db = await getDb();
   const limitPerType = 20;
 
-  const [announcements, threads, events, music, projects] = await Promise.all([
+  const [announcements, threads, events, music, projects, posts] = await Promise.all([
     safeAll(
       db,
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
@@ -127,8 +130,48 @@ export default async function FeedPage() {
        ORDER BY projects.created_at DESC
        LIMIT ${limitPerType}`,
       []
+    ),
+    safeAll(
+      db,
+      `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+         AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+       ORDER BY posts.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+         AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+       ORDER BY posts.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
     )
   ]);
+
+  const labelForPostType = (type) => {
+    switch (type) {
+      case 'art':
+        return 'Art';
+      case 'bugs':
+        return 'Bugs';
+      case 'rant':
+        return 'Rant';
+      case 'nostalgia':
+        return 'Nostalgia';
+      case 'lore':
+        return 'Lore';
+      case 'memories':
+        return 'Memories';
+      default:
+        return type;
+    }
+  };
 
   const items = [
     ...announcements.map((row) => ({
@@ -170,6 +213,14 @@ export default async function FeedPage() {
       title: row.title,
       author: row.author_name,
       meta: null
+    })),
+    ...posts.map((row) => ({
+      type: labelForPostType(row.type),
+      href: `/${row.type}/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title || 'Untitled',
+      author: row.author_name,
+      meta: row.is_private ? 'Members-only' : null
     }))
   ]
     .filter((x) => !!x.createdAt)

@@ -260,3 +260,77 @@ If you want explicit per-file commands (run in this order):
 - **Build**: `npm run build` passes.
 - **Lint**: `npm run lint` currently prompts interactively because Next.js is deprecating `next lint`; this needs a separate migration to ESLint CLI if you want CI-friendly linting.
 
+### D1 migration tracker mismatch (production)
+- `users.phone` and `users.phone_norm` already exist on remote, but `d1_migrations` did not include `0008_add_phone.sql`, so `wrangler d1 migrations apply --remote` fails on `0008` with `duplicate column name: phone`.
+- We safely marked `0009_move_forum_to_project.sql` as applied in `d1_migrations` to avoid re-running the “move most recent thread” data migration.
+- Next safe step: mark `0008_add_phone.sql` as applied in `d1_migrations` (since its schema is already present), then re-run migrations apply.
+
+### D1 migrations: executed + verified (production)
+- Verified auth/account via `npx wrangler whoami` (OAuth token + `d1 (write)` scope).
+- Verified `users` already includes `phone` + `phone_norm` via `PRAGMA table_info(users);` (so `0008_add_phone.sql` is already effectively applied at schema-level).
+- Verified `d1_migrations` schema via `PRAGMA table_info(d1_migrations);`:
+  - `name TEXT`
+  - `applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+- Inserted migration markers (to reconcile tracker with reality / avoid unsafe re-runs):
+  - Marked `0009_move_forum_to_project.sql` as applied (prevents re-running a “move newest thread” data migration).
+  - Marked `0008_add_phone.sql` as applied (prevents repeated failure on duplicate column).
+- After that, `npx wrangler d1 migrations apply errl_forum_db --remote` succeeded and remaining pending migrations (including `0010`, `0011`, `0012`, `0013`, `0014`, `0015`, `0016`) were able to proceed.
+
+### Development post draft (for first changelog post)
+- Drafted an Apple-style, sectioned changelog post you can paste into Development:
+  - `05-Logs/Development/2026-01-21-development-post-01-devlogform.md` (includes Title + Body ready for the form)
+  - `05-Logs/Development/2026-01-21-development-post-01.md` (clean Markdown draft)
+
+### Fix: Development list cut-off + editor improvements
+- **Development list**:
+  - Increased the preview size from a hard 200-char truncation to a multi-line snippet.
+  - Made the entire list item clickable and added an explicit "Open full post" link.
+- **Development editor**:
+  - Increased default body textarea height and kept resize enabled.
+  - Expanded the toolbar: lists, quote, inline/code block, highlight, and limited safe color spans.
+- **Markdown rendering**:
+  - Allowed additional safe tags: `blockquote`, `pre`, `code`, `hr`, `mark`, and `span` (class-restricted).
+
+### Change: remove Projects "Updates"; move concept into Development
+- Removed the Projects "Updates" list and "Add Update" form from the Project detail page.
+- Added a "Quick update (optional)" checkbox in the Development post form that can prefill a lightweight update template.
+
+### Double-check notes (Projects Updates removal)
+- Project detail page no longer queries or renders `project_updates`.
+- The old `project_updates` API route still exists (`POST /api/projects/[id]/updates`) but is now effectively unused by the UI; safe to remove later if you want to fully retire the feature.
+
+### Plan: add more pages + keep header one row
+- New sections planned: Art (image-only), Bugs, Rant, Nostalgia, plus About (site description).
+- Lore and Memories remain signed-in to view.
+- Header stays one row; new links live under a dropdown next to Search (mobile menu lists everything).
+- Add shared `posts` + `post_comments` with a private flag (`is_private`) for member-only posts.
+
+### Implementation notes (More Pages + Nav Dropdown + Private Posts)
+- Added migration: `migrations/0017_shared_posts.sql` (new `posts` + `post_comments`, includes `is_private`).
+- Added generic API routes:
+  - `src/app/api/posts/route.js`
+  - `src/app/api/posts/[id]/route.js`
+  - `src/app/api/posts/[id]/comments/route.js`
+- Added new pages:
+  - `/about`, `/art`, `/bugs`, `/rant`, `/nostalgia`, `/lore`, `/memories` (+ detail pages for all except About)
+- Header nav:
+  - Inline nav remains the existing primary set
+  - New pages live under a chevron dropdown next to Search
+- Discovery:
+  - Feed and Search include the new post types and respect private visibility (guest vs signed-in)
+
+### Double-check (More Pages + Nav Dropdown + Private Posts)
+- **Routes/build**:
+  - `npm run build` succeeds (needed running outside sandbox due to prior `kill EPERM` behavior).
+  - New routes appear in build output: `/about`, `/art`, `/bugs`, `/rant`, `/nostalgia`, `/lore`, `/memories`, plus API `/api/posts*`.
+- **Visibility rules**:
+  - Guests: can read About/Art/Bugs/Rant/Nostalgia (non-private posts only).
+  - Signed-in required to view Lore + Memories (enforced in pages and in `/api/posts` + `/api/posts/[id]` + `/api/posts/[id]/comments`).
+  - Members-only posts: stored as `posts.is_private=1`; filtered out of Feed/Search for guests.
+- **Header behavior**:
+  - Primary links stay inline; “More” chevron dropdown contains the new pages.
+  - Mobile now uses the Menu popover (lists everything) and hides inline nav, matching the “dropdown list longer on mobile” intent.
+- **Known follow-ups**:
+  - D1 migration `0017_shared_posts.sql` must be applied before these sections can store content; otherwise pages show a clear “not available yet” notice.
+
+

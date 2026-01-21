@@ -70,7 +70,13 @@ export default async function DevLogPage({ searchParams }) {
   }
 
   const logs = results.map((row) => {
-    const preview = row.body.length > 200 ? row.body.substring(0, 200) + '...' : row.body;
+    const text = String(row.body || '').trim();
+    const lines = text.split('\n');
+    const previewLines = lines.slice(0, 16).join('\n').trim();
+    const preview =
+      text.length > previewLines.length
+        ? (previewLines + '\n\n…').trim()
+        : text;
     return { ...row, is_locked: row.is_locked || 0, bodyHtml: renderMarkdown(preview) };
   });
 

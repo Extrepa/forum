@@ -1,11 +1,15 @@
 import SearchClient from './SearchClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
+import { getSessionUser } from '../../lib/auth';
 
 export default async function SearchResults({ query }) {
   if (!query) {
     return <SearchClient query="" results={[]} />;
   }
+
+  const user = await getSessionUser();
+  const isSignedIn = !!user;
 
   const db = await getDb();
   const searchTerm = `%${query}%`;
@@ -225,6 +229,27 @@ export default async function SearchResults({ query }) {
     replies = out?.results || [];
   }
 
+  // Search shared posts (art/bugs/rant/nostalgia/lore/memories/about)
+  let posts = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+                posts.created_at, users.username AS author_name
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE (posts.title LIKE ? OR posts.body LIKE ?)
+           AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+         ORDER BY posts.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm)
+      .all();
+    posts = out?.results || [];
+  } catch (e) {
+    posts = [];
+  }
+
   // Pre-render markdown for results
   const processedThreads = threads.map(t => ({
     ...t,
@@ -268,13 +293,34 @@ export default async function SearchResults({ query }) {
     url: `/lobby/${r.thread_id}`
   }));
 
+  const labelForShared = (t) => {
+    const labels = {
+      art: 'art',
+      bugs: 'bugs',
+      rant: 'rant',
+      nostalgia: 'nostalgia',
+      lore: 'lore',
+      memories: 'memories',
+      about: 'about',
+    };
+    return labels[t] || t;
+  };
+
+  const processedPosts = posts.map(p => ({
+    ...p,
+    bodyHtml: p.body ? renderMarkdown(p.body) : null,
+    type: labelForShared(p.type),
+    url: `/${p.type === 'about' ? 'about' : p.type}${p.type === 'about' ? '' : `/${p.id}`}`
+  }));
+
   const allResults = [
     ...processedThreads,
     ...processedUpdates,
     ...processedEvents,
     ...processedMusic,
     ...processedProjects,
-    ...processedReplies
+    ...processedReplies,
+    ...processedPosts
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return <SearchClient query={query} results={allResults} />;

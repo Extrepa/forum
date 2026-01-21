@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -8,6 +9,14 @@ import DevLogForm from '../../components/DevLogForm';
 
 export default function DevLogClient({ logs, notice, isAdmin }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
+
+  const navigateToLog = (event, href) => {
+    if (event?.target?.closest && event.target.closest('a')) {
+      return;
+    }
+    router.push(href);
+  };
 
   return (
     <div className="stack">
@@ -26,13 +35,14 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
         <h3 className="section-title">Latest</h3>
         <div className="list">
           {logs.length === 0 ? (
-            <p className="muted">No dev log posts yet.</p>
+            <p className="muted">No Development posts yet.</p>
           ) : (
             (() => {
               let lastName = null;
               let lastIndex = null;
 
               return logs.map((row) => {
+                const href = `/devlog/${row.id}`;
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -41,10 +51,23 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
                 lastIndex = colorIndex;
 
                 return (
-                  <div key={row.id} className="list-item">
+                  <div
+                    key={row.id}
+                    className="list-item"
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => navigateToLog(e, href)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigateToLog(e, href);
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="post-header">
                       <h3>
-                        <a href={`/devlog/${row.id}`}>{row.title}</a>
+                        <a href={href}>{row.title}</a>
                       </h3>
                       {row.is_locked ? (
                         <span className="muted" style={{ fontSize: '12px' }}>
@@ -68,10 +91,13 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span>
+                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <a className="post-link" href={href}>
+                          Open full post
+                        </a>
                         {new Date(row.created_at).toLocaleString()}
                         {row.comment_count > 0
-                          ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'comment' : 'comments'}`
+                          ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

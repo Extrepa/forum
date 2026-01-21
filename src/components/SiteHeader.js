@@ -18,21 +18,22 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
+    setMoreOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
-      if (!menuOpen) return;
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
+      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
+      if (moreOpen && moreRef.current && !moreRef.current.contains(event.target)) setMoreOpen(false);
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [menuOpen]);
+  }, [menuOpen, moreOpen]);
 
   const headerClassName = useMemo(() => (detail ? 'header--detail' : ''), [detail]);
 
@@ -61,18 +62,39 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           {menuOpen ? (
             <div className="card nav-menu-popover" role="menu" aria-label="Site menu">
               <nav className="nav-menu-links">
-                <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} />
+                <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
               </nav>
             </div>
           ) : null}
         </div>
 
         <nav className="nav-inline">
-          <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} />
+          <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="primary" />
         </nav>
 
         <div className="header-right-controls">
           <SearchBar />
+          <div className="nav-more" ref={moreRef}>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setMoreOpen((v) => !v)}
+              aria-label="More pages"
+              aria-expanded={moreOpen ? 'true' : 'false'}
+              title="More"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            {moreOpen ? (
+              <div className="card nav-more-popover" role="menu" aria-label="More pages">
+                <nav className="nav-menu-links">
+                  <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
+                </nav>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 

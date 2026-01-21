@@ -1,4 +1,3 @@
-import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
 import ProjectForm from '../../../components/ProjectForm';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
@@ -91,19 +90,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     }
   }
 
-  const { results: updates } = await db
-    .prepare(
-      `SELECT project_updates.id, project_updates.title, project_updates.body,
-              project_updates.image_key, project_updates.created_at,
-              users.username AS author_name
-       FROM project_updates
-       JOIN users ON users.id = project_updates.author_user_id
-       WHERE project_updates.project_id = ?
-       ORDER BY project_updates.created_at DESC`
-    )
-    .bind(params.id)
-    .all();
-
   // Project replies (forum-style). Rollout-safe: if table isn't migrated yet, fall back to none.
   let replies = [];
   let repliesEnabled = true;
@@ -148,25 +134,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title, description, and status are required.'
-      : error === 'notfound'
-      ? 'This project does not exist.'
-      : null;
-  
-  const updateNotice =
-    error === 'claim'
-      ? 'Sign in before posting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
-      : error === 'unauthorized'
-      ? 'Only the project author can add updates.'
-      : error === 'upload'
-      ? 'Image upload is not allowed for this username.'
-      : error === 'too_large'
-      ? 'Image is too large (max 5MB).'
-      : error === 'invalid_type'
-      ? 'Only image files are allowed.'
-      : error === 'missing'
-      ? 'Title and body are required.'
       : error === 'notfound'
       ? 'This project does not exist.'
       : null;
@@ -238,56 +205,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           <ProjectForm projectId={project.id} initialData={project} />
         </section>
       ) : null}
-
-      {canEdit ? (
-        <section className="card">
-          <h3 className="section-title">Add Update</h3>
-          {updateNotice ? <div className="notice">{updateNotice}</div> : null}
-          <ProjectUpdateForm projectId={project.id} />
-        </section>
-      ) : null}
-
-      <section className="card">
-        <h3 className="section-title">Updates</h3>
-        <div className="list">
-          {updates.length === 0 ? (
-            <p className="muted">No updates yet.</p>
-          ) : (
-            (() => {
-              let lastName = null;
-              let lastIndex = null;
-
-              return updates.map((update) => {
-                const colorIndex = getUsernameColorIndex(update.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = update.author_name;
-                lastIndex = colorIndex;
-
-                return (
-                  <div key={update.id} className="list-item">
-                    <h4>{update.title}</h4>
-                    {update.image_key ? (
-                      <img
-                        src={`/api/media/${update.image_key}`}
-                        alt=""
-                        className="post-image"
-                        loading="lazy"
-                      />
-                    ) : null}
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
-                    <div className="list-meta">
-                      <Username name={update.author_name} colorIndex={colorIndex} /> ·{' '}
-                      {new Date(update.created_at).toLocaleString()}
-                    </div>
-                  </div>
-                );
-              });
-            })()
-          )}
-        </div>
-      </section>
 
       <section className="card">
         <h3 className="section-title">Replies</h3>

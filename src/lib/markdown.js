@@ -14,16 +14,28 @@ export function renderMarkdown(input) {
       'em',
       'i',
       'u',
+      'mark',
+      'span',
       'ul',
       'ol',
       'li',
       'h1',
       'h2',
       'h3',
+      'h4',
+      'h5',
+      'blockquote',
+      'pre',
+      'code',
+      'hr',
       'a'
     ],
     allowedAttributes: {
-      a: ['href', 'target', 'rel']
+      a: ['href', 'target', 'rel'],
+      span: ['class']
+    },
+    allowedClasses: {
+      span: ['text-pink', 'text-blue', 'text-green', 'text-muted']
     },
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', {
