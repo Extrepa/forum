@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../lib/db';
-import { getSessionUser } from '../../../lib/auth';
+import { getSessionUserWithRole, isAdminUser } from '../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 
-export async function GET() {
+export async function GET(request) {
+  const user = await getSessionUserWithRole();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const db = await getDb();
   const { results } = await db
     .prepare(
-      `SELECT projects.id, projects.title, projects.description, projects.status,
-              projects.github_url, projects.demo_url, projects.image_key,
-              projects.created_at, projects.updated_at,
-              users.username AS author_name
-       FROM projects
-       JOIN users ON users.id = projects.author_user_id
-       ORDER BY projects.created_at DESC
+      `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+              dev_logs.is_locked,
+              dev_logs.created_at, dev_logs.updated_at,
+              users.username AS author_name,
+              (SELECT COUNT(*) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0) AS comment_count
+       FROM dev_logs
+       JOIN users ON users.id = dev_logs.author_user_id
+       ORDER BY dev_logs.created_at DESC
        LIMIT 50`
     )
     .all();
@@ -23,26 +29,19 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  const user = await getSessionUser();
-  const redirectUrl = new URL('/projects', request.url);
+  const user = await getSessionUserWithRole();
+  const redirectUrl = new URL('/devlog', request.url);
 
-  if (!user) {
-    redirectUrl.searchParams.set('error', 'claim');
+  if (!user || !isAdminUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  if (user.must_change_password || !user.password_hash) {
-    redirectUrl.searchParams.set('error', 'password');
-    return NextResponse.redirect(redirectUrl, 303);
-  }  
 
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
-  const description = String(formData.get('description') || '').trim();
-  const status = String(formData.get('status') || '').trim();
-  const githubUrl = String(formData.get('github_url') || '').trim() || null;
-  const demoUrl = String(formData.get('demo_url') || '').trim() || null;
+  const body = String(formData.get('body') || '').trim();
 
-  if (!title || !description || !status) {
+  if (!title || !body) {
     redirectUrl.searchParams.set('error', 'missing');
     return NextResponse.redirect(redirectUrl, 303);
   }
@@ -64,7 +63,7 @@ export async function POST(request) {
       return NextResponse.redirect(redirectUrl, 303);
     }
     const bucket = await getUploadsBucket();
-    imageKey = buildImageKey('projects', imageFile.name || 'image');
+    imageKey = buildImageKey('devlog', imageFile.name || 'image');
     await bucket.put(imageKey, await imageFile.arrayBuffer(), {
       httpMetadata: { contentType: imageFile.type }
     });
@@ -73,10 +72,11 @@ export async function POST(request) {
   const db = await getDb();
   await db
     .prepare(
-      'INSERT INTO projects (id, author_user_id, title, description, status, github_url, demo_url, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO dev_logs (id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now())
+    .bind(crypto.randomUUID(), user.id, title, body, imageKey, Date.now())
     .run();
 
   return NextResponse.redirect(redirectUrl, 303);
 }
+

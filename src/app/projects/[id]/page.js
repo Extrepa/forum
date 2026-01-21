@@ -2,7 +2,6 @@ import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
 import ProjectForm from '../../../components/ProjectForm';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
-import { getSessionUserWithRole, isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
@@ -14,7 +13,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   const db = await getDb();
   const project = await db
     .prepare(
-      `SELECT projects.id, projects.title, projects.description, projects.status,
+      `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
               projects.github_url, projects.demo_url, projects.image_key,
               projects.created_at, projects.updated_at,
               users.username AS author_name
@@ -59,13 +58,21 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     .bind(params.id)
     .all();
 
-  const user = await getSessionUserWithRole();
-  const isAdmin = isAdminUser(user);
+  const user = await getSessionUser();
+  const canEdit =
+    !!user &&
+    !user.must_change_password &&
+    !!user.password_hash &&
+    user.id === project.author_user_id;
 
   const error = searchParams?.error;
   const editNotice =
-    error === 'unauthorized'
-      ? 'Only admins can edit projects.'
+    error === 'claim'
+      ? 'Sign in before editing.'
+      : error === 'password'
+      ? 'Set your password to continue.'
+      : error === 'unauthorized'
+      ? 'Only the project author can edit this.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'
@@ -74,11 +81,17 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title, description, and status are required.'
+      : error === 'notfound'
+      ? 'This project does not exist.'
       : null;
   
   const updateNotice =
-    error === 'unauthorized'
-      ? 'Only admins can add updates.'
+    error === 'claim'
+      ? 'Sign in before posting.'
+      : error === 'password'
+      ? 'Set your password to continue posting.'
+      : error === 'unauthorized'
+      ? 'Only the project author can add updates.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'
@@ -87,6 +100,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title and body are required.'
+      : error === 'notfound'
+      ? 'This project does not exist.'
       : null;
   
   const commentNotice =
@@ -143,7 +158,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         </div>
       </section>
 
-      {isAdmin ? (
+      {canEdit ? (
         <section className="card">
           <h3 className="section-title">Edit Project</h3>
           {editNotice ? <div className="notice">{editNotice}</div> : null}
@@ -151,7 +166,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         </section>
       ) : null}
 
-      {isAdmin ? (
+      {canEdit ? (
         <section className="card">
           <h3 className="section-title">Add Update</h3>
           {updateNotice ? <div className="notice">{updateNotice}</div> : null}

@@ -1,14 +1,34 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../../lib/db';
-import { getSessionUserWithRole, isAdminUser } from '../../../../../lib/admin';
+import { getSessionUser } from '../../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../../lib/uploads';
 
 export async function POST(request, { params }) {
-  const user = await getSessionUserWithRole();
+  const user = await getSessionUser();
   const redirectUrl = new URL(`/projects/${params.id}`, request.url);
 
-  if (!user || !isAdminUser(user)) {
+  if (!user) {
+    redirectUrl.searchParams.set('error', 'claim');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (user.must_change_password || !user.password_hash) {
+    redirectUrl.searchParams.set('error', 'password');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  const db = await getDb();
+  const existing = await db
+    .prepare('SELECT author_user_id FROM projects WHERE id = ?')
+    .bind(params.id)
+    .first();
+
+  if (!existing) {
+    redirectUrl.searchParams.set('error', 'notfound');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  if (existing.author_user_id !== user.id) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
@@ -45,7 +65,6 @@ export async function POST(request, { params }) {
     });
   }
 
-  const db = await getDb();
   await db
     .prepare(
       'INSERT INTO project_updates (id, project_id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'

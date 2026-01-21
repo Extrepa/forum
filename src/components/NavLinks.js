@@ -2,13 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 
-export default function NavLinks() {
+export default function NavLinks({ isAdmin, isSignedIn }) {
   const pathname = usePathname();
 
   const links = [
     { href: '/', label: 'Home' },
     { href: '/timeline', label: 'Announcements' },
     { href: '/events', label: 'Events' },
+    ...(isSignedIn ? [{ href: '/devlog', label: 'Dev Log' }] : []),
     { href: '/forum', label: 'General' },
     { href: '/music', label: 'Music' },
     { href: '/projects', label: 'Projects' },

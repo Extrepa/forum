@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import ProjectForm from '../../components/ProjectForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import DevLogForm from '../../components/DevLogForm';
 
-export default function ProjectsClient({ projects, canCreate, notice }) {
+export default function DevLogClient({ logs, notice, isAdmin }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -14,27 +14,25 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Projects</h2>
-            <p className="muted">Current and past projects with updates and progress.</p>
+            <h2 className="section-title">Dev Log</h2>
+            <p className="muted">Notes, updates, and internal progress.</p>
           </div>
-          {canCreate && (
-            <button onClick={() => setIsModalOpen(true)}>Create Post</button>
-          )}
+          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>Create Post</button> : null}
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
 
       <section className="card">
-        <h3 className="section-title">All Projects</h3>
+        <h3 className="section-title">Latest</h3>
         <div className="list">
-          {projects.length === 0 ? (
-            <p className="muted">No projects yet.</p>
+          {logs.length === 0 ? (
+            <p className="muted">No dev log posts yet.</p>
           ) : (
             (() => {
               let lastName = null;
               let lastIndex = null;
 
-              return projects.map((row) => {
+              return logs.map((row) => {
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -46,9 +44,13 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                   <div key={row.id} className="list-item">
                     <div className="post-header">
                       <h3>
-                        <a href={`/projects/${row.id}`}>{row.title}</a>
+                        <a href={`/devlog/${row.id}`}>{row.title}</a>
                       </h3>
-                      <span className={`status-badge status-${row.status}`}>{row.status}</span>
+                      {row.is_locked ? (
+                        <span className="muted" style={{ fontSize: '12px' }}>
+                          Comments locked
+                        </span>
+                      ) : null}
                     </div>
                     {row.image_key ? (
                       <img
@@ -58,19 +60,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         loading="lazy"
                       />
                     ) : null}
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} />
-                    <div className="project-links">
-                      {row.github_url ? (
-                        <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
-                          GitHub
-                        </a>
-                      ) : null}
-                      {row.demo_url ? (
-                        <a href={row.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
-                          Demo
-                        </a>
-                      ) : null}
-                    </div>
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -93,15 +83,12 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
         </div>
       </section>
 
-      {canCreate && (
-        <CreatePostModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="New Project"
-        >
-          <ProjectForm />
+      {isAdmin ? (
+        <CreatePostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Dev Log Post">
+          <DevLogForm />
         </CreatePostModal>
-      )}
+      ) : null}
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import ProjectsClient from './ProjectsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
-import { getSessionUserWithRole, isAdminUser } from '../../lib/admin';
+import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
@@ -22,8 +22,8 @@ export default async function ProjectsPage({ searchParams }) {
     )
     .all();
 
-  const user = await getSessionUserWithRole();
-  const isAdmin = isAdminUser(user);
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
 
   // Pre-render markdown for server component
   const projects = results.map(row => {
@@ -38,8 +38,12 @@ export default async function ProjectsPage({ searchParams }) {
 
   const error = searchParams?.error;
   const notice =
-    error === 'unauthorized'
-      ? 'Only admins can create projects.'
+    error === 'claim'
+      ? 'Sign in before posting.'
+      : error === 'password'
+      ? 'Set your password to continue posting.'
+      : error === 'unauthorized'
+      ? 'Only the project author can edit that.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'
@@ -58,7 +62,7 @@ export default async function ProjectsPage({ searchParams }) {
           { href: '/projects', label: 'Projects' },
         ]}
       />
-      <ProjectsClient projects={projects} isAdmin={isAdmin} notice={notice} />
+      <ProjectsClient projects={projects} canCreate={canCreate} notice={notice} />
     </>
   );
 }

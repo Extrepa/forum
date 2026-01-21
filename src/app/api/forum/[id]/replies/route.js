@@ -24,6 +24,21 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  const threadLock = await db
+    .prepare('SELECT is_locked FROM forum_threads WHERE id = ?')
+    .bind(params.id)
+    .first();
+
+  if (!threadLock) {
+    redirectUrl.searchParams.set('error', 'notfound');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  if (threadLock.is_locked) {
+    redirectUrl.searchParams.set('error', 'locked');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
   const now = Date.now();
   await db
     .prepare(

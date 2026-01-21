@@ -13,7 +13,7 @@ export default async function ForumThreadPage({ params, searchParams }) {
   const thread = await db
     .prepare(
       `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-              forum_threads.created_at, forum_threads.image_key,
+              forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
               users.username AS author_name
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
@@ -43,12 +43,19 @@ export default async function ForumThreadPage({ params, searchParams }) {
     .bind(params.id)
     .all();
 
+  const viewer = await getSessionUser();
+  const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+
   const error = searchParams?.error;
   const notice =
     error === 'claim'
       ? 'Sign in before replying.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'locked'
+      ? 'Replies are locked on this thread.'
+      : error === 'notfound'
+      ? 'This thread does not exist.'
       : error === 'missing'
       ? 'Reply text is required.'
       : null;
@@ -69,6 +76,7 @@ export default async function ForumThreadPage({ params, searchParams }) {
           <div className="list-meta">
             <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
             {formatDateTime(thread.created_at)}
+            {thread.is_locked ? ' · Replies locked' : null}
           </div>
           {thread.image_key ? (
             <img
@@ -82,6 +90,14 @@ export default async function ForumThreadPage({ params, searchParams }) {
             className="post-body"
             dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }}
           />
+          {canToggleLock ? (
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <form action={`/api/forum/${thread.id}/lock`} method="post">
+                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
+                <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
+              </form>
+            </div>
+          ) : null}
         </div>
 
         {/* Replies Section */}
@@ -128,13 +144,17 @@ export default async function ForumThreadPage({ params, searchParams }) {
           )}
 
           {/* Reply Form */}
-          <form action={`/api/forum/${thread.id}/replies`} method="post" className="reply-form">
-            <label>
-              <div className="muted" style={{ marginBottom: '8px' }}>Add a reply</div>
-              <textarea name="body" placeholder="Write your reply..." required />
-            </label>
-            <button type="submit">Post reply</button>
-          </form>
+          {thread.is_locked ? (
+            <p className="muted" style={{ marginTop: '12px' }}>Replies are locked for this thread.</p>
+          ) : (
+            <form action={`/api/forum/${thread.id}/replies`} method="post" className="reply-form">
+              <label>
+                <div className="muted" style={{ marginBottom: '8px' }}>Add a reply</div>
+                <textarea name="body" placeholder="Write your reply..." required />
+              </label>
+              <button type="submit">Post reply</button>
+            </form>
+          )}
 
           {replies.length === 0 && (
             <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>

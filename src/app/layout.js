@@ -5,13 +5,18 @@ import NavLinks from '../components/NavLinks';
 import NotificationsLogoTrigger from '../components/NotificationsLogoTrigger';
 import HeaderAccountButton from '../components/HeaderAccountButton';
 import HeaderSetupBanner from '../components/HeaderSetupBanner';
+import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 
 export const metadata = {
   title: 'Errl Forum',
   description: 'Announcements, ideas, and plans for the Errl community.'
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const user = await getSessionUserWithRole();
+  const isAdmin = isAdminUser(user);
+  const isSignedIn = !!user;
+
   return (
     <html lang="en">
       <body>
@@ -27,7 +32,7 @@ export default function RootLayout({ children }) {
             <div className="header-nav-section">
               <BackButton />
               <nav>
-                <NavLinks />
+                <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} />
               </nav>
               <div className="header-right-controls">
                 <HeaderAccountButton />
