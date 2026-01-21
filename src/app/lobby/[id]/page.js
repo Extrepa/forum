@@ -297,7 +297,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               <EditPostButton 
                 postId={thread.id} 
                 postType="thread" 
-                onEdit={() => window.location.href = `/lobby/${thread.id}?edit=true`}
+                onEdit={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('edit', 'true');
+                  window.location.href = url.toString();
+                }}
               />
             )}
             {canDelete && (

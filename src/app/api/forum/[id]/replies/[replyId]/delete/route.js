@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '../../../../../../lib/db';
-import { getSessionUser } from '../../../../../../lib/auth';
-import { isAdminUser } from '../../../../../../lib/admin';
+import { getDb } from '../../../../../../../lib/db';
+import { getSessionUser } from '../../../../../../../lib/auth';
+import { isAdminUser } from '../../../../../../../lib/admin';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
