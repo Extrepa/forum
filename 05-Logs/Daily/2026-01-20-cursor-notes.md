@@ -31,6 +31,7 @@
 - Added a **global header banner** when account setup is incomplete (missing email/password or must-change-password).
 - Moved notifications trigger onto the **Errl face** (badge count + click opens the notifications dropdown); removed standalone notifications button from the header nav row.
 - Moved the **Account** button next to **Search** (left of it), keeping the setup banner full-width beneath the nav row.
+- Adjusted header layout so **Account stays immediately beside Search** (grouped right-side controls; avoids SearchBar `margin-left:auto` separating them).
 
 ## Ready-to-test checklist (2026-01-21)
 

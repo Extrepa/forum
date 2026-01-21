@@ -29,8 +29,10 @@ export default function RootLayout({ children }) {
               <nav>
                 <NavLinks />
               </nav>
-              <HeaderAccountButton />
-              <SearchBar />
+              <div className="header-right-controls">
+                <HeaderAccountButton />
+                <SearchBar />
+              </div>
             </div>
             <HeaderSetupBanner />
           </header>
