@@ -26,8 +26,10 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.general.title}</h2>
-        <p className="muted">{strings.cards.general.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.general.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.general.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -59,7 +61,12 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                    </div>
                     {!condensed ? (
                       <p className="muted" style={{ marginBottom: '6px', fontSize: '13px' }}>
                         {truncateBody(row.body)}
@@ -76,12 +83,11 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
                       }}
                     >
                       <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
+                        {new Date(row.created_at).toLocaleString()}
                       </span>
                       <span>
-                        {new Date(row.created_at).toLocaleString()}
                         {row.reply_count > 0
-                          ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

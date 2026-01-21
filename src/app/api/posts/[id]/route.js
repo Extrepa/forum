@@ -83,7 +83,18 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  redirectUrl.pathname = `${pagePathForType(type)}/${existing.id}`;
+  // Map post types to their section URLs
+  const typeToPath = {
+    'bugs': '/bugs-rant',
+    'rant': '/bugs-rant',
+    'art': '/art-nostalgia',
+    'nostalgia': '/art-nostalgia',
+    'lore': '/lore-memories',
+    'memories': '/lore-memories',
+    'about': '/about'
+  };
+  const sectionPath = typeToPath[type] || pagePathForType(type);
+  redirectUrl.pathname = `${sectionPath}/${existing.id}`;
 
   const isOwner = existing.author_user_id === user.id;
   if (!isOwner && !isAdminUser(user)) {

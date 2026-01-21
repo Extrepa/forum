@@ -21,8 +21,10 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.projects.title}</h2>
-        <p className="muted">{strings.cards.projects.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.projects.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.projects.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -62,9 +64,12 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       }
                     }}
                   >
-                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
-                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
-                      <span className={`status-badge status-${row.status}`}>{row.status}</span>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span className={`status-badge status-${row.status}`} style={{ marginLeft: '8px' }}>{row.status}</span>
                     </div>
                     {!condensed && row.image_key ? (
                       <img
@@ -72,11 +77,12 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         alt=""
                         className="post-image"
                         loading="lazy"
+                        style={{ marginBottom: '8px' }}
                       />
                     ) : null}
-                    {!condensed ? <div className="post-body" dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
+                    {!condensed ? <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
                     {!condensed ? (
-                      <div className="project-links">
+                      <div className="project-links" style={{ marginBottom: '8px' }}>
                         {row.github_url ? (
                           <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link" onClick={(e) => e.stopPropagation()}>
                             GitHub
@@ -100,12 +106,11 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       }}
                     >
                       <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
+                        {new Date(row.created_at).toLocaleString()}
                       </span>
                       <span>
-                        {new Date(row.created_at).toLocaleString()}
                         {row.reply_count > 0
-                          ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

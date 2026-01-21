@@ -12,8 +12,10 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.announcements.title}</h2>
-        <p className="muted">{strings.cards.announcements.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.announcements.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.announcements.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -45,16 +47,22 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title || 'Update'}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title || 'Update'}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                    </div>
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
+                        style={{ marginBottom: '8px' }}
                       />
                     ) : null}
-                    {!condensed ? <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} /> : null}
+                    {!condensed ? <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} /> : null}
                     <div
                       className="list-meta"
                       style={{
@@ -65,9 +73,6 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                         marginTop: '4px'
                       }}
                     >
-                      <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
-                      </span>
                       <span>{new Date(row.created_at).toLocaleString()}</span>
                     </div>
                   </a>

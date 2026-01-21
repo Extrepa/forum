@@ -110,10 +110,11 @@ header {
 .brand {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   width: 100%;
   min-height: 0;
+  position: relative;
 }
 
 /* SessionBadge in brand section */
@@ -143,6 +144,8 @@ header {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .brand-left h1 {
@@ -156,6 +159,15 @@ header {
   margin: 0;
   color: var(--muted);
   font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  flex-shrink: 1;
+}
+
+.brand > :last-child {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .header-nav-section {
@@ -397,6 +409,38 @@ input[type="file"] {
   padding: 8px 10px;
   background: rgba(2, 7, 10, 0.4);
   color: var(--muted);
+}
+
+input[type="checkbox"] {
+  width: auto;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+label {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+label span {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.rating-comments-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .rating-comments-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 textarea {
@@ -1650,9 +1694,26 @@ header::before {
   }
 
   .brand {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
     gap: 12px;
+    position: relative;
+  }
+
+  .brand-left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .brand-left h1 {
+    white-space: nowrap;
+  }
+
+  .brand > :last-child {
+    position: absolute;
+    top: 0;
+    right: 0;
+    flex-shrink: 0;
   }
 
   .brand .muted {

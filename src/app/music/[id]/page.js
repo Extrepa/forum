@@ -5,6 +5,7 @@ import { safeEmbedFromUrl } from '../../../lib/embeds';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 music_posts.moved_to_type, music_posts.moved_to_id,
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
-                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.id = ?`
@@ -54,7 +56,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at, users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
-                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count
+                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                0 AS like_count
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.id = ?`
@@ -110,6 +113,20 @@ export default async function MusicDetailPage({ params, searchParams }) {
 
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
+  
+  // Check if current user has liked this post
+  let userLiked = false;
+  if (user) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('music_post', post.id, user.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   return (
     <div className="stack">
@@ -121,10 +138,22 @@ export default async function MusicDetailPage({ params, searchParams }) {
         ]}
       />
       <section className="card">
-        <h2 className="section-title">{post.title}</h2>
-        <div className="list-meta">
-          <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} /> ·{' '}
-          {new Date(post.created_at).toLocaleString()}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title}</h2>
+            <div className="list-meta">
+              <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} /> ·{' '}
+              {new Date(post.created_at).toLocaleString()}
+            </div>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="music_post" 
+              postId={post.id} 
+              initialLiked={userLiked}
+              initialCount={Number(post.like_count || 0)}
+            />
+          ) : null}
         </div>
         {embed ? (
           <div 
@@ -165,34 +194,37 @@ export default async function MusicDetailPage({ params, searchParams }) {
       </section>
 
       <section className="card">
-        <h3 className="section-title">Rate this</h3>
-        {notice ? <div className="notice">{notice}</div> : null}
-        <form action="/api/music/ratings" method="post">
-          <input type="hidden" name="post_id" value={post.id} />
-          <label>
-            <div className="muted">Your rating (1-5)</div>
-            <select name="rating" defaultValue="5">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-          <button type="submit">Submit rating</button>
-        </form>
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Comments</h3>
-        <form action="/api/music/comments" method="post">
-          <input type="hidden" name="post_id" value={post.id} />
-          <label>
-            <div className="muted">Say something</div>
-            <textarea name="body" placeholder="Leave a comment" required />
-          </label>
-          <button type="submit">Post comment</button>
-        </form>
+        <div className="rating-comments-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div>
+            <h3 className="section-title" style={{ marginBottom: '12px' }}>Rate this</h3>
+            {notice ? <div className="notice" style={{ marginBottom: '12px' }}>{notice}</div> : null}
+            <form action="/api/music/ratings" method="post">
+              <input type="hidden" name="post_id" value={post.id} />
+              <label>
+                <div className="muted">Your rating (1-5)</div>
+                <select name="rating" defaultValue="5">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </label>
+              <button type="submit">Submit rating</button>
+            </form>
+          </div>
+          <div>
+            <h3 className="section-title" style={{ marginBottom: '12px' }}>Comments</h3>
+            <form action="/api/music/comments" method="post">
+              <input type="hidden" name="post_id" value={post.id} />
+              <label>
+                <div className="muted">Say something</div>
+                <textarea name="body" placeholder="Leave a comment" required />
+              </label>
+              <button type="submit">Post comment</button>
+            </form>
+          </div>
+        </div>
         <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>

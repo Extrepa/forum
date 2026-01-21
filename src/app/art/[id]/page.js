@@ -4,6 +4,7 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,10 +96,22 @@ export default async function ArtDetailPage({ params, searchParams }) {
       />
 
       <section className="card">
-        <h2 className="section-title">{post.title || 'Untitled'}</h2>
-        <div className="list-meta">
-          <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} />
-          {post.is_private ? <span className="muted"> · Members-only</span> : null}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title || 'Untitled'}</h2>
+            <div className="list-meta">
+              <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} />
+              {post.is_private ? <span className="muted"> · Members-only</span> : null}
+            </div>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="post" 
+              postId={post.id} 
+              initialLiked={userLiked}
+              initialCount={Number(post.like_count || 0)}
+            />
+          ) : null}
         </div>
         {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}

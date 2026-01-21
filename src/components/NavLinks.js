@@ -11,6 +11,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   const strings = getForumStrings({ useLore: loreEnabled });
 
   const primaryLinks = [
+    { href: '/?home=true', label: 'Home' },
     { href: '/feed', label: 'Feed' },
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },

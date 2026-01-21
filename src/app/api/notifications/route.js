@@ -15,22 +15,43 @@ export async function GET() {
     .bind(user.id)
     .first();
 
-  const { results } = await db
-    .prepare(
-      `SELECT n.id, n.type, n.target_type, n.target_id, n.created_at, n.read_at,
-              u.username AS actor_username
-       FROM notifications n
-       JOIN users u ON u.id = n.actor_user_id
-       WHERE n.user_id = ?
-       ORDER BY n.created_at DESC
-       LIMIT 10`
-    )
-    .bind(user.id)
-    .all();
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT n.id, n.type, n.target_type, n.target_id, n.created_at, n.read_at, n.seen_at,
+                u.username AS actor_username
+         FROM notifications n
+         JOIN users u ON u.id = n.actor_user_id
+         WHERE n.user_id = ?
+         ORDER BY n.created_at DESC
+         LIMIT 10`
+      )
+      .bind(user.id)
+      .all();
 
-  return NextResponse.json({
-    unreadCount: unread?.count || 0,
-    items: results || []
-  });
+    return NextResponse.json({
+      unreadCount: unread?.count || 0,
+      items: results || []
+    });
+  } catch (e) {
+    // Rollout-safe: if seen_at column doesn't exist yet, use old query
+    const { results } = await db
+      .prepare(
+        `SELECT n.id, n.type, n.target_type, n.target_id, n.created_at, n.read_at,
+                u.username AS actor_username
+         FROM notifications n
+         JOIN users u ON u.id = n.actor_user_id
+         WHERE n.user_id = ?
+         ORDER BY n.created_at DESC
+         LIMIT 10`
+      )
+      .bind(user.id)
+      .all();
+
+    return NextResponse.json({
+      unreadCount: unread?.count || 0,
+      items: results || []
+    });
+  }
 }
 

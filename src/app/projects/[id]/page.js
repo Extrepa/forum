@@ -8,6 +8,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import EditPostPanel from '../../../components/EditPostPanel';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,7 +64,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
-                users.username AS author_name
+                users.username AS author_name,
+                0 AS like_count
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.id = ?`
@@ -120,6 +122,20 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     !user.must_change_password &&
     !!user.password_hash &&
     (user.id === project.author_user_id || isAdmin);
+  
+  // Check if current user has liked this project
+  let userLiked = false;
+  if (user) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('project', project.id, user.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   const error = searchParams?.error;
   const editNotice =
@@ -166,9 +182,19 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         ]}
       />
       <section className="card">
-        <div className="post-header">
-          <h2 className="section-title">{project.title}</h2>
-          <span className={`status-badge status-${project.status}`}>{project.status}</span>
+        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{project.title}</h2>
+            <span className={`status-badge status-${project.status}`}>{project.status}</span>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="project" 
+              postId={project.id} 
+              initialLiked={userLiked}
+              initialCount={Number(project.like_count || 0)}
+            />
+          ) : null}
         </div>
         <div className="list-meta">
           <Username name={project.author_name} colorIndex={getUsernameColorIndex(project.author_name)} /> ·{' '}

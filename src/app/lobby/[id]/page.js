@@ -6,6 +6,7 @@ import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                 forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                 forum_threads.moved_to_type, forum_threads.moved_to_id,
-                users.username AS author_name
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.id = ?`
@@ -49,7 +51,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       .prepare(
         `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                 forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                users.username AS author_name
+                users.username AS author_name,
+                0 AS like_count
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.id = ?`
@@ -92,6 +95,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   const viewer = await getSessionUser();
   const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+  
+  // Check if current user has liked this thread
+  let userLiked = false;
+  if (viewer) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('forum_thread', thread.id, viewer.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   const error = searchParams?.error;
   const notice =
@@ -120,10 +137,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       />
       <section className="card thread-container">
         <div className="thread-post">
-          <div className="post-header">
-            <h2 className="section-title" style={{ margin: 0 }}>
+          <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+            <h2 className="section-title" style={{ margin: 0, flex: 1 }}>
               {thread.title}
             </h2>
+            {viewer ? (
+              <LikeButton 
+                postType="forum_thread" 
+                postId={thread.id} 
+                initialLiked={userLiked}
+                initialCount={Number(thread.like_count || 0)}
+              />
+            ) : null}
+          </div>
+          <div style={{ marginBottom: '12px' }}>
             {canToggleLock ? (
               <form action={`/api/forum/${thread.id}/lock`} method="post">
                 <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />

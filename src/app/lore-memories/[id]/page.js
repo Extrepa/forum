@@ -4,6 +4,7 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 

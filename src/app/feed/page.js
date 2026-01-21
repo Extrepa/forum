@@ -252,15 +252,17 @@ export default async function FeedPage() {
   ]
     .filter((x) => !!x.createdAt)
     .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 60);
+    .slice(0, 5);
 
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} />
 
       <section className="card">
-        <h2 className="section-title">Feed</h2>
-        <p className="muted">Recent activity across the portal.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>Feed</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>Recent activity across the portal.</p>
+        </div>
       </section>
 
       <section className="card">

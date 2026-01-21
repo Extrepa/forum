@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,10 +32,11 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   const db = await getDb();
   const update = await db
     .prepare(
-      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
               timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
               timeline_updates.moved_to_type, timeline_updates.moved_to_id,
-              users.username AS author_name
+              users.username AS author_name,
+              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.id = ?`
@@ -71,6 +73,20 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     .all();
 
   const user = await getSessionUser();
+  
+  // Check if current user has liked this update
+  let userLiked = false;
+  if (user) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('timeline_update', update.id, user.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   const error = searchParams?.error;
   const commentNotice =
@@ -93,11 +109,23 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
       />
 
       <section className="card">
-        <h2 className="section-title">{update.title || 'Update'}</h2>
-        <div className="list-meta">
-          <Username name={update.author_name} colorIndex={getUsernameColorIndex(update.author_name)} /> ·{' '}
-          {new Date(update.created_at).toLocaleString()}
-          {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{update.title || 'Update'}</h2>
+            <div className="list-meta">
+              <Username name={update.author_name} colorIndex={getUsernameColorIndex(update.author_name)} /> ·{' '}
+              {new Date(update.created_at).toLocaleString()}
+              {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
+            </div>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="timeline_update" 
+              postId={update.id} 
+              initialLiked={userLiked}
+              initialCount={Number(update.like_count || 0)}
+            />
+          ) : null}
         </div>
         {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />

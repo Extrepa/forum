@@ -13,8 +13,10 @@ export default function EventsClient({ events, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.events.title}</h2>
-        <p className="muted">{strings.cards.events.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.events.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.events.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -46,17 +48,23 @@ export default function EventsClient({ events, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                    </div>
+                    {!condensed && row.details ? (
+                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                    ) : null}
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
+                        style={{ marginBottom: '8px' }}
                       />
-                    ) : null}
-                    {!condensed && row.details ? (
-                      <div className="post-body" dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
                     <div
                       className="list-meta"
@@ -64,17 +72,16 @@ export default function EventsClient({ events, notice }) {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
+                        fontSize: condensed ? '12px' : '16px',
+                        fontWeight: condensed ? 'normal' : '600',
+                        marginTop: '4px',
+                        color: condensed ? 'var(--muted)' : 'var(--ink)'
                       }}
                     >
-                      <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
-                      </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <svg
-                          width="14"
-                          height="14"
+                          width={condensed ? "14" : "18"}
+                          height={condensed ? "14" : "18"}
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -90,10 +97,18 @@ export default function EventsClient({ events, notice }) {
                         </svg>
                         {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
                         {isEventUpcoming(row.starts_at) ? (
-                          <span className="muted" style={{ marginLeft: '4px' }}>
+                          <span className="muted" style={{ marginLeft: '4px', fontSize: condensed ? '12px' : '14px' }}>
                             ({formatRelativeEventDate(row.starts_at)})
                           </span>
                         ) : null}
+                        {row.user_attending ? (
+                          <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '12px' : '14px' }}>
+                            ✓ Attending
+                          </span>
+                        ) : null}
+                      </span>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                        {new Date(row.created_at).toLocaleString()}
                       </span>
                     </div>
                   </a>

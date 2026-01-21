@@ -12,7 +12,7 @@ export default function Breadcrumbs({ items }) {
             {isLast ? (
               <span className="breadcrumb-current">{item.label}</span>
             ) : (
-              <a href={item.href}>{item.label}</a>
+              <a href={item.href === '/' ? '/?home=true' : item.href}>{item.label}</a>
             )}
             {!isLast && <span className="breadcrumb-separator">›</span>}
           </span>

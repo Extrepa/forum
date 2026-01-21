@@ -8,6 +8,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import EditPostPanel from '../../../components/EditPostPanel';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,7 +82,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
                 dev_logs.github_url, dev_logs.demo_url, dev_logs.links,
-                users.username AS author_name
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
          WHERE dev_logs.id = ?`
@@ -95,7 +97,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         .prepare(
           `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                   dev_logs.created_at, dev_logs.updated_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  0 AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            WHERE dev_logs.id = ?`
@@ -203,6 +206,20 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     !user.must_change_password &&
     !!user.password_hash &&
     (isAdmin || user.id === log.author_user_id);
+  
+  // Check if current user has liked this log
+  let userLiked = false;
+  if (user) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('dev_log', log.id, user.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   const replyToId = String(searchParams?.replyTo || '').trim() || null;
   const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
@@ -219,12 +236,24 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       />
 
       <section className="card">
-        <h2 className="section-title">{log.title}</h2>
-        <div className="list-meta">
-          <Username name={log.author_name} colorIndex={getUsernameColorIndex(log.author_name)} /> ·{' '}
-          {new Date(log.created_at).toLocaleString()}
-          {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
-          {log.is_locked ? ' · Comments locked' : null}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{log.title}</h2>
+            <div className="list-meta">
+              <Username name={log.author_name} colorIndex={getUsernameColorIndex(log.author_name)} /> ·{' '}
+              {new Date(log.created_at).toLocaleString()}
+              {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
+              {log.is_locked ? ' · Comments locked' : null}
+            </div>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="dev_log" 
+              postId={log.id} 
+              initialLiked={userLiked}
+              initialCount={Number(log.like_count || 0)}
+            />
+          ) : null}
         </div>
         {log.github_url || log.demo_url || log.links ? (
           <div className="project-links">

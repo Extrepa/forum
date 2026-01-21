@@ -74,7 +74,17 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  redirectUrl.pathname = `/${type}`;
+  // Map post types to their section URLs
+  const typeToPath = {
+    'bugs': '/bugs-rant',
+    'rant': '/bugs-rant',
+    'art': '/art-nostalgia',
+    'nostalgia': '/art-nostalgia',
+    'lore': '/lore-memories',
+    'memories': '/lore-memories',
+    'about': '/about'
+  };
+  redirectUrl.pathname = typeToPath[type] || `/${type}`;
 
   // Lore/Memories can have empty title; others default.
   const finalTitle = title || (type === 'bugs' ? 'Bug report' : type === 'art' ? 'Untitled' : 'Untitled');

@@ -90,6 +90,9 @@ export default function NotificationsMenu({
               if (n.type === 'welcome' && n.target_type === 'account') {
                 href = '/account';
                 label = 'Welcome! Click here to navigate to your account and check your notifications. Clicking the Errl logo in the header also opens this menu.';
+              } else if (n.type === 'test' && n.target_type === 'system') {
+                href = '/account';
+                label = 'Test notification - system check';
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${n.actor_username || 'Someone'} replied to a thread`;

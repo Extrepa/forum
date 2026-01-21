@@ -26,8 +26,10 @@ export default function ShitpostsClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.shitposts.title}</h2>
-        <p className="muted">{strings.cards.shitposts.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.shitposts.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.shitposts.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -59,18 +61,23 @@ export default function ShitpostsClient({ posts, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                    </div>
                     {!condensed && row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ maxHeight: '200px', width: 'auto' }}
+                        style={{ maxHeight: '200px', width: 'auto', marginBottom: '8px' }}
                       />
                     ) : null}
                     {!condensed ? (
-                      <p className="muted" style={{ marginBottom: '6px', fontSize: '13px' }}>
+                      <p className="muted" style={{ marginBottom: '8px', fontSize: '13px' }}>
                         {truncateBody(row.body)}
                       </p>
                     ) : null}
@@ -85,12 +92,11 @@ export default function ShitpostsClient({ posts, notice }) {
                       }}
                     >
                       <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
+                        {new Date(row.created_at).toLocaleString()}
                       </span>
                       <span>
-                        {new Date(row.created_at).toLocaleString()}
                         {row.reply_count > 0
-                          ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

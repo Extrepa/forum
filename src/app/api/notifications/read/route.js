@@ -19,19 +19,35 @@ export async function POST(request) {
   const now = Date.now();
 
   if (payload.all) {
-    await db
-      .prepare('UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL')
-      .bind(now, user.id)
-      .run();
+    try {
+      await db
+        .prepare('UPDATE notifications SET read_at = ?, seen_at = ? WHERE user_id = ? AND read_at IS NULL')
+        .bind(now, now, user.id)
+        .run();
+    } catch (e) {
+      // Rollout-safe: if seen_at column doesn't exist yet, use old query
+      await db
+        .prepare('UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL')
+        .bind(now, user.id)
+        .run();
+    }
   } else {
     const id = String(payload.id || '').trim();
     if (!id) {
       return NextResponse.json({ error: 'Missing notification id.' }, { status: 400 });
     }
-    await db
-      .prepare('UPDATE notifications SET read_at = ? WHERE id = ? AND user_id = ?')
-      .bind(now, id, user.id)
-      .run();
+    try {
+      await db
+        .prepare('UPDATE notifications SET read_at = ?, seen_at = ? WHERE id = ? AND user_id = ?')
+        .bind(now, now, id, user.id)
+        .run();
+    } catch (e) {
+      // Rollout-safe: if seen_at column doesn't exist yet, use old query
+      await db
+        .prepare('UPDATE notifications SET read_at = ? WHERE id = ? AND user_id = ?')
+        .bind(now, id, user.id)
+        .run();
+    }
   }
 
   const unread = await db

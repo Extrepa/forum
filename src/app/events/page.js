@@ -40,10 +40,31 @@ export default async function EventsPage({ searchParams }) {
     results = out?.results || [];
   }
 
+  // Check attendance status for current user
+  let userAttendingMap = {};
+  if (user) {
+    try {
+      const eventIds = results.map(e => e.id);
+      if (eventIds.length > 0) {
+        const placeholders = eventIds.map(() => '?').join(',');
+        const attendanceResults = await db
+          .prepare(`SELECT event_id FROM event_attendees WHERE event_id IN (${placeholders}) AND user_id = ?`)
+          .bind(...eventIds, user.id)
+          .all();
+        attendanceResults?.results?.forEach(r => {
+          userAttendingMap[r.event_id] = true;
+        });
+      }
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
+
   // Pre-render markdown for server component
   const events = results.map(row => ({
     ...row,
-    detailsHtml: row.details ? renderMarkdown(row.details) : null
+    detailsHtml: row.details ? renderMarkdown(row.details) : null,
+    user_attending: !!userAttendingMap[row.id]
   }));
 
   const error = searchParams?.error;

@@ -17,8 +17,10 @@ export default function DevLogClient({ logs, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">Development</h2>
-        <p className="muted">Updates, notes, and builds in progress.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>Development</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>Updates, notes, and builds in progress.</p>
+        </div>
       </section>
 
       <section className="card">
@@ -51,10 +53,13 @@ export default function DevLogClient({ logs, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
-                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
                       {row.is_locked ? (
-                        <span className="muted" style={{ fontSize: '12px' }}>
+                        <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }}>
                           Comments locked
                         </span>
                       ) : null}
@@ -65,10 +70,11 @@ export default function DevLogClient({ logs, notice }) {
                         alt=""
                         className="post-image"
                         loading="lazy"
+                        style={{ marginBottom: '8px' }}
                       />
                     ) : null}
                     {!condensed ? (
-                      <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
                     <div
                       className="list-meta"
@@ -81,12 +87,11 @@ export default function DevLogClient({ logs, notice }) {
                       }}
                     >
                       <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
+                        {new Date(row.created_at).toLocaleString()}
                       </span>
                       <span>
-                        {new Date(row.created_at).toLocaleString()}
                         {row.comment_count > 0
-                          ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
+                          ? `${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

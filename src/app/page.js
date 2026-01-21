@@ -26,12 +26,13 @@ function formatTimeAgo(timestamp) {
   return 'just now';
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }) {
   const user = await getSessionUser();
   const hasUsername = !!user;
   
   // Check landing page preference and redirect if set to 'feed'
-  if (hasUsername) {
+  // Only redirect on direct navigation (no ?home param), not when clicking "Home" link
+  if (hasUsername && !searchParams?.home) {
     const landingPage = user.default_landing_page || 'home';
     if (landingPage === 'feed') {
       redirect('/feed');

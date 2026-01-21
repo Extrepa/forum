@@ -12,8 +12,10 @@ export default function MusicClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{strings.cards.music.title}</h2>
-        <p className="muted">{strings.cards.music.description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.music.title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.music.description}</p>
+        </div>
       </section>
 
       <section className="card">
@@ -47,9 +49,15 @@ export default function MusicClient({ posts, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
-                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
+                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
+                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
+                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
                     </div>
+                    {!condensed && row.bodyHtml ? (
+                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                    ) : null}
                     <div
                       className="list-meta"
                       style={{
@@ -57,14 +65,10 @@ export default function MusicClient({ posts, notice }) {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         fontSize: '12px',
-                        marginBottom: condensed ? '4px' : '6px'
+                        marginTop: '4px'
                       }}
                     >
-                      <span>
-                        <Username name={row.author_name} colorIndex={colorIndex} />
-                      </span>
                       <span>{new Date(row.created_at).toLocaleString()}</span>
-                    </div>
                     {!condensed && row.embed ? (
                       <div 
                         className={`embed-frame ${row.embed.aspect}`}

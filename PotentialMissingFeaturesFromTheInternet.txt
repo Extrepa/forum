@@ -1,0 +1,289 @@
+# Errl Forum Research Notes (Classic Forum Organization + Info Tracking)
+
+These notes summarize **how classic forums (especially early 2000s)** organized content, tracked user activity, and displayed information. Use this as a reference for building a “real forum feel” with strong usability and clear data workflows.
+
+---
+
+## 1) Core Organization Model (Forum Hierarchy)
+
+Most classic forums use a clean hierarchy:
+
+**Category → Forum/Section → Thread → Posts (Replies)**
+
+### Example
+- **Category:** Community
+- **Section:** General
+- **Thread:** “Welcome to the Nomads”
+- **Posts:** replies inside the thread
+
+### Why this works
+- Scales cleanly (hundreds of topics, years of content)
+- Users always know where they are
+- Makes navigation predictable and comfortable
+
+---
+
+## 2) Thread Lists = “Decision Engine” (How forums show info at a glance)
+
+Classic forums optimize for: **“What should I click next?”**
+
+### Thread row info (common fields)
+- Thread title
+- Thread starter (author)
+- Replies count
+- Views count
+- Last post time (relative/absolute)
+- Last post author
+- Status icons (new/locked/sticky/hot/poll)
+
+### Example thread row (classic dense layout)
+🔥 “Errl Lore Dump Thread”  
+Starter: Geoff | Replies: 42 | Views: 9001 | Last Post: 2 mins ago by Extrepa
+
+### Why it matters
+- Allows fast scanning
+- Threads feel alive (not dead lists)
+- Makes activity visible without opening the thread
+
+---
+
+## 3) Thread Priority Lanes (Announcements / Stickies / Normal)
+
+Most forums don’t list threads in one pile — they group them.
+
+### Common order
+1. **Announcements** (admin-only, top priority)
+2. **Stickies** (forum-level pinned threads)
+3. **Normal threads** (sorted by recent activity)
+
+### Why it matters
+- Important info doesn’t sink
+- Users instantly recognize what’s “permanent” vs “current discussion”
+
+---
+
+## 4) Default Sorting “Physics” = Last Activity Wins
+
+Classic forums usually sort thread lists by:
+
+✅ **Most recent reply (“last post”)**
+
+Not by creation date.
+
+### Why it matters
+- Threads naturally rise when people reply (“bumping”)
+- Conversation feels active over time
+- It’s a feed without being an algorithm
+
+---
+
+## 5) Unread Tracking (The Secret Sauce)
+
+Unread tracking reduces friction and creates momentum.
+
+### Two common systems
+
+#### A) Forum-level read state
+Tracks the last time a user visited the forum/section.
+
+#### B) Thread-level read state
+Tracks how far the user read inside a thread, such as:
+- last read timestamp
+- last read reply ID/index
+
+### How it’s shown in UI
+- Bold thread titles for unread
+- “New” icon markers
+- **Jump to first unread reply** (highly important)
+
+### Why it matters
+- Users always know what’s new
+- Eliminates re-scrolling and re-hunting
+- Encourages daily “check-in” behavior naturally
+
+---
+
+## 6) Pagination (Classic Forum Structure)
+
+Classic forums often use pages instead of infinite scroll.
+
+### Typical settings
+- 10 / 20 / 50 replies per page
+- Thread pages: 1 2 3 … 10
+
+### Why it mattered historically
+- Faster loading on older internet
+- Easy linking (“Page 7 was chaos”)
+- Predictable layout
+
+### Modern hybrid option
+- Pagination + “Load more replies”
+- “Jump to bottom / newest reply” button
+
+---
+
+## 7) Navigation Helpers (Breadcrumbs + Forum Jump)
+
+Classic forums made moving around extremely fast.
+
+### Breadcrumbs
+Example:
+Home → General → Thread Title
+
+### Forum Jump Dropdown
+A dropdown to teleport to any section instantly.
+
+### Why it matters
+- Minimizes “back back back”
+- Makes the forum feel like a connected world
+
+---
+
+## 8) Thread States / Icons = Visual Language
+
+Forums encode meaning with small markers.
+
+### Common thread states
+- 🔒 Locked (no replies allowed)
+- 📌 Sticky
+- ✅ Solved/Answered (common in support forums)
+- 🔥 Hot thread (high activity)
+- 🗳 Poll thread
+- 🆕 New posts since last visit
+
+### Why it matters
+- Fast scanning
+- Reduces wrong-clicks
+- Users know what’s happening instantly
+
+---
+
+## 9) Search + Filters (Not flashy, but mandatory)
+
+Classic forum search options often include:
+- Search by keyword
+- Search by author
+- Search within a specific forum only
+- Search inside a thread
+- Show results as:
+  - Threads (summary)
+  - Posts/replies (exact matches)
+
+### Why it matters
+Lore/story-heavy forums benefit hugely from:
+- finding old posts
+- finding references
+- re-discovering classic threads
+
+---
+
+## 10) Subforums (Sections within sections)
+
+Subforums help scale without cluttering the homepage.
+
+### Example
+Nomads
+- Events  
+  - Mayday Heyday  
+  - The Happening  
+  - Local Meetups  
+
+### Why it matters
+- Organizes deeper topics
+- Keeps homepage clean
+- Still preserves hierarchy clarity
+
+---
+
+## 11) Post Display Format (User Identity + Content Split)
+
+Many classic forums use a consistent reply layout:
+
+### Left column: user identity
+- Avatar
+- Username
+- Rank/title
+- Post count
+- Join date
+- Location
+- Badges
+
+### Right column: content
+- Reply text
+- Quotes
+- Attachments
+- Signature (optional)
+
+### Why it matters
+- Thread becomes readable at scale
+- Community becomes “character-based” and recognizable
+
+---
+
+## 12) Quoting Culture (Conversation Remix)
+
+Forums didn’t just “reply” — they quoted.
+
+### Quote features
+- Single quote
+- Multi-quote
+- Nested quotes (quote inside a quote)
+
+### Why it matters
+- Keeps long threads understandable
+- Supports precise replies without confusion
+- Classic forum debates + story-building rely on quoting
+
+---
+
+## 13) Moderation Tracking (Behind-the-scenes organization)
+
+Good forums store and support:
+- Soft delete vs hard delete
+- Edit history (optional, but useful)
+- Moderation logs (move/lock/delete actions)
+- Report queue system
+
+### Common moderation flow
+Report → Mod reviews → Resolve → Logged action
+
+### Why it matters
+- Scales governance
+- Prevents chaos
+- Makes admin controls safer and reversible
+
+---
+
+## 14) “Last Post” Preview Info (Micro-context)
+
+Thread lists often display:
+- last reply author
+- last reply timestamp
+- sometimes a tiny snippet preview
+
+### Why it matters
+- Makes the list feel alive
+- Improves scanning accuracy
+- Reduces random clicking
+
+---
+
+# Best-of Blueprint for Errl Forum (Recommended Combo)
+
+If you want the strongest “classic + modern usability” foundation, prioritize:
+
+✅ Sections → Threads → Replies  
+✅ Sort threads by most recent reply (“last post”)  
+✅ Unread tracking + “Jump to first unread”  
+✅ Stickies + announcements lanes  
+✅ Thread row metadata (replies/views/last post)  
+✅ Compact clickable thread cards (click anywhere)  
+✅ Event threads with special metadata (date, RSVP)  
+✅ Quote blocks + attachments + image posts  
+✅ Breadcrumbs + “Portal Jump” dropdown  
+
+This makes your forum feel like:
+**early-2000s comfort + modern polish**
+(with maximum clarity and minimum friction)
+
+---

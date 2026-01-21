@@ -6,6 +6,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
+import LikeButton from '../../../components/LikeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,10 +33,11 @@ export default async function EventDetailPage({ params, searchParams }) {
   const db = await getDb();
   const event = await db
     .prepare(
-      `SELECT events.id, events.title, events.details, events.starts_at,
+        `SELECT events.id, events.title, events.details, events.starts_at,
               events.created_at, events.image_key,
               events.moved_to_type, events.moved_to_id,
-              users.username AS author_name
+              users.username AS author_name,
+              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count
        FROM events
        JOIN users ON users.id = events.author_user_id
        WHERE events.id = ?`
@@ -72,6 +74,20 @@ export default async function EventDetailPage({ params, searchParams }) {
     .all();
 
   const user = await getSessionUser();
+  
+  // Check if current user has liked this event
+  let userLiked = false;
+  if (user) {
+    try {
+      const likeCheck = await db
+        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+        .bind('event', event.id, user.id)
+        .first();
+      userLiked = !!likeCheck;
+    } catch (e) {
+      // Table might not exist yet
+    }
+  }
 
   // Get RSVP status and attendees
   let userAttending = false;
@@ -126,9 +142,21 @@ export default async function EventDetailPage({ params, searchParams }) {
       />
 
       <section className="card">
-        <h2 className="section-title">{event.title}</h2>
-        <div className="list-meta" style={{ marginBottom: '12px' }}>
-          <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{event.title}</h2>
+            <div className="list-meta">
+              <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} />
+            </div>
+          </div>
+          {user ? (
+            <LikeButton 
+              postType="event" 
+              postId={event.id} 
+              initialLiked={userLiked}
+              initialCount={Number(event.like_count || 0)}
+            />
+          ) : null}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
           <svg
@@ -179,17 +207,21 @@ export default async function EventDetailPage({ params, searchParams }) {
       )}
 
       <section className="card">
-        <h3 className="section-title">Comments</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '12px', flexWrap: 'wrap' }}>
+          <h3 className="section-title" style={{ margin: 0 }}>Comments</h3>
+          {user ? (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <input type="checkbox" name="attending" form="event-comment-form" defaultChecked={userAttending} />
+              <span style={{ fontSize: '14px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>I'm attending</span>
+            </label>
+          ) : null}
+        </div>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {user ? (
-          <form action={`/api/events/${event.id}/comments`} method="post">
+          <form id="event-comment-form" action={`/api/events/${event.id}/comments`} method="post">
             <label>
               <div className="muted">Say something</div>
               <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', marginBottom: '10px' }}>
-              <input type="checkbox" name="attending" defaultChecked={userAttending} />
-              <span>I'm attending</span>
             </label>
             <button type="submit">Post comment</button>
           </form>
