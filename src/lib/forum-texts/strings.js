@@ -50,6 +50,31 @@ export const errlForumStrings = {
       title: 'Shitposts',
       description: 'Memes, photos, random thoughts, and sludge.',
       empty: 'No sludge yet.'
+    },
+    artNostalgia: {
+      title: 'Art & Nostalgia',
+      description: 'Image-only posts and memories from the 2000s, childhood, and everything in between.',
+      empty: 'No art or nostalgia yet.'
+    },
+    bugsRant: {
+      title: 'Bugs & Rants',
+      description: 'Report issues, weirdness, and broken stuff. Or vent. Get it out. Be kind.',
+      empty: 'No bugs or rants yet.'
+    },
+    devlog: {
+      title: 'Development',
+      description: 'Updates, notes, and builds in progress.',
+      empty: 'No Development posts yet.'
+    },
+    lore: {
+      title: 'Lore',
+      description: "Errl's story and history.",
+      empty: 'No lore yet.'
+    },
+    memories: {
+      title: 'Memories',
+      description: 'Nomad history, documents, and the things we did together.',
+      empty: 'No memories yet.'
     }
   },
   search: {

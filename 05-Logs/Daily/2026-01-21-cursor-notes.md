@@ -405,4 +405,24 @@ If you want explicit per-file commands (run in this order):
 - **Code quality**: All changes follow patterns, include error handling, rollout-safe
 - **Next phase**: See `NEXT_PHASE_PLAN.md` for detailed implementation plans
 
+### Issues and Upgrades - Final Completion (2026-01-21)
+- **Completed ALL remaining 5 items** from `IssuesAndUpgrades-1.txt`:
+  - ✅ Welcome/sign-up text update (clarified legacy vs new user flows)
+  - ✅ Browser-based login detection (client-side detection, conditional UI)
+  - ✅ Default landing page preference (migration 0019, API, UI, redirect logic)
+  - ✅ Home page section cards expansion (added 5 new sections, total now 11)
+  - ✅ Enhanced calendar features (4 new date formatting functions, better event display)
+- **Files created**:
+  - `src/lib/auth-detection.js` - Browser auth detection
+  - `migrations/0019_user_landing_preference.sql` - Landing page preference
+  - `src/app/api/auth/landing-pref/route.js` - Landing page preference API
+- **Files modified**: 9 files (page.js, ClaimUsernameForm, auth APIs, dates.js, events pages, forum-texts)
+- **Migrations required**: 
+  - `0018_event_attendees.sql` (from Phase 1)
+  - `0019_user_landing_preference.sql` (from Phase 2)
+- **Final status**: 100% complete (14/14 items)
+- **Documentation**: `COMPLETION_NOTES_2026-01-21.md`, `FINAL_COMPLETION_SUMMARY_2026-01-21.md`
+- **Code quality**: All changes follow patterns, rollout-safe, no linter errors
+- **Ready for**: Deployment (after migrations applied)
+
 

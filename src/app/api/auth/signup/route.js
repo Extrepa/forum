@@ -44,26 +44,52 @@ export async function POST(request) {
   const now = Date.now();
 
   try {
-    await db
-      .prepare(
-        `INSERT INTO users
-          (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        userId,
-        validation.normalized,
-        validation.normalized,
-        email,
-        email,
-        passwordHash,
-        now,
-        0,
-        token,
-        'user',
-        now
-      )
-      .run();
+    // Try with default_landing_page (if migration applied)
+    try {
+      await db
+        .prepare(
+          `INSERT INTO users
+            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, default_landing_page, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          userId,
+          validation.normalized,
+          validation.normalized,
+          email,
+          email,
+          passwordHash,
+          now,
+          0,
+          token,
+          'user',
+          'feed',
+          now
+        )
+        .run();
+    } catch (e) {
+      // Fallback if default_landing_page column doesn't exist yet
+      await db
+        .prepare(
+          `INSERT INTO users
+            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          userId,
+          validation.normalized,
+          validation.normalized,
+          email,
+          email,
+          passwordHash,
+          now,
+          0,
+          token,
+          'user',
+          now
+        )
+        .run();
+    }
   } catch (error) {
     if (String(error).includes('UNIQUE')) {
       return NextResponse.json({ error: 'That username or email is already taken.' }, { status: 409 });

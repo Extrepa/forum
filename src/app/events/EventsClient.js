@@ -4,6 +4,7 @@ import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
+import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../lib/dates';
 
 export default function EventsClient({ events, notice }) {
   const { loreEnabled } = useUiPrefs();
@@ -61,7 +62,14 @@ export default function EventsClient({ events, notice }) {
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span>{new Date(row.starts_at).toLocaleString()}</span>
+                      <span>
+                        {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
+                        {isEventUpcoming(row.starts_at) ? (
+                          <span className="muted" style={{ marginLeft: '8px' }}>
+                            ({formatRelativeEventDate(row.starts_at)})
+                          </span>
+                        ) : null}
+                      </span>
                     </div>
                   </div>
                 );

@@ -17,7 +17,8 @@ export async function GET() {
       mustChangePassword: !!user.must_change_password,
       notifyEmailEnabled: !!user.notify_email_enabled,
       notifySmsEnabled: !!user.notify_sms_enabled,
-      uiLoreEnabled: !!user.ui_lore_enabled
+      uiLoreEnabled: !!user.ui_lore_enabled,
+      defaultLandingPage: user.default_landing_page ?? 'home'
     }
   });
 }

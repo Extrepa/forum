@@ -1,4 +1,5 @@
 import ClaimUsernameForm from '../components/ClaimUsernameForm';
+import { redirect } from 'next/navigation';
 import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
 import Username from '../components/Username';
@@ -28,6 +29,15 @@ function formatTimeAgo(timestamp) {
 export default async function HomePage() {
   const user = await getSessionUser();
   const hasUsername = !!user;
+  
+  // Check landing page preference and redirect if set to 'feed'
+  if (hasUsername) {
+    const landingPage = user.default_landing_page || 'home';
+    if (landingPage === 'feed') {
+      redirect('/feed');
+    }
+  }
+  
   const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
@@ -213,6 +223,170 @@ export default async function HomePage() {
       []
     );
 
+    // Art & Nostalgia (combined)
+    const artNostalgiaCount = await safeFirst(
+      db,
+      `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
+      [],
+      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\')',
+      []
+    );
+    const artNostalgiaRecent = await safeFirst(
+      db,
+      `SELECT posts.id, posts.title, posts.created_at, posts.type,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('art', 'nostalgia')
+         AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
+       ORDER BY posts.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT posts.id, posts.title, posts.created_at, posts.type,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('art', 'nostalgia')
+       ORDER BY posts.created_at DESC
+       LIMIT 1`,
+      []
+    );
+
+    // Bugs & Rants (combined)
+    const bugsRantCount = await safeFirst(
+      db,
+      `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
+      [],
+      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\')',
+      []
+    );
+    const bugsRantRecent = await safeFirst(
+      db,
+      `SELECT posts.id, posts.title, posts.created_at, posts.type,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('bugs', 'rant')
+         AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
+       ORDER BY posts.created_at DESC
+       LIMIT 1`,
+      [],
+      `SELECT posts.id, posts.title, posts.created_at, posts.type,
+              users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.type IN ('bugs', 'rant')
+       ORDER BY posts.created_at DESC
+       LIMIT 1`,
+      []
+    );
+
+    // Development (signed-in only)
+    let devlogCount = null;
+    let devlogRecent = null;
+    if (hasUsername) {
+      try {
+        devlogCount = await safeFirst(
+          db,
+          'SELECT COUNT(*) as count FROM dev_logs',
+          [],
+          'SELECT COUNT(*) as count FROM dev_logs',
+          []
+        );
+        devlogRecent = await safeFirst(
+          db,
+          `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
+                  users.username AS author_name
+           FROM dev_logs
+           JOIN users ON users.id = dev_logs.author_user_id
+           ORDER BY dev_logs.created_at DESC
+           LIMIT 1`,
+          [],
+          `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
+                  users.username AS author_name
+           FROM dev_logs
+           JOIN users ON users.id = dev_logs.author_user_id
+           ORDER BY dev_logs.created_at DESC
+           LIMIT 1`,
+          []
+        );
+      } catch (e) {
+        // Dev logs table might not exist
+      }
+    }
+
+    // Lore (signed-in only)
+    let loreCount = null;
+    let loreRecent = null;
+    if (hasUsername) {
+      try {
+        loreCount = await safeFirst(
+          db,
+          'SELECT COUNT(*) as count FROM posts WHERE type = \'lore\'',
+          [],
+          'SELECT COUNT(*) as count FROM posts WHERE type = \'lore\'',
+          []
+        );
+        loreRecent = await safeFirst(
+          db,
+          `SELECT posts.id, posts.title, posts.created_at,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type = 'lore'
+           ORDER BY posts.created_at DESC
+           LIMIT 1`,
+          [],
+          `SELECT posts.id, posts.title, posts.created_at,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type = 'lore'
+           ORDER BY posts.created_at DESC
+           LIMIT 1`,
+          []
+        );
+      } catch (e) {
+        // Posts table might not exist
+      }
+    }
+
+    // Memories (signed-in only)
+    let memoriesCount = null;
+    let memoriesRecent = null;
+    if (hasUsername) {
+      try {
+        memoriesCount = await safeFirst(
+          db,
+          'SELECT COUNT(*) as count FROM posts WHERE type = \'memories\'',
+          [],
+          'SELECT COUNT(*) as count FROM posts WHERE type = \'memories\'',
+          []
+        );
+        memoriesRecent = await safeFirst(
+          db,
+          `SELECT posts.id, posts.title, posts.created_at,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type = 'memories'
+           ORDER BY posts.created_at DESC
+           LIMIT 1`,
+          [],
+          `SELECT posts.id, posts.title, posts.created_at,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type = 'memories'
+           ORDER BY posts.created_at DESC
+           LIMIT 1`,
+          []
+        );
+      } catch (e) {
+        // Posts table might not exist
+      }
+    }
+
     sectionData = {
       timeline: {
         count: timelineCount?.count || 0,
@@ -285,7 +459,67 @@ export default async function HomePage() {
               url: `/lobby/${shitpostsRecent.id}`
             }
           : null
-      }
+      },
+      artNostalgia: {
+        count: artNostalgiaCount?.count || 0,
+        recent: artNostalgiaRecent
+          ? {
+              id: artNostalgiaRecent.id,
+              title: artNostalgiaRecent.title || 'Untitled',
+              author: artNostalgiaRecent.author_name,
+              timeAgo: formatTimeAgo(artNostalgiaRecent.created_at),
+              url: `/${artNostalgiaRecent.type}/${artNostalgiaRecent.id}`
+            }
+          : null
+      },
+      bugsRant: {
+        count: bugsRantCount?.count || 0,
+        recent: bugsRantRecent
+          ? {
+              id: bugsRantRecent.id,
+              title: bugsRantRecent.title || (bugsRantRecent.type === 'bugs' ? 'Bug report' : 'Untitled'),
+              author: bugsRantRecent.author_name,
+              timeAgo: formatTimeAgo(bugsRantRecent.created_at),
+              url: `/${bugsRantRecent.type}/${bugsRantRecent.id}`
+            }
+          : null
+      },
+      devlog: hasUsername && devlogCount !== null ? {
+        count: devlogCount?.count || 0,
+        recent: devlogRecent
+          ? {
+              id: devlogRecent.id,
+              title: devlogRecent.title,
+              author: devlogRecent.author_name,
+              timeAgo: formatTimeAgo(devlogRecent.created_at),
+              url: `/devlog/${devlogRecent.id}`
+            }
+          : null
+      } : null,
+      lore: hasUsername && loreCount !== null ? {
+        count: loreCount?.count || 0,
+        recent: loreRecent
+          ? {
+              id: loreRecent.id,
+              title: loreRecent.title || 'Untitled',
+              author: loreRecent.author_name,
+              timeAgo: formatTimeAgo(loreRecent.created_at),
+              url: `/lore/${loreRecent.id}`
+            }
+          : null
+      } : null,
+      memories: hasUsername && memoriesCount !== null ? {
+        count: memoriesCount?.count || 0,
+        recent: memoriesRecent
+          ? {
+              id: memoriesRecent.id,
+              title: memoriesRecent.title || 'Untitled',
+              author: memoriesRecent.author_name,
+              timeAgo: formatTimeAgo(memoriesRecent.created_at),
+              url: `/memories/${memoriesRecent.id}`
+            }
+          : null
+      } : null
     };
   }
 
@@ -304,8 +538,8 @@ export default async function HomePage() {
             <div>
               <h3 className="section-title">Sign in</h3>
               <p className="muted">
-                Create an account (email + username + password) or sign in to post.
-                Legacy users can sign in with their username + password and then add an email.
+                New users: Create an account with email, username, and password to post from any device.
+                Legacy users: Sign in with your existing username and password, then add an email to your account.
               </p>
             </div>
             <ClaimUsernameForm />
@@ -535,6 +769,177 @@ export default async function HomePage() {
                   </div>
                 )}
               </a>
+              <a href="/art-nostalgia" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <strong>{strings.cards.artNostalgia.title}</strong>
+                <div className="list-meta">{strings.cards.artNostalgia.description}</div>
+                {sectionData && sectionData.artNostalgia && (
+                  <div className="section-stats">
+                    {sectionData.artNostalgia.count > 0 ? (
+                      <>
+                        <span>{sectionData.artNostalgia.count} {sectionData.artNostalgia.count === 1 ? 'post' : 'posts'}</span>
+                        {sectionData.artNostalgia.recent && (
+                          <span>
+                            {' · '}
+                            Latest:{' '}
+                            <a
+                              href={sectionData.artNostalgia.recent.url}
+                              style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
+                            >
+                              {sectionData.artNostalgia.recent.title}
+                            </a>
+                            {' by '}
+                            <Username
+                              name={sectionData.artNostalgia.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.artNostalgia.recent.author)}
+                            />{' '}
+                            {sectionData.artNostalgia.recent.timeAgo}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span>{strings.cards.artNostalgia.empty}</span>
+                    )}
+                  </div>
+                )}
+              </a>
+              <a href="/bugs-rant" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <strong>{strings.cards.bugsRant.title}</strong>
+                <div className="list-meta">{strings.cards.bugsRant.description}</div>
+                {sectionData && sectionData.bugsRant && (
+                  <div className="section-stats">
+                    {sectionData.bugsRant.count > 0 ? (
+                      <>
+                        <span>{sectionData.bugsRant.count} {sectionData.bugsRant.count === 1 ? 'post' : 'posts'}</span>
+                        {sectionData.bugsRant.recent && (
+                          <span>
+                            {' · '}
+                            Latest:{' '}
+                            <a
+                              href={sectionData.bugsRant.recent.url}
+                              style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
+                            >
+                              {sectionData.bugsRant.recent.title}
+                            </a>
+                            {' by '}
+                            <Username
+                              name={sectionData.bugsRant.recent.author}
+                              colorIndex={getUsernameColorIndex(sectionData.bugsRant.recent.author)}
+                            />{' '}
+                            {sectionData.bugsRant.recent.timeAgo}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span>{strings.cards.bugsRant.empty}</span>
+                    )}
+                  </div>
+                )}
+              </a>
+              {hasUsername && sectionData?.devlog !== null && (
+                <a href="/devlog" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <strong>{strings.cards.devlog.title}</strong>
+                  <div className="list-meta">{strings.cards.devlog.description}</div>
+                  {sectionData && sectionData.devlog && (
+                    <div className="section-stats">
+                      {sectionData.devlog.count > 0 ? (
+                        <>
+                          <span>{sectionData.devlog.count} {sectionData.devlog.count === 1 ? 'post' : 'posts'}</span>
+                          {sectionData.devlog.recent && (
+                            <span>
+                              {' · '}
+                              Latest:{' '}
+                              <a
+                                href={sectionData.devlog.recent.url}
+                                style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
+                              >
+                                {sectionData.devlog.recent.title}
+                              </a>
+                              {' by '}
+                              <Username
+                                name={sectionData.devlog.recent.author}
+                                colorIndex={getUsernameColorIndex(sectionData.devlog.recent.author)}
+                              />{' '}
+                              {sectionData.devlog.recent.timeAgo}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span>{strings.cards.devlog.empty}</span>
+                      )}
+                    </div>
+                  )}
+                </a>
+              )}
+              {hasUsername && sectionData?.lore !== null && (
+                <a href="/lore" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <strong>{strings.cards.lore.title}</strong>
+                  <div className="list-meta">{strings.cards.lore.description}</div>
+                  {sectionData && sectionData.lore && (
+                    <div className="section-stats">
+                      {sectionData.lore.count > 0 ? (
+                        <>
+                          <span>{sectionData.lore.count} {sectionData.lore.count === 1 ? 'post' : 'posts'}</span>
+                          {sectionData.lore.recent && (
+                            <span>
+                              {' · '}
+                              Latest:{' '}
+                              <a
+                                href={sectionData.lore.recent.url}
+                                style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
+                              >
+                                {sectionData.lore.recent.title}
+                              </a>
+                              {' by '}
+                              <Username
+                                name={sectionData.lore.recent.author}
+                                colorIndex={getUsernameColorIndex(sectionData.lore.recent.author)}
+                              />{' '}
+                              {sectionData.lore.recent.timeAgo}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span>{strings.cards.lore.empty}</span>
+                      )}
+                    </div>
+                  )}
+                </a>
+              )}
+              {hasUsername && sectionData?.memories !== null && (
+                <a href="/memories" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <strong>{strings.cards.memories.title}</strong>
+                  <div className="list-meta">{strings.cards.memories.description}</div>
+                  {sectionData && sectionData.memories && (
+                    <div className="section-stats">
+                      {sectionData.memories.count > 0 ? (
+                        <>
+                          <span>{sectionData.memories.count} {sectionData.memories.count === 1 ? 'post' : 'posts'}</span>
+                          {sectionData.memories.recent && (
+                            <span>
+                              {' · '}
+                              Latest:{' '}
+                              <a
+                                href={sectionData.memories.recent.url}
+                                style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
+                              >
+                                {sectionData.memories.recent.title}
+                              </a>
+                              {' by '}
+                              <Username
+                                name={sectionData.memories.recent.author}
+                                colorIndex={getUsernameColorIndex(sectionData.memories.recent.author)}
+                              />{' '}
+                              {sectionData.memories.recent.timeAgo}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span>{strings.cards.memories.empty}</span>
+                      )}
+                    </div>
+                  )}
+                </a>
+              )}
           </div>
         </section>
       )}

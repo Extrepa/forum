@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { useUiPrefs } from './UiPrefsProvider';
+import { detectAuthType } from '../lib/auth-detection';
 
 export default function ClaimUsernameForm() {
   const [status, setStatus] = useState({ type: 'idle', message: null });
   const [mode, setMode] = useState('login'); // signup | login
+  const [authType, setAuthType] = useState('none'); // browser | cookie | none
   const { loreEnabled, setLoreEnabled } = useUiPrefs();
+
+  useEffect(() => {
+    setAuthType(detectAuthType());
+  }, []);
 
   const [me, setMe] = useState(null);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -30,6 +36,7 @@ export default function ClaimUsernameForm() {
   const [notifyEmailEnabled, setNotifyEmailEnabled] = useState(false);
   const [notifySmsEnabled, setNotifySmsEnabled] = useState(false);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
+  const [defaultLandingPage, setDefaultLandingPage] = useState('feed');
 
   const validatePassword = (value) => {
     const pw = String(value || '');
@@ -55,6 +62,7 @@ export default function ClaimUsernameForm() {
         setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
         setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
         setLoreEnabled(!!payload.user?.uiLoreEnabled);
+        setDefaultLandingPage(payload.user?.defaultLandingPage || 'feed');
       } catch (error) {
         // ignore, stays claimable
       }
@@ -77,6 +85,7 @@ export default function ClaimUsernameForm() {
       setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
       setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
       setLoreEnabled(!!payload.user?.uiLoreEnabled);
+      setDefaultLandingPage(payload.user?.defaultLandingPage || 'feed');
     } catch (error) {
       setMe(null);
     }
@@ -105,6 +114,26 @@ export default function ClaimUsernameForm() {
       }
       setStatus({ type: 'success', message: 'Display settings saved.' });
       setLoreEnabled(!!payload.uiLoreEnabled);
+      await refreshMe();
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
+    }
+  };
+
+  const submitLandingPref = async (event) => {
+    event.preventDefault();
+    setStatus({ type: 'loading', message: 'Saving landing page preference...' });
+    try {
+      const response = await fetch('/api/auth/landing-pref', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ landingPage: defaultLandingPage })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Unable to save landing page preference.');
+      }
+      setStatus({ type: 'success', message: 'Landing page preference saved.' });
       await refreshMe();
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -322,6 +351,30 @@ export default function ClaimUsernameForm() {
             </button>
           </form>
 
+            <form onSubmit={submitLandingPref} className="card" style={{ padding: 12 }}>
+            <div className="muted" style={{ marginBottom: 8 }}>
+              Default Landing Page
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span>Landing page</span>
+              <select
+                value={defaultLandingPage}
+                onChange={(e) => setDefaultLandingPage(e.target.value)}
+                disabled={status.type === 'loading'}
+                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)', color: 'var(--ink)' }}
+              >
+                <option value="feed">Feed</option>
+                <option value="home">Home</option>
+              </select>
+            </label>
+            <div className="muted" style={{ fontSize: 13 }}>
+              Choose which page loads when you visit the site.
+            </div>
+            <button type="submit" disabled={status.type === 'loading'}>
+              Save landing page preference
+            </button>
+          </form>
+
             <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
             <div className="muted" style={{ marginBottom: 8 }}>
               Email
@@ -458,9 +511,30 @@ export default function ClaimUsernameForm() {
     );
   }
 
+  // Show different UI based on auth type
+  const showBrowserAuth = authType === 'browser';
+  const showCookieAuth = authType === 'cookie';
+  const showNoAuth = authType === 'none';
+
   return (
     <div className="card">
       <div className="stack" style={{ gap: 12 }}>
+        {showBrowserAuth && (
+          <p className="muted" style={{ fontSize: 13 }}>
+            Your browser supports secure authentication. You can use browser-based sign-in or create an account below.
+          </p>
+        )}
+        {showCookieAuth && (
+          <p className="muted" style={{ fontSize: 13 }}>
+            You have an existing session. Sign in to continue or create a new account.
+          </p>
+        )}
+        {showNoAuth && (
+          <p className="muted" style={{ fontSize: 13 }}>
+            Create an account to post and participate in the forum.
+          </p>
+        )}
+
         {mode === 'login' ? (
           <>
             <form onSubmit={submitLogin} className="card" style={{ padding: 12 }}>

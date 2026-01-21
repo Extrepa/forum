@@ -6,6 +6,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import EventRSVP from '../../../components/EventRSVP';
+import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,7 +130,16 @@ export default async function EventDetailPage({ params, searchParams }) {
         <h2 className="section-title">{event.title}</h2>
         <div className="list-meta">
           <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} /> ·{' '}
-          {new Date(event.starts_at).toLocaleString()}
+          {formatEventDate(event.starts_at)} {formatEventTime(event.starts_at)}
+          {isEventUpcoming(event.starts_at) ? (
+            <span className="muted" style={{ marginLeft: '8px' }}>
+              ({formatRelativeEventDate(event.starts_at)})
+            </span>
+          ) : (
+            <span className="muted" style={{ marginLeft: '8px' }}>
+              ({formatRelativeEventDate(event.starts_at)})
+            </span>
+          )}
         </div>
         {event.image_key ? (
           <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
