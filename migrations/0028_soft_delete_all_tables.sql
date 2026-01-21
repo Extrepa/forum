@@ -1,7 +1,9 @@
 -- 0028_soft_delete_all_tables.sql
 --
 -- Add is_deleted column to all main content tables for soft deletion
--- This migration is idempotent and safe to run multiple times
+-- Note: If columns already exist, migration will fail with "duplicate column" error.
+-- This is safe - the application code handles missing columns gracefully with fallback queries.
+-- If migration fails, can manually mark as applied in d1_migrations table.
 
 -- Events table
 ALTER TABLE events ADD COLUMN is_deleted INTEGER NOT NULL DEFAULT 0;
