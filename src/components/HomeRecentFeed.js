@@ -21,7 +21,7 @@ export default function HomeRecentFeed({ recentPosts }) {
           return (
             <Link
               key={activity.id}
-              href={activity.href || (isReplyOrComment ? `/${activity.section}/${activity.parent_id}` : `/${activity.section}/${activity.id}`)}
+              href={activity.href || (isReplyOrComment ? `/${activity.section}/${activity.parent_id || activity.id}` : `/${activity.section}/${activity.id}`)}
               className="list-item"
               style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
             >

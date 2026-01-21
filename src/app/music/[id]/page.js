@@ -51,27 +51,6 @@ export default async function MusicDetailPage({ params, searchParams }) {
       .first();
   } catch (e) {
     // Rollout compatibility if moved columns aren't migrated yet.
-    post = await db
-      .prepare(
-        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
-                music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, users.username AS author_name,
-                (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
-                (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                0 AS like_count
-         FROM music_posts
-         JOIN users ON users.id = music_posts.author_user_id
-         WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
-      )
-      .bind(params.id)
-      .first();
-    if (post) {
-      post.moved_to_id = null;
-      post.moved_to_type = null;
-      post.embed_style = null; // Will default to 'auto' in safeEmbedFromUrl
-    }
-  } catch (e2) {
-    // Final fallback: remove is_deleted filter in case column doesn't exist
     try {
       post = await db
         .prepare(
@@ -83,17 +62,40 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   0 AS like_count
            FROM music_posts
            JOIN users ON users.id = music_posts.author_user_id
-           WHERE music_posts.id = ?`
+           WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
       if (post) {
         post.moved_to_id = null;
         post.moved_to_type = null;
-        post.embed_style = null;
+        post.embed_style = null; // Will default to 'auto' in safeEmbedFromUrl
       }
-    } catch (e3) {
-      post = null;
+    } catch (e2) {
+      // Final fallback: remove is_deleted filter in case column doesn't exist
+      try {
+        post = await db
+          .prepare(
+            `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+                    music_posts.type, music_posts.tags, music_posts.image_key,
+                    music_posts.created_at, users.username AS author_name,
+                    (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
+                    (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
+                    0 AS like_count
+             FROM music_posts
+             JOIN users ON users.id = music_posts.author_user_id
+             WHERE music_posts.id = ?`
+          )
+          .bind(params.id)
+          .first();
+        if (post) {
+          post.moved_to_id = null;
+          post.moved_to_type = null;
+          post.embed_style = null;
+        }
+      } catch (e3) {
+        post = null;
+      }
     }
   }
 

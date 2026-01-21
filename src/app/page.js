@@ -992,8 +992,8 @@ export default async function HomePage({ searchParams }) {
                 href: activity.activity_type.includes('_post') 
                   ? `/${activity.section}/${activity.id}`
                   : activity.activity_type.includes('forum_reply')
-                  ? `/lobby/${activity.parent_id}?reply=${activity.id}`
-                  : `/${activity.section}/${activity.parent_id}`
+                  ? `/lobby/${activity.parent_id || activity.id}?reply=${activity.id}`
+                  : `/${activity.section}/${activity.parent_id || activity.id}`
               });
             } catch (e) {
               // Skip if user lookup fails

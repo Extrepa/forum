@@ -60,25 +60,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       .first();
   } catch (e) {
     // Rollout compatibility if moved columns aren't migrated yet.
-    project = await db
-      .prepare(
-        `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
-                projects.github_url, projects.demo_url, projects.image_key,
-                projects.created_at, projects.updated_at,
-                users.username AS author_name,
-                0 AS like_count
-         FROM projects
-         JOIN users ON users.id = projects.author_user_id
-         WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
-      )
-      .bind(params.id)
-      .first();
-    if (project) {
-      project.moved_to_id = null;
-      project.moved_to_type = null;
-    }
-  } catch (e2) {
-    // Final fallback: remove is_deleted filter in case column doesn't exist
     try {
       project = await db
         .prepare(
@@ -89,7 +70,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   0 AS like_count
            FROM projects
            JOIN users ON users.id = projects.author_user_id
-           WHERE projects.id = ?`
+           WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
@@ -97,8 +78,29 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         project.moved_to_id = null;
         project.moved_to_type = null;
       }
-    } catch (e3) {
-      project = null;
+    } catch (e2) {
+      // Final fallback: remove is_deleted filter in case column doesn't exist
+      try {
+        project = await db
+          .prepare(
+            `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
+                    projects.github_url, projects.demo_url, projects.image_key,
+                    projects.created_at, projects.updated_at,
+                    users.username AS author_name,
+                    0 AS like_count
+             FROM projects
+             JOIN users ON users.id = projects.author_user_id
+             WHERE projects.id = ?`
+          )
+          .bind(params.id)
+          .first();
+        if (project) {
+          project.moved_to_id = null;
+          project.moved_to_type = null;
+        }
+      } catch (e3) {
+        project = null;
+      }
     }
   }
 
