@@ -32,6 +32,7 @@
 - Moved notifications trigger onto the **Errl face** (badge count + click opens the notifications dropdown); removed standalone notifications button from the header nav row.
 - Moved the **Account** button next to **Search** (left of it), keeping the setup banner full-width beneath the nav row.
 - Adjusted header layout so **Account stays immediately beside Search** (grouped right-side controls; avoids SearchBar `margin-left:auto` separating them).
+- Deploy note: OpenNext `build:cf` can fail with `ENOTEMPTY` on `.open-next`; removing the folder and re-running deploy resolves it.
 
 ## Ready-to-test checklist (2026-01-21)
 

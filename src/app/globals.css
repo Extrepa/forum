@@ -1355,12 +1355,17 @@ header::before {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 12px;
   }
   
   .header-right-controls .header-search-container {
     width: auto;
+  }
+
+  .header-right-controls button {
+    width: auto;
+    justify-self: auto;
   }
   
   .header-search-form {
