@@ -40,7 +40,9 @@ export function isProbablyEmail(input) {
 const ALGO = 'pbkdf2_sha256';
 const HASH = 'SHA-256';
 const KEY_LENGTH_BITS = 256;
-const DEFAULT_ITERATIONS = 310000;
+// Cloudflare Workers CPU limits can be tight; keep this high, but not so high that
+// signup/change-password/admin bootstrap consistently time out.
+const DEFAULT_ITERATIONS = 150000;
 
 export async function hashPassword(password, opts = {}) {
   const iterations = Number.isFinite(opts.iterations) ? Math.floor(opts.iterations) : DEFAULT_ITERATIONS;

@@ -5,14 +5,11 @@ import { createToken } from '../../../../lib/tokens';
 import { validateUsername } from '../../../../lib/username';
 import { hashPassword } from '../../../../lib/passwords';
 
-async function upsertUserWithTempPassword(db, username, { role, tempPassword }) {
+async function upsertUserWithTempPassword(db, username, { role, passwordHash, now }) {
   const validation = validateUsername(username);
   if (!validation.ok) {
     throw new Error(`Invalid username: ${username}`);
   }
-
-  const now = Date.now();
-  const passwordHash = await hashPassword(tempPassword);
 
   const existing = await db
     .prepare('SELECT id FROM users WHERE username_norm = ?')
@@ -69,14 +66,17 @@ export async function POST(request) {
   }
 
   const tempPassword = String(payload.tempPassword || 'Password');
+  const now = Date.now();
+  // Hash once and reuse for all 3 users to avoid CPU timeouts.
+  const passwordHash = await hashPassword(tempPassword, { iterations: 120000 });
 
   const db = await getDb();
   const results = [];
 
   // extrepa is admin
-  results.push(await upsertUserWithTempPassword(db, 'extrepa', { role: 'admin', tempPassword }));
-  results.push(await upsertUserWithTempPassword(db, 'geofryd', { role: 'user', tempPassword }));
-  results.push(await upsertUserWithTempPassword(db, 'ashley', { role: 'user', tempPassword }));
+  results.push(await upsertUserWithTempPassword(db, 'extrepa', { role: 'admin', passwordHash, now }));
+  results.push(await upsertUserWithTempPassword(db, 'geofryd', { role: 'user', passwordHash, now }));
+  results.push(await upsertUserWithTempPassword(db, 'ashley', { role: 'user', passwordHash, now }));
 
   return NextResponse.json({
     ok: true,
