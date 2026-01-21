@@ -839,9 +839,6 @@ button:hover {
 .list-item h3 span {
   margin-right: 6px;
 }
-  color: var(--ink);
-  font-size: 15px;
-}
 
 .reply-body p {
   margin: 0 0 8px;
