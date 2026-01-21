@@ -45,6 +45,8 @@ export default async function ForumThreadPage({ params, searchParams }) {
 
   const viewer = await getSessionUser();
   const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+  const canMoveToProjects = !!viewer && viewer.role === 'admin';
+  const isMoved = String(thread.title || '').startsWith('[Moved to Projects]');
 
   const error = searchParams?.error;
   const notice =
@@ -52,6 +54,8 @@ export default async function ForumThreadPage({ params, searchParams }) {
       ? 'Sign in before replying.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'unauthorized'
+      ? 'Unauthorized.'
       : error === 'locked'
       ? 'Replies are locked on this thread.'
       : error === 'notfound'
@@ -90,12 +94,23 @@ export default async function ForumThreadPage({ params, searchParams }) {
             className="post-body"
             dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }}
           />
-          {canToggleLock ? (
+          {(canToggleLock || canMoveToProjects) ? (
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <form action={`/api/forum/${thread.id}/lock`} method="post">
-                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
-                <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
-              </form>
+              {canToggleLock ? (
+                <form action={`/api/forum/${thread.id}/lock`} method="post">
+                  <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
+                  <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
+                </form>
+              ) : null}
+              {canMoveToProjects ? (
+                isMoved ? (
+                  <a className="project-link" href={`/projects/${thread.id}`}>View in Projects</a>
+                ) : (
+                  <form action={`/api/forum/${thread.id}/move-to-project`} method="post">
+                    <button type="submit">Move to Projects</button>
+                  </form>
+                )
+              ) : null}
             </div>
           ) : null}
         </div>

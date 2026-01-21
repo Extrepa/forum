@@ -23,18 +23,52 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   }
 
   const db = await getDb();
-  const log = await db
-    .prepare(
-      `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
-              dev_logs.is_locked,
-              dev_logs.created_at, dev_logs.updated_at,
-              users.username AS author_name
-       FROM dev_logs
-       JOIN users ON users.id = dev_logs.author_user_id
-       WHERE dev_logs.id = ?`
-    )
-    .bind(params.id)
-    .first();
+  let log = null;
+  let dbUnavailable = false;
+  try {
+    log = await db
+      .prepare(
+        `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+                dev_logs.is_locked,
+                dev_logs.created_at, dev_logs.updated_at,
+                users.username AS author_name
+         FROM dev_logs
+         JOIN users ON users.id = dev_logs.author_user_id
+         WHERE dev_logs.id = ?`
+      )
+      .bind(params.id)
+      .first();
+  } catch (e) {
+    // Rollout compatibility if the is_locked column isn't migrated yet.
+    try {
+      log = await db
+        .prepare(
+          `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+                  dev_logs.created_at, dev_logs.updated_at,
+                  users.username AS author_name
+           FROM dev_logs
+           JOIN users ON users.id = dev_logs.author_user_id
+           WHERE dev_logs.id = ?`
+        )
+        .bind(params.id)
+        .first();
+      if (log) {
+        log.is_locked = 0;
+      }
+    } catch (e2) {
+      dbUnavailable = true;
+      log = null;
+    }
+  }
+
+  if (dbUnavailable) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Dev Log</h2>
+        <p className="muted">Dev Log is not available yet (database updates still applying). Try again shortly.</p>
+      </section>
+    );
+  }
 
   if (!log) {
     return (
@@ -45,17 +79,23 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     );
   }
 
-  const { results: comments } = await db
-    .prepare(
-      `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at,
-              users.username AS author_name
-       FROM dev_log_comments
-       JOIN users ON users.id = dev_log_comments.author_user_id
-       WHERE dev_log_comments.log_id = ? AND dev_log_comments.is_deleted = 0
-       ORDER BY dev_log_comments.created_at ASC`
-    )
-    .bind(params.id)
-    .all();
+  let comments = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at,
+                users.username AS author_name
+         FROM dev_log_comments
+         JOIN users ON users.id = dev_log_comments.author_user_id
+         WHERE dev_log_comments.log_id = ? AND dev_log_comments.is_deleted = 0
+         ORDER BY dev_log_comments.created_at ASC`
+      )
+      .bind(params.id)
+      .all();
+    comments = out?.results || [];
+  } catch (e) {
+    comments = [];
+  }
 
   const error = searchParams?.error;
   const notice =

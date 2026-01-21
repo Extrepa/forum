@@ -6,7 +6,6 @@ export default function NavLinks({ isAdmin, isSignedIn }) {
   const pathname = usePathname();
 
   const links = [
-    { href: '/', label: 'Home' },
     { href: '/timeline', label: 'Announcements' },
     { href: '/events', label: 'Events' },
     ...(isSignedIn ? [{ href: '/devlog', label: 'Dev Log' }] : []),
@@ -17,9 +16,6 @@ export default function NavLinks({ isAdmin, isSignedIn }) {
   ];
 
   const isActive = (href) => {
-    if (href === '/') {
-      return pathname === '/';
-    }
     return pathname.startsWith(href);
   };
 

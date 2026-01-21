@@ -56,3 +56,15 @@
 - **Toggle**:
   - Added `POST /api/forum/[id]/lock` for thread author (or admin) to lock/unlock replies.
 
+### Follow-up: Dev Log prod safety + move-to-project tool + nav cleanup
+- **Dev Log server error mitigation**:
+  - Dev Log pages now fall back gracefully if the `dev_logs` table or `is_locked` column is not yet available (during rollout / migrations not applied).
+  - Instead of a crash, the UI shows: \"Dev Log is not available yet (database updates still applying)\".
+  - Note: Dev Log features still require applying migrations `0010_devlog.sql` and `0011_devlog_lock.sql` to the D1 database.
+- **Move forum thread to Projects (per-thread, admin-only)**:
+  - Added `POST /api/forum/[id]/move-to-project` to copy a specific forum thread into `projects` and then lock/replace the original thread content with a link to `/projects/<id>`.
+  - Added a \"Move to Projects\" button on the thread page for admins.
+  - This avoids relying on \"most recent thread\" migrations when a specific post needs moving.
+- **Navigation**:
+  - Removed \"Home\" from top nav to reduce header crowding (breadcrumbs already provide Home on inner pages).
+
