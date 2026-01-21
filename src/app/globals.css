@@ -71,6 +71,42 @@ header {
   backdrop-filter: blur(12px);
 }
 
+.nav-menu {
+  display: none;
+  position: relative;
+}
+
+.nav-menu-button {
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 44px;
+  padding: 10px 16px;
+}
+
+.nav-menu-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(520px, 92vw);
+  z-index: 1100;
+  padding: 12px;
+}
+
+.nav-menu-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-menu-links a {
+  justify-content: flex-start;
+  width: 100%;
+}
+
 .brand {
   display: flex;
   justify-content: space-between;
@@ -487,6 +523,18 @@ button:hover {
   margin-bottom: 0;
 }
 
+.reply-children {
+  display: grid;
+  gap: 10px;
+  margin-left: 14px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(22, 58, 74, 0.35);
+}
+
+.reply-item--child {
+  background: rgba(4, 16, 23, 0.45);
+}
+
 .reply-form {
   margin-top: 20px;
   padding-top: 20px;
@@ -837,8 +885,54 @@ header::before {
     flex-direction: column;
   }
 
+  header.header--detail {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  header.header--detail + main {
+    margin-top: 16px;
+  }
+
   .brand {
     width: 100%;
+  }
+
+  header.header--detail .brand {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header.header--detail .brand-left {
+    gap: 0;
+  }
+
+  header.header--detail .brand-left p {
+    display: none;
+  }
+
+  header.header--detail .brand-left h1 {
+    font-size: 20px;
+  }
+
+  header.header--detail .header-nav-section {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  header.header--detail .header-right-controls {
+    margin-left: auto;
+    width: auto;
+  }
+
+  header.header--detail .nav-inline {
+    display: none;
+  }
+
+  header.header--detail .nav-menu {
+    display: inline-flex;
   }
 
   nav {
@@ -977,6 +1071,25 @@ header::before {
   .post-body {
     font-size: 15px;
     line-height: 1.6;
+  }
+
+  .thread-post {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .replies-list {
+    margin-bottom: 12px;
+  }
+
+  .reply-form {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .reply-children {
+    margin-left: 10px;
+    padding-left: 10px;
   }
 
   input,
@@ -1175,39 +1288,6 @@ header::before {
   flex-shrink: 0;
 }
 
-/* Back button styling */
-.back-button {
-  padding: 10px;
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  border: 1px solid rgba(52, 225, 255, 0.2);
-  transition: all 0.2s ease;
-  background: rgba(2, 7, 10, 0.4);
-  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
-  color: var(--ink);
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.back-button svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.back-button:hover {
-  border-color: rgba(255, 52, 245, 0.8);
-  background: rgba(13, 51, 68, 0.6);
-  box-shadow: 0 0 18px rgba(255, 52, 245, 0.45);
-  color: var(--errl-accent-3);
-}
-
 /* Breadcrumbs styling */
 .breadcrumbs {
   display: flex;
@@ -1339,17 +1419,6 @@ header::before {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .back-button {
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-  }
-
-  .back-button svg {
-    width: 18px;
-    height: 18px;
   }
 
   .breadcrumbs {

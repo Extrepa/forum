@@ -77,7 +77,7 @@ export default async function DevLogPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     dbUnavailable
-      ? 'Dev Log is not available yet (database updates still applying). Try again in a minute.'
+      ? 'Dev Log is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and 0015_devlog_threaded_replies.sql.'
       : error === 'unauthorized'
       ? 'Only admins can post in Dev Log.'
       : error === 'locked'

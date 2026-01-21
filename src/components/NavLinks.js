@@ -1,17 +1,20 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { getForumStrings, isLoreEnabled } from '../lib/forum-texts';
+import { useUiPrefs } from './UiPrefsProvider';
+import { getForumStrings } from '../lib/forum-texts';
 
 export default function NavLinks({ isAdmin, isSignedIn }) {
   const pathname = usePathname();
-  const strings = getForumStrings({ useLore: isLoreEnabled() });
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
 
   const links = [
-    { href: '/timeline', label: strings.tabs.announcements },
+    { href: '/feed', label: 'Feed' },
+    { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },
     ...(isSignedIn ? [{ href: '/devlog', label: 'Dev Log' }] : []),
-    { href: '/forum', label: strings.tabs.general },
+    { href: '/lobby', label: 'Lobby' },
     { href: '/music', label: strings.tabs.music },
     { href: '/projects', label: strings.tabs.projects },
     { href: '/shitposts', label: strings.tabs.shitposts },

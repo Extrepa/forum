@@ -5,11 +5,13 @@ import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
-import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
+import { useUiPrefs } from '../../components/UiPrefsProvider';
+import { getForumStrings } from '../../lib/forum-texts';
 
 export default function ShitpostsClient({ posts, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const strings = getForumStrings({ useLore: isLoreEnabled() });
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
 
   const truncateBody = (body, maxLength = 150) => {
     if (!body) return '';
@@ -58,7 +60,7 @@ export default function ShitpostsClient({ posts, notice }) {
 
                 return (
                   <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
-                    <a href={`/forum/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <a href={`/lobby/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h3>{row.title}</h3>
                       {row.image_key ? (
                         <img

@@ -6,7 +6,6 @@ import { getUsernameColorIndex } from '../lib/usernameColor';
 import {
   getForumStrings,
   getTimeBasedGreetingTemplate,
-  isLoreEnabled,
   renderTemplateParts
 } from '../lib/forum-texts';
 
@@ -29,7 +28,8 @@ function formatTimeAgo(timestamp) {
 export default async function HomePage() {
   const user = await getSessionUser();
   const hasUsername = !!user;
-  const useLore = isLoreEnabled();
+  const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
+  const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
 
   const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
@@ -222,7 +222,7 @@ export default async function HomePage() {
               title: timelineRecent.title,
               author: timelineRecent.author_name,
               timeAgo: formatTimeAgo(timelineRecent.created_at),
-              url: `/timeline`
+              url: `/announcements/${timelineRecent.id}`
             }
           : null
       },
@@ -234,7 +234,7 @@ export default async function HomePage() {
               title: forumRecent.title,
               author: forumRecent.author_name,
               timeAgo: formatTimeAgo(forumRecent.created_at),
-              url: `/forum/${forumRecent.id}`
+              url: `/lobby/${forumRecent.id}`
             }
           : null
       },
@@ -246,7 +246,7 @@ export default async function HomePage() {
               title: eventsRecent.title,
               author: eventsRecent.author_name,
               timeAgo: formatTimeAgo(eventsRecent.created_at),
-              url: `/events`
+              url: `/events/${eventsRecent.id}`
             }
           : null
       },
@@ -282,7 +282,7 @@ export default async function HomePage() {
               title: shitpostsRecent.title,
               author: shitpostsRecent.author_name,
               timeAgo: formatTimeAgo(shitpostsRecent.created_at),
-              url: `/forum/${shitpostsRecent.id}`
+              url: `/lobby/${shitpostsRecent.id}`
             }
           : null
       }
@@ -337,7 +337,7 @@ export default async function HomePage() {
             {strings.hero.subline}
           </p>
           <div className="list grid-tiles">
-              <a href="/timeline" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <a href="/announcements" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <strong>{strings.cards.announcements.title}</strong>
                 <div className="list-meta">{strings.cards.announcements.description}</div>
                 {sectionData && (
@@ -370,7 +370,7 @@ export default async function HomePage() {
                   </div>
                 )}
               </a>
-              <a href="/forum" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <a href="/lobby" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <strong>{strings.cards.general.title}</strong>
                 <div className="list-meta">{strings.cards.general.description}</div>
                 {sectionData && (

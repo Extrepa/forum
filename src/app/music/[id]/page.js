@@ -11,13 +11,13 @@ export const dynamic = 'force-dynamic';
 function destUrlFor(type, id) {
   switch (type) {
     case 'forum_thread':
-      return `/forum/${id}`;
+      return `/lobby/${id}`;
     case 'project':
       return `/projects/${id}`;
     case 'music_post':
       return `/music/${id}`;
     case 'timeline_update':
-      return `/timeline/${id}`;
+      return `/announcements/${id}`;
     case 'event':
       return `/events/${id}`;
     case 'dev_log':

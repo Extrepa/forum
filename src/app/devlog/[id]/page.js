@@ -10,16 +10,25 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
+function quoteMarkdown({ author, body }) {
+  const safeAuthor = String(author || 'Someone').trim() || 'Someone';
+  const text = String(body || '').trim();
+  if (!text) return `> @${safeAuthor} said:\n>\n\n`;
+  const lines = text.split('\n').slice(0, 8);
+  const quoted = lines.map((l) => `> ${l}`).join('\n');
+  return `> @${safeAuthor} said:\n${quoted}\n\n`;
+}
+
 function destUrlFor(type, id) {
   switch (type) {
     case 'forum_thread':
-      return `/forum/${id}`;
+      return `/lobby/${id}`;
     case 'project':
       return `/projects/${id}`;
     case 'music_post':
       return `/music/${id}`;
     case 'timeline_update':
-      return `/timeline/${id}`;
+      return `/announcements/${id}`;
     case 'event':
       return `/events/${id}`;
     case 'dev_log':
@@ -88,7 +97,10 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     return (
       <section className="card">
         <h2 className="section-title">Dev Log</h2>
-        <p className="muted">Dev Log is not available yet (database updates still applying). Try again shortly.</p>
+        <p className="muted">
+          Dev Log is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and
+          0015_devlog_threaded_replies.sql.
+        </p>
       </section>
     );
   }
@@ -113,7 +125,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   try {
     const out = await db
       .prepare(
-        `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at,
+        `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
                 users.username AS author_name
          FROM dev_log_comments
          JOIN users ON users.id = dev_log_comments.author_user_id
@@ -154,6 +166,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       ? 'Comment text is required.'
       : error === 'locked'
       ? 'Comments are locked.'
+      : error === 'notready'
+      ? 'Replies are not enabled yet (database updates still applying).'
       : error === 'claim'
       ? 'Sign in before commenting.'
       : error === 'password'
@@ -161,6 +175,10 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       : null;
 
   const canComment = !log.is_locked && !user.must_change_password && !!user.password_hash;
+
+  const replyToId = String(searchParams?.replyTo || '').trim() || null;
+  const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
+  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
   return (
     <div className="stack">
@@ -201,15 +219,28 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       ) : null}
 
       <section className="card">
-        <h3 className="section-title">Comments</h3>
+        <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {canComment ? (
-          <form action={`/api/devlog/${log.id}/comments`} method="post">
+          <form id="reply-form" action={`/api/devlog/${log.id}/comments`} method="post">
+            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
             <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
+              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
+              <textarea
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
+                required
+                defaultValue={replyPrefill}
+              />
             </label>
-            <button type="submit">Post comment</button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="submit">Post reply</button>
+              {replyingTo ? (
+                <a className="project-link" href={`/devlog/${log.id}`}>
+                  Cancel
+                </a>
+              ) : null}
+            </div>
           </form>
         ) : (
           <p className="muted">
@@ -222,32 +253,65 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         )}
         <div className="list">
           {comments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
+            <p className="muted">No replies yet.</p>
           ) : (
             (() => {
+              const byParent = new Map();
+              for (const c of comments) {
+                const key = c.reply_to_id || null;
+                const arr = byParent.get(key) || [];
+                arr.push(c);
+                byParent.set(key, arr);
+              }
+
               let lastName = null;
               let lastIndex = null;
 
-              return comments.map((comment) => {
-                const colorIndex = getUsernameColorIndex(comment.author_name, {
+              const renderReply = (c, { isChild }) => {
+                const colorIndex = getUsernameColorIndex(c.author_name, {
                   avoidIndex: lastIndex,
-                  avoidName: lastName,
+                  avoidName: lastName
                 });
-                lastName = comment.author_name;
+                lastName = c.author_name;
                 lastIndex = colorIndex;
 
+                const replyLink = `/devlog/${log.id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
                 return (
-                  <div key={comment.id} className="list-item">
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                  <div
+                    key={c.id}
+                    className={`list-item${isChild ? ' reply-item--child' : ''}`}
+                    id={`reply-${c.id}`}
+                  >
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                     >
                       <span>
-                        <Username name={comment.author_name} colorIndex={colorIndex} />
+                        <Username name={c.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span>{new Date(comment.created_at).toLocaleString()}</span>
+                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <a className="post-link" href={replyLink}>
+                          Reply
+                        </a>
+                        <span>{new Date(c.created_at).toLocaleString()}</span>
+                      </span>
                     </div>
+                  </div>
+                );
+              };
+
+              const top = byParent.get(null) || [];
+              return top.map((c) => {
+                const kids = byParent.get(c.id) || [];
+                return (
+                  <div key={`thread-${c.id}`} className="stack" style={{ gap: 10 }}>
+                    {renderReply(c, { isChild: false })}
+                    {kids.length ? (
+                      <div className="reply-children">
+                        {kids.map((child) => renderReply(child, { isChild: true }))}
+                      </div>
+                    ) : null}
                   </div>
                 );
               });

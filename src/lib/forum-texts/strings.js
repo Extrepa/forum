@@ -57,9 +57,9 @@ export const errlForumStrings = {
     noResults: 'Nothing found. The goo keeps its secrets.'
   },
   actions: {
-    newPost: 'New Drip',
-    reply: 'Bubble Back',
-    like: 'Drip Approved'
+    newPost: 'New Post',
+    reply: 'Reply',
+    like: 'Like'
   },
   footer: {
     tagline: 'Keep it weird. Keep it real. Keep it Errl.'

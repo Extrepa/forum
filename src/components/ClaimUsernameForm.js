@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { useUiPrefs } from './UiPrefsProvider';
 
 export default function ClaimUsernameForm() {
   const [status, setStatus] = useState({ type: 'idle', message: null });
   const [mode, setMode] = useState('signup'); // signup | login
+  const { loreEnabled, setLoreEnabled } = useUiPrefs();
 
   const [me, setMe] = useState(null);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -27,6 +29,7 @@ export default function ClaimUsernameForm() {
   const [newPhone, setNewPhone] = useState('');
   const [notifyEmailEnabled, setNotifyEmailEnabled] = useState(false);
   const [notifySmsEnabled, setNotifySmsEnabled] = useState(false);
+  const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
 
   const validatePassword = (value) => {
     const pw = String(value || '');
@@ -50,6 +53,8 @@ export default function ClaimUsernameForm() {
         setNewPhone(payload.user?.phone || '');
         setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
         setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
+        setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
+        setLoreEnabled(!!payload.user?.uiLoreEnabled);
       } catch (error) {
         // ignore, stays claimable
       }
@@ -70,8 +75,39 @@ export default function ClaimUsernameForm() {
       setNewPhone(payload.user?.phone || '');
       setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
       setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
+      setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
+      setLoreEnabled(!!payload.user?.uiLoreEnabled);
     } catch (error) {
       setMe(null);
+    }
+  };
+
+  const submitUiPrefs = async (event) => {
+    event.preventDefault();
+    const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
+    if (envLore) {
+      setStatus({ type: 'success', message: 'Lore mode is forced on by server config.' });
+      setUiLoreEnabled(true);
+      setLoreEnabled(true);
+      return;
+    }
+
+    setStatus({ type: 'loading', message: 'Saving display settings...' });
+    try {
+      const response = await fetch('/api/auth/ui-prefs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loreEnabled: !!uiLoreEnabled })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Unable to save display settings.');
+      }
+      setStatus({ type: 'success', message: 'Display settings saved.' });
+      setLoreEnabled(!!payload.uiLoreEnabled);
+      await refreshMe();
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
     }
   };
 
@@ -239,6 +275,7 @@ export default function ClaimUsernameForm() {
     const needsPassword = !me.hasPassword;
     const needsSetup = needsPassword || !me.email;
     const canConfigureNotifications = !!me.email && !!me.hasPassword && !me.mustChangePassword;
+    const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
     return (
       <div className="card">
         <div className="notice">
@@ -256,6 +293,34 @@ export default function ClaimUsernameForm() {
         )}
 
         <div className="stack" style={{ gap: 12 }}>
+          <form onSubmit={submitUiPrefs} className="card" style={{ padding: 12 }}>
+            <div className="muted" style={{ marginBottom: 8 }}>
+              Display
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span>Lore mode</span>
+              <input
+                type="checkbox"
+                checked={envLore ? true : !!uiLoreEnabled}
+                onChange={(e) => {
+                  setUiLoreEnabled(e.target.checked);
+                  if (!envLore) setLoreEnabled(e.target.checked);
+                }}
+                disabled={envLore || status.type === 'loading'}
+              />
+            </label>
+            <div className="muted" style={{ fontSize: 13 }}>
+              {envLore
+                ? 'Forced on by server config.'
+                : loreEnabled
+                ? 'On: microcopy gets more lore-y.'
+                : 'Off: microcopy stays more plain.'}
+            </div>
+            <button type="submit" disabled={status.type === 'loading'}>
+              Save display settings
+            </button>
+          </form>
+
           <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
             <div className="muted" style={{ marginBottom: 8 }}>
               Email

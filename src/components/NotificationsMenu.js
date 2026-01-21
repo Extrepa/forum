@@ -74,7 +74,7 @@ export default function NotificationsMenu({
             {items.map((n) => {
               const isUnread = !n.read_at;
               const href =
-                n.type === 'reply' && n.target_type === 'forum_thread' ? `/forum/${n.target_id}` : '#';
+                n.type === 'reply' && n.target_type === 'forum_thread' ? `/lobby/${n.target_id}` : '#';
               const label =
                 n.type === 'reply' && n.target_type === 'forum_thread'
                   ? `${n.actor_username || 'Someone'} replied to a thread`

@@ -27,32 +27,32 @@ function destUrlFor(type, id) {
   }
 }
 
-export default async function EventDetailPage({ params, searchParams }) {
+export default async function AnnouncementDetailPage({ params, searchParams }) {
   const db = await getDb();
-  const event = await db
+  const update = await db
     .prepare(
-      `SELECT events.id, events.title, events.details, events.starts_at,
-              events.created_at, events.image_key,
-              events.moved_to_type, events.moved_to_id,
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+              timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
+              timeline_updates.moved_to_type, timeline_updates.moved_to_id,
               users.username AS author_name
-       FROM events
-       JOIN users ON users.id = events.author_user_id
-       WHERE events.id = ?`
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       WHERE timeline_updates.id = ?`
     )
     .bind(params.id)
     .first();
 
-  if (!event) {
+  if (!update) {
     return (
       <section className="card">
         <h2 className="section-title">Not found</h2>
-        <p className="muted">This event does not exist.</p>
+        <p className="muted">This announcement does not exist.</p>
       </section>
     );
   }
 
-  if (event.moved_to_id) {
-    const to = destUrlFor(event.moved_to_type, event.moved_to_id);
+  if (update.moved_to_id) {
+    const to = destUrlFor(update.moved_to_type, update.moved_to_id);
     if (to) {
       redirect(to);
     }
@@ -60,12 +60,12 @@ export default async function EventDetailPage({ params, searchParams }) {
 
   const { results: comments } = await db
     .prepare(
-      `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+      `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
               users.username AS author_name
-       FROM event_comments
-       JOIN users ON users.id = event_comments.author_user_id
-       WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
-       ORDER BY event_comments.created_at ASC`
+       FROM timeline_comments
+       JOIN users ON users.id = timeline_comments.author_user_id
+       WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
+       ORDER BY timeline_comments.created_at ASC`
     )
     .bind(params.id)
     .all();
@@ -87,32 +87,27 @@ export default async function EventDetailPage({ params, searchParams }) {
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
-          { href: '/events', label: 'Events' },
-          { href: `/events/${event.id}`, label: event.title },
+          { href: '/announcements', label: 'Announcements' },
+          { href: `/announcements/${update.id}`, label: update.title || 'Update' }
         ]}
       />
 
       <section className="card">
-        <h2 className="section-title">{event.title}</h2>
+        <h2 className="section-title">{update.title || 'Update'}</h2>
         <div className="list-meta">
-          <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} /> ·{' '}
-          {new Date(event.starts_at).toLocaleString()}
+          <Username name={update.author_name} colorIndex={getUsernameColorIndex(update.author_name)} /> ·{' '}
+          {new Date(update.created_at).toLocaleString()}
+          {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
         </div>
-        {event.image_key ? (
-          <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
-        ) : null}
-        {event.details ? (
-          <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(event.details) }} />
-        ) : (
-          <p className="muted">No details yet.</p>
-        )}
+        {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
       </section>
 
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {user ? (
-          <form action={`/api/events/${event.id}/comments`} method="post">
+          <form action={`/api/timeline/${update.id}/comments`} method="post">
             <label>
               <div className="muted">Say something</div>
               <textarea name="body" placeholder="Leave a comment" required />
@@ -132,17 +127,14 @@ export default async function EventDetailPage({ params, searchParams }) {
               return comments.map((c) => {
                 const colorIndex = getUsernameColorIndex(c.author_name, {
                   avoidIndex: lastIndex,
-                  avoidName: lastName,
+                  avoidName: lastName
                 });
                 lastName = c.author_name;
                 lastIndex = colorIndex;
                 return (
                   <div key={c.id} className="list-item">
                     <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                    <div
-                      className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
+                    <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>
                         <Username name={c.author_name} colorIndex={colorIndex} />
                       </span>

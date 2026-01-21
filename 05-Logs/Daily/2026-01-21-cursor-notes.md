@@ -129,3 +129,77 @@
 - **Docs**: full pack copied into `docs/forum-texts/` (README + guides + library + json/ts examples).
 - **Lints**: `next lint` prompts interactive migration in this Next.js version; build pipeline still completed successfully.
 
+### Errl naming + URL restructure (Feed/Lobby/Announcements)
+- **New routes**:
+  - `/feed` (cross-section activity stream)
+  - `/announcements` + `/announcements/[id]` (official posts; uses existing Timeline APIs)
+  - `/lobby` + `/lobby/[id]` (replaces `/forum`; uses existing Forum APIs)
+- **Redirects**:
+  - `/timeline` → `/feed`
+  - `/timeline/[id]` → `/announcements/[id]`
+  - `/forum` → `/lobby`
+  - `/forum/[id]` → `/lobby/[id]`
+- **Internal links updated**:
+  - Nav links + home tiles + “Latest” deep-links
+  - Search results URLs
+  - Notifications menu + outbound reply links
+  - Admin move tool now accepts both old and new paths (forum/lobby, timeline/announcements)
+- **Move system canonical URLs**:
+  - Updated destination mapping for `forum_thread` → `/lobby/[id]` and `timeline_update` → `/announcements/[id]` in detail pages + admin move endpoint.
+- **Feed aggregation**:
+  - `/feed` merges recent Announcements, Lobby threads, Events, Music, and Projects into one chronological list.
+  - Uses a rollout-safe query pattern: try `moved_to_id IS NULL`, fall back if the column isn’t migrated yet.
+
+### Lore intensity toggle (account setting)
+- **Migration**: `migrations/0013_ui_prefs.sql`
+  - Adds `users.ui_lore_enabled` (default 0).
+- **API**:
+  - `POST /api/auth/ui-prefs` saves `ui_lore_enabled` (returns 409 with a clear error if migration isn’t applied yet).
+  - `GET /api/auth/me` now returns `uiLoreEnabled`.
+- **Client plumbing**:
+  - Added `src/components/UiPrefsProvider.js` and wrapped app layout with it.
+  - Client components now read lore mode from the provider (Nav/Search + section clients), reducing env-only mismatches.
+  - `ClaimUsernameForm` gained a “Lore mode” toggle under signed-in account settings.
+  - `NEXT_PUBLIC_ERRL_USE_LORE=true` still acts as a global “forced on” override (UI disables the toggle when forced).
+
+### Verification (URL restructure + lore toggle)
+- **Build**: `npm run build` succeeded (needed running outside sandbox due to EPERM kill in sandboxed build).
+- **Redirect logic** (code-level check):
+  - Old routes are redirect-only, new routes have full pages (`/feed`, `/announcements*`, `/lobby*`).
+- **Watch-outs**:
+  - Until `0013_ui_prefs.sql` is applied, lore preference stays effectively off (and saving the toggle returns a friendly 409).
+  - Old links should still work via redirects, but any hardcoded external links should be updated to the new canonical routes.
+
+### Portal polish: header + replies + copy
+- **Header/back button**:
+  - Removed the Back button entirely (breadcrumbs are the navigation).
+  - Introduced `src/components/SiteHeader.js` so the header can react to the current path.
+  - On **mobile detail pages**, header becomes **condensed** and nav collapses into a **Menu** button (popover).
+  - Reduced extra vertical spacing on detail pages (`header.header--detail + main` margin tightened).
+- **Copy**:
+  - Replaced `"New Drip"` with `"New Post"` in `src/lib/forum-texts/strings.js`.
+- **Projects replies (forum-style)**:
+  - Migration: `migrations/0014_project_replies.sql` adds `project_replies` with `reply_to_id` for one-level threading.
+  - API: `POST /api/projects/[id]/replies`.
+  - UI: `src/app/projects/[id]/page.js` now shows **Replies** (nested one level) with a Reply link that pre-fills a quote and sets `reply_to_id`.
+- **Dev Log replies (threaded)**:
+  - Migration: `migrations/0015_devlog_threaded_replies.sql` adds `reply_to_id` to `dev_log_comments`.
+  - API: `POST /api/devlog/[id]/comments` now accepts `reply_to_id` and enforces one-level threading.
+  - UI: `src/app/devlog/[id]/page.js` now shows **Replies** with one-level nesting + quote-prefill Reply links.
+  - Updated “db unavailable” messaging on `/devlog` + `/devlog/[id]` to explicitly mention applying migrations (`0010_devlog.sql`, `0011_devlog_lock.sql`).
+
+### Verification (portal polish)
+- **Build**: `npm run build` succeeded (needed running outside sandbox due to EPERM kill in sandboxed build).
+
+### Double-check notes (portal polish)
+- **Header density**:
+  - Mobile detail pages now avoid rendering the full 2-column nav grid; the Menu popover keeps the header short so content is immediately visible.
+  - Breadcrumbs remain the primary “where am I” UI; removing Back button reduces header noise.
+- **Padding sanity**:
+  - Removed accidental double-styling on reply items (they now render as `list-item` only, with child indentation via `.reply-children`).
+- **Rollout safety**:
+  - Dev Log reply posting now fails gracefully with `error=notready` if the threaded-replies migration hasn’t been applied yet.
+  - Dev Log “db unavailable” text now explicitly lists required migrations including `0015_devlog_threaded_replies.sql`.
+- **Copy**:
+  - Confirmed no remaining UI strings for “New Drip”, “Bubble Back”, or “Drip Approved”.
+

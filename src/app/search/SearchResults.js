@@ -230,14 +230,14 @@ export default async function SearchResults({ query }) {
     ...t,
     bodyHtml: renderMarkdown(t.body),
     type: 'thread',
-    url: `/forum/${t.id}`
+    url: `/lobby/${t.id}`
   }));
 
   const processedUpdates = updates.map(u => ({
     ...u,
     bodyHtml: renderMarkdown(u.body),
     type: 'announcement',
-    url: `/timeline/${u.id}`
+    url: `/announcements/${u.id}`
   }));
 
   const processedEvents = events.map(e => ({
@@ -265,7 +265,7 @@ export default async function SearchResults({ query }) {
     ...r,
     bodyHtml: renderMarkdown(r.body),
     type: 'reply',
-    url: `/forum/${r.thread_id}`
+    url: `/lobby/${r.thread_id}`
   }));
 
   const allResults = [

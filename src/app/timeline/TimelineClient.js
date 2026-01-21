@@ -5,11 +5,13 @@ import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
-import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
+import { useUiPrefs } from '../../components/UiPrefsProvider';
+import { getForumStrings } from '../../lib/forum-texts';
 
-export default function TimelineClient({ updates, notice }) {
+export default function TimelineClient({ updates, notice, basePath = '/timeline' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const strings = getForumStrings({ useLore: isLoreEnabled() });
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
 
   return (
     <div className="stack">
@@ -45,7 +47,7 @@ export default function TimelineClient({ updates, notice }) {
                 return (
                   <div key={row.id} className="list-item">
                     <h3>
-                      <a href={`/timeline/${row.id}`}>{row.title || 'Update'}</a>
+                      <a href={`${basePath}/${row.id}`}>{row.title || 'Update'}</a>
                     </h3>
                     {row.image_key ? (
                       <img

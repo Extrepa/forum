@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getForumStrings, isLoreEnabled } from '../lib/forum-texts';
+import { useUiPrefs } from './UiPrefsProvider';
+import { getForumStrings } from '../lib/forum-texts';
 
 export default function SearchBar() {
   const router = useRouter();
-  const strings = getForumStrings({ useLore: isLoreEnabled() });
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const formRef = useRef(null);

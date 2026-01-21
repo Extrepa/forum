@@ -5,13 +5,13 @@ import { getSessionUser } from '../../../../lib/auth';
 function destPathFor(type, id) {
   switch (type) {
     case 'forum_thread':
-      return `/forum/${id}`;
+      return `/lobby/${id}`;
     case 'project':
       return `/projects/${id}`;
     case 'music_post':
       return `/music/${id}`;
     case 'timeline_update':
-      return `/timeline/${id}`;
+      return `/announcements/${id}`;
     case 'event':
       return `/events/${id}`;
     case 'dev_log':
@@ -40,12 +40,14 @@ function parseSource(input) {
   const id = parts[1];
   switch (section) {
     case 'forum':
+    case 'lobby':
       return { type: 'forum_thread', id };
     case 'projects':
       return { type: 'project', id };
     case 'music':
       return { type: 'music_post', id };
     case 'timeline':
+    case 'announcements':
       return { type: 'timeline_update', id };
     case 'events':
       return { type: 'event', id };

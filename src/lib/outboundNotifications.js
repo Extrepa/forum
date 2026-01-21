@@ -72,7 +72,7 @@ export async function sendForumReplyOutbound({
   const env = await getEnv();
 
   const baseUrl = String(env.SITE_URL || new URL(requestUrl).origin);
-  const link = `${baseUrl}/forum/${encodeURIComponent(threadId)}`;
+  const link = `${baseUrl}/lobby/${encodeURIComponent(threadId)}`;
   const subject = `New reply from ${actorUsername}: ${threadTitle}`;
   const smsText = `New reply from ${actorUsername}: ${threadTitle}\n${link}`;
 

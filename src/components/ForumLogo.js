@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function ForumLogo({
   variant = 'nav',
-  href = '/forum',
+  href = '/lobby',
   showText = true,
   as = 'link', // link | button
   onActivate,

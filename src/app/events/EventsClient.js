@@ -5,11 +5,13 @@ import PostForm from '../../components/PostForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
-import { getForumStrings, isLoreEnabled } from '../../lib/forum-texts';
+import { useUiPrefs } from '../../components/UiPrefsProvider';
+import { getForumStrings } from '../../lib/forum-texts';
 
 export default function EventsClient({ events, notice }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const strings = getForumStrings({ useLore: isLoreEnabled() });
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
 
   return (
     <div className="stack">

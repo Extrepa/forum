@@ -1,0 +1,224 @@
+import { getDb } from '../../lib/db';
+import Breadcrumbs from '../../components/Breadcrumbs';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
+
+export const dynamic = 'force-dynamic';
+
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  if (hours > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  if (minutes > 0) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+  return 'just now';
+}
+
+async function safeAll(db, primarySql, primaryBinds, fallbackSql, fallbackBinds) {
+  try {
+    const stmt = db.prepare(primarySql);
+    const bound = primaryBinds?.length ? stmt.bind(...primaryBinds) : stmt;
+    const out = await bound.all();
+    return out?.results || [];
+  } catch (e) {
+    const stmt = db.prepare(fallbackSql);
+    const bound = fallbackBinds?.length ? stmt.bind(...fallbackBinds) : stmt;
+    const out = await bound.all();
+    return out?.results || [];
+  }
+}
+
+export default async function FeedPage() {
+  const db = await getDb();
+  const limitPerType = 20;
+
+  const [announcements, threads, events, music, projects] = await Promise.all([
+    safeAll(
+      db,
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
+              users.username AS author_name
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       WHERE timeline_updates.moved_to_id IS NULL
+       ORDER BY timeline_updates.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
+              users.username AS author_name
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       ORDER BY timeline_updates.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.moved_to_id IS NULL
+       ORDER BY forum_threads.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
+              users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       ORDER BY forum_threads.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT events.id, events.title, events.created_at, events.starts_at,
+              users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       WHERE events.moved_to_id IS NULL
+       ORDER BY events.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT events.id, events.title, events.created_at, events.starts_at,
+              users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       ORDER BY events.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT music_posts.id, music_posts.title, music_posts.created_at,
+              users.username AS author_name
+       FROM music_posts
+       JOIN users ON users.id = music_posts.author_user_id
+       WHERE music_posts.moved_to_id IS NULL
+       ORDER BY music_posts.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT music_posts.id, music_posts.title, music_posts.created_at,
+              users.username AS author_name
+       FROM music_posts
+       JOIN users ON users.id = music_posts.author_user_id
+       ORDER BY music_posts.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT projects.id, projects.title, projects.created_at,
+              users.username AS author_name
+       FROM projects
+       JOIN users ON users.id = projects.author_user_id
+       WHERE projects.moved_to_id IS NULL
+       ORDER BY projects.created_at DESC
+       LIMIT ${limitPerType}`,
+      [],
+      `SELECT projects.id, projects.title, projects.created_at,
+              users.username AS author_name
+       FROM projects
+       JOIN users ON users.id = projects.author_user_id
+       ORDER BY projects.created_at DESC
+       LIMIT ${limitPerType}`,
+      []
+    )
+  ]);
+
+  const items = [
+    ...announcements.map((row) => ({
+      type: 'Announcement',
+      href: `/announcements/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title || 'Update',
+      author: row.author_name,
+      meta: null
+    })),
+    ...threads.map((row) => ({
+      type: 'Lobby',
+      href: `/lobby/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title,
+      author: row.author_name,
+      meta: null
+    })),
+    ...events.map((row) => ({
+      type: 'Event',
+      href: `/events/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title,
+      author: row.author_name,
+      meta: row.starts_at ? `Starts ${new Date(row.starts_at).toLocaleString()}` : null
+    })),
+    ...music.map((row) => ({
+      type: 'Music',
+      href: `/music/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title,
+      author: row.author_name,
+      meta: null
+    })),
+    ...projects.map((row) => ({
+      type: 'Project',
+      href: `/projects/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title,
+      author: row.author_name,
+      meta: null
+    }))
+  ]
+    .filter((x) => !!x.createdAt)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 60);
+
+  return (
+    <div className="stack">
+      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} />
+
+      <section className="card">
+        <h2 className="section-title">Feed</h2>
+        <p className="muted">Recent activity across the portal.</p>
+      </section>
+
+      <section className="card">
+        <h3 className="section-title">Latest</h3>
+        <div className="list">
+          {items.length === 0 ? (
+            <p className="muted">Nothing new… the goo is resting.</p>
+          ) : (
+            items.map((item) => (
+              <div key={`${item.type}:${item.href}`} className="list-item">
+                <div className="post-header">
+                  <h3>
+                    <a href={item.href}>{item.title}</a>
+                  </h3>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    {item.type}
+                  </span>
+                </div>
+                <div
+                  className="list-meta"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span>
+                    <Username name={item.author} colorIndex={getUsernameColorIndex(item.author)} />
+                  </span>
+                  <span>
+                    {formatTimeAgo(item.createdAt)}
+                    {item.meta ? ` · ${item.meta}` : ''}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+

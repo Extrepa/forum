@@ -10,16 +10,25 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
+function quoteMarkdown({ author, body }) {
+  const safeAuthor = String(author || 'Someone').trim() || 'Someone';
+  const text = String(body || '').trim();
+  if (!text) return `> @${safeAuthor} said:\n>\n\n`;
+  const lines = text.split('\n').slice(0, 8); // keep it short by default
+  const quoted = lines.map((l) => `> ${l}`).join('\n');
+  return `> @${safeAuthor} said:\n${quoted}\n\n`;
+}
+
 function destUrlFor(type, id) {
   switch (type) {
     case 'forum_thread':
-      return `/forum/${id}`;
+      return `/lobby/${id}`;
     case 'project':
       return `/projects/${id}`;
     case 'music_post':
       return `/music/${id}`;
     case 'timeline_update':
-      return `/timeline/${id}`;
+      return `/announcements/${id}`;
     case 'event':
       return `/events/${id}`;
     case 'dev_log':
@@ -95,17 +104,24 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     .bind(params.id)
     .all();
 
-  const { results: comments } = await db
-    .prepare(
-      `SELECT project_comments.id, project_comments.body, project_comments.created_at,
-              users.username AS author_name
-       FROM project_comments
-       JOIN users ON users.id = project_comments.author_user_id
-       WHERE project_comments.project_id = ? AND project_comments.is_deleted = 0
-       ORDER BY project_comments.created_at ASC`
-    )
-    .bind(params.id)
-    .all();
+  // Project replies (forum-style). Rollout-safe: if table isn't migrated yet, fall back to none.
+  let replies = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
+                users.username AS author_name
+         FROM project_replies
+         JOIN users ON users.id = project_replies.author_user_id
+         WHERE project_replies.project_id = ? AND project_replies.is_deleted = 0
+         ORDER BY project_replies.created_at ASC`
+      )
+      .bind(params.id)
+      .all();
+    replies = out?.results || [];
+  } catch (e) {
+    replies = [];
+  }
 
   const user = await getSessionUser();
   const canEdit =
@@ -158,9 +174,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       ? 'Sign in before commenting.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'notready'
+      ? 'Replies are not enabled yet (database updates still applying).'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;
+
+  const replyToId = String(searchParams?.replyTo || '').trim() || null;
+  const replyingTo = replyToId ? replies.find((r) => r.id === replyToId) : null;
+  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
   return (
     <div className="stack">
@@ -266,43 +288,89 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       </section>
 
       <section className="card">
-        <h3 className="section-title">Comments</h3>
+        <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <form action={`/api/projects/${project.id}/comments`} method="post">
+        <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
+          <input type="hidden" name="reply_to_id" value={replyToId || ''} />
           <label>
-            <div className="muted">Say something</div>
-            <textarea name="body" placeholder="Leave a comment" required />
+            <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
+            <textarea
+              name="body"
+              placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
+              required
+              defaultValue={replyPrefill}
+            />
           </label>
-          <button type="submit">Post comment</button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button type="submit">Post reply</button>
+            {replyingTo ? (
+              <a className="project-link" href={`/projects/${project.id}`}>
+                Cancel
+              </a>
+            ) : null}
+          </div>
         </form>
         <div className="list">
-          {comments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
+          {replies.length === 0 ? (
+            <p className="muted">No replies yet.</p>
           ) : (
             (() => {
+              const byParent = new Map();
+              for (const r of replies) {
+                const key = r.reply_to_id || null;
+                const arr = byParent.get(key) || [];
+                arr.push(r);
+                byParent.set(key, arr);
+              }
+
               let lastName = null;
               let lastIndex = null;
 
-              return comments.map((comment) => {
-                const colorIndex = getUsernameColorIndex(comment.author_name, {
+              const renderReply = (r, { isChild }) => {
+                const colorIndex = getUsernameColorIndex(r.author_name, {
                   avoidIndex: lastIndex,
-                  avoidName: lastName,
+                  avoidName: lastName
                 });
-                lastName = comment.author_name;
+                lastName = r.author_name;
                 lastIndex = colorIndex;
 
+                const replyLink = `/projects/${project.id}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
                 return (
-                  <div key={comment.id} className="list-item">
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                  <div
+                    key={r.id}
+                    className={`list-item${isChild ? ' reply-item--child' : ''}`}
+                    id={`reply-${r.id}`}
+                  >
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(r.body) }} />
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                     >
                       <span>
-                        <Username name={comment.author_name} colorIndex={colorIndex} />
+                        <Username name={r.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span>{new Date(comment.created_at).toLocaleString()}</span>
+                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <a className="post-link" href={replyLink}>
+                          Reply
+                        </a>
+                        <span>{new Date(r.created_at).toLocaleString()}</span>
+                      </span>
                     </div>
+                  </div>
+                );
+              };
+
+              const top = byParent.get(null) || [];
+              return top.map((r) => {
+                const kids = byParent.get(r.id) || [];
+                return (
+                  <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
+                    {renderReply(r, { isChild: false })}
+                    {kids.length ? (
+                      <div className="reply-children">
+                        {kids.map((c) => renderReply(c, { isChild: true }))}
+                      </div>
+                    ) : null}
                   </div>
                 );
               });
