@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
-export default function CreatePostModal({ isOpen, onClose, children, title }) {
+export default function CreatePostModal({
+  isOpen,
+  onClose,
+  children,
+  title,
+  variant = 'default', // default | wide
+  maxWidth,
+  maxHeight
+}) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -15,6 +23,9 @@ export default function CreatePostModal({ isOpen, onClose, children, title }) {
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const resolvedMaxWidth = maxWidth || (variant === 'wide' ? '900px' : '600px');
+  const resolvedMaxHeight = maxHeight || '90vh';
 
   return (
     <div
@@ -42,9 +53,9 @@ export default function CreatePostModal({ isOpen, onClose, children, title }) {
           border: '1px solid rgba(22, 58, 74, 0.6)',
           borderRadius: 'var(--radius)',
           padding: '24px',
-          maxWidth: '600px',
+          maxWidth: resolvedMaxWidth,
           width: '100%',
-          maxHeight: '90vh',
+          maxHeight: resolvedMaxHeight,
           overflow: 'auto',
           boxShadow: 'var(--shadow)',
         }}

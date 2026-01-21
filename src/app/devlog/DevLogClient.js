@@ -14,10 +14,10 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <h2 className="section-title">Dev Log</h2>
-            <p className="muted">Notes, updates, and internal progress.</p>
+            <h2 className="section-title">Development</h2>
+            <p className="muted">Updates, notes, and builds in progress.</p>
           </div>
-          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>New Dev Log Post</button> : null}
+          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>New Development Post</button> : null}
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -84,7 +84,12 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
       </section>
 
       {isAdmin ? (
-        <CreatePostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Dev Log Post">
+        <CreatePostModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="New Development Post"
+          variant="wide"
+        >
           <DevLogForm />
         </CreatePostModal>
       ) : null}

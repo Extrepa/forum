@@ -120,7 +120,76 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       />
       <section className="card thread-container">
         <div className="thread-post">
-          <h2 className="section-title">{thread.title}</h2>
+          <div className="post-header">
+            <h2 className="section-title" style={{ margin: 0 }}>
+              {thread.title}
+            </h2>
+            {canToggleLock ? (
+              <form action={`/api/forum/${thread.id}/lock`} method="post">
+                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
+                <button
+                  type="submit"
+                  className="icon-button"
+                  aria-label={thread.is_locked ? 'Unlock replies' : 'Lock replies'}
+                  title={thread.is_locked ? 'Unlock replies' : 'Lock replies'}
+                >
+                  {thread.is_locked ? (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M17 11V8a5 5 0 0 0-9.7-1.7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <rect
+                        x="5"
+                        y="11"
+                        width="14"
+                        height="10"
+                        rx="2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M8 11V8a4 4 0 0 1 8 0v3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <rect
+                        x="5"
+                        y="11"
+                        width="14"
+                        height="10"
+                        rx="2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </form>
+            ) : null}
+          </div>
           <div className="list-meta">
             <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
             {formatDateTime(thread.created_at)}
@@ -128,20 +197,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
           {thread.image_key ? <img src={`/api/media/${thread.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
           <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }} />
-          {canToggleLock ? (
-            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <form action={`/api/forum/${thread.id}/lock`} method="post">
-                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
-                <button type="submit">{thread.is_locked ? 'Unlock replies' : 'Lock replies'}</button>
-              </form>
-            </div>
-          ) : null}
         </div>
 
         <div className="thread-replies">
-          <h3 className="section-title" style={{ marginTop: '24px', marginBottom: '16px' }}>
-            Replies ({replies.length})
-          </h3>
+          <h3 className="section-title">Replies ({replies.length})</h3>
           {notice ? <div className="notice">{notice}</div> : null}
 
           {replies.length > 0 && (

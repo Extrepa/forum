@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProjectForm from '../../components/ProjectForm';
 import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
@@ -9,9 +10,17 @@ import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
 export default function ProjectsClient({ projects, canCreate, notice }) {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
+
+  const navigateToProject = (event, href) => {
+    if (event?.target?.closest && event.target.closest('a')) {
+      return;
+    }
+    router.push(href);
+  };
 
   return (
     <div className="stack">
@@ -45,12 +54,26 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                 });
                 lastName = row.author_name;
                 lastIndex = colorIndex;
+                const href = `/projects/${row.id}`;
 
                 return (
-                  <div key={row.id} className="list-item">
+                  <div
+                    key={row.id}
+                    className="list-item"
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => navigateToProject(e, href)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigateToProject(e, href);
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="post-header">
                       <h3>
-                        <a href={`/projects/${row.id}`}>{row.title}</a>
+                        <a href={href}>{row.title}</a>
                       </h3>
                       <span className={`status-badge status-${row.status}`}>{row.status}</span>
                     </div>
@@ -84,8 +107,8 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       </span>
                       <span>
                         {new Date(row.created_at).toLocaleString()}
-                        {row.comment_count > 0
-                          ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'comment' : 'comments'}`
+                        {row.reply_count > 0
+                          ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>

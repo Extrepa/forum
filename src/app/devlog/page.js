@@ -17,12 +17,12 @@ export default async function DevLogPage({ searchParams }) {
         <Breadcrumbs
           items={[
             { href: '/', label: 'Home' },
-            { href: '/devlog', label: 'Dev Log' },
+            { href: '/devlog', label: 'Development' },
           ]}
         />
         <section className="card">
-          <h2 className="section-title">Dev Log</h2>
-          <p className="muted">Sign in to view the Dev Log.</p>
+          <h2 className="section-title">Development</h2>
+          <p className="muted">Sign in to view Development.</p>
         </section>
       </>
     );
@@ -77,9 +77,9 @@ export default async function DevLogPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     dbUnavailable
-      ? 'Dev Log is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and 0015_devlog_threaded_replies.sql.'
+      ? 'Development is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and 0015_devlog_threaded_replies.sql.'
       : error === 'unauthorized'
-      ? 'Only admins can post in Dev Log.'
+      ? 'Only admins can post in Development.'
       : error === 'locked'
       ? 'Comments are locked on this post.'
       : error === 'upload'
@@ -97,7 +97,7 @@ export default async function DevLogPage({ searchParams }) {
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
-          { href: '/devlog', label: 'Dev Log' },
+          { href: '/devlog', label: 'Development' },
         ]}
       />
       <DevLogClient logs={logs} notice={notice} isAdmin={isAdmin} />

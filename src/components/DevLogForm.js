@@ -33,11 +33,44 @@ export default function DevLogForm({ logId, initialData }) {
         <div className="muted">Title</div>
         <input
           name="title"
-          placeholder="Dev log title"
+          placeholder="Development post title"
           required
           defaultValue={initialData?.title || ''}
         />
       </label>
+
+      <details className="muted">
+        <summary>Links (optional)</summary>
+        <div className="stack" style={{ marginTop: 10 }}>
+          <label>
+            <div className="muted">GitHub URL (optional)</div>
+            <input
+              name="github_url"
+              type="url"
+              placeholder="https://github.com/..."
+              defaultValue={initialData?.github_url || ''}
+            />
+          </label>
+          <label>
+            <div className="muted">Demo URL (optional)</div>
+            <input
+              name="demo_url"
+              type="url"
+              placeholder="https://example.com"
+              defaultValue={initialData?.demo_url || ''}
+            />
+          </label>
+          <label>
+            <div className="muted">Extra links (one per line)</div>
+            <textarea
+              name="links"
+              placeholder={`https://...\nhttps://...`}
+              defaultValue={initialData?.links || ''}
+              style={{ minHeight: 90, paddingTop: 12 }}
+            />
+          </label>
+        </div>
+      </details>
       <label>
         <div className="muted">Image (optional)</div>
         <input name="image" type="file" accept="image/*" />

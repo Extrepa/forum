@@ -38,6 +38,24 @@ function destUrlFor(type, id) {
   }
 }
 
+function parseLinksList(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return [];
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const urls = [];
+  for (const line of lines) {
+    try {
+      const u = new URL(line);
+      if (u.protocol === 'http:' || u.protocol === 'https:') {
+        urls.push(u.toString());
+      }
+    } catch (e) {
+      // ignore invalid URLs
+    }
+  }
+  return urls;
+}
+
 export default async function DevLogDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
   const isAdmin = isAdminUser(user);
@@ -45,7 +63,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   if (!user) {
     return (
       <section className="card">
-        <h2 className="section-title">Dev Log</h2>
+        <h2 className="section-title">Development</h2>
         <p className="muted">Sign in to view this post.</p>
       </section>
     );
@@ -61,6 +79,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 dev_logs.is_locked,
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
+                dev_logs.github_url, dev_logs.demo_url, dev_logs.links,
                 users.username AS author_name
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
@@ -86,6 +105,9 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         log.is_locked = 0;
         log.moved_to_id = null;
         log.moved_to_type = null;
+        log.github_url = null;
+        log.demo_url = null;
+        log.links = null;
       }
     } catch (e2) {
       dbUnavailable = true;
@@ -96,9 +118,9 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   if (dbUnavailable) {
     return (
       <section className="card">
-        <h2 className="section-title">Dev Log</h2>
+        <h2 className="section-title">Development</h2>
         <p className="muted">
-          Dev Log is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and
+          Development is not enabled yet on this environment. Apply migrations 0010_devlog.sql, 0011_devlog_lock.sql, and
           0015_devlog_threaded_replies.sql.
         </p>
       </section>
@@ -142,7 +164,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'unauthorized'
-      ? 'Only admins can post in Dev Log.'
+      ? 'Only admins can post in Development.'
       : error === 'claim'
       ? 'Sign in before commenting.'
       : error === 'password'
@@ -185,7 +207,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
-          { href: '/devlog', label: 'Dev Log' },
+          { href: '/devlog', label: 'Development' },
           { href: `/devlog/${log.id}`, label: log.title },
         ]}
       />
@@ -198,6 +220,25 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
           {log.is_locked ? ' · Comments locked' : null}
         </div>
+        {log.github_url || log.demo_url || log.links ? (
+          <div className="project-links">
+            {log.github_url ? (
+              <a href={log.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                GitHub
+              </a>
+            ) : null}
+            {log.demo_url ? (
+              <a href={log.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                Demo
+              </a>
+            ) : null}
+            {parseLinksList(log.links).map((u) => (
+              <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="project-link">
+                Link
+              </a>
+            ))}
+          </div>
+        ) : null}
         {log.image_key ? (
           <img src={`/api/media/${log.image_key}`} alt="" className="post-image" loading="lazy" />
         ) : null}

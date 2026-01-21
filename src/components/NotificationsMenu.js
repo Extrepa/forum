@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 function formatTimeAgo(timestamp) {
   const now = Date.now();
@@ -27,6 +28,7 @@ export default function NotificationsMenu({
   onMarkAllRead,
   anchor = 'right',
 }) {
+  const router = useRouter();
   const hasItems = items && items.length > 0;
   const title = useMemo(() => {
     if (unreadCount > 0) return `Notifications (${unreadCount})`;
@@ -54,6 +56,15 @@ export default function NotificationsMenu({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <strong>{title}</strong>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/account');
+            }}
+          >
+            Account
+          </button>
           <button type="button" onClick={onRefresh} disabled={status === 'loading'}>
             Refresh
           </button>

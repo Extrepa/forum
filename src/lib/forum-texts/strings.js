@@ -43,7 +43,7 @@ export const errlForumStrings = {
     },
     projects: {
       title: 'Projects',
-      description: 'Devlogs, WIPs, builds, and progress posts.',
+      description: 'Creative ideas, build plans, and things to make with friends.',
       empty: 'The workshop lights are on…'
     },
     shitposts: {

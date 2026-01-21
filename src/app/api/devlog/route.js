@@ -40,6 +40,9 @@ export async function POST(request) {
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
+  const githubUrl = String(formData.get('github_url') || '').trim() || null;
+  const demoUrl = String(formData.get('demo_url') || '').trim() || null;
+  const links = String(formData.get('links') || '').trim() || null;
 
   if (!title || !body) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -70,12 +73,20 @@ export async function POST(request) {
   }
 
   const db = await getDb();
-  await db
-    .prepare(
-      'INSERT INTO dev_logs (id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-    )
-    .bind(crypto.randomUUID(), user.id, title, body, imageKey, Date.now())
-    .run();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO dev_logs (id, author_user_id, title, body, image_key, github_url, demo_url, links, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(crypto.randomUUID(), user.id, title, body, imageKey, githubUrl, demoUrl, links, Date.now())
+      .run();
+  } catch (e) {
+    // Rollout compatibility if columns aren't migrated yet.
+    await db
+      .prepare('INSERT INTO dev_logs (id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), user.id, title, body, imageKey, Date.now())
+      .run();
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

@@ -292,8 +292,9 @@ export default function ClaimUsernameForm() {
           <p className="muted">Your account is active on this device.</p>
         )}
 
-        <div className="stack" style={{ gap: 12 }}>
-          <form onSubmit={submitUiPrefs} className="card" style={{ padding: 12 }}>
+        <div className="account-columns">
+          <div className="account-col">
+            <form onSubmit={submitUiPrefs} className="card" style={{ padding: 12 }}>
             <div className="muted" style={{ marginBottom: 8 }}>
               Display
             </div>
@@ -321,7 +322,7 @@ export default function ClaimUsernameForm() {
             </button>
           </form>
 
-          <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
+            <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
             <div className="muted" style={{ marginBottom: 8 }}>
               Email
             </div>
@@ -370,7 +371,7 @@ export default function ClaimUsernameForm() {
             )}
           </form>
 
-          <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
+            <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
             {me.hasPassword && !me.mustChangePassword ? (
               <label>
                 <div className="muted">Old password</div>
@@ -401,8 +402,10 @@ export default function ClaimUsernameForm() {
               {me.hasPassword ? 'Change password' : 'Set password'}
             </button>
           </form>
+          </div>
 
-          {canConfigureNotifications ? (
+          <div className="account-col">
+            {canConfigureNotifications ? (
             <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
               <div className="muted" style={{ marginBottom: 8 }}>
                 Notification preferences (external sending is not enabled yet)
@@ -442,11 +445,12 @@ export default function ClaimUsernameForm() {
                 Save notification settings
               </button>
             </form>
-          ) : null}
+            ) : null}
 
-          <button type="button" onClick={submitLogout} disabled={status.type === 'loading'}>
-            Sign out
-          </button>
+            <button type="button" onClick={submitLogout} disabled={status.type === 'loading'}>
+              Sign out
+            </button>
+          </div>
         </div>
 
         {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}

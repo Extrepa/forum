@@ -13,7 +13,7 @@ export default function NavLinks({ isAdmin, isSignedIn }) {
     { href: '/feed', label: 'Feed' },
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },
-    ...(isSignedIn ? [{ href: '/devlog', label: 'Dev Log' }] : []),
+    ...(isSignedIn ? [{ href: '/devlog', label: 'Development' }] : []),
     { href: '/lobby', label: 'Lobby' },
     { href: '/music', label: strings.tabs.music },
     { href: '/projects', label: strings.tabs.projects },

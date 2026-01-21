@@ -54,7 +54,7 @@ export default async function ModerationPage({ searchParams }) {
                 <option value="music_post">Music post</option>
                 <option value="timeline_update">Announcement</option>
                 <option value="event">Event</option>
-                <option value="dev_log">Dev log</option>
+                <option value="dev_log">Development</option>
               </select>
             </label>
             <label>
@@ -71,7 +71,7 @@ export default async function ModerationPage({ searchParams }) {
               <option value="timeline_update">Announcements</option>
               <option value="event">Events</option>
               <option value="music_post">Music</option>
-              <option value="dev_log">Dev Log</option>
+              <option value="dev_log">Development</option>
             </select>
           </label>
 

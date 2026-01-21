@@ -203,3 +203,60 @@
 - **Copy**:
   - Confirmed no remaining UI strings for “New Drip”, “Bubble Back”, or “Drip Approved”.
 
+### Quick fix: notifications popover squishing
+- On small viewports, the global mobile rule `button { width: 100% }` caused header popover buttons (Notifications) to compress/squish inside a flex row.
+- Changed the rule to `main button { width: 100% }` so content buttons stay full-width on mobile, but header/popover buttons keep natural sizing.
+
+### Account via Errl SVG (Notifications) + dedicated page
+- Added `/account` page (`src/app/account/page.js`) to host the full account/settings UI (reuses `ClaimUsernameForm`).
+- Notifications popover now includes an **Account** button that routes to `/account` and closes the popover (`src/components/NotificationsMenu.js`).
+- Removed the large header Account button from `SiteHeader` (header is simpler; Search remains).
+- “Complete setup” banner now routes to `/account` instead of opening a popover (`src/components/HeaderSetupBanner.js`).
+- **Build**: `npm run build` succeeded (outside sandbox due to EPERM kill in sandbox build).
+
+### Polish pass v2 (UI density + Development + Music preview + Projects + Account)
+- **Threads**:
+  - Replaced the big lock button row with an icon button in the top-right of the thread card (`src/app/lobby/[id]/page.js` + `.icon-button` in `src/app/globals.css`).
+  - Tightened replies spacing (`.replies-list` grid) to remove extra bottom padding/air.
+- **Development** (label-only rename of `/devlog`):
+  - Updated nav + headings + breadcrumbs from “Dev Log” to “Development”.
+  - Added wide modal support to `CreatePostModal` and used it for “New Development Post”.
+  - Added structured link fields for Development posts:
+    - New migration: `migrations/0016_devlog_links.sql` (`github_url`, `demo_url`, `links`).
+    - Updated DevLog create/edit APIs to accept/store these fields with rollout-safe fallback.
+    - Updated DevLog detail page to render link buttons.
+- **Music**:
+  - “Post to Music Feed” modal now includes a live embed preview (YouTube/SoundCloud) + optional image preview (`src/components/MusicPostForm.js`).
+  - Slightly tightened embed/rating spacing in `src/app/globals.css`.
+- **Projects**:
+  - Updated Projects description to match “creative ideas to build/make with friends” (`src/lib/forum-texts/strings.js`).
+  - De-emphasized GitHub/Demo fields behind a “Links (optional)” disclosure in `ProjectForm`.
+  - Projects list now counts **replies** (project_replies) and labels “replies” instead of “comments”, with fallback when migrations aren’t applied.
+  - Project detail page detects if replies table isn’t migrated yet and shows a clear message instead of a broken form.
+- **Account**:
+  - `/account` is more compact: removed redundant outer card; `ClaimUsernameForm` signed-in view is now two-column on desktop.
+
+### Production DB migrations checklist (Cloudflare D1)
+DB: `errl_forum_db` (see `wrangler.toml`)
+
+Preferred (apply all pending migrations in order):
+- `npx wrangler d1 migrations apply errl_forum_db --remote`
+
+If you want explicit per-file commands (run in this order):
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0010_devlog.sql`
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0011_devlog_lock.sql`
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0013_ui_prefs.sql`
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0014_project_replies.sql`
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0015_devlog_threaded_replies.sql`
+- `npx wrangler d1 execute errl_forum_db --remote --file=migrations/0016_devlog_links.sql`
+
+### Double-check notes (polish pass v2)
+- **Threads**: lock icon is now a non-emoji SVG and the replies grid no longer has duplicated CSS rules.
+- **Development label**: confirmed no remaining “Dev Log” UI labels except internal filenames/identifiers; updated the admin moderation dropdown + Development form placeholder for consistency.
+- **Music preview**: preview uses the same `safeEmbedFromUrl()` shape as the feed, so aspect classes stay consistent (`.embed-frame.16\\:9` and `.embed-frame.soundcloud`).
+- **Projects replies**:
+  - List page now expects `reply_count` (with fallback) and the client label is “replies”.
+  - Detail page won’t render a broken reply form if `project_replies` isn’t migrated yet; it shows a muted “not enabled” note instead.
+- **Build**: `npm run build` passes.
+- **Lint**: `npm run lint` currently prompts interactively because Next.js is deprecating `next lint`; this needs a separate migration to ESLint CLI if you want CI-friendly linting.
+

@@ -47,24 +47,29 @@ export default function ProjectForm({ projectId, initialData }) {
           <option value="archived">Archived</option>
         </select>
       </label>
-      <label>
-        <div className="muted">GitHub URL (optional)</div>
-        <input
-          name="github_url"
-          type="url"
-          placeholder="https://github.com/..."
-          defaultValue={initialData?.github_url || ''}
-        />
-      </label>
-      <label>
-        <div className="muted">Demo URL (optional)</div>
-        <input
-          name="demo_url"
-          type="url"
-          placeholder="https://example.com"
-          defaultValue={initialData?.demo_url || ''}
-        />
-      </label>
+      <details className="muted">
+        <summary>Links (optional)</summary>
+        <div className="stack" style={{ marginTop: 10 }}>
+          <label>
+            <div className="muted">GitHub URL (optional)</div>
+            <input
+              name="github_url"
+              type="url"
+              placeholder="https://github.com/..."
+              defaultValue={initialData?.github_url || ''}
+            />
+          </label>
+          <label>
+            <div className="muted">Demo URL (optional)</div>
+            <input
+              name="demo_url"
+              type="url"
+              placeholder="https://example.com"
+              defaultValue={initialData?.demo_url || ''}
+            />
+          </label>
+        </div>
+      </details>
       <label>
         <div className="muted">Image (optional)</div>
         <input name="image" type="file" accept="image/*" />
@@ -82,7 +87,7 @@ export default function ProjectForm({ projectId, initialData }) {
         <textarea
           ref={descriptionRef}
           name="description"
-          placeholder="Describe the project..."
+          placeholder="Describe the idea... (bullets, links, images, whatever helps)"
           required
           defaultValue={initialData?.description || ''}
         />

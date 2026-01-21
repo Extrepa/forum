@@ -43,6 +43,9 @@ export async function POST(request, { params }) {
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
+  const githubUrl = String(formData.get('github_url') || '').trim() || null;
+  const demoUrl = String(formData.get('demo_url') || '').trim() || null;
+  const links = String(formData.get('links') || '').trim() || null;
 
   if (!title || !body) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -84,15 +87,29 @@ export async function POST(request, { params }) {
   }
 
   if (imageKey) {
-    await db
-      .prepare('UPDATE dev_logs SET title = ?, body = ?, image_key = ?, updated_at = ? WHERE id = ?')
-      .bind(title, body, imageKey, Date.now(), params.id)
-      .run();
+    try {
+      await db
+        .prepare('UPDATE dev_logs SET title = ?, body = ?, image_key = ?, github_url = ?, demo_url = ?, links = ?, updated_at = ? WHERE id = ?')
+        .bind(title, body, imageKey, githubUrl, demoUrl, links, Date.now(), params.id)
+        .run();
+    } catch (e) {
+      await db
+        .prepare('UPDATE dev_logs SET title = ?, body = ?, image_key = ?, updated_at = ? WHERE id = ?')
+        .bind(title, body, imageKey, Date.now(), params.id)
+        .run();
+    }
   } else {
-    await db
-      .prepare('UPDATE dev_logs SET title = ?, body = ?, updated_at = ? WHERE id = ?')
-      .bind(title, body, Date.now(), params.id)
-      .run();
+    try {
+      await db
+        .prepare('UPDATE dev_logs SET title = ?, body = ?, github_url = ?, demo_url = ?, links = ?, updated_at = ? WHERE id = ?')
+        .bind(title, body, githubUrl, demoUrl, links, Date.now(), params.id)
+        .run();
+    } catch (e) {
+      await db
+        .prepare('UPDATE dev_logs SET title = ?, body = ?, updated_at = ? WHERE id = ?')
+        .bind(title, body, Date.now(), params.id)
+        .run();
+    }
   }
 
   return NextResponse.redirect(redirectUrl, 303);

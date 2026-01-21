@@ -272,6 +272,19 @@ main {
   gap: 20px;
 }
 
+.account-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.account-col {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
 form {
   display: grid;
   gap: 12px;
@@ -381,6 +394,29 @@ button {
 button:hover {
   transform: translateY(-1px) scale(1.01);
   box-shadow: 0 0 24px rgba(255, 52, 245, 0.55);
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button:hover {
+  transform: none;
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(13, 51, 68, 0.6);
+  box-shadow: 0 0 18px rgba(255, 52, 245, 0.45);
+  color: var(--errl-accent-3);
 }
 
 .forum-logo-button {
@@ -508,6 +544,8 @@ button:hover {
 
 .replies-list {
   margin-bottom: 20px;
+  display: grid;
+  gap: 12px;
 }
 
 /* Reply item styling */
@@ -519,7 +557,8 @@ button:hover {
   margin-bottom: 12px;
 }
 
-.reply-item:last-child {
+/* When replies are in a grid, let the container manage spacing. */
+.replies-list .reply-item {
   margin-bottom: 0;
 }
 
@@ -604,7 +643,7 @@ button:hover {
 .embed-frame {
   width: 100%;
   max-width: 100%;
-  margin: 12px 0;
+  margin: 10px 0;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(52, 225, 255, 0.4);
@@ -648,7 +687,7 @@ button:hover {
 .rating-row {
   display: flex;
   gap: 16px;
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 13px;
   color: var(--muted);
 }
@@ -985,7 +1024,7 @@ header::before {
     grid-template-columns: 1fr;
   }
 
-  button {
+  main button {
     width: 100%;
     justify-self: stretch;
   }
@@ -1101,6 +1140,10 @@ header::before {
   .split {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .account-columns {
+    grid-template-columns: 1fr;
   }
 }
 

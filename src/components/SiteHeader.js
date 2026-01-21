@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
-import HeaderAccountButton from './HeaderAccountButton';
 import HeaderSetupBanner from './HeaderSetupBanner';
 import SearchBar from './SearchBar';
 
@@ -73,7 +72,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         </nav>
 
         <div className="header-right-controls">
-          <HeaderAccountButton />
           <SearchBar />
         </div>
       </div>

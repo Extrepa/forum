@@ -106,6 +106,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
 
   // Project replies (forum-style). Rollout-safe: if table isn't migrated yet, fall back to none.
   let replies = [];
+  let repliesEnabled = true;
   try {
     const out = await db
       .prepare(
@@ -121,6 +122,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     replies = out?.results || [];
   } catch (e) {
     replies = [];
+    repliesEnabled = false;
   }
 
   const user = await getSessionUser();
@@ -290,26 +292,32 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
-          <input type="hidden" name="reply_to_id" value={replyToId || ''} />
-          <label>
-            <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
-            <textarea
-              name="body"
-              placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
-              required
-              defaultValue={replyPrefill}
-            />
-          </label>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="submit">Post reply</button>
-            {replyingTo ? (
-              <a className="project-link" href={`/projects/${project.id}`}>
-                Cancel
-              </a>
-            ) : null}
+        {repliesEnabled ? (
+          <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
+            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
+            <label>
+              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
+              <textarea
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
+                required
+                defaultValue={replyPrefill}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="submit">Post reply</button>
+              {replyingTo ? (
+                <a className="project-link" href={`/projects/${project.id}`}>
+                  Cancel
+                </a>
+              ) : null}
+            </div>
+          </form>
+        ) : (
+          <div className="muted" style={{ fontSize: 13 }}>
+            Replies aren’t enabled yet (database updates still applying).
           </div>
-        </form>
+        )}
         <div className="list">
           {replies.length === 0 ? (
             <p className="muted">No replies yet.</p>
