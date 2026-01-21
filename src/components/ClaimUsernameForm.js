@@ -23,6 +23,7 @@ export default function ClaimUsernameForm() {
   const [newEmail, setNewEmail] = useState('');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const [notifyEmailEnabled, setNotifyEmailEnabled] = useState(false);
   const [notifySmsEnabled, setNotifySmsEnabled] = useState(false);
 
@@ -36,6 +37,7 @@ export default function ClaimUsernameForm() {
           return;
         }
         setMe(payload.user || null);
+        setNewPhone(payload.user?.phone || '');
         setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
         setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
       } catch (error) {
@@ -53,6 +55,7 @@ export default function ClaimUsernameForm() {
       const response = await fetch('/api/auth/me', { method: 'GET' });
       const payload = await response.json();
       setMe(payload.user || null);
+      setNewPhone(payload.user?.phone || '');
       setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
       setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
     } catch (error) {
@@ -64,6 +67,17 @@ export default function ClaimUsernameForm() {
     event.preventDefault();
     setStatus({ type: 'loading', message: 'Saving notification settings...' });
     try {
+      const phoneTrimmed = String(newPhone || '').trim();
+      const phoneResponse = await fetch('/api/auth/set-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneTrimmed || null })
+      });
+      const phonePayload = await phoneResponse.json();
+      if (!phoneResponse.ok) {
+        throw new Error(phonePayload.error || 'Unable to save phone number.');
+      }
+
       const response = await fetch('/api/auth/notification-prefs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,6 +210,7 @@ export default function ClaimUsernameForm() {
     const colorIndex = getUsernameColorIndex(me.username);
     const needsPassword = !me.hasPassword;
     const needsSetup = needsPassword || !me.email;
+    const canConfigureNotifications = !!me.email && !!me.hasPassword && !me.mustChangePassword;
     return (
       <div className="card">
         <div className="notice">
@@ -213,31 +228,6 @@ export default function ClaimUsernameForm() {
         )}
 
         <div className="stack" style={{ gap: 12 }}>
-          <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>
-              Notification preferences (external sending is not enabled yet)
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span>Email notifications</span>
-              <input
-                type="checkbox"
-                checked={notifyEmailEnabled}
-                onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
-              />
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span>Text (SMS) notifications</span>
-              <input
-                type="checkbox"
-                checked={notifySmsEnabled}
-                onChange={(e) => setNotifySmsEnabled(e.target.checked)}
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Save notification settings
-            </button>
-          </form>
-
           <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
             <label>
               <div className="muted">Email</div>
@@ -283,6 +273,42 @@ export default function ClaimUsernameForm() {
               {me.hasPassword ? 'Change password' : 'Set password'}
             </button>
           </form>
+
+          {canConfigureNotifications ? (
+            <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
+              <div className="muted" style={{ marginBottom: 8 }}>
+                Notification preferences (external sending is not enabled yet)
+              </div>
+              <label>
+                <div className="muted">Phone number (required for SMS)</div>
+                <input
+                  name="phone"
+                  value={newPhone}
+                  onChange={(event) => setNewPhone(event.target.value)}
+                  placeholder={me.phone || '+15551234567'}
+                />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span>Email notifications</span>
+                <input
+                  type="checkbox"
+                  checked={notifyEmailEnabled}
+                  onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
+                />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span>Text (SMS) notifications</span>
+                <input
+                  type="checkbox"
+                  checked={notifySmsEnabled}
+                  onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                />
+              </label>
+              <button type="submit" disabled={status.type === 'loading'}>
+                Save notification settings
+              </button>
+            </form>
+          ) : null}
 
           <button type="button" onClick={submitLogout} disabled={status.type === 'loading'}>
             Sign out

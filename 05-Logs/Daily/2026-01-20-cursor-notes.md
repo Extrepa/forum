@@ -33,6 +33,8 @@
 - Moved the **Account** button next to **Search** (left of it), keeping the setup banner full-width beneath the nav row.
 - Adjusted header layout so **Account stays immediately beside Search** (grouped right-side controls; avoids SearchBar `margin-left:auto` separating them).
 - Deploy note: OpenNext `build:cf` can fail with `ENOTEMPTY` on `.open-next`; removing the folder and re-running deploy resolves it.
+- Account popover UX: reordered account setup so **email + password** come first; notification prefs are shown only after setup. Added **phone number storage** and a `set-phone` API endpoint to support future SMS notifications.
+- Outbound notifications: added optional **Resend (email)** + **Twilio (SMS)** delivery for forum reply notifications when provider secrets are configured (best-effort; won’t block posting if sending fails).
 
 ## Ready-to-test checklist (2026-01-21)
 

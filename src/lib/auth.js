@@ -9,7 +9,7 @@ export async function getSessionUser() {
   const db = await getDb();
   return db
     .prepare(
-      'SELECT id, username, role, email, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled FROM users WHERE session_token = ?'
+      'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled FROM users WHERE session_token = ?'
     )
     .bind(token)
     .first();
