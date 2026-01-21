@@ -67,6 +67,18 @@ export function formatEventDate(timestamp) {
 }
 
 /**
+ * Format event date in large, prominent format (Month Day, Year)
+ */
+export function formatEventDateLarge(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+/**
  * Format relative event date (for upcoming events)
  */
 export function formatRelativeEventDate(timestamp) {

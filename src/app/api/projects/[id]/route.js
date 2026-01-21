@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
+import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 
 export async function GET(request, { params }) {
@@ -50,7 +51,7 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  if (existing.author_user_id !== user.id) {
+  if (existing.author_user_id !== user.id && !isAdminUser(user)) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }

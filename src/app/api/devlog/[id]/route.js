@@ -35,7 +35,27 @@ export async function POST(request, { params }) {
   const user = await getSessionUserWithRole();
   const redirectUrl = new URL(`/devlog/${params.id}`, request.url);
 
-  if (!user || !isAdminUser(user)) {
+  if (!user) {
+    redirectUrl.searchParams.set('error', 'claim');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (user.must_change_password || !user.password_hash) {
+    redirectUrl.searchParams.set('error', 'password');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  const db = await getDb();
+  const existing = await db
+    .prepare('SELECT author_user_id FROM dev_logs WHERE id = ?')
+    .bind(params.id)
+    .first();
+
+  if (!existing) {
+    redirectUrl.searchParams.set('error', 'notfound');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  if (existing.author_user_id !== user.id && !isAdminUser(user)) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
@@ -61,16 +81,6 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  const db = await getDb();
-  const existing = await db
-    .prepare('SELECT id FROM dev_logs WHERE id = ?')
-    .bind(params.id)
-    .first();
-
-  if (!existing) {
-    redirectUrl.searchParams.set('error', 'notfound');
-    return NextResponse.redirect(redirectUrl, 303);
-  }
 
   let imageKey = null;
   if (imageFile && imageFile.size > 0) {

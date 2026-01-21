@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 
-export default function ArtNostalgiaClient({ posts, notice }) {
-  const title = useMemo(() => 'Art & Nostalgia', []);
-  const description = useMemo(() => 'Image-only posts and memories from the 2000s, childhood, and everything in between.', []);
+export default function LoreMemoriesClient({ posts, notice }) {
+  const title = useMemo(() => 'Lore & Memories', []);
+  const description = useMemo(() => "Errl's story and history, Nomad history, documents, and the things we did together.", []);
 
   return (
     <div className="stack">
@@ -29,14 +29,14 @@ export default function ArtNostalgiaClient({ posts, notice }) {
               const renderItem = (p, { condensed }) => (
                 <a
                   key={p.id}
-                  href={`/${p.type}/${p.id}`}
+                  href={`/lore-memories/${p.id}`}
                   className="list-item"
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                 >
                   <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
                     <h3 style={{ marginBottom: 0 }}>{p.title || 'Untitled'}</h3>
                     <span className="muted" style={{ fontSize: 12 }}>
-                      {p.type === 'art' ? 'Art' : 'Nostalgia'}
+                      {p.type === 'lore' ? 'Lore' : 'Memories'}
                       {p.is_private ? ' · Members-only' : ''}
                     </span>
                   </div>
@@ -55,9 +55,6 @@ export default function ArtNostalgiaClient({ posts, notice }) {
                     </span>
                     <span>{new Date(p.created_at).toLocaleString()}</span>
                   </div>
-                  {!condensed && p.image_key ? (
-                    <img src={`/api/media/${p.image_key}`} alt="" className="post-image" loading="lazy" />
-                  ) : null}
                   {!condensed && p.bodyHtml ? <div className="post-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                 </a>
               );

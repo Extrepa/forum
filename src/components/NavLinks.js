@@ -1,11 +1,12 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
 export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -14,7 +15,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },
     ...(isSignedIn ? [{ href: '/devlog', label: 'Development' }] : []),
-    { href: '/lobby', label: 'Lobby' },
+    { href: '/lobby', label: 'General' },
     { href: '/music', label: strings.tabs.music },
     { href: '/projects', label: strings.tabs.projects },
     { href: '/shitposts', label: strings.tabs.shitposts },
@@ -23,8 +24,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   const moreLinks = [
     { href: '/art-nostalgia', label: 'Art & Nostalgia' },
     { href: '/bugs-rant', label: 'Bugs & Rants' },
-    ...(isSignedIn ? [{ href: '/lore', label: 'Lore' }] : []),
-    ...(isSignedIn ? [{ href: '/memories', label: 'Memories' }] : []),
+    ...(isSignedIn ? [{ href: '/lore-memories', label: 'Lore & Memories' }] : []),
   ];
 
   const links =
@@ -38,6 +38,15 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
     return pathname.startsWith(href);
   };
 
+  const handleLinkClick = (e, href) => {
+    // For "more" variant links, ensure navigation happens
+    if (variant === 'more') {
+      e.preventDefault();
+      router.push(href);
+    }
+    // For other variants, let default navigation happen
+  };
+
   return (
     <>
       {links.map((link) => (
@@ -45,6 +54,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
           key={link.href}
           href={link.href}
           className={isActive(link.href) ? 'active' : ''}
+          onClick={variant === 'more' ? (e) => handleLinkClick(e, link.href) : undefined}
         >
           {link.label}
         </a>

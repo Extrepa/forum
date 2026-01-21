@@ -306,12 +306,23 @@ export default async function SearchResults({ query }) {
     return labels[t] || t;
   };
 
-  const processedPosts = posts.map(p => ({
-    ...p,
-    bodyHtml: p.body ? renderMarkdown(p.body) : null,
-    type: labelForShared(p.type),
-    url: `/${p.type === 'about' ? 'about' : p.type}${p.type === 'about' ? '' : `/${p.id}`}`
-  }));
+  const processedPosts = posts.map(p => {
+    // Route lore and memories posts to combined page
+    let url;
+    if (p.type === 'lore' || p.type === 'memories') {
+      url = `/lore-memories/${p.id}`;
+    } else if (p.type === 'about') {
+      url = '/about';
+    } else {
+      url = `/${p.type}/${p.id}`;
+    }
+    return {
+      ...p,
+      bodyHtml: p.body ? renderMarkdown(p.body) : null,
+      type: labelForShared(p.type),
+      url
+    };
+  });
 
   const allResults = [
     ...processedThreads,

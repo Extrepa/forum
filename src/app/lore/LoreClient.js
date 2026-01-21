@@ -27,23 +27,37 @@ export default function LoreClient({ posts, notice }) {
               const rest = posts.slice(1);
 
               const renderItem = (p, { condensed }) => (
-                <div key={p.id} className="list-item">
-                  <div className="post-header">
-                    <h3>
-                      <a href={`/lore/${p.id}`}>{p.title || 'Untitled'}</a>
-                    </h3>
+                <a
+                  key={p.id}
+                  href={`/lore/${p.id}`}
+                  className="list-item"
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                >
+                  <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
+                    <h3 style={{ marginBottom: 0 }}>{p.title || 'Untitled'}</h3>
                     {p.is_private ? (
                       <span className="muted" style={{ fontSize: 12 }}>
                         Members-only
                       </span>
                     ) : null}
                   </div>
-                  <div className="list-meta">
-                    <Username name={p.author_name} colorIndex={getUsernameColorIndex(p.author_name)} /> ·{' '}
-                    {new Date(p.created_at).toLocaleString()}
+                  <div
+                    className="list-meta"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '12px',
+                      marginTop: '4px'
+                    }}
+                  >
+                    <span>
+                      <Username name={p.author_name} colorIndex={getUsernameColorIndex(p.author_name)} />
+                    </span>
+                    <span>{new Date(p.created_at).toLocaleString()}</span>
                   </div>
                   {!condensed && p.bodyHtml ? <div className="post-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
-                </div>
+                </a>
               );
 
               return (

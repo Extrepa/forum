@@ -45,24 +45,14 @@ export default function DevLogClient({ logs, notice }) {
                 lastIndex = colorIndex;
 
                 return (
-                  <div
+                  <a
                     key={row.id}
+                    href={href}
                     className="list-item"
-                    role="link"
-                    tabIndex={0}
-                    onClick={(e) => navigateToLog(e, href)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        navigateToLog(e, href);
-                      }
-                    }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div className="post-header">
-                      <h3>
-                        <a href={href}>{row.title}</a>
-                      </h3>
+                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
+                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
                       {row.is_locked ? (
                         <span className="muted" style={{ fontSize: '12px' }}>
                           Comments locked
@@ -82,20 +72,25 @@ export default function DevLogClient({ logs, notice }) {
                     ) : null}
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
                     >
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <a className="post-link" href={href}>{condensed ? 'Open' : 'Open full post'}</a>
+                      <span>
                         {new Date(row.created_at).toLocaleString()}
                         {row.comment_count > 0
                           ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
                           : ''}
                       </span>
                     </div>
-                  </div>
+                  </a>
                 );
               };
 

@@ -41,16 +41,24 @@ export default function MusicClient({ posts, notice }) {
                 lastIndex = colorIndex;
 
                 return (
-                  <div key={row.id} className="list-item">
-                    <div className="post-header">
-                      <h3>{row.title}</h3>
-                      <a className="post-link" href={`/music/${row.id}`}>
-                        {condensed ? 'Open' : 'View'}
-                      </a>
+                  <a
+                    key={row.id}
+                    href={`/music/${row.id}`}
+                    className="list-item"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                  >
+                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
+                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
                     </div>
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginBottom: condensed ? '4px' : '6px'
+                      }}
                     >
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
@@ -87,12 +95,12 @@ export default function MusicClient({ posts, notice }) {
                         ))}
                       </div>
                     ) : null}
-                    <div className="rating-row">
+                    <div className="rating-row" style={{ fontSize: '12px', marginTop: condensed ? '4px' : '6px' }}>
                       <span>Rating: {row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—'}</span>
                       <span>{row.rating_count} votes</span>
                       <span>{row.comment_count} comments</span>
                     </div>
-                  </div>
+                  </a>
                 );
               };
 

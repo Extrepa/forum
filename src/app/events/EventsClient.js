@@ -40,10 +40,13 @@ export default function EventsClient({ events, notice }) {
                 lastIndex = colorIndex;
 
                 return (
-                  <div key={row.id} className="list-item">
-                    <h3>
-                      <a href={`/events/${row.id}`}>{row.title}</a>
-                    </h3>
+                  <a
+                    key={row.id}
+                    href={`/events/${row.id}`}
+                    className="list-item"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                  >
+                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title}</h3>
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
@@ -57,21 +60,43 @@ export default function EventsClient({ events, notice }) {
                     ) : null}
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
                     >
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
+                        >
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
                         {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
                         {isEventUpcoming(row.starts_at) ? (
-                          <span className="muted" style={{ marginLeft: '8px' }}>
+                          <span className="muted" style={{ marginLeft: '4px' }}>
                             ({formatRelativeEventDate(row.starts_at)})
                           </span>
                         ) : null}
                       </span>
                     </div>
-                  </div>
+                  </a>
                 );
               };
 

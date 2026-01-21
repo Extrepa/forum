@@ -114,7 +114,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
-          { href: '/lobby', label: 'Lobby' },
+          { href: '/lobby', label: 'General' },
           { href: `/lobby/${thread.id}`, label: thread.title }
         ]}
       />

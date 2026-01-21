@@ -49,24 +49,21 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                 const href = `/projects/${row.id}`;
 
                 return (
-                  <div
+                  <a
                     key={row.id}
+                    href={href}
                     className="list-item"
-                    role="link"
-                    tabIndex={0}
-                    onClick={(e) => navigateToProject(e, href)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        navigateToProject(e, href);
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                    onClick={(e) => {
+                      // Allow nested links (GitHub, Demo) to work
+                      if (e.target.closest('a.project-link')) {
+                        e.stopPropagation();
+                        return;
                       }
                     }}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <div className="post-header">
-                      <h3>
-                        <a href={href}>{row.title}</a>
-                      </h3>
+                    <div className="post-header" style={{ marginBottom: condensed ? '4px' : '6px' }}>
+                      <h3 style={{ marginBottom: 0 }}>{row.title}</h3>
                       <span className={`status-badge status-${row.status}`}>{row.status}</span>
                     </div>
                     {!condensed && row.image_key ? (
@@ -81,12 +78,12 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                     {!condensed ? (
                       <div className="project-links">
                         {row.github_url ? (
-                          <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                          <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link" onClick={(e) => e.stopPropagation()}>
                             GitHub
                           </a>
                         ) : null}
                         {row.demo_url ? (
-                          <a href={row.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                          <a href={row.demo_url} target="_blank" rel="noopener noreferrer" className="project-link" onClick={(e) => e.stopPropagation()}>
                             Demo
                           </a>
                         ) : null}
@@ -94,7 +91,13 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                     ) : null}
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
                     >
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
@@ -106,7 +109,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                           : ''}
                       </span>
                     </div>
-                  </div>
+                  </a>
                 );
               };
 

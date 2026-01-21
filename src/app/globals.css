@@ -184,9 +184,12 @@ nav {
 
 .nav-inline {
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding: 2px 0;
+  flex-wrap: nowrap;
+  min-width: max-content;
 }
 
 .nav-inline::-webkit-scrollbar {
@@ -195,6 +198,7 @@ nav {
 
 .nav-inline a {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .nav-inline--more {
@@ -625,11 +629,16 @@ button:hover {
 .list-item {
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 10px 16px;
   background: rgba(4, 16, 23, 0.7);
   position: relative;
   isolation: isolate;
   backdrop-filter: blur(10px);
+  transition: background 0.2s ease;
+}
+
+.list-item:hover {
+  background: rgba(4, 16, 23, 0.9);
 }
 
 .list-item h3 {
@@ -1116,6 +1125,13 @@ header::before {
     width: 100%;
     gap: 8px;
     flex-wrap: wrap;
+  }
+
+  .nav-inline nav,
+  .nav-menu-links {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   nav a {

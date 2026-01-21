@@ -63,7 +63,7 @@ export default async function LobbyPage({ searchParams }) {
   return (
     <>
       <PageTopRow
-        items={[{ href: '/', label: 'Home' }, { href: '/lobby', label: 'Lobby' }]}
+        items={[{ href: '/', label: 'Home' }, { href: '/lobby', label: 'General' }]}
         right={
           <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate}>
             <PostForm

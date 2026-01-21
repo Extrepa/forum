@@ -33,7 +33,7 @@ export const errlForumStrings = {
     },
     general: {
       title: 'General',
-      description: 'Talk about anything. Unstructured vibes welcome.',
+      description: 'General posts - just general',
       empty: 'Nothing new… the goo is resting.'
     },
     music: {
@@ -75,6 +75,11 @@ export const errlForumStrings = {
       title: 'Memories',
       description: 'Nomad history, documents, and the things we did together.',
       empty: 'No memories yet.'
+    },
+    loreMemories: {
+      title: 'Lore & Memories',
+      description: "Errl's story and history, Nomad history, documents, and the things we did together.",
+      empty: 'No posts yet.'
     }
   },
   search: {

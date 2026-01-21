@@ -53,30 +53,39 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
                 lastIndex = colorIndex;
 
                 return (
-                  <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
-                    <a href={`${basePath}/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      <h3>{row.title}</h3>
-                      {!condensed ? (
-                        <p className="muted" style={{ marginBottom: '8px' }}>
-                          {truncateBody(row.body)}
-                        </p>
-                      ) : null}
-                      <div
-                        className="list-meta"
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                      >
-                        <span>
-                          <Username name={row.author_name} colorIndex={colorIndex} />
-                        </span>
-                        <span>
-                          {new Date(row.created_at).toLocaleString()}
-                          {row.reply_count > 0
-                            ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
-                            : ''}
-                        </span>
-                      </div>
-                    </a>
-                  </div>
+                  <a
+                    key={row.id}
+                    href={`${basePath}/${row.id}`}
+                    className="list-item"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                  >
+                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title}</h3>
+                    {!condensed ? (
+                      <p className="muted" style={{ marginBottom: '6px', fontSize: '13px' }}>
+                        {truncateBody(row.body)}
+                      </p>
+                    ) : null}
+                    <div
+                      className="list-meta"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
+                    >
+                      <span>
+                        <Username name={row.author_name} colorIndex={colorIndex} />
+                      </span>
+                      <span>
+                        {new Date(row.created_at).toLocaleString()}
+                        {row.reply_count > 0
+                          ? ` · ${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
+                          : ''}
+                      </span>
+                    </div>
+                  </a>
                 );
               };
 

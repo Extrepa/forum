@@ -39,10 +39,13 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                 lastIndex = colorIndex;
 
                 return (
-                  <div key={row.id} className="list-item">
-                    <h3>
-                      <a href={`${basePath}/${row.id}`}>{row.title || 'Update'}</a>
-                    </h3>
+                  <a
+                    key={row.id}
+                    href={`${basePath}/${row.id}`}
+                    className="list-item"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                  >
+                    <h3 style={{ marginBottom: condensed ? '4px' : '6px' }}>{row.title || 'Update'}</h3>
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
@@ -54,14 +57,20 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                     {!condensed ? <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} /> : null}
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
                     >
                       <span>
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
                       <span>{new Date(row.created_at).toLocaleString()}</span>
                     </div>
-                  </div>
+                  </a>
                 );
               };
 

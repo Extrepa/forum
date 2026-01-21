@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
+import { isAdminUser } from '../../../lib/admin';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
@@ -113,11 +114,12 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   }
 
   const user = await getSessionUser();
+  const isAdmin = isAdminUser(user);
   const canEdit =
     !!user &&
     !user.must_change_password &&
     !!user.password_hash &&
-    user.id === project.author_user_id;
+    (user.id === project.author_user_id || isAdmin);
 
   const error = searchParams?.error;
   const editNotice =

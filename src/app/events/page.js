@@ -81,7 +81,7 @@ export default async function EventsPage({ searchParams }) {
               buttonLabel="Add Event"
               showDate
               bodyRequired={false}
-              showImage={false}
+              showImage={true}
             />
           </NewPostModalButton>
         }

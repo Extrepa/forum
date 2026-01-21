@@ -23,6 +23,7 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
+  const attending = formData.get('attending') === 'on' || formData.get('attending') === 'true';
   const redirectUrl = new URL(`/events/${params.id}`, request.url);
 
   if (!user) {
@@ -40,12 +41,35 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  
+  // Create comment
   await db
     .prepare(
       'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
     .bind(crypto.randomUUID(), params.id, user.id, body, Date.now())
     .run();
+
+  // Handle RSVP if checkbox was checked
+  if (attending) {
+    try {
+      // Check if already RSVP'd
+      const existing = await db
+        .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
+        .bind(params.id, user.id)
+        .first();
+
+      if (!existing) {
+        // Add RSVP
+        await db
+          .prepare('INSERT INTO event_attendees (id, event_id, user_id, created_at) VALUES (?, ?, ?, ?)')
+          .bind(crypto.randomUUID(), params.id, user.id, Date.now())
+          .run();
+      }
+    } catch (e) {
+      // event_attendees table might not exist yet, ignore
+    }
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

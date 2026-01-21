@@ -20,6 +20,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const menuRef = useRef(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreWrapRef = useRef(null);
+  const moreNavRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -29,7 +30,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   useEffect(() => {
     const onDocMouseDown = (event) => {
       if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
-      if (moreOpen && moreWrapRef.current && !moreWrapRef.current.contains(event.target)) setMoreOpen(false);
+      // Check if click is outside both the toggle button container AND the expanded nav section
+      if (moreOpen && moreWrapRef.current && moreNavRef.current) {
+        const isInsideToggle = moreWrapRef.current.contains(event.target);
+        const isInsideNav = moreNavRef.current.contains(event.target);
+        if (!isInsideToggle && !isInsideNav) {
+          setMoreOpen(false);
+        }
+      }
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
@@ -105,7 +113,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       </div>
 
       {moreOpen ? (
-        <nav className="nav-inline nav-inline--more" aria-label="More pages">
+        <nav ref={moreNavRef} className="nav-inline nav-inline--more" aria-label="More pages">
           <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
         </nav>
       ) : null}

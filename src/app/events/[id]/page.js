@@ -5,8 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
-import EventRSVP from '../../../components/EventRSVP';
-import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
+import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,18 +127,32 @@ export default async function EventDetailPage({ params, searchParams }) {
 
       <section className="card">
         <h2 className="section-title">{event.title}</h2>
-        <div className="list-meta">
-          <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} /> ·{' '}
-          {formatEventDate(event.starts_at)} {formatEventTime(event.starts_at)}
-          {isEventUpcoming(event.starts_at) ? (
-            <span className="muted" style={{ marginLeft: '8px' }}>
-              ({formatRelativeEventDate(event.starts_at)})
-            </span>
-          ) : (
-            <span className="muted" style={{ marginLeft: '8px' }}>
-              ({formatRelativeEventDate(event.starts_at)})
-            </span>
-          )}
+        <div className="list-meta" style={{ marginBottom: '12px' }}>
+          <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span>
+            {formatEventDateLarge(event.starts_at)} {formatEventTime(event.starts_at)}
+          </span>
+          <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal' }}>
+            ({formatRelativeEventDate(event.starts_at)})
+          </span>
         </div>
         {event.image_key ? (
           <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
@@ -151,7 +164,19 @@ export default async function EventDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      <EventRSVP eventId={event.id} initialAttending={userAttending} initialAttendees={attendees} />
+      {/* Compact attendee list */}
+      {attendees.length > 0 && (
+        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--muted)' }}>
+          <strong style={{ color: 'var(--ink)' }}>{attendees.length} {attendees.length === 1 ? 'person' : 'people'} attending:</strong>{' '}
+          {attendees.slice(0, 5).map((a, i) => (
+            <span key={a.id}>
+              <Username name={a.username} colorIndex={getUsernameColorIndex(a.username)} />
+              {i < Math.min(attendees.length, 5) - 1 ? ', ' : ''}
+            </span>
+          ))}
+          {attendees.length > 5 && <span className="muted"> and {attendees.length - 5} more</span>}
+        </div>
+      )}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>
@@ -161,6 +186,10 @@ export default async function EventDetailPage({ params, searchParams }) {
             <label>
               <div className="muted">Say something</div>
               <textarea name="body" placeholder="Leave a comment" required />
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', marginBottom: '10px' }}>
+              <input type="checkbox" name="attending" defaultChecked={userAttending} />
+              <span>I'm attending</span>
             </label>
             <button type="submit">Post comment</button>
           </form>

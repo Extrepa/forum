@@ -315,69 +315,33 @@ export default async function HomePage() {
       }
     }
 
-    // Lore (signed-in only)
-    let loreCount = null;
-    let loreRecent = null;
+    // Lore & Memories (signed-in only, combined)
+    let loreMemoriesCount = null;
+    let loreMemoriesRecent = null;
     if (hasUsername) {
       try {
-        loreCount = await safeFirst(
+        loreMemoriesCount = await safeFirst(
           db,
-          'SELECT COUNT(*) as count FROM posts WHERE type = \'lore\'',
+          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\')',
           [],
-          'SELECT COUNT(*) as count FROM posts WHERE type = \'lore\'',
+          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\')',
           []
         );
-        loreRecent = await safeFirst(
+        loreMemoriesRecent = await safeFirst(
           db,
-          `SELECT posts.id, posts.title, posts.created_at,
+          `SELECT posts.id, posts.title, posts.created_at, posts.type,
                   users.username AS author_name
            FROM posts
            JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type = 'lore'
+           WHERE posts.type IN ('lore', 'memories')
            ORDER BY posts.created_at DESC
            LIMIT 1`,
           [],
-          `SELECT posts.id, posts.title, posts.created_at,
+          `SELECT posts.id, posts.title, posts.created_at, posts.type,
                   users.username AS author_name
            FROM posts
            JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type = 'lore'
-           ORDER BY posts.created_at DESC
-           LIMIT 1`,
-          []
-        );
-      } catch (e) {
-        // Posts table might not exist
-      }
-    }
-
-    // Memories (signed-in only)
-    let memoriesCount = null;
-    let memoriesRecent = null;
-    if (hasUsername) {
-      try {
-        memoriesCount = await safeFirst(
-          db,
-          'SELECT COUNT(*) as count FROM posts WHERE type = \'memories\'',
-          [],
-          'SELECT COUNT(*) as count FROM posts WHERE type = \'memories\'',
-          []
-        );
-        memoriesRecent = await safeFirst(
-          db,
-          `SELECT posts.id, posts.title, posts.created_at,
-                  users.username AS author_name
-           FROM posts
-           JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type = 'memories'
-           ORDER BY posts.created_at DESC
-           LIMIT 1`,
-          [],
-          `SELECT posts.id, posts.title, posts.created_at,
-                  users.username AS author_name
-           FROM posts
-           JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type = 'memories'
+           WHERE posts.type IN ('lore', 'memories')
            ORDER BY posts.created_at DESC
            LIMIT 1`,
           []
@@ -496,27 +460,15 @@ export default async function HomePage() {
             }
           : null
       } : null,
-      lore: hasUsername && loreCount !== null ? {
-        count: loreCount?.count || 0,
-        recent: loreRecent
+      loreMemories: hasUsername && loreMemoriesCount !== null ? {
+        count: loreMemoriesCount?.count || 0,
+        recent: loreMemoriesRecent
           ? {
-              id: loreRecent.id,
-              title: loreRecent.title || 'Untitled',
-              author: loreRecent.author_name,
-              timeAgo: formatTimeAgo(loreRecent.created_at),
-              url: `/lore/${loreRecent.id}`
-            }
-          : null
-      } : null,
-      memories: hasUsername && memoriesCount !== null ? {
-        count: memoriesCount?.count || 0,
-        recent: memoriesRecent
-          ? {
-              id: memoriesRecent.id,
-              title: memoriesRecent.title || 'Untitled',
-              author: memoriesRecent.author_name,
-              timeAgo: formatTimeAgo(memoriesRecent.created_at),
-              url: `/memories/${memoriesRecent.id}`
+              id: loreMemoriesRecent.id,
+              title: loreMemoriesRecent.title || 'Untitled',
+              author: loreMemoriesRecent.author_name,
+              timeAgo: formatTimeAgo(loreMemoriesRecent.created_at),
+              url: `/lore-memories/${loreMemoriesRecent.id}`
             }
           : null
       } : null
@@ -870,71 +822,36 @@ export default async function HomePage() {
                   )}
                 </a>
               )}
-              {hasUsername && sectionData?.lore !== null && (
-                <a href="/lore" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <strong>{strings.cards.lore.title}</strong>
-                  <div className="list-meta">{strings.cards.lore.description}</div>
-                  {sectionData && sectionData.lore && (
+              {hasUsername && sectionData?.loreMemories !== null && (
+                <a href="/lore-memories" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <strong>{strings.cards.loreMemories.title}</strong>
+                  <div className="list-meta">{strings.cards.loreMemories.description}</div>
+                  {sectionData && sectionData.loreMemories && (
                     <div className="section-stats">
-                      {sectionData.lore.count > 0 ? (
+                      {sectionData.loreMemories.count > 0 ? (
                         <>
-                          <span>{sectionData.lore.count} {sectionData.lore.count === 1 ? 'post' : 'posts'}</span>
-                          {sectionData.lore.recent && (
+                          <span>{sectionData.loreMemories.count} {sectionData.loreMemories.count === 1 ? 'post' : 'posts'}</span>
+                          {sectionData.loreMemories.recent && (
                             <span>
                               {' · '}
                               Latest:{' '}
                               <a
-                                href={sectionData.lore.recent.url}
+                                href={sectionData.loreMemories.recent.url}
                                 style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
                               >
-                                {sectionData.lore.recent.title}
+                                {sectionData.loreMemories.recent.title}
                               </a>
                               {' by '}
                               <Username
-                                name={sectionData.lore.recent.author}
-                                colorIndex={getUsernameColorIndex(sectionData.lore.recent.author)}
+                                name={sectionData.loreMemories.recent.author}
+                                colorIndex={getUsernameColorIndex(sectionData.loreMemories.recent.author)}
                               />{' '}
-                              {sectionData.lore.recent.timeAgo}
+                              {sectionData.loreMemories.recent.timeAgo}
                             </span>
                           )}
                         </>
                       ) : (
-                        <span>{strings.cards.lore.empty}</span>
-                      )}
-                    </div>
-                  )}
-                </a>
-              )}
-              {hasUsername && sectionData?.memories !== null && (
-                <a href="/memories" className="list-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <strong>{strings.cards.memories.title}</strong>
-                  <div className="list-meta">{strings.cards.memories.description}</div>
-                  {sectionData && sectionData.memories && (
-                    <div className="section-stats">
-                      {sectionData.memories.count > 0 ? (
-                        <>
-                          <span>{sectionData.memories.count} {sectionData.memories.count === 1 ? 'post' : 'posts'}</span>
-                          {sectionData.memories.recent && (
-                            <span>
-                              {' · '}
-                              Latest:{' '}
-                              <a
-                                href={sectionData.memories.recent.url}
-                                style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}
-                              >
-                                {sectionData.memories.recent.title}
-                              </a>
-                              {' by '}
-                              <Username
-                                name={sectionData.memories.recent.author}
-                                colorIndex={getUsernameColorIndex(sectionData.memories.recent.author)}
-                              />{' '}
-                              {sectionData.memories.recent.timeAgo}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span>{strings.cards.memories.empty}</span>
+                        <span>{strings.cards.loreMemories.empty}</span>
                       )}
                     </div>
                   )}
