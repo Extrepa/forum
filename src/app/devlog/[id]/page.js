@@ -86,7 +86,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
-         WHERE dev_logs.id = ?`
+         WHERE dev_logs.id = ? AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -101,7 +101,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   0 AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
-           WHERE dev_logs.id = ?`
+           WHERE dev_logs.id = ? AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
@@ -298,36 +298,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {canComment ? (
-          <form id="reply-form" action={`/api/devlog/${log.id}/comments`} method="post">
-            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
-            <label>
-              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
-              <textarea
-                name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
-                required
-                defaultValue={replyPrefill}
-              />
-            </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="submit">Post reply</button>
-              {replyingTo ? (
-                <a className="project-link" href={`/devlog/${log.id}`}>
-                  Cancel
-                </a>
-              ) : null}
-            </div>
-          </form>
-        ) : (
-          <p className="muted">
-            {log.is_locked
-              ? 'Comments are locked for this post.'
-              : user.must_change_password || !user.password_hash
-              ? 'Set your password to comment.'
-              : 'Sign in to comment.'}
-          </p>
-        )}
         <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No replies yet.</p>
@@ -395,6 +365,36 @@ export default async function DevLogDetailPage({ params, searchParams }) {
             })()
           )}
         </div>
+        {canComment ? (
+          <form id="reply-form" action={`/api/devlog/${log.id}/comments`} method="post">
+            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
+            <label>
+              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
+              <textarea
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
+                required
+                defaultValue={replyPrefill}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="submit">Post reply</button>
+              {replyingTo ? (
+                <a className="project-link" href={`/devlog/${log.id}`}>
+                  Cancel
+                </a>
+              ) : null}
+            </div>
+          </form>
+        ) : (
+          <p className="muted">
+            {log.is_locked
+              ? 'Comments are locked for this post.'
+              : user.must_change_password || !user.password_hash
+              ? 'Set your password to comment.'
+              : 'Sign in to comment.'}
+          </p>
+        )}
       </section>
     </div>
   );

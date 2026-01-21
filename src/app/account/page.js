@@ -73,7 +73,7 @@ export default async function AccountPage({ searchParams }) {
     }
   }
 
-  const activeTab = searchParams?.tab || 'account';
+  const activeTab = searchParams?.tab || 'profile';
 
   return (
     <div className="stack">

@@ -7,6 +7,7 @@ import { isAdminUser } from '../../../lib/admin';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import AdminControlsBar from '../../../components/AdminControlsBar';
 import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
 
@@ -53,7 +54,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 users.username AS author_name
          FROM projects
          JOIN users ON users.id = projects.author_user_id
-         WHERE projects.id = ?`
+         WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -68,7 +69,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 0 AS like_count
          FROM projects
          JOIN users ON users.id = projects.author_user_id
-         WHERE projects.id = ?`
+         WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -122,6 +123,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     !user.must_change_password &&
     !!user.password_hash &&
     (user.id === project.author_user_id || isAdmin);
+  const canDelete = canEdit;
   
   // Check if current user has liked this project
   let userLiked = false;
@@ -201,6 +203,23 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           {new Date(project.created_at).toLocaleString()}
           {project.updated_at ? ` · Updated ${new Date(project.updated_at).toLocaleString()}` : null}
         </div>
+        <AdminControlsBar
+          postId={project.id}
+          postType="project"
+          canEdit={canEdit}
+          canDelete={canDelete}
+          onEdit={() => {
+            // Scroll to EditPostPanel and open it
+            const panel = document.querySelector('[data-edit-panel]');
+            if (panel) {
+              panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              const details = panel.querySelector('details');
+              if (details && !details.open) {
+                details.open = true;
+              }
+            }
+          }}
+        />
         {project.image_key ? (
           <img
             src={`/api/media/${project.image_key}`}
@@ -228,10 +247,12 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       </section>
 
       {canEdit ? (
-        <EditPostPanel buttonLabel="Edit Post" title="Edit Project">
-          {editNotice ? <div className="notice">{editNotice}</div> : null}
-          <ProjectForm projectId={project.id} initialData={project} />
-        </EditPostPanel>
+        <div data-edit-panel>
+          <EditPostPanel buttonLabel="Edit Post" title="Edit Project">
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <ProjectForm projectId={project.id} initialData={project} />
+          </EditPostPanel>
+        </div>
       ) : null}
 
       <section className="card">
@@ -330,6 +351,32 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             })()
           )}
         </div>
+        {repliesEnabled ? (
+          <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
+            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
+            <label>
+              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
+              <textarea
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
+                required
+                defaultValue={replyPrefill}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="submit">Post reply</button>
+              {replyingTo ? (
+                <a className="project-link" href={`/projects/${project.id}`}>
+                  Cancel
+                </a>
+              ) : null}
+            </div>
+          </form>
+        ) : (
+          <div className="muted" style={{ fontSize: 13 }}>
+            Replies aren't enabled yet (database updates still applying).
+          </div>
+        )}
       </section>
     </div>
   );

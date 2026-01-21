@@ -13,6 +13,7 @@ import ReplyForm from '../../../components/ReplyForm';
 import EditPostButton from '../../../components/EditPostButton';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
+import AdminControlsBar from '../../../components/AdminControlsBar';
 import { isAdminUser } from '../../../lib/admin';
 
 export const dynamic = 'force-dynamic';
@@ -227,87 +228,31 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               />
             ) : null}
           </div>
-          <div style={{ marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {canToggleLock ? (
-              <form action={`/api/forum/${thread.id}/lock`} method="post" style={{ display: 'inline' }}>
-                <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="icon-button"
-                  aria-label={thread.is_locked ? 'Unlock replies' : 'Lock replies'}
-                  title={thread.is_locked ? 'Unlock replies' : 'Lock replies'}
-                >
-                  {thread.is_locked ? (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M17 11V8a5 5 0 0 0-9.7-1.7"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <rect
-                        x="5"
-                        y="11"
-                        width="14"
-                        height="10"
-                        rx="2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M8 11V8a4 4 0 0 1 8 0v3"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <rect
-                        x="5"
-                        y="11"
-                        width="14"
-                        height="10"
-                        rx="2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </form>
-            ) : null}
-            {canEdit && !isEditing && (
-              <EditPostButton 
-                postId={thread.id} 
-                postType="thread" 
-                onEdit={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('edit', 'true');
-                  window.location.href = url.toString();
-                }}
-              />
-            )}
-            {canDelete && (
-              <DeletePostButton postId={thread.id} postType="thread" />
-            )}
-          </div>
+          <AdminControlsBar
+            postId={thread.id}
+            postType="thread"
+            canEdit={canEdit && !isEditing}
+            canDelete={canDelete}
+            canLock={canToggleLock}
+            isLocked={thread.is_locked}
+            onEdit={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.set('edit', 'true');
+              window.location.href = url.toString();
+            }}
+            onLockToggle={() => {
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = `/api/forum/${thread.id}/lock`;
+              const input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'locked';
+              input.value = thread.is_locked ? '0' : '1';
+              form.appendChild(input);
+              document.body.appendChild(form);
+              form.submit();
+            }}
+          />
           <div className="list-meta">
             <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
             {formatDateTime(thread.created_at)}

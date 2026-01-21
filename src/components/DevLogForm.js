@@ -109,6 +109,23 @@ export default function DevLogForm({ logId, initialData }) {
         <div className="muted">Image (optional)</div>
         <input name="image" type="file" accept="image/*" />
       </label>
+      <label>
+        <div className="muted">Upload Markdown file (optional)</div>
+        <input 
+          type="file" 
+          accept=".md,.markdown" 
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file && bodyRef.current) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                bodyRef.current.value = event.target.result;
+              };
+              reader.readAsText(file);
+            }
+          }}
+        />
+      </label>
       <label className="text-field">
         <div className="muted">Body</div>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>

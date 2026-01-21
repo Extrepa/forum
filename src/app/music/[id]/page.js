@@ -44,7 +44,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
-         WHERE music_posts.id = ?`
+         WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -60,7 +60,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 0 AS like_count
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
-         WHERE music_posts.id = ?`
+         WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -215,14 +215,6 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </div>
           <div>
             <h3 className="section-title" style={{ marginBottom: '12px' }}>Comments</h3>
-            <form action="/api/music/comments" method="post">
-              <input type="hidden" name="post_id" value={post.id} />
-              <label>
-                <div className="muted">Say something</div>
-                <textarea name="body" placeholder="Leave a comment" required />
-              </label>
-              <button type="submit">Post comment</button>
-            </form>
           </div>
         </div>
         <div className="list">
@@ -259,6 +251,14 @@ export default async function MusicDetailPage({ params, searchParams }) {
             })()
           )}
         </div>
+        <form action="/api/music/comments" method="post">
+          <input type="hidden" name="post_id" value={post.id} />
+          <label>
+            <div className="muted">Say something</div>
+            <textarea name="body" placeholder="Leave a comment" required />
+          </label>
+          <button type="submit">Post comment</button>
+        </form>
       </section>
     </div>
   );

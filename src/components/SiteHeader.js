@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
 import HeaderSetupBanner from './HeaderSetupBanner';
@@ -14,6 +14,7 @@ function isDetailPath(pathname) {
 
 export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const pathname = usePathname();
+  const router = useRouter();
   const detail = isDetailPath(pathname);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,6 +22,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreWrapRef = useRef(null);
   const moreNavRef = useRef(null);
+  const [titleClicked, setTitleClicked] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -54,8 +56,25 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     <header className={headerClassName}>
       <div className="brand">
         <div className="brand-left">
-          <h1>Errl Forum</h1>
-          <p>{subtitle}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <h1 
+              className="forum-title"
+              onClick={() => {
+                setTitleClicked(true);
+                setTimeout(() => {
+                  router.push('/');
+                  setTitleClicked(false);
+                }, 300);
+              }}
+              style={{ 
+                animation: titleClicked ? 'gooey-click 0.3s ease' : undefined,
+                cursor: 'pointer'
+              }}
+            >
+              Errl Forum
+            </h1>
+            <p className="forum-description">{subtitle}</p>
+          </div>
         </div>
         <NotificationsLogoTrigger />
       </div>

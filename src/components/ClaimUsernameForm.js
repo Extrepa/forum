@@ -323,184 +323,188 @@ export default function ClaimUsernameForm() {
 
         <div className="account-columns">
           <div className="account-col">
-            <form onSubmit={submitUiPrefs} className="card" style={{ padding: 12 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>
-              Display
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span>Lore mode</span>
-              <input
-                type="checkbox"
-                checked={envLore ? true : !!uiLoreEnabled}
-                onChange={(e) => {
-                  setUiLoreEnabled(e.target.checked);
-                  if (!envLore) setLoreEnabled(e.target.checked);
-                }}
-                disabled={envLore || status.type === 'loading'}
-              />
-            </label>
-            <div className="muted" style={{ fontSize: 13 }}>
-              {envLore
-                ? 'Forced on by server config.'
-                : loreEnabled
-                ? 'On: microcopy gets more lore-y.'
-                : 'Off: microcopy stays more plain.'}
-            </div>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Save display settings
-            </button>
-          </form>
-
-            <form onSubmit={submitLandingPref} className="card" style={{ padding: 12 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>
-              Default Landing Page
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span>Landing page</span>
-              <select
-                value={defaultLandingPage}
-                onChange={(e) => setDefaultLandingPage(e.target.value)}
-                disabled={status.type === 'loading'}
-                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)', color: 'var(--ink)' }}
-              >
-                <option value="feed">Feed</option>
-                <option value="home">Home</option>
-              </select>
-            </label>
-            <div className="muted" style={{ fontSize: 13 }}>
-              Choose which page loads when you visit the site.
-            </div>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Save landing page preference
-            </button>
-          </form>
-
             <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
-            <div className="muted" style={{ marginBottom: 8 }}>
-              Email
-            </div>
-            {me.email && !editingEmail ? (
-              <div className="stack" style={{ gap: 10 }}>
-                <input name="email" value={me.email} disabled />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStatus({ type: 'idle', message: null });
-                    setEditingEmail(true);
-                    setNewEmail(me.email || '');
-                  }}
-                  disabled={status.type === 'loading'}
-                >
-                  Change email
-                </button>
+              <div className="muted" style={{ marginBottom: 8 }}>
+                Email
               </div>
-            ) : (
-              <div className="stack" style={{ gap: 10 }}>
-                <input
-                  name="email"
-                  value={newEmail}
-                  onChange={(event) => setNewEmail(event.target.value)}
-                  placeholder={me.email || 'you@example.com'}
-                  required
-                />
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button type="submit" disabled={status.type === 'loading'}>
-                    {me.email ? 'Save email' : 'Set email'}
+              {me.email && !editingEmail ? (
+                <div className="stack" style={{ gap: 10 }}>
+                  <input name="email" value={me.email} disabled />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStatus({ type: 'idle', message: null });
+                      setEditingEmail(true);
+                      setNewEmail(me.email || '');
+                    }}
+                    disabled={status.type === 'loading'}
+                  >
+                    Change email
                   </button>
-                  {me.email ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingEmail(false);
-                        setNewEmail(me.email || '');
-                      }}
-                      disabled={status.type === 'loading'}
-                    >
-                      Cancel
-                    </button>
-                  ) : null}
                 </div>
-              </div>
-            )}
-          </form>
+              ) : (
+                <div className="stack" style={{ gap: 10 }}>
+                  <input
+                    name="email"
+                    value={newEmail}
+                    onChange={(event) => setNewEmail(event.target.value)}
+                    placeholder={me.email || 'you@example.com'}
+                    required
+                  />
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button type="submit" disabled={status.type === 'loading'}>
+                      {me.email ? 'Save email' : 'Set email'}
+                    </button>
+                    {me.email ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEmail(false);
+                          setNewEmail(me.email || '');
+                        }}
+                        disabled={status.type === 'loading'}
+                      >
+                        Cancel
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+            </form>
 
             <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
-            {me.hasPassword && !me.mustChangePassword ? (
+              {me.hasPassword && !me.mustChangePassword ? (
+                <label>
+                  <div className="muted">Old password</div>
+                  <input
+                    name="oldPassword"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(event) => setOldPassword(event.target.value)}
+                    placeholder="Current password"
+                    required
+                  />
+                </label>
+              ) : null}
               <label>
-                <div className="muted">Old password</div>
+                <div className="muted">New password</div>
                 <input
-                  name="oldPassword"
+                  name="newPassword"
                   type="password"
-                  value={oldPassword}
-                  onChange={(event) => setOldPassword(event.target.value)}
-                  placeholder="Current password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  placeholder="New password (8+ chars)"
                   required
+                  pattern="[^\\s]{8,}"
+                  title="Password must be at least 8 characters and contain no spaces."
                 />
               </label>
+              <button type="submit" disabled={status.type === 'loading'}>
+                {me.hasPassword ? 'Change password' : 'Set password'}
+              </button>
+            </form>
+
+            {canConfigureNotifications ? (
+              <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
+                <div className="muted" style={{ marginBottom: 8 }}>
+                  Phone Number
+                </div>
+                <label>
+                  <div className="muted">Phone number (required for SMS)</div>
+                  <input
+                    name="phone"
+                    value={newPhone}
+                    onChange={(event) => setNewPhone(event.target.value)}
+                    placeholder={me.phone || '+15551234567'}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Email notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyEmailEnabled}
+                    onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Text (SMS) notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifySmsEnabled}
+                    onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                    disabled={!String(newPhone || '').trim()}
+                  />
+                </label>
+                {!String(newPhone || '').trim() ? (
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    Add a phone number to enable SMS.
+                  </div>
+                ) : null}
+                <button type="submit" disabled={status.type === 'loading'}>
+                  Save notification settings
+                </button>
+              </form>
             ) : null}
-            <label>
-              <div className="muted">New password</div>
-              <input
-                name="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                placeholder="New password (8+ chars)"
-                required
-                pattern="[^\\s]{8,}"
-                title="Password must be at least 8 characters and contain no spaces."
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
-              {me.hasPassword ? 'Change password' : 'Set password'}
-            </button>
-          </form>
           </div>
 
           <div className="account-col">
-            {canConfigureNotifications ? (
-            <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
-              <div className="muted" style={{ marginBottom: 8 }}>
-                Notification preferences (external sending is not enabled yet)
-              </div>
-              <label>
-                <div className="muted">Phone number (required for SMS)</div>
-                <input
-                  name="phone"
-                  value={newPhone}
-                  onChange={(event) => setNewPhone(event.target.value)}
-                  placeholder={me.phone || '+15551234567'}
-                />
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <span>Email notifications</span>
-                <input
-                  type="checkbox"
-                  checked={notifyEmailEnabled}
-                  onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
-                />
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <span>Text (SMS) notifications</span>
-                <input
-                  type="checkbox"
-                  checked={notifySmsEnabled}
-                  onChange={(e) => setNotifySmsEnabled(e.target.checked)}
-                  disabled={!String(newPhone || '').trim()}
-                />
-              </label>
-              {!String(newPhone || '').trim() ? (
-                <div className="muted" style={{ fontSize: 13 }}>
-                  Add a phone number to enable SMS.
+            <section className="card" style={{ padding: 12 }}>
+              <h3 className="section-title" style={{ marginBottom: '16px' }}>Site Settings</h3>
+              
+              <form onSubmit={submitUiPrefs} style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
+                <div className="muted" style={{ marginBottom: 8 }}>
+                  Lore Mode
                 </div>
-              ) : null}
-              <button type="submit" disabled={status.type === 'loading'}>
-                Save notification settings
-              </button>
-            </form>
-            ) : null}
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Lore mode</span>
+                  <input
+                    type="checkbox"
+                    checked={envLore ? true : !!uiLoreEnabled}
+                    onChange={(e) => {
+                      setUiLoreEnabled(e.target.checked);
+                      if (!envLore) setLoreEnabled(e.target.checked);
+                    }}
+                    disabled={envLore || status.type === 'loading'}
+                  />
+                </label>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+                  {envLore
+                    ? 'Forced on by server config.'
+                    : loreEnabled
+                    ? 'On: microcopy gets more lore-y.'
+                    : 'Off: microcopy stays more plain.'}
+                </div>
+                <button type="submit" disabled={status.type === 'loading'}>
+                  Save display settings
+                </button>
+              </form>
 
-            <button type="button" onClick={submitLogout} disabled={status.type === 'loading'}>
+              <form onSubmit={submitLandingPref}>
+                <div className="muted" style={{ marginBottom: 8 }}>
+                  Default Landing Page
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Landing page</span>
+                  <select
+                    value={defaultLandingPage}
+                    onChange={(e) => setDefaultLandingPage(e.target.value)}
+                    disabled={status.type === 'loading'}
+                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)', color: 'var(--ink)' }}
+                  >
+                    <option value="feed">Feed</option>
+                    <option value="home">Home</option>
+                  </select>
+                </label>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+                  Choose which page loads when you visit the site.
+                </div>
+                <button type="submit" disabled={status.type === 'loading'}>
+                  Save landing page preference
+                </button>
+              </form>
+            </section>
+
+            <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px' }}>
               Sign out
             </button>
           </div>

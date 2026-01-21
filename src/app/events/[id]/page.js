@@ -42,7 +42,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count
          FROM events
          JOIN users ON users.id = events.author_user_id
-         WHERE events.id = ?`
+         WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -57,7 +57,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                   0 AS like_count
            FROM events
            JOIN users ON users.id = events.author_user_id
-           WHERE events.id = ?`
+           WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
@@ -249,17 +249,6 @@ export default async function EventDetailPage({ params, searchParams }) {
           ) : null}
         </div>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {user ? (
-          <form id="event-comment-form" action={`/api/events/${event.id}/comments`} method="post">
-            <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <button type="submit">Post comment</button>
-          </form>
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
         <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
@@ -292,6 +281,17 @@ export default async function EventDetailPage({ params, searchParams }) {
             })()
           )}
         </div>
+        {user ? (
+          <form id="event-comment-form" action={`/api/events/${event.id}/comments`} method="post">
+            <label>
+              <div className="muted">Say something</div>
+              <textarea name="body" placeholder="Leave a comment" required />
+            </label>
+            <button type="submit">Post comment</button>
+          </form>
+        ) : (
+          <p className="muted">Sign in to comment.</p>
+        )}
       </section>
     </div>
   );

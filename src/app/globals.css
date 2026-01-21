@@ -170,6 +170,59 @@ header {
   z-index: 1;
 }
 
+@keyframes gooey-slow {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1);
+    filter: blur(0px);
+  }
+  25% { 
+    transform: translate(1px, -1px) scale(1.01);
+    filter: blur(0.3px);
+  }
+  50% { 
+    transform: translate(-1px, 1px) scale(0.99);
+    filter: blur(0.5px);
+  }
+  75% { 
+    transform: translate(1px, 1px) scale(1.01);
+    filter: blur(0.3px);
+  }
+}
+
+@keyframes gooey-click {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1); }
+}
+
+.forum-title {
+  font-family: "Unbounded", "Space Grotesk", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(52, 225, 255, 0.5);
+  animation: gooey-slow 8s ease-in-out infinite;
+  transition: animation-duration 0.3s ease;
+  display: inline-block;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.forum-title:hover {
+  animation-duration: 12s; /* Slower, more still */
+  filter: blur(0px);
+}
+
+.forum-description {
+  color: var(--accent-2);
+  text-shadow: 0 0 10px rgba(255, 52, 245, 0.4);
+  margin: 0;
+  font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 .header-nav-section {
   display: flex;
   align-items: center;
@@ -292,7 +345,8 @@ main {
 .username {
   font-weight: 600;
   letter-spacing: 0.2px;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .username--0 {

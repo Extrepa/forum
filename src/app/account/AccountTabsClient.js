@@ -63,8 +63,11 @@ export default function AccountTabsClient({ activeTab, user, stats }) {
 
       {activeTab === 'account' && (
         <div>
-          <h2 className="section-title">Account Settings</h2>
-          <p className="muted">Simple settings, quick updates.</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Account Settings</h2>
+            <p className="muted" style={{ margin: 0 }}>Simple settings, quick updates.</p>
+          </div>
+          <hr style={{ margin: '16px 0' }} />
           <ClaimUsernameForm />
         </div>
       )}

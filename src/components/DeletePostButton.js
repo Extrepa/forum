@@ -12,9 +12,41 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const url = replyId 
-        ? `/api/forum/${postId}/replies/${replyId}/delete`
-        : `/api/forum/${postId}/delete`;
+      let url;
+      if (replyId) {
+        // Reply/comment deletion
+        if (postType === 'thread') {
+          url = `/api/forum/${postId}/replies/${replyId}/delete`;
+        } else if (postType === 'project') {
+          url = `/api/projects/${postId}/replies/${replyId}/delete`;
+        } else if (postType === 'devlog') {
+          url = `/api/devlog/${postId}/comments/${replyId}/delete`;
+        } else {
+          // For now, only forum threads support reply deletion
+          alert('Delete not yet implemented for this post type');
+          setIsDeleting(false);
+          setShowModal(false);
+          return;
+        }
+      } else {
+        // Post deletion
+        if (postType === 'thread') {
+          url = `/api/forum/${postId}/delete`;
+        } else if (postType === 'project') {
+          url = `/api/projects/${postId}/delete`;
+        } else if (postType === 'event') {
+          url = `/api/events/${postId}/delete`;
+        } else if (postType === 'music') {
+          url = `/api/music/${postId}/delete`;
+        } else if (postType === 'devlog') {
+          url = `/api/devlog/${postId}/delete`;
+        } else {
+          alert('Delete not yet implemented for this post type');
+          setIsDeleting(false);
+          setShowModal(false);
+          return;
+        }
+      }
       
       const response = await fetch(url, { method: 'POST' });
       
@@ -27,8 +59,20 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
             // Stay on same page, just reload
             router.refresh();
           } else {
-            // Redirect to lobby if thread deleted
-            router.push('/lobby');
+            // Redirect based on post type
+            if (postType === 'thread') {
+              router.push('/lobby');
+            } else if (postType === 'project') {
+              router.push('/projects');
+            } else if (postType === 'event') {
+              router.push('/events');
+            } else if (postType === 'music') {
+              router.push('/music');
+            } else if (postType === 'devlog') {
+              router.push('/devlog');
+            } else {
+              router.refresh();
+            }
           }
         }
       } else {
