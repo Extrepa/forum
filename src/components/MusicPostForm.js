@@ -68,7 +68,7 @@ export default function MusicPostForm() {
         <textarea ref={bodyRef} name="body" placeholder="Why you love this..." />
       </label>
 
-      <button type="submit">Post to music feed</button>
+      <button type="submit">Post to Music Feed</button>
     </form>
   );
 }

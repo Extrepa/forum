@@ -28,6 +28,12 @@ A comprehensive collection of Errl-branded text strings, variations, and guideli
 2. Find the text you need
 3. Copy and paste into your UI
 
+### Lore mode (this repo)
+This project supports a lore-flavored string set via an env flag:
+
+- `NEXT_PUBLIC_ERRL_USE_LORE=true` to enable lore alternatives
+- `NEXT_PUBLIC_ERRL_USE_LORE=false` (or unset) for the standard set
+
 ### Option 2: JSON Import (Recommended)
 ```typescript
 import errlStrings from './ui-strings.json';

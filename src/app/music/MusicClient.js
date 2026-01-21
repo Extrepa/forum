@@ -19,7 +19,7 @@ export default function MusicClient({ posts, notice }) {
             <h2 className="section-title">{strings.cards.music.title}</h2>
             <p className="muted">{strings.cards.music.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
+          <button onClick={() => setIsModalOpen(true)}>Post to Music Feed</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>

@@ -17,7 +17,7 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
             <h2 className="section-title">Dev Log</h2>
             <p className="muted">Notes, updates, and internal progress.</p>
           </div>
-          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>Create Post</button> : null}
+          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>New Dev Log Post</button> : null}
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>

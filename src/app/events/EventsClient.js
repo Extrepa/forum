@@ -19,7 +19,7 @@ export default function EventsClient({ events, notice }) {
             <h2 className="section-title">{strings.cards.events.title}</h2>
             <p className="muted">{strings.cards.events.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
+          <button onClick={() => setIsModalOpen(true)}>Add Event</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -84,7 +84,7 @@ export default function EventsClient({ events, notice }) {
           action="/api/events"
           titleLabel="Event title"
           bodyLabel="Details (optional)"
-          buttonLabel="Add event"
+          buttonLabel="Add Event"
           showDate
           bodyRequired={false}
           showImage={false}

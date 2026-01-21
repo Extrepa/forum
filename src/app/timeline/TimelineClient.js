@@ -19,7 +19,7 @@ export default function TimelineClient({ updates, notice }) {
             <h2 className="section-title">{strings.cards.announcements.title}</h2>
             <p className="muted">{strings.cards.announcements.description}</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
+          <button onClick={() => setIsModalOpen(true)}>Post Announcement</button>
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
@@ -82,7 +82,7 @@ export default function TimelineClient({ updates, notice }) {
           action="/api/timeline"
           titleLabel="Title"
           bodyLabel="Update"
-          buttonLabel="Post announcement"
+          buttonLabel="Post Announcement"
           titleRequired={false}
           showImage={false}
         />

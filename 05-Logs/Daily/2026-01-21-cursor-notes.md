@@ -110,12 +110,19 @@
 - Reviewed current UI copy locations (header, home tiles, forum header, search, post forms).
 - Next: introduce `src/lib/forum-texts/` and replace hardcoded copy with shared strings + optional time-based variants.
 
+### Verification (post-push)
+- **Git**: working tree clean; `main` is up to date with `origin/main`.
+- **Build**: `npm run build` succeeds (includes new routes like `/admin/moderation`, `/timeline/[id]`, `/events/[id]`).
+- **Text pack fit**:
+  - `src/app/page.js` still uses text pack strings + time-based greeting, and now safely filters moved items when the migration is present.
+  - Timeline/Events list pages now link titles to their new detail pages (`/timeline/[id]`, `/events/[id]`).
+  - Copy consistency pass: aligned create CTA + modal titles + submit labels in Timeline/Events/Music/Projects (and Dev Log create button now matches its modal title).
+
 ### Errl Forum Text Pack (verification)
 - **Build**: `npm run build` succeeded (needed running outside sandbox due to EPERM kill in sandboxed build).
 - **Hardcoded copy sweep**:
   - No remaining `No posts yet` / `No threads yet` / `placeholder="Search..."` / old header subtitle.
-  - Remaining `Create Post` strings are only in Dev Log UI:
-    - `src/app/devlog/DevLogClient.js` (admin create button)
+  - Remaining `Create Post` strings are only in Dev Log form UI:
     - `src/components/DevLogForm.js` (submit button + placeholders)
   - Note: Dev Log wasn’t part of the text pack scope; can optionally wire it to `src/lib/forum-texts/` later for consistency.
 - **Lore toggle**: `NEXT_PUBLIC_ERRL_USE_LORE=true` switches header/footer/actions + easter eggs via `getForumStrings()` / `getEasterEgg()`.

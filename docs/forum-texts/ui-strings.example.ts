@@ -50,7 +50,7 @@ export const errlForumStrings = {
     like: "Drip Approved",
   },
   footer: {
-    tagline: "KEEP IT WEIRD. KEEP IT REAL. KEEP IT ERRL.",
+    tagline: "Keep it weird. Keep it real. Keep it Errl.",
   },
 } as const;
 

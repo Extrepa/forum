@@ -51,7 +51,7 @@ export const errlForumStrings = {
 
 ```typescript
 // Use different sets based on environment
-const useLore = process.env.REACT_APP_USE_LORE === 'true';
+const useLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
 const strings = useLore ? errlStrings.loreAlternatives : errlStrings;
 ```
 

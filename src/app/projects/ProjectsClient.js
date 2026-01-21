@@ -20,7 +20,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
             <p className="muted">{strings.cards.projects.description}</p>
           </div>
           {canCreate && (
-            <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
+            <button onClick={() => setIsModalOpen(true)}>New Project</button>
           )}
         </div>
         {notice ? <div className="notice">{notice}</div> : null}
