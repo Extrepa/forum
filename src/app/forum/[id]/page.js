@@ -48,7 +48,7 @@ export default async function ForumThreadPage({ params, searchParams }) {
     error === 'claim'
       ? 'Sign in before replying.'
       : error === 'password'
-      ? 'Change your password to continue posting.'
+      ? 'Set your password to continue posting.'
       : error === 'missing'
       ? 'Reply text is required.'
       : null;

@@ -20,3 +20,8 @@
 - Scope: notify thread author + all reply participants (excluding the replier).
 - Email/SMS: preference toggles are stored, but no external sending is implemented yet.
 
+## Legacy session upgrade (account setup)
+
+- If a user is logged in from the old browser-only era (no `password_hash`), the UI now prompts them to set email + password to finish account setup.
+- Posting endpoints now require a password to be set (legacy sessions can still browse, but must set a password to post).
+

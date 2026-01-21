@@ -49,7 +49,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     error === 'claim'
       ? 'Sign in before rating or commenting.'
       : error === 'password'
-      ? 'Change your password to continue posting.'
+      ? 'Set your password to continue posting.'
       : error === 'missing'
       ? 'Rating and comment text are required.'
       : error === 'invalid'

@@ -93,7 +93,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     error === 'claim'
       ? 'Sign in before commenting.'
       : error === 'password'
-      ? 'Change your password to continue posting.'
+      ? 'Set your password to continue posting.'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;

@@ -32,12 +32,12 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // If we forced a change, allow setting new password without old password,
-  // as long as they're already logged in.
-  if (!row.must_change_password) {
-    if (!row.password_hash) {
-      return NextResponse.json({ error: 'No password is set for this account.' }, { status: 400 });
-    }
+  // Legacy sessions may have no password_hash (browser-only era).
+  // Allow setting a first password as long as they're already logged in.
+  const hasPassword = !!row.password_hash;
+  const mustChange = !!row.must_change_password;
+
+  if (hasPassword && !mustChange) {
     const ok = await verifyPassword(oldPassword, row.password_hash);
     if (!ok) {
       return NextResponse.json({ error: 'Old password is incorrect.' }, { status: 401 });

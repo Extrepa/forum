@@ -30,7 +30,7 @@ export default async function TimelinePage({ searchParams }) {
     error === 'claim'
       ? 'Sign in before posting announcements.'
       : error === 'password'
-      ? 'Change your password to continue posting.'
+      ? 'Set your password to continue posting.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'

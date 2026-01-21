@@ -172,7 +172,7 @@ export default function ClaimUsernameForm() {
 
   const submitChangePassword = async (event) => {
     event.preventDefault();
-    setStatus({ type: 'loading', message: 'Changing password...' });
+    setStatus({ type: 'loading', message: 'Saving password...' });
     try {
       const response = await fetch('/api/auth/change-password', {
         method: 'POST',
@@ -183,7 +183,7 @@ export default function ClaimUsernameForm() {
       if (!response.ok) {
         throw new Error(payload.error || 'Unable to change password.');
       }
-      setStatus({ type: 'success', message: 'Password updated.' });
+      setStatus({ type: 'success', message: 'Password saved.' });
       setOldPassword('');
       setNewPassword('');
       await refreshMe();
@@ -194,15 +194,22 @@ export default function ClaimUsernameForm() {
 
   if (me?.username) {
     const colorIndex = getUsernameColorIndex(me.username);
+    const needsPassword = !me.hasPassword;
+    const needsSetup = needsPassword || !me.email;
     return (
       <div className="card">
         <div className="notice">
           Signed in as <Username name={me.username} colorIndex={colorIndex} />
         </div>
-        {me.mustChangePassword ? (
-          <p className="muted">You must change your password before posting.</p>
+        {needsSetup ? (
+          <p className="muted">
+            This looks like a legacy browser session. Set an email and password to finish your account so you can sign in
+            from any device.
+          </p>
+        ) : me.mustChangePassword ? (
+          <p className="muted">You must set your password before posting.</p>
         ) : (
-          <p className="muted">Your session is active on this device.</p>
+          <p className="muted">Your account is active on this device.</p>
         )}
 
         <div className="stack" style={{ gap: 12 }}>
@@ -248,7 +255,7 @@ export default function ClaimUsernameForm() {
           </form>
 
           <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
-            {!me.mustChangePassword ? (
+            {me.hasPassword && !me.mustChangePassword ? (
               <label>
                 <div className="muted">Old password</div>
                 <input
@@ -273,7 +280,7 @@ export default function ClaimUsernameForm() {
               />
             </label>
             <button type="submit" disabled={status.type === 'loading'}>
-              Change password
+              {me.hasPassword ? 'Change password' : 'Set password'}
             </button>
           </form>
 

@@ -12,6 +12,7 @@ export async function GET() {
       username: user.username,
       role: user.role,
       email: user.email ?? null,
+      hasPassword: !!user.password_hash,
       mustChangePassword: !!user.must_change_password,
       notifyEmailEnabled: !!user.notify_email_enabled,
       notifySmsEnabled: !!user.notify_sms_enabled
