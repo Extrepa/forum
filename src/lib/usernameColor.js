@@ -1,6 +1,6 @@
 import { normalizeUsername } from './username';
 
-const PALETTE_SIZE = 4;
+const PALETTE_SIZE = 8;
 
 function fnv1a32(input) {
   let hash = 0x811c9dc5;

@@ -11,7 +11,7 @@ export default function Username({
   colorIndex,
   className = '',
   title,
-  href = '/account',
+  href,
 }) {
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -22,9 +22,12 @@ export default function Username({
       : getUsernameColorIndex(safeName, { force, avoidIndex, avoidName });
 
   const classes = ['username', `username--${idx}`, className].filter(Boolean).join(' ');
+  
+  // Default href to profile page if not provided
+  const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
   return (
-    <Link href={href} className={classes} title={title || safeName} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none', color: 'inherit' }}>
       {safeName}
     </Link>
   );

@@ -5,10 +5,11 @@ import { getSessionUser } from '../../lib/auth';
 import { formatDateTime } from '../../lib/dates';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import AccountTabsClient from './AccountTabsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }) {
   const user = await getSessionUser();
   const db = await getDb();
 
@@ -72,77 +73,16 @@ export default async function AccountPage() {
     }
   }
 
+  const activeTab = searchParams?.tab || 'account';
+
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/account', label: 'Account' }]} />
-      <section className="card">
-        <h2 className="section-title">Account</h2>
-        <p className="muted">Simple settings, quick updates.</p>
-      </section>
-
-      {user && stats && (
-        <section className="card">
-          <h3 className="section-title">Profile</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              <strong>Username:</strong> <Username name={user.username} colorIndex={getUsernameColorIndex(user.username)} />
-            </div>
-            <div>
-              <strong>Joined:</strong> {formatDateTime(stats.joinDate)}
-            </div>
-            <div>
-              <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
-            </div>
-            <div>
-              <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
-            </div>
-            <div>
-              <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
-            </div>
-          </div>
-
-          {(stats.recentThreads.length > 0 || stats.recentReplies.length > 0) && (
-            <div style={{ marginTop: '24px' }}>
-              <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
-              <div className="list">
-                {stats.recentThreads.map(thread => (
-                  <a
-                    key={thread.id}
-                    href={`/lobby/${thread.id}`}
-                    className="list-item"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                  >
-                    <div style={{ marginBottom: '4px' }}>
-                      <strong>{thread.title}</strong>
-                    </div>
-                    <div className="list-meta" style={{ fontSize: '12px' }}>
-                      {formatDateTime(thread.created_at)}
-                    </div>
-                  </a>
-                ))}
-                {stats.recentReplies.map(reply => (
-                  <a
-                    key={reply.id}
-                    href={`/lobby/${reply.thread_id}`}
-                    className="list-item"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                  >
-                    <div style={{ marginBottom: '4px' }}>
-                      Replied to <strong>{reply.thread_title}</strong>
-                    </div>
-                    <div className="list-meta" style={{ fontSize: '12px' }}>
-                      {formatDateTime(reply.created_at)}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
-      <ClaimUsernameForm />
+      <AccountTabsClient 
+        activeTab={activeTab}
+        user={user}
+        stats={stats}
+      />
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import './globals.css';
 import { UiPrefsProvider } from '../components/UiPrefsProvider';
 import SiteHeader from '../components/SiteHeader';
+import NotificationTutorial from '../components/NotificationTutorial';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
 
@@ -24,6 +25,7 @@ export default async function RootLayout({ children }) {
         <UiPrefsProvider initialLoreEnabled={useLore}>
           <div className="site">
             <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} />
+            <NotificationTutorial isSignedIn={isSignedIn} />
             <main>{children}</main>
             <footer>
               <div className="footer-line">

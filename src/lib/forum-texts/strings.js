@@ -33,7 +33,7 @@ export const errlForumStrings = {
     },
     general: {
       title: 'General',
-      description: 'General posts - just general',
+      description: 'Random thoughts, wild ideas, and general goo-certified chaos.',
       empty: 'Nothing new… the goo is resting.'
     },
     music: {

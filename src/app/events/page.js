@@ -10,6 +10,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function EventsPage({ searchParams }) {
   const db = await getDb();
+  const user = await getSessionUser();
+  
   let results = [];
   try {
     const out = await db
@@ -26,18 +28,24 @@ export default async function EventsPage({ searchParams }) {
       .all();
     results = out?.results || [];
   } catch (e) {
-    const out = await db
-      .prepare(
-        `SELECT events.id, events.title, events.details, events.starts_at,
-                events.created_at, events.image_key,
-                users.username AS author_name
-         FROM events
-         JOIN users ON users.id = events.author_user_id
-         ORDER BY events.starts_at ASC
-         LIMIT 50`
-      )
-      .all();
-    results = out?.results || [];
+    // Fallback if moved_to_id column doesn't exist
+    try {
+      const out = await db
+        .prepare(
+          `SELECT events.id, events.title, events.details, events.starts_at,
+                  events.created_at, events.image_key,
+                  users.username AS author_name
+           FROM events
+           JOIN users ON users.id = events.author_user_id
+           ORDER BY events.starts_at ASC
+           LIMIT 50`
+        )
+        .all();
+      results = out?.results || [];
+    } catch (e2) {
+      // Even fallback failed, use empty array
+      results = [];
+    }
   }
 
   // Check attendance status for current user
@@ -83,7 +91,6 @@ export default async function EventsPage({ searchParams }) {
       ? 'Title and date are required.'
       : null;
 
-  const user = await getSessionUser();
   const canCreate = !!user && !user.must_change_password && !!user.password_hash;
 
   return (

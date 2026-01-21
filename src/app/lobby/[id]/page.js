@@ -10,6 +10,10 @@ import LikeButton from '../../../components/LikeButton';
 import ThreadViewTracker from '../../../components/ThreadViewTracker';
 import Pagination from '../../../components/Pagination';
 import ReplyForm from '../../../components/ReplyForm';
+import EditPostButton from '../../../components/EditPostButton';
+import DeletePostButton from '../../../components/DeletePostButton';
+import EditThreadForm from '../../../components/EditThreadForm';
+import { isAdminUser } from '../../../lib/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +37,7 @@ function destUrlFor(type, id) {
 }
 
 export default async function LobbyThreadPage({ params, searchParams }) {
+  const isEditing = searchParams?.edit === 'true';
   const db = await getDb();
   let thread = null;
   try {
@@ -45,7 +50,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
-         WHERE forum_threads.id = ?`
+         WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
@@ -60,7 +65,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                   0 AS like_count
            FROM forum_threads
            JOIN users ON users.id = forum_threads.author_user_id
-           WHERE forum_threads.id = ?`
+           WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
@@ -77,8 +82,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   if (!thread) {
     return (
       <div className="card">
-        <h2 className="section-title">Not found</h2>
-        <p className="muted">This thread does not exist.</p>
+        <h2 className="section-title">Thread not found</h2>
+        <p className="muted">This thread doesn't exist in the goo.</p>
       </div>
     );
   }
@@ -113,18 +118,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   // Get replies for current page
   let replies = [];
   try {
-    const result = await db
-      .prepare(
-        `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
-                users.username AS author_name
-         FROM forum_replies
-         JOIN users ON users.id = forum_replies.author_user_id
-         WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
-         ORDER BY forum_replies.created_at ASC
-         LIMIT ? OFFSET ?`
-      )
-      .bind(params.id, REPLIES_PER_PAGE, offset)
-      .all();
+      const result = await db
+        .prepare(
+          `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
+                  users.username AS author_name
+           FROM forum_replies
+           JOIN users ON users.id = forum_replies.author_user_id
+           WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
+           ORDER BY forum_replies.created_at ASC
+           LIMIT ? OFFSET ?`
+        )
+        .bind(params.id, REPLIES_PER_PAGE, offset)
+        .all();
     replies = result?.results || [];
   } catch (e) {
     replies = [];
@@ -164,6 +169,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
   const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+  const canEdit = !!viewer && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const canDelete = !!viewer && (viewer.id === thread.author_user_id || isAdminUser(viewer));
   
   // Check if current user has liked this thread
   let userLiked = false;
@@ -186,7 +193,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       : error === 'password'
       ? 'Set your password to continue posting.'
       : error === 'unauthorized'
-      ? 'Unauthorized.'
+      ? 'Not authorized to do that.'
       : error === 'locked'
       ? 'Replies are locked on this thread.'
       : error === 'notfound'
@@ -220,9 +227,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               />
             ) : null}
           </div>
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             {canToggleLock ? (
-              <form action={`/api/forum/${thread.id}/lock`} method="post">
+              <form action={`/api/forum/${thread.id}/lock`} method="post" style={{ display: 'inline' }}>
                 <input type="hidden" name="locked" value={thread.is_locked ? '0' : '1'} />
                 <button
                   type="submit"
@@ -286,6 +293,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 </button>
               </form>
             ) : null}
+            {canEdit && !isEditing && (
+              <EditPostButton 
+                postId={thread.id} 
+                postType="thread" 
+                onEdit={() => window.location.href = `/lobby/${thread.id}?edit=true`}
+              />
+            )}
+            {canDelete && (
+              <DeletePostButton postId={thread.id} postType="thread" />
+            )}
           </div>
           <div className="list-meta">
             <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
@@ -293,7 +310,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             {thread.is_locked ? ' · Replies locked' : null}
           </div>
           {thread.image_key ? <img src={`/api/media/${thread.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
-          <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }} />
+          {isEditing && canEdit ? (
+            <EditThreadForm 
+              threadId={thread.id} 
+              initialTitle={thread.title} 
+              initialBody={thread.body}
+              onCancel={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('edit');
+                window.location.href = url.toString();
+              }}
+            />
+          ) : (
+            <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }} />
+          )}
         </div>
 
         <div className="thread-replies">
@@ -379,6 +409,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                             >
                               {isQuoted ? 'Unquote' : 'Quote'}
                             </a>
+                          )}
+                          {viewer && (viewer.id === reply.author_user_id || isAdminUser(viewer)) && (
+                            <>
+                              <EditPostButton postId={params.id} postType="reply" replyId={reply.id} />
+                              <DeletePostButton postId={params.id} postType="reply" replyId={reply.id} />
+                            </>
                           )}
                         </div>
                       </div>

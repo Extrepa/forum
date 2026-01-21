@@ -79,7 +79,7 @@ export default function NotificationsMenu({
 
       <div style={{ marginTop: 10 }}>
         {!hasItems ? (
-          <div className="muted">No notifications yet.</div>
+          <div className="muted">No notifications yet. The goo is quiet.</div>
         ) : (
           <div className="list">
             {items.map((n) => {

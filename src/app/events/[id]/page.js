@@ -31,19 +31,44 @@ function destUrlFor(type, id) {
 
 export default async function EventDetailPage({ params, searchParams }) {
   const db = await getDb();
-  const event = await db
-    .prepare(
-        `SELECT events.id, events.title, events.details, events.starts_at,
-              events.created_at, events.image_key,
-              events.moved_to_type, events.moved_to_id,
-              users.username AS author_name,
-              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count
-       FROM events
-       JOIN users ON users.id = events.author_user_id
-       WHERE events.id = ?`
-    )
-    .bind(params.id)
-    .first();
+  let event = null;
+  try {
+    event = await db
+      .prepare(
+          `SELECT events.id, events.title, events.details, events.starts_at,
+                events.created_at, events.image_key,
+                events.moved_to_type, events.moved_to_id,
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE events.id = ?`
+      )
+      .bind(params.id)
+      .first();
+  } catch (e) {
+    // Fallback if post_likes table or moved columns don't exist
+    try {
+      event = await db
+        .prepare(
+            `SELECT events.id, events.title, events.details, events.starts_at,
+                  events.created_at, events.image_key,
+                  users.username AS author_name,
+                  0 AS like_count
+           FROM events
+           JOIN users ON users.id = events.author_user_id
+           WHERE events.id = ?`
+        )
+        .bind(params.id)
+        .first();
+      if (event) {
+        event.moved_to_id = null;
+        event.moved_to_type = null;
+      }
+    } catch (e2) {
+      event = null;
+    }
+  }
 
   if (!event) {
     return (
@@ -61,17 +86,24 @@ export default async function EventDetailPage({ params, searchParams }) {
     }
   }
 
-  const { results: comments } = await db
-    .prepare(
-      `SELECT event_comments.id, event_comments.body, event_comments.created_at,
-              users.username AS author_name
-       FROM event_comments
-       JOIN users ON users.id = event_comments.author_user_id
-       WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
-       ORDER BY event_comments.created_at ASC`
-    )
-    .bind(params.id)
-    .all();
+  let comments = [];
+  try {
+    const result = await db
+      .prepare(
+        `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+                users.username AS author_name
+         FROM event_comments
+         JOIN users ON users.id = event_comments.author_user_id
+         WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
+         ORDER BY event_comments.created_at ASC`
+      )
+      .bind(params.id)
+      .all();
+    comments = result?.results || [];
+  } catch (e) {
+    // event_comments table might not exist yet
+    comments = [];
+  }
 
   const user = await getSessionUser();
   
