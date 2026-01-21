@@ -30,6 +30,9 @@ export default async function ModerationPage({ searchParams }) {
       <section className="card">
         <h2 className="section-title">Moderation</h2>
         <p className="muted">Move content between sections. Old URLs will redirect automatically after moves.</p>
+        <p className="muted" style={{ marginTop: '8px' }}>
+          Note: Moving requires the D1 migration `migrations/0012_move_system.sql` to be applied.
+        </p>
         {notice ? <div className="notice">{notice}</div> : null}
       </section>
 

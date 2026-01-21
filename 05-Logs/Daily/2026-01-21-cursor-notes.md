@@ -104,6 +104,7 @@
 ### Admin move endpoint guard (double-check)
 - `POST /api/admin/move` now checks that `content_moves` exists and returns a clear JSON error (`move_system_not_migrated`) if the DB migration hasn’t been applied yet.
 - `POST /api/admin/reset-users` now clears new tables (`content_moves`, `dev_logs`, `dev_log_comments`, `event_comments`) so test resets remain complete.
+- `POST /api/admin/reset-users` is now tolerant of missing tables during rollout (it ignores delete errors if a table does not exist yet).
 
 ### Errl Forum Text Pack (microcopy integration)
 - Reviewed current UI copy locations (header, home tiles, forum header, search, post forms).

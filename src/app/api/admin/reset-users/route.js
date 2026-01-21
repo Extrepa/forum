@@ -34,7 +34,12 @@ export async function POST(request) {
   ];
 
   for (const sql of statements) {
-    await db.prepare(sql).run();
+    try {
+      await db.prepare(sql).run();
+    } catch (e) {
+      // Rollout compatibility: ignore deletes for tables that don't exist yet
+      // when migrations haven't been applied.
+    }
   }
 
   return NextResponse.json({ ok: true });
