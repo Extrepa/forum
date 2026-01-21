@@ -21,6 +21,7 @@ export default function MusicPostForm() {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
+  const [embedStyle, setEmbedStyle] = useState('auto');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
@@ -37,8 +38,8 @@ export default function MusicPostForm() {
   const embed = useMemo(() => {
     const trimmed = String(url || '').trim();
     if (!trimmed) return null;
-    return safeEmbedFromUrl(type, trimmed);
-  }, [type, url]);
+    return safeEmbedFromUrl(type, trimmed, embedStyle);
+  }, [type, url, embedStyle]);
 
   const apply = (before, after) => {
     if (!bodyRef.current) {
@@ -48,7 +49,7 @@ export default function MusicPostForm() {
   };
 
   return (
-    <form action="/api/music/posts" method="post" encType="multipart/form-data">
+    <form action="/api/music/posts" method="post" encType="multipart/form-data" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
 
       <label>
         <div className="muted">Title</div>
@@ -85,6 +86,28 @@ export default function MusicPostForm() {
         />
       </label>
 
+      {type === 'soundcloud' && (
+        <label>
+          <div className="muted">Player style</div>
+          <select
+            name="embed_style"
+            value={embedStyle}
+            onChange={(e) => setEmbedStyle(e.target.value)}
+          >
+            <option value="auto">Auto (compact for tracks, full for playlists)</option>
+            <option value="compact">Compact (166px - good for single tracks)</option>
+            <option value="full">Full (450px - shows tracklist/comments)</option>
+          </select>
+          <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>
+            {embedStyle === 'auto' && url && (
+              url.includes('/sets/') 
+                ? 'Detected: Playlist - will use full player'
+                : 'Detected: Single track - will use compact player'
+            )}
+          </div>
+        </label>
+      )}
+
       <label>
         <div className="muted">Tags (comma separated)</div>
         <input
@@ -106,18 +129,27 @@ export default function MusicPostForm() {
       </label>
 
       {embed || imagePreviewUrl ? (
-        <section className="card" style={{ padding: 14 }}>
+        <section className="card" style={{ padding: 14, boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
           <div className="muted" style={{ marginBottom: 8 }}>
             Preview
           </div>
-          <div className="stack" style={{ gap: 12 }}>
+          <div className="stack" style={{ gap: 12, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
             {embed ? (
-              <div className={`embed-frame ${embed.aspect}`}>
+              <div 
+                className={`embed-frame ${embed.aspect}`} 
+                style={{ 
+                  width: '100%', 
+                  maxWidth: '100%', 
+                  boxSizing: 'border-box',
+                  ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px` } : {})
+                }}
+              >
                 <iframe
                   src={embed.src}
                   title={title || 'Preview'}
                   allow={embed.allow}
                   allowFullScreen={embed.allowFullScreen}
+                  style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', height: '100%' }}
                 />
               </div>
             ) : (
@@ -126,7 +158,7 @@ export default function MusicPostForm() {
               </div>
             )}
             {imagePreviewUrl ? (
-              <img src={imagePreviewUrl} alt="" className="post-image" style={{ margin: 0 }} />
+              <img src={imagePreviewUrl} alt="" className="post-image" style={{ margin: 0, maxWidth: '100%' }} />
             ) : null}
           </div>
         </section>

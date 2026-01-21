@@ -58,6 +58,7 @@ export default function CreatePostModal({
           maxHeight: resolvedMaxHeight,
           overflow: 'auto',
           boxShadow: 'var(--shadow)',
+          boxSizing: 'border-box',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

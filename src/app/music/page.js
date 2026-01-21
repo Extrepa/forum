@@ -17,7 +17,8 @@ export default async function MusicPage({ searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, users.username AS author_name,
+                music_posts.created_at, music_posts.embed_style,
+                users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
@@ -34,7 +35,8 @@ export default async function MusicPage({ searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, users.username AS author_name,
+                music_posts.created_at, music_posts.embed_style,
+                users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
@@ -51,7 +53,7 @@ export default async function MusicPage({ searchParams }) {
   const posts = results.map(row => ({
     ...row,
     bodyHtml: row.body ? renderMarkdown(row.body) : null,
-    embed: safeEmbedFromUrl(row.type, row.url)
+    embed: safeEmbedFromUrl(row.type, row.url, row.embed_style || 'auto')
   }));
 
   const error = searchParams?.error;
@@ -83,7 +85,7 @@ export default async function MusicPage({ searchParams }) {
           { href: '/music', label: 'Music' },
         ]}
         right={
-          <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate}>
+          <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate} variant="wide">
             <MusicPostForm />
           </NewPostModalButton>
         }

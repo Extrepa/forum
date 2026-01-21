@@ -66,12 +66,18 @@ export default function MusicClient({ posts, notice }) {
                       <span>{new Date(row.created_at).toLocaleString()}</span>
                     </div>
                     {!condensed && row.embed ? (
-                      <div className={`embed-frame ${row.embed.aspect}`}>
+                      <div 
+                        className={`embed-frame ${row.embed.aspect}`}
+                        style={{
+                          ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
+                        }}
+                      >
                         <iframe
                           src={row.embed.src}
                           title={row.title}
                           allow={row.embed.allow}
                           allowFullScreen={row.embed.allowFullScreen}
+                          style={{ height: '100%' }}
                         />
                       </div>
                     ) : null}

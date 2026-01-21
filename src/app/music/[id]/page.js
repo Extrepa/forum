@@ -35,7 +35,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at,
+                music_posts.created_at, music_posts.embed_style,
                 music_posts.moved_to_type, music_posts.moved_to_id,
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
@@ -64,6 +64,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     if (post) {
       post.moved_to_id = null;
       post.moved_to_type = null;
+      post.embed_style = null; // Will default to 'auto' in safeEmbedFromUrl
     }
   }
 
@@ -107,7 +108,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       ? 'Pick a rating between 1 and 5.'
       : null;
 
-  const embed = safeEmbedFromUrl(post.type, post.url);
+  const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
 
   return (
@@ -126,12 +127,18 @@ export default async function MusicDetailPage({ params, searchParams }) {
           {new Date(post.created_at).toLocaleString()}
         </div>
         {embed ? (
-          <div className={`embed-frame ${embed.aspect}`}>
+          <div 
+            className={`embed-frame ${embed.aspect}`}
+            style={{
+              ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px` } : {})
+            }}
+          >
             <iframe
               src={embed.src}
               title={post.title}
               allow={embed.allow}
               allowFullScreen={embed.allowFullScreen}
+              style={{ height: '100%' }}
             />
           </div>
         ) : null}

@@ -24,6 +24,16 @@ function parseYouTubeId(url) {
   }
 }
 
+function isSoundCloudPlaylist(url) {
+  try {
+    const parsed = new URL(url);
+    // SoundCloud playlists/sets have "/sets/" in the path
+    return parsed.pathname.includes('/sets/');
+  } catch {
+    return false;
+  }
+}
+
 function soundCloudPlayerSrc(trackUrl) {
   try {
     const parsed = new URL(trackUrl);
@@ -37,7 +47,7 @@ function soundCloudPlayerSrc(trackUrl) {
   }
 }
 
-export function safeEmbedFromUrl(type, url) {
+export function safeEmbedFromUrl(type, url, embedStyle = 'auto') {
   if (type === 'youtube') {
     const id = parseYouTubeId(url);
     if (!id) {
@@ -56,11 +66,16 @@ export function safeEmbedFromUrl(type, url) {
     if (!src) {
       return null;
     }
+    const isPlaylist = isSoundCloudPlaylist(url);
+    const height = (embedStyle === 'full' || (embedStyle === 'auto' && isPlaylist)) ? 450 : 166;
+    const embedClass = height === 450 ? 'soundcloud-full' : 'soundcloud-compact';
+    
     return {
       src,
       allow: 'autoplay',
       allowFullScreen: false,
-      aspect: 'soundcloud'
+      aspect: embedClass,
+      height
     };
   }
 

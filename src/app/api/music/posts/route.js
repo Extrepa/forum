@@ -24,13 +24,14 @@ export async function POST(request) {
   const type = String(formData.get('type') || '').trim();
   const tags = String(formData.get('tags') || '').trim();
   const body = String(formData.get('body') || '').trim();
+  const embedStyle = String(formData.get('embed_style') || 'auto').trim();
 
   if (!title || !url || !type) {
     redirectUrl.searchParams.set('error', 'missing');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  const embed = safeEmbedFromUrl(type, url);
+  const embed = safeEmbedFromUrl(type, url, embedStyle);
   if (!embed) {
     redirectUrl.searchParams.set('error', 'invalid');
     return NextResponse.redirect(redirectUrl, 303);
@@ -60,22 +61,43 @@ export async function POST(request) {
   }
 
   const db = await getDb();
-  await db
-    .prepare(
-      'INSERT INTO music_posts (id, author_user_id, title, body, url, type, tags, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    )
-    .bind(
-      crypto.randomUUID(),
-      user.id,
-      title,
-      body || null,
-      url,
-      type,
-      tags || null,
-      imageKey,
-      Date.now()
-    )
-    .run();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO music_posts (id, author_user_id, title, body, url, type, tags, image_key, embed_style, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(
+        crypto.randomUUID(),
+        user.id,
+        title,
+        body || null,
+        url,
+        type,
+        tags || null,
+        imageKey,
+        embedStyle || 'auto',
+        Date.now()
+      )
+      .run();
+  } catch (e) {
+    // Rollout-safe: if embed_style column doesn't exist yet, use old query
+    await db
+      .prepare(
+        'INSERT INTO music_posts (id, author_user_id, title, body, url, type, tags, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(
+        crypto.randomUUID(),
+        user.id,
+        title,
+        body || null,
+        url,
+        type,
+        tags || null,
+        imageKey,
+        Date.now()
+      )
+      .run();
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }
