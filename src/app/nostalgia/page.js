@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import NostalgiaClient from './NostalgiaClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function NostalgiaPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
   const db = await getDb();
 
   let results = [];
@@ -53,8 +56,26 @@ export default async function NostalgiaPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/nostalgia', label: 'Nostalgia' }]} />
-      <NostalgiaClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/nostalgia', label: 'Nostalgia' }]}
+        right={
+          <NewPostModalButton label="New Nostalgia" title="New Nostalgia Post" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="nostalgia"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Optional title"
+              bodyLabel="Post"
+              bodyPlaceholder="What are you remembering?"
+              buttonLabel="Post"
+              showImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <NostalgiaClient posts={posts} notice={notice} />
     </>
   );
 }

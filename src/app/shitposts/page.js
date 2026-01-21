@@ -1,6 +1,9 @@
 import ShitpostsClient from './ShitpostsClient';
 import { getDb } from '../../lib/db';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import { getSessionUser } from '../../lib/auth';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import PostForm from '../../components/PostForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,13 +59,28 @@ export default async function ShitpostsPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+
   return (
     <>
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/shitposts', label: 'Shitposts' },
         ]}
+        right={
+          <NewPostModalButton label="New Shitpost" title="New Shitpost" disabled={!canCreate}>
+            <PostForm
+              action="/api/shitposts"
+              titleLabel="Title (optional)"
+              bodyLabel="Post whatever you want"
+              buttonLabel="Post"
+              titleRequired={false}
+              showImage={true}
+            />
+          </NewPostModalButton>
+        }
       />
       <ShitpostsClient posts={results} notice={notice} />
     </>

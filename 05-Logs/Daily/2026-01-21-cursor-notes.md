@@ -333,4 +333,48 @@ If you want explicit per-file commands (run in this order):
 - **Known follow-ups**:
   - D1 migration `0017_shared_posts.sql` must be applied before these sections can store content; otherwise pages show a clear “not available yet” notice.
 
+### Header Two-Row Expand + List Layout + Editor Toolbar Polish (implementation)
+- **Header (2-row expand, no popover)**:
+  - Replaced the More popover with an inline second row inside the header.
+  - More chevron now sits next to the nav (left of Search); Search is secondary.
+  - Tweaked nav pill sizing (`min-height`, padding, line-height) to fix top clipping.
+  - Files: `src/components/SiteHeader.js`, `src/app/globals.css`
+
+- **Feed: include Development posts**:
+  - Feed now includes `dev_logs` when signed in; still hidden from guests.
+  - File: `src/app/feed/page.js`
+
+- **List pages layout pass (all list pages)**:
+  - New `PageTopRow` component renders breadcrumbs + New Post button on the same row.
+  - New post CTAs moved out of intro cards into breadcrumbs row.
+  - “Latest” featured item + “More” condensed list pattern applied across sections (including new post-based sections).
+  - Files: `src/components/PageTopRow.js`, `src/components/NewPostModalButton.js`, plus list pages/clients under `src/app/*`
+
+- **Detail pages: edit/admin controls hidden**:
+  - Added `EditPostPanel` toggle (author/admin where applicable).
+  - Devlog admin/edit panel now hidden behind “Edit Post”.
+  - Project edit panel now hidden behind “Edit Post”.
+  - Files: `src/components/EditPostPanel.js`, `src/app/devlog/[id]/page.js`, `src/app/projects/[id]/page.js`
+
+- **Editor toolbar polish**:
+  - Formatting toolbar is now static, single-row, horizontally scrollable.
+  - Buttons are compact icon labels with `title` tooltips.
+  - Color options are grouped behind a `Clr` toggle (P/B/G/M).
+  - Files: `src/app/globals.css`, `src/components/{DevLogForm,PostForm,ProjectForm,ProjectUpdateForm,GenericPostForm}.js`
+
+- **Build note**:
+  - `npm run build` fails in sandbox with `kill EPERM`; succeeds when run outside sandbox.
+
+### Double-check (plan completion)
+- **No More popover remains**:
+  - `nav-more-popover` is gone; expanded state renders inline row.
+  - Added outside-click close for expanded More row.
+  - More row now wraps (up to ~2 rows) inside the header; extra would scroll vertically within the header card.
+- **List pages**:
+  - Confirmed `PageTopRow` is used on: devlog, lobby, announcements, events, music, projects, shitposts, and new sections (about/art/bugs/rant/nostalgia/lore/memories).
+- **Create modals**:
+  - `CreatePostModal` is now only used via `NewPostModalButton` wrapper on list pages (no legacy per-client modal state).
+- **Build**:
+  - `npm run build` succeeded (outside sandbox).
+
 

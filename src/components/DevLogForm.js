@@ -28,6 +28,7 @@ function insertAtCursor(textarea, text) {
 export default function DevLogForm({ logId, initialData }) {
   const bodyRef = useRef(null);
   const [quickUpdate, setQuickUpdate] = useState(false);
+  const [colorsOpen, setColorsOpen] = useState(false);
 
   const apply = (before, after) => {
     if (!bodyRef.current) {
@@ -125,21 +126,34 @@ export default function DevLogForm({ logId, initialData }) {
           />
         </label>
         <div className="formatting-toolbar">
-          <button type="button" onClick={() => apply('**', '**')}>Bold</button>
-          <button type="button" onClick={() => apply('*', '*')}>Italic</button>
-          <button type="button" onClick={() => apply('<u>', '</u>')}>Underline</button>
-          <button type="button" onClick={() => insert('\n- ')}>- List</button>
-          <button type="button" onClick={() => insert('\n1. ')}>1. List</button>
-          <button type="button" onClick={() => insert('\n> ')}>&gt; Quote</button>
-          <button type="button" onClick={() => apply('`', '`')}>Code</button>
-          <button type="button" onClick={() => insert('\n\n```\\n\\n```\\n')}>Code block</button>
-          <button type="button" onClick={() => apply('## ', '')}>H2</button>
-          <button type="button" onClick={() => apply('### ', '')}>H3</button>
-          <button type="button" onClick={() => apply('[text](', ')')}>Link</button>
-          <button type="button" onClick={() => apply('<mark>', '</mark>')}>Highlight</button>
-          <button type="button" onClick={() => apply('<span class=\"text-pink\">', '</span>')}>Pink</button>
-          <button type="button" onClick={() => apply('<span class=\"text-blue\">', '</span>')}>Blue</button>
-          <button type="button" onClick={() => apply('<span class=\"text-green\">', '</span>')}>Green</button>
+          <button type="button" title="Bold" onClick={() => apply('**', '**')}>B</button>
+          <button type="button" title="Italic" onClick={() => apply('*', '*')}>I</button>
+          <button type="button" title="Underline" onClick={() => apply('<u>', '</u>')}>U</button>
+          <button type="button" title="Bullet list" onClick={() => insert('\n- ')}>-</button>
+          <button type="button" title="Numbered list" onClick={() => insert('\n1. ')}>1.</button>
+          <button type="button" title="Quote" onClick={() => insert('\n> ')}>&gt;</button>
+          <button type="button" title="Inline code" onClick={() => apply('`', '`')}>`</button>
+          <button type="button" title="Code block" onClick={() => insert('\n\n```\\n\\n```\\n')}>```</button>
+          <button type="button" title="Heading 2" onClick={() => apply('## ', '')}>H2</button>
+          <button type="button" title="Heading 3" onClick={() => apply('### ', '')}>H3</button>
+          <button type="button" title="Link" onClick={() => apply('[text](', ')')}>[]</button>
+          <button type="button" title="Highlight" onClick={() => apply('<mark>', '</mark>')}>HL</button>
+          <button
+            type="button"
+            title="Colors"
+            onClick={() => setColorsOpen((v) => !v)}
+            aria-expanded={colorsOpen ? 'true' : 'false'}
+          >
+            Clr
+          </button>
+          {colorsOpen ? (
+            <span className="color-palette">
+              <button type="button" title="Pink" onClick={() => { apply('<span class=\"text-pink\">', '</span>'); setColorsOpen(false); }}>P</button>
+              <button type="button" title="Blue" onClick={() => { apply('<span class=\"text-blue\">', '</span>'); setColorsOpen(false); }}>B</button>
+              <button type="button" title="Green" onClick={() => { apply('<span class=\"text-green\">', '</span>'); setColorsOpen(false); }}>G</button>
+              <button type="button" title="Muted" onClick={() => { apply('<span class=\"text-muted\">', '</span>'); setColorsOpen(false); }}>M</button>
+            </span>
+          ) : null}
         </div>
         <textarea
           ref={bodyRef}

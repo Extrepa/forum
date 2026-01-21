@@ -2,7 +2,10 @@ import MusicClient from './MusicClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { safeEmbedFromUrl } from '../../lib/embeds';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import { getSessionUser } from '../../lib/auth';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import MusicPostForm from '../../components/MusicPostForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,13 +72,21 @@ export default async function MusicPage({ searchParams }) {
       ? 'Only image files are allowed.'
       : null;
 
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+
   return (
     <>
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/music', label: 'Music' },
         ]}
+        right={
+          <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate}>
+            <MusicPostForm />
+          </NewPostModalButton>
+        }
       />
       <MusicClient posts={posts} notice={notice} />
     </>

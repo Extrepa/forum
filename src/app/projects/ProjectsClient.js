@@ -1,9 +1,6 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProjectForm from '../../components/ProjectForm';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
@@ -11,7 +8,6 @@ import { getForumStrings } from '../../lib/forum-texts';
 
 export default function ProjectsClient({ projects, canCreate, notice }) {
   const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -25,20 +21,8 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">{strings.cards.projects.title}</h2>
-            <p className="muted">{strings.cards.projects.description}</p>
-          </div>
-          {canCreate && (
-            <button onClick={() => setIsModalOpen(true)}>New Project</button>
-          )}
-        </div>
+        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">All Projects</h3>
         <div className="list">
           {projects.length === 0 ? (
             <p className="muted">{strings.cards.projects.empty}</p>
@@ -47,7 +31,10 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
               let lastName = null;
               let lastIndex = null;
 
-              return projects.map((row) => {
+              const latest = projects[0];
+              const rest = projects.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -77,7 +64,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       </h3>
                       <span className={`status-badge status-${row.status}`}>{row.status}</span>
                     </div>
-                    {row.image_key ? (
+                    {!condensed && row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
@@ -85,19 +72,21 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         loading="lazy"
                       />
                     ) : null}
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} />
-                    <div className="project-links">
-                      {row.github_url ? (
-                        <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
-                          GitHub
-                        </a>
-                      ) : null}
-                      {row.demo_url ? (
-                        <a href={row.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
-                          Demo
-                        </a>
-                      ) : null}
-                    </div>
+                    {!condensed ? <div className="post-body" dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
+                    {!condensed ? (
+                      <div className="project-links">
+                        {row.github_url ? (
+                          <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                            GitHub
+                          </a>
+                        ) : null}
+                        {row.demo_url ? (
+                          <a href={row.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
+                            Demo
+                          </a>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -114,21 +103,29 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                     </div>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      {canCreate && (
-        <CreatePostModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="New Project"
-        >
-          <ProjectForm />
-        </CreatePostModal>
-      )}
+      <section className="card">
+        <h2 className="section-title">{strings.cards.projects.title}</h2>
+        <p className="muted">{strings.cards.projects.description}</p>
+      </section>
     </div>
   );
 }

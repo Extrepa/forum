@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import AboutClient from './AboutClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function AboutPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
   const db = await getDb();
 
   let results = [];
@@ -53,8 +56,27 @@ export default async function AboutPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/about', label: 'About' }]} />
-      <AboutClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/about', label: 'About' }]}
+        right={
+          <NewPostModalButton label="New About" title="New About Post" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="about"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Optional title"
+              bodyLabel="Body"
+              bodyPlaceholder="Describe the site, add links, upload an image if you want..."
+              buttonLabel="Post"
+              showImage={true}
+              requireImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <AboutClient posts={posts} notice={notice} />
     </>
   );
 }

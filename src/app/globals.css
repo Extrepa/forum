@@ -186,6 +186,7 @@ nav {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  padding: 2px 0;
 }
 
 .nav-inline::-webkit-scrollbar {
@@ -196,21 +197,27 @@ nav {
   flex: 0 0 auto;
 }
 
-.nav-more {
-  position: relative;
+.nav-inline--more {
+  margin-top: 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  max-height: calc((40px * 2) + 8px);
 }
 
-.nav-more-popover {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 10px);
-  min-width: 220px;
-  z-index: 1100;
+.nav-inline--more::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-inline--more nav,
+.nav-inline--more {
+  flex-wrap: wrap;
 }
 
 nav a {
-  padding: 8px 12px;
-  min-height: 44px;
+  padding: 7px 11px;
+  min-height: 40px;
+  line-height: 1.1;
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
@@ -218,6 +225,10 @@ nav a {
   transition: all 0.2s ease;
   background: rgba(2, 7, 10, 0.4);
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+}
+
+.nav-more-toggle {
+  flex: 0 0 auto;
 }
 
 nav a:hover {
@@ -321,19 +332,24 @@ form {
 }
 
 .formatting-toolbar {
-  position: absolute;
-  top: 30px;
-  right: 8px;
+  position: static;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-width: 220px;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 8px;
+  max-width: 100%;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   z-index: 1;
 }
 
+.formatting-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
 .formatting-toolbar button {
-  padding: 5px 10px;
+  padding: 5px 9px;
   font-size: 12px;
   border-radius: 999px;
   background: rgba(13, 51, 68, 0.45);
@@ -341,6 +357,7 @@ form {
   box-shadow: 0 0 10px rgba(52, 225, 255, 0.18);
   opacity: 0.55;
   transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  flex: 0 0 auto;
 }
 
 .formatting-toolbar button:hover,
@@ -349,6 +366,12 @@ form {
   opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 0 16px rgba(255, 52, 245, 0.4);
+}
+
+.formatting-toolbar .color-palette {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
 }
 
 input,
@@ -585,6 +608,13 @@ button:hover {
 .list {
   display: grid;
   gap: 12px;
+}
+
+.list-divider {
+  height: 1px;
+  background: rgba(52, 225, 255, 0.22);
+  margin: 10px 0;
+  border-radius: 999px;
 }
 
 .grid-tiles {
@@ -1011,6 +1041,14 @@ header::before {
     display: inline-flex;
   }
 
+  .nav-inline--more {
+    display: none;
+  }
+
+  .nav-more-toggle {
+    display: none;
+  }
+
   header {
     align-items: flex-start;
     gap: 12px;
@@ -1434,6 +1472,25 @@ header::before {
   font-size: 14px;
   color: var(--muted);
   margin-bottom: 16px;
+}
+
+.page-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.page-top-row .breadcrumbs {
+  margin-bottom: 0;
+}
+
+.page-top-row-right {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .breadcrumb-item {

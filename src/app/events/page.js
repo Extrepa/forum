@@ -1,7 +1,10 @@
 import EventsClient from './EventsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import { getSessionUser } from '../../lib/auth';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import PostForm from '../../components/PostForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,13 +62,29 @@ export default async function EventsPage({ searchParams }) {
       ? 'Title and date are required.'
       : null;
 
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+
   return (
     <>
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/events', label: 'Events' },
         ]}
+        right={
+          <NewPostModalButton label="Add Event" title="Add Event" disabled={!canCreate}>
+            <PostForm
+              action="/api/events"
+              titleLabel="Event title"
+              bodyLabel="Details (optional)"
+              buttonLabel="Add Event"
+              showDate
+              bodyRequired={false}
+              showImage={false}
+            />
+          </NewPostModalButton>
+        }
       />
       <EventsClient events={events} notice={notice} />
     </>

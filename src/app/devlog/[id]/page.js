@@ -7,6 +7,7 @@ import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import EditPostPanel from '../../../components/EditPostPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,7 +76,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   try {
     log = await db
       .prepare(
-        `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+        `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                 dev_logs.is_locked,
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
@@ -92,7 +93,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     try {
       log = await db
         .prepare(
-          `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+          `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                   dev_logs.created_at, dev_logs.updated_at,
                   users.username AS author_name
            FROM dev_logs
@@ -197,6 +198,11 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       : null;
 
   const canComment = !log.is_locked && !user.must_change_password && !!user.password_hash;
+  const canEdit =
+    !!user &&
+    !user.must_change_password &&
+    !!user.password_hash &&
+    (isAdmin || user.id === log.author_user_id);
 
   const replyToId = String(searchParams?.replyTo || '').trim() || null;
   const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
@@ -245,18 +251,19 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(log.body) }} />
       </section>
 
-      {isAdmin ? (
-        <section className="card">
-          <h3 className="section-title">Admin</h3>
+      {canEdit ? (
+        <EditPostPanel buttonLabel="Edit Post" title="Edit Post">
           {notice ? <div className="notice">{notice}</div> : null}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            <form action={`/api/devlog/${log.id}/lock`} method="post">
-              <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
-              <button type="submit">{log.is_locked ? 'Unlock comments' : 'Lock comments'}</button>
-            </form>
-          </div>
+          {isAdmin ? (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <form action={`/api/devlog/${log.id}/lock`} method="post">
+                <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
+                <button type="submit">{log.is_locked ? 'Unlock comments' : 'Lock comments'}</button>
+              </form>
+            </div>
+          ) : null}
           <DevLogForm logId={log.id} initialData={log} />
-        </section>
+        </EditPostPanel>
       ) : null}
 
       <section className="card">

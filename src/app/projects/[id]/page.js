@@ -6,6 +6,7 @@ import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import EditPostPanel from '../../../components/EditPostPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -199,11 +200,10 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       </section>
 
       {canEdit ? (
-        <section className="card">
-          <h3 className="section-title">Edit Project</h3>
+        <EditPostPanel buttonLabel="Edit Post" title="Edit Project">
           {editNotice ? <div className="notice">{editNotice}</div> : null}
           <ProjectForm projectId={project.id} initialData={project} />
-        </section>
+        </EditPostPanel>
       ) : null}
 
       <section className="card">

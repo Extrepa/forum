@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import RantClient from './RantClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function RantPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
   const db = await getDb();
 
   let results = [];
@@ -53,8 +56,26 @@ export default async function RantPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/rant', label: 'Rant' }]} />
-      <RantClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/rant', label: 'Rant' }]}
+        right={
+          <NewPostModalButton label="New Rant" title="New Rant" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="rant"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Optional title"
+              bodyLabel="Rant"
+              bodyPlaceholder="Let it out..."
+              buttonLabel="Post rant"
+              showImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <RantClient posts={posts} notice={notice} />
     </>
   );
 }

@@ -4,6 +4,9 @@ import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
 import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import DevLogForm from '../../components/DevLogForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,13 +103,20 @@ export default async function DevLogPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/devlog', label: 'Development' },
         ]}
+        right={
+          isAdmin ? (
+            <NewPostModalButton label="New Development Post" title="New Development Post" variant="wide">
+              <DevLogForm />
+            </NewPostModalButton>
+          ) : null
+        }
       />
-      <DevLogClient logs={logs} notice={notice} isAdmin={isAdmin} />
+      <DevLogClient logs={logs} notice={notice} />
     </>
   );
 }

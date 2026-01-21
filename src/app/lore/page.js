@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import LoreClient from './LoreClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,11 +11,12 @@ export const dynamic = 'force-dynamic';
 export default async function LorePage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
 
   if (!isSignedIn) {
     return (
       <>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]} />
+        <PageTopRow items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]} />
         <section className="card">
           <h2 className="section-title">Lore</h2>
           <p className="muted">Sign in to view Lore.</p>
@@ -62,8 +65,28 @@ export default async function LorePage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]} />
-      <LoreClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]}
+        right={
+          <NewPostModalButton label="New Lore" title="New Lore Post" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="lore"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Optional title"
+              bodyLabel="Lore"
+              bodyPlaceholder="Write the lore..."
+              buttonLabel="Post"
+              showImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+              showPrivateToggle={true}
+              defaultPrivate={false}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <LoreClient posts={posts} notice={notice} />
     </>
   );
 }

@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import BugsClient from './BugsClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function BugsPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
   const db = await getDb();
 
   let results = [];
@@ -59,8 +62,27 @@ export default async function BugsPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/bugs', label: 'Bugs' }]} />
-      <BugsClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/bugs', label: 'Bugs' }]}
+        right={
+          <NewPostModalButton label="Report Bug" title="Report a Bug" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="bugs"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Short summary"
+              bodyLabel="Details"
+              bodyPlaceholder="What happened? What did you expect? Steps to reproduce? Screenshots/links?"
+              buttonLabel="Post bug report"
+              showImage={true}
+              requireImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <BugsClient posts={posts} notice={notice} />
     </>
   );
 }

@@ -2,7 +2,9 @@ import ProjectsClient from './ProjectsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import ProjectForm from '../../components/ProjectForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,11 +78,16 @@ export default async function ProjectsPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/projects', label: 'Projects' },
         ]}
+        right={
+          <NewPostModalButton label="New Project" title="New Project" disabled={!canCreate} variant="wide">
+            <ProjectForm />
+          </NewPostModalButton>
+        }
       />
       <ProjectsClient projects={projects} canCreate={canCreate} notice={notice} />
     </>

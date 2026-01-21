@@ -19,7 +19,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef(null);
+  const moreWrapRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -29,13 +29,18 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   useEffect(() => {
     const onDocMouseDown = (event) => {
       if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
-      if (moreOpen && moreRef.current && !moreRef.current.contains(event.target)) setMoreOpen(false);
+      if (moreOpen && moreWrapRef.current && !moreWrapRef.current.contains(event.target)) setMoreOpen(false);
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [menuOpen, moreOpen]);
 
-  const headerClassName = useMemo(() => (detail ? 'header--detail' : ''), [detail]);
+  const headerClassName = useMemo(() => {
+    const bits = [];
+    if (detail) bits.push('header--detail');
+    if (moreOpen) bits.push('header--expanded');
+    return bits.join(' ');
+  }, [detail, moreOpen]);
 
   return (
     <header className={headerClassName}>
@@ -72,31 +77,38 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="primary" />
         </nav>
 
-        <div className="header-right-controls">
-          <SearchBar />
-          <div className="nav-more" ref={moreRef}>
-            <button
-              type="button"
-              className="icon-button"
-              onClick={() => setMoreOpen((v) => !v)}
-              aria-label="More pages"
-              aria-expanded={moreOpen ? 'true' : 'false'}
-              title="More"
+        <div className="header-right-controls" ref={moreWrapRef}>
+          <button
+            type="button"
+            className="icon-button nav-more-toggle"
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-label="More pages"
+            aria-expanded={moreOpen ? 'true' : 'false'}
+            title="More"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {moreOpen ? (
-              <div className="card nav-more-popover" role="menu" aria-label="More pages">
-                <nav className="nav-menu-links">
-                  <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
-                </nav>
-              </div>
-            ) : null}
-          </div>
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <SearchBar />
         </div>
       </div>
+
+      {moreOpen ? (
+        <nav className="nav-inline nav-inline--more" aria-label="More pages">
+          <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
+        </nav>
+      ) : null}
 
       <HeaderSetupBanner />
     </header>

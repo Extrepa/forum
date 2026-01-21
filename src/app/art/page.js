@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import ArtClient from './ArtClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function ArtPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
   const db = await getDb();
 
   let results = [];
@@ -60,7 +63,26 @@ export default async function ArtPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/art', label: 'Art' }]} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/art', label: 'Art' }]}
+        right={
+          <NewPostModalButton label="New Art" title="New Art Post" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="art"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Untitled"
+              bodyLabel="Caption (optional)"
+              bodyPlaceholder="Add a caption (optional)"
+              buttonLabel="Post"
+              showImage={true}
+              requireImage={true}
+              titleRequired={false}
+              bodyRequired={false}
+            />
+          </NewPostModalButton>
+        }
+      />
       <ArtClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
     </>
   );

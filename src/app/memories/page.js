@@ -1,7 +1,9 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import GenericPostForm from '../../components/GenericPostForm';
 import MemoriesClient from './MemoriesClient';
 
 export const dynamic = 'force-dynamic';
@@ -9,11 +11,12 @@ export const dynamic = 'force-dynamic';
 export default async function MemoriesPage({ searchParams }) {
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
 
   if (!isSignedIn) {
     return (
       <>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]} />
+        <PageTopRow items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]} />
         <section className="card">
           <h2 className="section-title">Memories</h2>
           <p className="muted">Sign in to view Memories.</p>
@@ -62,8 +65,28 @@ export default async function MemoriesPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]} />
-      <MemoriesClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]}
+        right={
+          <NewPostModalButton label="New Memory" title="New Memories Post" disabled={!canCreate} variant="wide">
+            <GenericPostForm
+              action="/api/posts"
+              type="memories"
+              titleLabel="Title (optional)"
+              titlePlaceholder="Optional title"
+              bodyLabel="Memory"
+              bodyPlaceholder="Share the history..."
+              buttonLabel="Post"
+              showImage={false}
+              titleRequired={false}
+              bodyRequired={true}
+              showPrivateToggle={true}
+              defaultPrivate={false}
+            />
+          </NewPostModalButton>
+        }
+      />
+      <MemoriesClient posts={posts} notice={notice} />
     </>
   );
 }

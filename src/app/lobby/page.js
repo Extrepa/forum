@@ -1,6 +1,9 @@
 import ForumClient from '../forum/ForumClient';
 import { getDb } from '../../lib/db';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import { getSessionUser } from '../../lib/auth';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import PostForm from '../../components/PostForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,9 +57,25 @@ export default async function LobbyPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/lobby', label: 'Lobby' }]} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/lobby', label: 'Lobby' }]}
+        right={
+          <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate}>
+            <PostForm
+              action="/api/threads"
+              titleLabel="Post title"
+              bodyLabel="Share your thoughts"
+              buttonLabel="Post"
+              showImage={false}
+            />
+          </NewPostModalButton>
+        }
+      />
       <ForumClient threads={results} notice={notice} basePath="/lobby" />
     </>
   );

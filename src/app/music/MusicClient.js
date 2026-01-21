@@ -1,33 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import MusicPostForm from '../../components/MusicPostForm';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
 export default function MusicClient({ posts, notice }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">{strings.cards.music.title}</h2>
-            <p className="muted">{strings.cards.music.description}</p>
-          </div>
-          <button onClick={() => setIsModalOpen(true)}>Post to Music Feed</button>
-        </div>
+        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Latest Drops</h3>
         <div className="list">
           {posts.length === 0 ? (
             <p className="muted">{strings.cards.music.empty}</p>
@@ -36,7 +22,10 @@ export default function MusicClient({ posts, notice }) {
               let lastName = null;
               let lastIndex = null;
 
-              return posts.map((row) => {
+              const latest = posts[0];
+              const rest = posts.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const tags = row.tags ? row.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
 
                 const colorIndex = getUsernameColorIndex(row.author_name, {
@@ -51,7 +40,7 @@ export default function MusicClient({ posts, notice }) {
                     <div className="post-header">
                       <h3>{row.title}</h3>
                       <a className="post-link" href={`/music/${row.id}`}>
-                        View
+                        {condensed ? 'Open' : 'View'}
                       </a>
                     </div>
                     <div
@@ -63,7 +52,7 @@ export default function MusicClient({ posts, notice }) {
                       </span>
                       <span>{new Date(row.created_at).toLocaleString()}</span>
                     </div>
-                    {row.embed ? (
+                    {!condensed && row.embed ? (
                       <div className={`embed-frame ${row.embed.aspect}`}>
                         <iframe
                           src={row.embed.src}
@@ -73,7 +62,7 @@ export default function MusicClient({ posts, notice }) {
                         />
                       </div>
                     ) : null}
-                    {row.image_key ? (
+                    {!condensed && row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
@@ -81,10 +70,10 @@ export default function MusicClient({ posts, notice }) {
                         loading="lazy"
                       />
                     ) : null}
-                    {row.bodyHtml ? (
+                    {!condensed && row.bodyHtml ? (
                       <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
-                    {tags.length ? (
+                    {!condensed && tags.length ? (
                       <div className="tag-row">
                         {tags.map((tag) => (
                           <span key={tag} className="tag-pill">
@@ -100,19 +89,29 @@ export default function MusicClient({ posts, notice }) {
                     </div>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      <CreatePostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Post to Music Feed"
-      >
-        <MusicPostForm />
-      </CreatePostModal>
+      <section className="card">
+        <h2 className="section-title">{strings.cards.music.title}</h2>
+        <p className="muted">{strings.cards.music.description}</p>
+      </section>
     </div>
   );
 }

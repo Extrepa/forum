@@ -1,7 +1,10 @@
 import TimelineClient from '../timeline/TimelineClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
-import Breadcrumbs from '../../components/Breadcrumbs';
+import { getSessionUser } from '../../lib/auth';
+import PageTopRow from '../../components/PageTopRow';
+import NewPostModalButton from '../../components/NewPostModalButton';
+import PostForm from '../../components/PostForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,9 +61,26 @@ export default async function AnnouncementsPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
+  const user = await getSessionUser();
+  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+
   return (
     <>
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/announcements', label: 'Announcements' }]} />
+      <PageTopRow
+        items={[{ href: '/', label: 'Home' }, { href: '/announcements', label: 'Announcements' }]}
+        right={
+          <NewPostModalButton label="New Announcement" title="Post Announcement" disabled={!canCreate}>
+            <PostForm
+              action="/api/timeline"
+              titleLabel="Title"
+              bodyLabel="Update"
+              buttonLabel="Post Announcement"
+              titleRequired={false}
+              showImage={false}
+            />
+          </NewPostModalButton>
+        }
+      />
       <TimelineClient updates={updates} notice={notice} basePath="/announcements" />
     </>
   );

@@ -40,7 +40,7 @@ export default async function FeedPage() {
   const db = await getDb();
   const limitPerType = 20;
 
-  const [announcements, threads, events, music, projects, posts] = await Promise.all([
+  const [announcements, threads, events, music, projects, posts, devlogs] = await Promise.all([
     safeAll(
       db,
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
@@ -151,7 +151,26 @@ export default async function FeedPage() {
        ORDER BY posts.created_at DESC
        LIMIT ${limitPerType}`,
       []
-    )
+    ),
+    isSignedIn
+      ? safeAll(
+          db,
+          `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
+                  users.username AS author_name
+           FROM dev_logs
+           JOIN users ON users.id = dev_logs.author_user_id
+           ORDER BY dev_logs.created_at DESC
+           LIMIT ${limitPerType}`,
+          [],
+          `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
+                  users.username AS author_name
+           FROM dev_logs
+           JOIN users ON users.id = dev_logs.author_user_id
+           ORDER BY dev_logs.created_at DESC
+           LIMIT ${limitPerType}`,
+          []
+        )
+      : Promise.resolve([])
   ]);
 
   const labelForPostType = (type) => {
@@ -221,6 +240,14 @@ export default async function FeedPage() {
       title: row.title || 'Untitled',
       author: row.author_name,
       meta: row.is_private ? 'Members-only' : null
+    })),
+    ...devlogs.map((row) => ({
+      type: 'Development',
+      href: `/devlog/${row.id}`,
+      createdAt: row.created_at,
+      title: row.title || 'Development update',
+      author: row.author_name,
+      meta: null
     }))
   ]
     .filter((x) => !!x.createdAt)

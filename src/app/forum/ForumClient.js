@@ -1,15 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import PostForm from '../../components/PostForm';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
 export default function ForumClient({ threads, notice, basePath = '/forum' }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -30,18 +26,8 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">{strings.cards.general.title}</h2>
-            <p className="muted">{strings.cards.general.description}</p>
-          </div>
-          <button onClick={() => setIsModalOpen(true)}>{strings.actions.newPost}</button>
-        </div>
+        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Latest Posts</h3>
         <div className="list">
           {threads.length === 0 ? (
             <p className="muted">{strings.cards.general.empty}</p>
@@ -50,7 +36,10 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
               let lastName = null;
               let lastIndex = null;
 
-              return threads.map((row) => {
+              const latest = threads[0];
+              const rest = threads.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -62,9 +51,11 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
                   <div key={row.id} className="list-item" style={{ cursor: 'pointer' }}>
                     <a href={`${basePath}/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h3>{row.title}</h3>
-                      <p className="muted" style={{ marginBottom: '8px' }}>
-                        {truncateBody(row.body)}
-                      </p>
+                      {!condensed ? (
+                        <p className="muted" style={{ marginBottom: '8px' }}>
+                          {truncateBody(row.body)}
+                        </p>
+                      ) : null}
                       <div
                         className="list-meta"
                         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -82,25 +73,29 @@ export default function ForumClient({ threads, notice, basePath = '/forum' }) {
                     </a>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      <CreatePostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={strings.actions.newPost}
-      >
-        <PostForm
-          action="/api/threads"
-          titleLabel="Post title"
-          bodyLabel="Share your thoughts"
-          buttonLabel={strings.actions.newPost}
-          showImage={false}
-        />
-      </CreatePostModal>
+      <section className="card">
+        <h2 className="section-title">{strings.cards.general.title}</h2>
+        <p className="muted">{strings.cards.general.description}</p>
+      </section>
     </div>
   );
 }

@@ -1,33 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import PostForm from '../../components/PostForm';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
 export default function TimelineClient({ updates, notice, basePath = '/timeline' }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">{strings.cards.announcements.title}</h2>
-            <p className="muted">{strings.cards.announcements.description}</p>
-          </div>
-          <button onClick={() => setIsModalOpen(true)}>Post Announcement</button>
-        </div>
-        {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
         <h3 className="section-title">Latest</h3>
+        {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {updates.length === 0 ? (
             <p className="muted">{strings.cards.announcements.empty}</p>
@@ -36,7 +22,10 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
               let lastName = null;
               let lastIndex = null;
 
-              return updates.map((row) => {
+              const latest = updates[0];
+              const rest = updates.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -57,7 +46,7 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                         loading="lazy"
                       />
                     ) : null}
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                    {!condensed ? <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} /> : null}
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -69,26 +58,29 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                     </div>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      <CreatePostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Post Announcement"
-      >
-        <PostForm
-          action="/api/timeline"
-          titleLabel="Title"
-          bodyLabel="Update"
-          buttonLabel="Post Announcement"
-          titleRequired={false}
-          showImage={false}
-        />
-      </CreatePostModal>
+      <section className="card">
+        <h2 className="section-title">{strings.cards.announcements.title}</h2>
+        <p className="muted">{strings.cards.announcements.description}</p>
+      </section>
     </div>
   );
 }

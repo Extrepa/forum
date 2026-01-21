@@ -1,14 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
-import DevLogForm from '../../components/DevLogForm';
 
-export default function DevLogClient({ logs, notice, isAdmin }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function DevLogClient({ logs, notice }) {
   const router = useRouter();
 
   const navigateToLog = (event, href) => {
@@ -21,18 +17,8 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">Development</h2>
-            <p className="muted">Updates, notes, and builds in progress.</p>
-          </div>
-          {isAdmin ? <button onClick={() => setIsModalOpen(true)}>New Development Post</button> : null}
-        </div>
-        {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
         <h3 className="section-title">Latest</h3>
+        {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {logs.length === 0 ? (
             <p className="muted">No Development posts yet.</p>
@@ -41,7 +27,10 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
               let lastName = null;
               let lastIndex = null;
 
-              return logs.map((row) => {
+              const latest = logs[0];
+              const rest = logs.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const href = `/devlog/${row.id}`;
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
@@ -83,7 +72,9 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
                         loading="lazy"
                       />
                     ) : null}
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                    {!condensed ? (
+                      <div className="post-body" dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                    ) : null}
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -92,9 +83,7 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
                         <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
                       <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <a className="post-link" href={href}>
-                          Open full post
-                        </a>
+                        <a className="post-link" href={href}>{condensed ? 'Open' : 'Open full post'}</a>
                         {new Date(row.created_at).toLocaleString()}
                         {row.comment_count > 0
                           ? ` · ${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
@@ -103,22 +92,29 @@ export default function DevLogClient({ logs, notice, isAdmin }) {
                     </div>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      {isAdmin ? (
-        <CreatePostModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="New Development Post"
-          variant="wide"
-        >
-          <DevLogForm />
-        </CreatePostModal>
-      ) : null}
+      <section className="card">
+        <h2 className="section-title">Development</h2>
+        <p className="muted">Updates, notes, and builds in progress.</p>
+      </section>
     </div>
   );
 }

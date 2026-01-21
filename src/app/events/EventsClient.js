@@ -1,33 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import PostForm from '../../components/PostForm';
-import CreatePostModal from '../../components/CreatePostModal';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
 export default function EventsClient({ events, notice }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 className="section-title">{strings.cards.events.title}</h2>
-            <p className="muted">{strings.cards.events.description}</p>
-          </div>
-          <button onClick={() => setIsModalOpen(true)}>Add Event</button>
-        </div>
+        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-      </section>
-
-      <section className="card">
-        <h3 className="section-title">Upcoming</h3>
         <div className="list">
           {events.length === 0 ? (
             <p className="muted">{strings.cards.events.empty}</p>
@@ -36,7 +22,10 @@ export default function EventsClient({ events, notice }) {
               let lastName = null;
               let lastIndex = null;
 
-              return events.map((row) => {
+              const latest = events[0];
+              const rest = events.slice(1);
+
+              const renderItem = (row, { condensed }) => {
                 const colorIndex = getUsernameColorIndex(row.author_name, {
                   avoidIndex: lastIndex,
                   avoidName: lastName,
@@ -57,7 +46,7 @@ export default function EventsClient({ events, notice }) {
                         loading="lazy"
                       />
                     ) : null}
-                    {row.details ? (
+                    {!condensed && row.details ? (
                       <div className="post-body" dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
                     <div
@@ -71,27 +60,29 @@ export default function EventsClient({ events, notice }) {
                     </div>
                   </div>
                 );
-              });
+              };
+
+              return (
+                <>
+                  {renderItem(latest, { condensed: false })}
+                  {rest.length ? (
+                    <>
+                      <div className="list-divider" />
+                      <h3 className="section-title" style={{ marginTop: 0 }}>More</h3>
+                      {rest.map((row) => renderItem(row, { condensed: true }))}
+                    </>
+                  ) : null}
+                </>
+              );
             })()
           )}
         </div>
       </section>
 
-      <CreatePostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Add Event"
-      >
-        <PostForm
-          action="/api/events"
-          titleLabel="Event title"
-          bodyLabel="Details (optional)"
-          buttonLabel="Add Event"
-          showDate
-          bodyRequired={false}
-          showImage={false}
-        />
-      </CreatePostModal>
+      <section className="card">
+        <h2 className="section-title">{strings.cards.events.title}</h2>
+        <p className="muted">{strings.cards.events.description}</p>
+      </section>
     </div>
   );
 }
