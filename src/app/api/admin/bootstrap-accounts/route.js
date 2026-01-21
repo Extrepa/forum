@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { getDb } from '../../../../../lib/db';
-import { createToken } from '../../../../../lib/tokens';
-import { validateUsername } from '../../../../../lib/username';
-import { hashPassword } from '../../../../../lib/passwords';
+import { getDb } from '../../../../lib/db';
+import { createToken } from '../../../../lib/tokens';
+import { validateUsername } from '../../../../lib/username';
+import { hashPassword } from '../../../../lib/passwords';
 
 async function upsertUserWithTempPassword(db, username, { role, tempPassword }) {
   const validation = validateUsername(username);
