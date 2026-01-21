@@ -40,9 +40,9 @@ export function isProbablyEmail(input) {
 const ALGO = 'pbkdf2_sha256';
 const HASH = 'SHA-256';
 const KEY_LENGTH_BITS = 256;
-// Cloudflare Workers CPU limits can be tight; keep this high, but not so high that
-// signup/change-password/admin bootstrap consistently time out.
-const DEFAULT_ITERATIONS = 150000;
+// Cloudflare Workers WebCrypto PBKDF2 currently only supports up to 100000 iterations.
+const MAX_ITERATIONS = 100000;
+const DEFAULT_ITERATIONS = MAX_ITERATIONS;
 
 export async function hashPassword(password, opts = {}) {
   const iterations = Number.isFinite(opts.iterations) ? Math.floor(opts.iterations) : DEFAULT_ITERATIONS;
@@ -51,6 +51,9 @@ export async function hashPassword(password, opts = {}) {
   }
   if (!Number.isFinite(iterations) || iterations < 100000) {
     throw new Error('Invalid password hashing parameters.');
+  }
+  if (iterations > MAX_ITERATIONS) {
+    throw new Error('Password hashing parameters are not supported in this environment.');
   }
 
   const salt = new Uint8Array(32);
@@ -82,6 +85,7 @@ export async function verifyPassword(password, stored) {
   if (algo !== ALGO) return false;
   const iterations = Number.parseInt(iterRaw, 10);
   if (!Number.isFinite(iterations) || iterations < 100000) return false;
+  if (iterations > MAX_ITERATIONS) return false;
 
   const salt = base64UrlToBytes(saltRaw);
   const expectedHash = base64UrlToBytes(hashRaw);
@@ -94,13 +98,16 @@ export async function verifyPassword(password, stored) {
     false,
     ['deriveBits']
   );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations, hash: HASH },
-    keyMaterial,
-    expectedHash.length * 8
-  );
-  const actualHash = new Uint8Array(bits);
-
-  return constantTimeEqual(actualHash, expectedHash);
+  try {
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, iterations, hash: HASH },
+      keyMaterial,
+      expectedHash.length * 8
+    );
+    const actualHash = new Uint8Array(bits);
+    return constantTimeEqual(actualHash, expectedHash);
+  } catch (error) {
+    return false;
+  }
 }
 

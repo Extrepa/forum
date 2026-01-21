@@ -69,7 +69,7 @@ export async function POST(request) {
     const tempPassword = String(payload.tempPassword || 'Password');
     const now = Date.now();
     // Hash once and reuse for all 3 users to avoid CPU timeouts.
-    const passwordHash = await hashPassword(tempPassword, { iterations: 120000 });
+    const passwordHash = await hashPassword(tempPassword, { iterations: 100000 });
 
     const db = await getDb();
     const results = [];
