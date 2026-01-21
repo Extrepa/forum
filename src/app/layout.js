@@ -1,9 +1,9 @@
 import './globals.css';
-import ForumLogo from '../components/ForumLogo';
 import SearchBar from '../components/SearchBar';
 import BackButton from '../components/BackButton';
 import NavLinks from '../components/NavLinks';
-import NotificationsBell from '../components/NotificationsBell';
+import NotificationsLogoTrigger from '../components/NotificationsLogoTrigger';
+import HeaderAccountControls from '../components/HeaderAccountControls';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -21,16 +21,16 @@ export default function RootLayout({ children }) {
                 <h1>Errl Forum</h1>
                 <p>Announcements, drops, and devlog vibes for the Errl community.</p>
               </div>
-              <ForumLogo variant="header" href="/" showText={false} />
+              <NotificationsLogoTrigger />
             </div>
             <div className="header-nav-section">
               <BackButton />
               <nav>
                 <NavLinks />
               </nav>
-              <NotificationsBell />
               <SearchBar />
             </div>
+            <HeaderAccountControls />
           </header>
           <main>{children}</main>
           <footer>

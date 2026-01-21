@@ -344,6 +344,67 @@ button:hover {
   box-shadow: 0 0 24px rgba(255, 52, 245, 0.55);
 }
 
+.forum-logo-button {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  min-height: 0;
+  cursor: pointer;
+}
+
+.forum-logo-button:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.forum-logo-face-wrapper {
+  position: relative;
+}
+
+.forum-logo-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #001018;
+  background: var(--errl-accent-3);
+  border: 1px solid rgba(2, 7, 10, 0.8);
+  box-shadow: 0 0 12px rgba(245, 255, 183, 0.35);
+}
+
+.header-account {
+  position: relative;
+}
+
+.header-setup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-account-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: min(560px, 95vw);
+  z-index: 1200;
+}
+
+.header-account-popover .card {
+  padding: 12px;
+}
+
 .notice {
   padding: 12px 14px;
   border-radius: 12px;

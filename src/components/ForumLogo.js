@@ -3,11 +3,22 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-export default function ForumLogo({ variant = 'nav', href = '/forum', showText = true }) {
+export default function ForumLogo({
+  variant = 'nav',
+  href = '/forum',
+  showText = true,
+  as = 'link', // link | button
+  onActivate,
+  badgeCount = 0,
+  ariaLabel
+}) {
   const [isClicked, setIsClicked] = useState(false);
   const [logoHue, setLogoHue] = useState(() => Math.floor(Math.random() * 360));
 
   const handleClick = () => {
+    if (typeof onActivate === 'function') {
+      onActivate();
+    }
     setIsClicked(true);
     setTimeout(() => setIsClicked(false), 400);
   };
@@ -40,6 +51,12 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
 
   // Generate aria-label for Link based on href
   const getLinkAriaLabel = () => {
+    if (ariaLabel) {
+      return ariaLabel;
+    }
+    if (as === 'button') {
+      return 'Open notifications';
+    }
     if (href === '/') {
       return 'Navigate to home';
     }
@@ -56,12 +73,22 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
   const faceTransform =
     variant === 'header' ? 'translate(38,-62) scale(.88)' : 'translate(50,-50) scale(.8)';
 
+  const isButton = as === 'button';
+  const Element = isButton ? 'button' : Link;
+
   return (
-    <Link
-      href={href}
+    <Element
+      {...(isButton ? { type: 'button' } : { href })}
       aria-label={getLinkAriaLabel()}
-      className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''}`}
-      onClick={handleClick}
+      className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''} ${
+        isButton ? 'forum-logo-button' : ''
+      }`}
+      onClick={(e) => {
+        if (isButton) {
+          e.preventDefault();
+        }
+        handleClick();
+      }}
       style={{ '--logo-hue': String(logoHue) }}
     >
       <div className="forum-logo-container">
@@ -129,9 +156,10 @@ export default function ForumLogo({ variant = 'nav', href = '/forum', showText =
               </g>
             </g>
           </svg>
+          {badgeCount > 0 ? <span className="forum-logo-badge">{badgeCount}</span> : null}
         </div>
         {showText && <span className="forum-logo-text">Forum</span>}
       </div>
-    </Link>
+    </Element>
   );
 }

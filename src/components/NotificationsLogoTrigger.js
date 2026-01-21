@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import ForumLogo from './ForumLogo';
 import NotificationsMenu from './NotificationsMenu';
 
-export default function NotificationsBell() {
+export default function NotificationsLogoTrigger() {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [items, setItems] = useState([]);
@@ -34,9 +35,7 @@ export default function NotificationsBell() {
       await refresh();
     };
     run();
-    const id = setInterval(() => {
-      run();
-    }, 25000);
+    const id = setInterval(run, 25000);
     return () => {
       mounted = false;
       clearInterval(id);
@@ -79,23 +78,19 @@ export default function NotificationsBell() {
   };
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        type="button"
-        onClick={async () => {
+    <div className="notifications-logo-trigger" style={{ position: 'relative' }}>
+      <ForumLogo
+        variant="header"
+        showText={false}
+        as="button"
+        badgeCount={unreadCount}
+        ariaLabel={title}
+        onActivate={async () => {
           const next = !open;
           setOpen(next);
-          if (next) {
-            await refresh();
-          }
+          if (next) await refresh();
         }}
-        className={unreadCount > 0 ? 'active' : ''}
-        aria-haspopup="menu"
-        aria-expanded={open ? 'true' : 'false'}
-        title={title}
-      >
-        Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}
-      </button>
+      />
 
       <NotificationsMenu
         open={open}

@@ -25,6 +25,12 @@
 - If a user is logged in from the old browser-only era (no `password_hash`), the UI now prompts them to set email + password to finish account setup.
 - Posting endpoints now require a password to be set (legacy sessions can still browse, but must set a password to post).
 
+## UX polish (header banner + logo notifications)
+
+- Added a **header-level Account button + popover** so settings are reachable even when already logged in.
+- Added a **global header banner** when account setup is incomplete (missing email/password or must-change-password).
+- Moved notifications trigger onto the **Errl face** (badge count + click opens the notifications dropdown); removed standalone notifications button from the header nav row.
+
 ## Ready-to-test checklist (2026-01-21)
 
 - Repo clean and pushed: `origin/main` at commit `6090187`.
