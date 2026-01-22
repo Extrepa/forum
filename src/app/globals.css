@@ -193,23 +193,7 @@ header.header--search-open {
   min-height: 36px;
 }
 
-.nav-menu-links-scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-
-.nav-menu-links-scrollable::-webkit-scrollbar-track {
-  background: rgba(2, 7, 10, 0.3);
-  border-radius: 3px;
-}
-
-.nav-menu-links-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(52, 225, 255, 0.3);
-  border-radius: 3px;
-}
-
-.nav-menu-links-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 225, 255, 0.5);
-}
+/* Scrollbar styles removed - no longer using scrolling, items wrap instead */
 
 /* Inline search form */
 .header-search-form-inline {

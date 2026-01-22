@@ -29,15 +29,20 @@
 - **Change**: Added CSS rule to hide `.header-right-controls .header-search-container` on mobile
 - **Result**: Prevents duplicate search icons on mobile - only bottom controls search is visible
 
-### 6. Fix Scrolling in Navigation Menu ✅
+### 6. Change Navigation Menu to Wrapped Layout (No Scrolling) ✅
 - **File**: `src/app/globals.css`
 - **Changes**:
-  - Changed `.nav-menu-expanded` from `overflow: hidden` to `overflow: visible` to allow scrolling
-  - Set fixed `max-height` on `.nav-menu-links-scrollable`:
-    - Desktop: `190px` (shows exactly 4 items: 4 × 40px + 3 × 10px gaps)
-    - Mobile: `140px` (shows exactly 3 items: 3 × 40px + 2 × 10px gaps)
-  - Added `min-height: 0` to ensure flex scrolling works
-- **Result**: Navigation menu now shows fixed number of items and scrolls properly with mouse wheel (desktop) and touch (mobile)
+  - Changed `.nav-menu-links-scrollable` from column layout to row layout with wrapping
+  - Changed `flex-direction` from `column` to `row` with `flex-wrap: wrap`
+  - Removed scrolling (`overflow-y: auto` → `overflow: visible`)
+  - Made items smaller and flexible to fit all choices:
+    - Desktop: `font-size: 13px`, `padding: 6px 10px`, `min-height: 36px`
+    - Mobile: `font-size: 12px`, `padding: 5px 8px`, `min-height: 32px`
+  - Set `max-height` to fit approximately 3 rows:
+    - Desktop: `150px`
+    - Mobile: `130px`
+  - Items now use `flex: 0 1 auto` to shrink and wrap as needed
+- **Result**: All navigation choices are visible in a wrapped layout that fits within ~3 rows, no scrolling needed
 
 ### 7. Fix Linter Errors ✅
 - **File**: `src/app/globals.css`
