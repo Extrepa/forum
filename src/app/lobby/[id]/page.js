@@ -72,7 +72,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )
         .bind(params.id)
         .first();
+      // Ensure defaults for moved columns
+      if (thread) {
+        thread.moved_to_id = thread.moved_to_id || null;
+        thread.moved_to_type = thread.moved_to_type || null;
+        thread.like_count = thread.like_count || 0;
+      }
     } catch (e) {
+      console.error('Error fetching thread:', e, { threadId: params.id });
       // Fallback if post_likes table or moved columns don't exist
       try {
         thread = await db
@@ -111,6 +118,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             thread.moved_to_type = thread.moved_to_type || null;
           }
         } catch (e3) {
+          console.error('Error fetching thread (final fallback):', e3, { threadId: params.id });
           thread = null;
         }
       }
@@ -305,9 +313,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       // Table might not exist yet
     }
   }
-  const canToggleLock = !!viewer && thread && (viewer.id === thread.author_user_id || viewer.role === 'admin');
-  const canEdit = !!viewer && thread && (viewer.id === thread.author_user_id || isAdminUser(viewer));
-  const canDelete = !!viewer && thread && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const canToggleLock = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+  const canEdit = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const canDelete = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdminUser(viewer));
   
   // Check if current user has liked this thread
   let userLiked = false;
@@ -326,11 +334,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   }
 
   // Assign unique colors to all usernames on this page
-  const allUsernames = [
-    thread?.author_name,
-    ...(replies || []).map(r => r?.author_name)
-  ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  let usernameColorMap = new Map();
+  try {
+    const allUsernames = [
+      thread?.author_name,
+      ...(replies || []).map(r => r?.author_name)
+    ].filter(Boolean);
+    usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  } catch (e) {
+    console.error('Error assigning username colors:', e, { threadId: params.id });
+    // Fallback: create empty map, will use default colors
+    usernameColorMap = new Map();
+  }
 
   const error = searchParams?.error;
   const notice =
