@@ -85,10 +85,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             type="button"
             className="nav-menu-button"
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Open menu"
+            aria-label="Open navigation menu"
             aria-expanded={menuOpen ? 'true' : 'false'}
           >
-            Menu
+            Navigation
           </button>
 
           {menuOpen ? (

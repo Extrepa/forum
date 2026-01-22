@@ -56,7 +56,11 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
             type="button"
             onClick={onClose}
             className="button"
-            style={{ background: 'rgba(2, 7, 10, 0.6)' }}
+            style={{ 
+              background: 'rgba(2, 7, 10, 0.6)',
+              color: 'var(--ink)',
+              border: '1px solid rgba(52, 225, 255, 0.3)'
+            }}
           >
             Cancel
           </button>

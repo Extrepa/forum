@@ -1263,6 +1263,27 @@ header::before {
 
   .nav-menu {
     display: inline-flex;
+    width: 100%;
+  }
+
+  .nav-menu-button {
+    width: 100%;
+    transform: none;
+    writing-mode: horizontal-tb;
+  }
+
+  .nav-menu-popover {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .nav-menu-links {
+    -webkit-overflow-scrolling: touch;
   }
 
   .nav-inline--more {
