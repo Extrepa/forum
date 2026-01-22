@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
+import { parseLocalDateTimeToUTC } from '../../../../lib/dates';
 
 function destPathFor(type, id) {
   switch (type) {
@@ -351,8 +352,8 @@ async function createDestination(db, { destType, sourceType, source, extra }) {
         : sourceType === 'music_post'
         ? `Source: ${source.url}\n\n${source.body || ''}`.trim()
         : source.body || source.details || null;
-    const startsAt = Date.parse(String(extra.starts_at || ''));
-    if (Number.isNaN(startsAt)) {
+    const startsAt = parseLocalDateTimeToUTC(String(extra.starts_at || ''));
+    if (!startsAt) {
       throw new Error('events_requires_starts_at');
     }
     await db

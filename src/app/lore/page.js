@@ -5,25 +5,16 @@ import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import LoreClient from './LoreClient';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LorePage({ searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <PageTopRow items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]} />
-        <section className="card">
-          <h2 className="section-title">Lore</h2>
-          <p className="muted">Sign in to view Lore.</p>
-        </section>
-      </>
-    );
+  if (!user) {
+    redirect('/');
   }
+  const canCreate = !!user && !!user.password_hash;
 
   const db = await getDb();
   let results = [];

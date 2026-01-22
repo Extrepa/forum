@@ -4,13 +4,17 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NostalgiaDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
+  const isSignedIn = true; // Always true after redirect check
 
   let post = null;
   let comments = [];

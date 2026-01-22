@@ -30,6 +30,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function AnnouncementDetailPage({ params, searchParams }) {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
   const update = await db
     .prepare(
@@ -73,20 +77,16 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     .bind(params.id)
     .all();
 
-  const user = await getSessionUser();
-  
   // Check if current user has liked this update
   let userLiked = false;
-  if (user) {
-    try {
-      const likeCheck = await db
-        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
-        .bind('timeline_update', update.id, user.id)
-        .first();
-      userLiked = !!likeCheck;
-    } catch (e) {
-      // Table might not exist yet
-    }
+  try {
+    const likeCheck = await db
+      .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+      .bind('timeline_update', update.id, user.id)
+      .first();
+    userLiked = !!likeCheck;
+  } catch (e) {
+    // Table might not exist yet
   }
 
   // Assign unique colors to all usernames on this page
@@ -99,9 +99,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
-      ? 'Sign in before commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;
@@ -126,14 +124,12 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
             </div>
           </div>
-          {user ? (
-            <LikeButton 
-              postType="timeline_update" 
-              postId={update.id} 
-              initialLiked={userLiked}
-              initialCount={Number(update.like_count || 0)}
-            />
-          ) : null}
+          <LikeButton 
+            postType="timeline_update" 
+            postId={update.id} 
+            initialLiked={userLiked}
+            initialCount={Number(update.like_count || 0)}
+          />
         </div>
         {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
@@ -142,16 +138,12 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {user ? (
-          <CommentFormWrapper
-            action={`/api/timeline/${update.id}/comments`}
-            buttonLabel="Post comment"
-            placeholder="Drop your thoughts into the goo..."
-            labelText="What would you like to say?"
-          />
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
+        <CommentFormWrapper
+          action={`/api/timeline/${update.id}/comments`}
+          buttonLabel="Post comment"
+          placeholder="Drop your thoughts into the goo..."
+          labelText="What would you like to say?"
+        />
         <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>

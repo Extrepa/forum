@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 function needsSetup(user) {
   if (!user) return false;
-  return !user.email || !user.hasPassword || user.mustChangePassword;
+  return !user.email || !user.hasPassword;
 }
 
 export default function HeaderSetupBanner() {

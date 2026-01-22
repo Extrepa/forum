@@ -7,12 +7,8 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const redirectUrl = new URL(`/music/${params.id}`, request.url);
 
-  if (!user) {
+  if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
-    return NextResponse.redirect(redirectUrl, 303);
-  }
-  if (user.must_change_password || !user.password_hash) {
-    redirectUrl.searchParams.set('error', 'password');
     return NextResponse.redirect(redirectUrl, 303);
   }
 

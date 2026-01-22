@@ -62,16 +62,10 @@ function parseLinksList(raw) {
 
 export default async function DevLogDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isAdmin = isAdminUser(user);
-
   if (!user) {
-    return (
-      <section className="card">
-        <h2 className="section-title">Development</h2>
-        <p className="muted">Sign in to view this post.</p>
-      </section>
-    );
+    redirect('/');
   }
+  const isAdmin = isAdminUser(user);
 
   const db = await getDb();
   let log = null;
@@ -212,9 +206,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     error === 'unauthorized'
       ? 'Only admins can post in Development.'
       : error === 'claim'
-      ? 'Sign in before commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : error === 'locked'
       ? 'Comments are locked on this post.'
       : error === 'upload'
@@ -237,15 +229,12 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       : error === 'notready'
       ? 'Replies are not enabled yet (database updates still applying).'
       : error === 'claim'
-      ? 'Sign in before commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : null;
 
-  const canComment = !log.is_locked && !user.must_change_password && !!user.password_hash;
+  const canComment = !log.is_locked && !!user && !!user.password_hash;
   const canEdit =
     !!user &&
-    !user.must_change_password &&
     !!user.password_hash &&
     (isAdmin || user.id === log.author_user_id);
   const canDelete = canEdit;
@@ -442,9 +431,9 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <p className="muted">
             {log.is_locked
               ? 'Comments are locked for this post.'
-              : user.must_change_password || !user.password_hash
-              ? 'Set your password to comment.'
-              : 'Sign in to comment.'}
+              : !user
+              ? 'Log in to post.'
+              : null}
           </p>
         )}
       </section>

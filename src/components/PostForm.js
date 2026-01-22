@@ -14,15 +14,17 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-// Helper function to convert UTC datetime to local datetime-local format
+// Helper function to convert UTC timestamp to local datetime-local format
+// The Date constructor interprets the timestamp as UTC, and getHours/getMinutes
+// return local time values, which is what we want for datetime-local input
 function toLocalDateTimeString(utcTimestamp) {
   if (!utcTimestamp) return '';
-  const date = new Date(utcTimestamp);
+  const date = new Date(utcTimestamp); // Date constructor interprets timestamp as UTC
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0'); // Local time
+  const minutes = String(date.getMinutes()).padStart(2, '0'); // Local time
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 

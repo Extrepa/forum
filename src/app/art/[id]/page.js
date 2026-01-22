@@ -6,13 +6,17 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ArtDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
+  const isSignedIn = true; // Always true after redirect check
 
   let post = null;
   let comments = [];
@@ -23,7 +27,8 @@ export default async function ArtDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
-                users.username AS author_name
+                users.username AS author_name,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type = 'art'`
@@ -74,12 +79,29 @@ export default async function ArtDetailPage({ params, searchParams }) {
     );
   }
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    post.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
+  // Check if current user has liked this post
+  let userLiked = false;
+  try {
+    const likeCheck = await db
+      .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+      .bind('post', post.id, user.id)
+      .first();
+    userLiked = !!likeCheck;
+  } catch (e) {
+    // Table might not exist yet
+  }
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
-      ? 'Sign in before commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : error === 'missing'
       ? 'Comment text is required.'
       : error === 'notready'
@@ -105,14 +127,12 @@ export default async function ArtDetailPage({ params, searchParams }) {
               {post.is_private ? <span className="muted"> · Members-only</span> : null}
             </div>
           </div>
-          {user ? (
-            <LikeButton 
-              postType="post" 
-              postId={post.id} 
-              initialLiked={userLiked}
-              initialCount={Number(post.like_count || 0)}
-            />
-          ) : null}
+          <LikeButton 
+            postType="post" 
+            postId={post.id} 
+            initialLiked={userLiked}
+            initialCount={Number(post.like_count || 0)}
+          />
         </div>
         {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
@@ -121,16 +141,12 @@ export default async function ArtDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {isSignedIn ? (
-          <CommentFormWrapper
-            action={`/api/posts/${post.id}/comments`}
-            buttonLabel="Post comment"
-            placeholder="Drop your thoughts into the goo..."
-            labelText="What would you like to say?"
-          />
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
+        <CommentFormWrapper
+          action={`/api/posts/${post.id}/comments`}
+          buttonLabel="Post comment"
+          placeholder="Drop your thoughts into the goo..."
+          labelText="What would you like to say?"
+        />
 
         <div className="stack" style={{ marginTop: 16 }}>
           {comments.length === 0 ? (

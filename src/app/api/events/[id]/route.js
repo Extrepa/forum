@@ -4,17 +4,14 @@ import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
+import { parseLocalDateTimeToUTC } from '../../../../lib/dates';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
   const redirectUrl = new URL(`/events/${params.id}`, request.url);
 
-  if (!user) {
+  if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
-    return NextResponse.redirect(redirectUrl, 303);
-  }
-  if (user.must_change_password || !user.password_hash) {
-    redirectUrl.searchParams.set('error', 'password');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
@@ -38,9 +35,9 @@ export async function POST(request, { params }) {
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
   const startsAtRaw = String(formData.get('starts_at') || '').trim();
-  const startsAt = Date.parse(startsAtRaw);
+  const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
 
-  if (!title || Number.isNaN(startsAt)) {
+  if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
     return NextResponse.redirect(redirectUrl, 303);
   }

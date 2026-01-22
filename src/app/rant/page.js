@@ -5,14 +5,18 @@ import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import RantClient from './RantClient';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RantPage({ searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+  if (!user) {
+    redirect('/');
+  }
+  const canCreate = !!user && !!user.password_hash;
   const db = await getDb();
+  const isSignedIn = true; // Always true after redirect check
 
   let results = [];
   let dbUnavailable = false;

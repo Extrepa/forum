@@ -6,10 +6,15 @@ import { getSessionUser } from '../../lib/auth';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import MusicPostForm from '../../components/MusicPostForm';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MusicPage({ searchParams }) {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
   let results = [];
   try {
@@ -79,8 +84,7 @@ export default async function MusicPage({ searchParams }) {
       ? 'Only image files are allowed.'
       : null;
 
-  const user = await getSessionUser();
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+  const canCreate = !!user && !!user.password_hash;
 
   return (
     <>

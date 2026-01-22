@@ -137,8 +137,8 @@ export default function NotificationsMenu({
                   key={n.id}
                   href={href}
                   onClick={async (e) => {
+                    e.preventDefault(); // Always prevent default, even for '#'
                     if (href === '#') return;
-                    e.preventDefault();
                     await onMarkRead(n.id);
                     window.location.href = href;
                   }}

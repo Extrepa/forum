@@ -23,8 +23,10 @@ export default function ClaimUsernameForm() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupNotifyEmail, setSignupNotifyEmail] = useState(true);
+  const [signupNotifySms, setSignupNotifySms] = useState(false);
 
-  // login (email or username for legacy users)
+  // login (email or username)
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
@@ -191,7 +193,9 @@ export default function ClaimUsernameForm() {
         body: JSON.stringify({
           email: signupEmail,
           username: signupUsername,
-          password: trimmedPassword
+          password: trimmedPassword,
+          notifyEmailEnabled: signupNotifyEmail,
+          notifySmsEnabled: signupNotifySms
         })
       });
 
@@ -204,6 +208,8 @@ export default function ClaimUsernameForm() {
       setSignupEmail('');
       setSignupUsername('');
       setSignupPassword('');
+      setSignupNotifyEmail(true);
+      setSignupNotifySms(false);
       await refreshMe();
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -303,25 +309,14 @@ export default function ClaimUsernameForm() {
 
   if (me?.username) {
     const colorIndex = getUsernameColorIndex(me.username);
-    const needsPassword = !me.hasPassword;
-    const needsSetup = needsPassword || !me.email;
-    const canConfigureNotifications = !!me.email && !!me.hasPassword && !me.mustChangePassword;
+    const canConfigureNotifications = !!me.email && !!me.hasPassword;
     const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
     return (
       <div className="card">
         <div className="notice">
           Signed in as <Username name={me.username} colorIndex={colorIndex} />
         </div>
-        {needsSetup ? (
-          <p className="muted">
-            This looks like a legacy browser session. Set an email and password to finish your account so you can sign in
-            from any device.
-          </p>
-        ) : me.mustChangePassword ? (
-          <p className="muted">You must set your password before posting.</p>
-        ) : (
-          <p className="muted">Your account is active on this device.</p>
-        )}
+        <p className="muted">Your account is active on this device.</p>
 
         <div className="account-columns">
           <div className="account-col">
@@ -375,7 +370,7 @@ export default function ClaimUsernameForm() {
             </form>
 
             <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
-              {me.hasPassword && !me.mustChangePassword ? (
+              {me.hasPassword ? (
                 <label>
                   <div className="muted">Old password</div>
                   <input
@@ -562,7 +557,7 @@ export default function ClaimUsernameForm() {
           <>
             <form onSubmit={submitLogin} className="card" style={{ padding: 12 }}>
               <label>
-                <div className="muted">Email (or username for legacy accounts)</div>
+                <div className="muted">Email or username</div>
                 <input
                   name="identifier"
                   value={loginIdentifier}
@@ -632,6 +627,25 @@ export default function ClaimUsernameForm() {
                   required
                 />
               </label>
+              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <input
+                    type="checkbox"
+                    checked={signupNotifyEmail}
+                    onChange={(e) => setSignupNotifyEmail(e.target.checked)}
+                  />
+                  <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={signupNotifySms}
+                    onChange={(e) => setSignupNotifySms(e.target.checked)}
+                  />
+                  <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
+                </label>
+              </div>
               <button type="submit" disabled={status.type === 'loading'}>
                 Create account
               </button>

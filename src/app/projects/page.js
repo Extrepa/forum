@@ -5,10 +5,15 @@ import { getSessionUser } from '../../lib/auth';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ProjectForm from '../../components/ProjectForm';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage({ searchParams }) {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
   let results = [];
   try {
@@ -44,8 +49,7 @@ export default async function ProjectsPage({ searchParams }) {
     results = out?.results || [];
   }
 
-  const user = await getSessionUser();
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+  const canCreate = !!user && !!user.password_hash;
 
   // Pre-render markdown for server component
   const projects = results.map(row => {

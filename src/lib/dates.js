@@ -125,3 +125,44 @@ export function formatEventTime(timestamp) {
     timeZone: 'America/Los_Angeles'
   });
 }
+
+/**
+ * Parse a datetime-local string (YYYY-MM-DDTHH:mm) as local time and convert to UTC timestamp.
+ * datetime-local inputs send local time strings, but Date.parse() interprets them as UTC.
+ * This function explicitly parses as local time and returns UTC timestamp for storage.
+ * 
+ * @param {string} localDateTimeString - String in format "YYYY-MM-DDTHH:mm" (local time)
+ * @returns {number|null} - UTC timestamp in milliseconds, or null if invalid
+ */
+export function parseLocalDateTimeToUTC(localDateTimeString) {
+  if (!localDateTimeString || typeof localDateTimeString !== 'string') {
+    return null;
+  }
+  const trimmed = localDateTimeString.trim();
+  if (!trimmed) return null;
+  
+  // datetime-local format: "YYYY-MM-DDTHH:mm"
+  const [datePart, timePart] = trimmed.split('T');
+  if (!datePart || !timePart) return null;
+  
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timePart.split(':').map(Number);
+  
+  // Validate parsed values
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day) || 
+      Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null;
+  }
+  
+  // Create date in local timezone
+  // Note: month is 0-indexed in Date constructor
+  const localDate = new Date(year, month - 1, day, hours, minutes || 0, 0, 0);
+  
+  // Validate the date is valid
+  if (Number.isNaN(localDate.getTime())) {
+    return null;
+  }
+  
+  // Return UTC timestamp (milliseconds since epoch)
+  return localDate.getTime();
+}

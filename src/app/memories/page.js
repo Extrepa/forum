@@ -5,25 +5,16 @@ import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import MemoriesClient from './MemoriesClient';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MemoriesPage({ searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <PageTopRow items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]} />
-        <section className="card">
-          <h2 className="section-title">Memories</h2>
-          <p className="muted">Sign in to view Memories.</p>
-        </section>
-      </>
-    );
+  if (!user) {
+    redirect('/');
   }
+  const canCreate = !!user && !!user.password_hash;
 
   const db = await getDb();
   let results = [];

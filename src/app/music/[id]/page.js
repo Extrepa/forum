@@ -34,6 +34,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function MusicDetailPage({ params, searchParams }) {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
   let post = null;
   try {
@@ -167,9 +171,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
   const error = searchParams?.error;
   const notice =
     error === 'claim'
-      ? 'Sign in before rating or commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : error === 'locked'
       ? 'Comments are locked on this post.'
       : error === 'missing'
@@ -178,9 +180,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
       ? 'Pick a rating between 1 and 5.'
       : null;
 
-  const user = await getSessionUser();
   const isAdmin = isAdminUser(user);
-  const canEdit = !!user && !user.must_change_password && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
+  const canEdit = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
   const canDelete = canEdit;
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];

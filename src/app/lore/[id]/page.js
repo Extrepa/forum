@@ -4,23 +4,14 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LoreDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]} />
-        <section className="card">
-          <h2 className="section-title">Lore</h2>
-          <p className="muted">Sign in to view Lore.</p>
-        </section>
-      </>
-    );
+  if (!user) {
+    redirect('/');
   }
 
   const db = await getDb();

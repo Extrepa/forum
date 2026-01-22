@@ -14,11 +14,8 @@ function isValidPostType(type) {
 
 export async function POST(request) {
   const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: 'Sign in to like posts.' }, { status: 401 });
-  }
-  if (user.must_change_password || !user.password_hash) {
-    return NextResponse.json({ error: 'Set your password to continue.' }, { status: 403 });
+  if (!user || !user.password_hash) {
+    return NextResponse.json({ error: 'Log in to post.' }, { status: 401 });
   }
 
   const body = await request.json();

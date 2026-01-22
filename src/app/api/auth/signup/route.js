@@ -42,15 +42,17 @@ export async function POST(request) {
   const token = createToken();
   const userId = crypto.randomUUID();
   const now = Date.now();
+  const notifyEmailEnabled = payload.notifyEmailEnabled ? 1 : 0;
+  const notifySmsEnabled = payload.notifySmsEnabled ? 1 : 0;
 
   try {
-    // Try with default_landing_page (if migration applied)
+    // Try with notification preferences and default_landing_page (if migrations applied)
     try {
       await db
         .prepare(
           `INSERT INTO users
-            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, default_landing_page, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, notify_email_enabled, notify_sms_enabled, default_landing_page, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           userId,
@@ -63,32 +65,59 @@ export async function POST(request) {
           0,
           token,
           'user',
+          notifyEmailEnabled,
+          notifySmsEnabled,
           'feed',
           now
         )
         .run();
     } catch (e) {
-      // Fallback if default_landing_page column doesn't exist yet
-      await db
-        .prepare(
-          `INSERT INTO users
-            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          userId,
-          validation.normalized,
-          validation.normalized,
-          email,
-          email,
-          passwordHash,
-          now,
-          0,
-          token,
-          'user',
-          now
-        )
-        .run();
+      // Fallback if notification columns don't exist yet
+      try {
+        await db
+          .prepare(
+            `INSERT INTO users
+              (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, default_landing_page, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            userId,
+            validation.normalized,
+            validation.normalized,
+            email,
+            email,
+            passwordHash,
+            now,
+            0,
+            token,
+            'user',
+            'feed',
+            now
+          )
+          .run();
+      } catch (e2) {
+        // Fallback if default_landing_page column doesn't exist yet
+        await db
+          .prepare(
+            `INSERT INTO users
+              (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            userId,
+            validation.normalized,
+            validation.normalized,
+            email,
+            email,
+            passwordHash,
+            now,
+            0,
+            token,
+            'user',
+            now
+          )
+          .run();
+      }
     }
   } catch (error) {
     if (String(error).includes('UNIQUE')) {
@@ -121,8 +150,7 @@ export async function POST(request) {
   const response = NextResponse.json({
     ok: true,
     username: validation.normalized,
-    email,
-    mustChangePassword: false
+    email
   });
   setSessionCookie(response, token);
   return response;

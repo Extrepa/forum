@@ -5,6 +5,7 @@ import { getSessionUserWithRole } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import PostForm from '../../components/PostForm';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -324,7 +325,10 @@ export default async function LobbyPage({ searchParams }) {
       : null;
 
   const sessionUser = await getSessionUser();
-  const canCreate = !!sessionUser && !sessionUser.must_change_password && !!sessionUser.password_hash;
+  if (!sessionUser) {
+    redirect('/');
+  }
+  const canCreate = !!sessionUser && !!sessionUser.password_hash;
 
   return (
     <>

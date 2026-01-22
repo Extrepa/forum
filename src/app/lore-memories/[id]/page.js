@@ -5,23 +5,14 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LoreMemoriesDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/lore-memories', label: 'Lore & Memories' }]} />
-        <section className="card">
-          <h2 className="section-title">Lore & Memories</h2>
-          <p className="muted">Sign in to view Lore & Memories.</p>
-        </section>
-      </>
-    );
+  if (!user) {
+    redirect('/');
   }
 
   const db = await getDb();

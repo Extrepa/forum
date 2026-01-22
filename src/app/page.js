@@ -1029,8 +1029,7 @@ export default async function HomePage({ searchParams }) {
             <div>
               <h3 className="section-title">Sign in</h3>
               <p className="muted">
-                New users: Create an account with email, username, and password to post from any device.
-                Legacy users: Sign in with your existing username and password, then add an email to your account.
+                Create an account with email, username, and password to post from any device. Sign in with your username or email.
               </p>
             </div>
             <ClaimUsernameForm />

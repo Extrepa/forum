@@ -7,29 +7,16 @@ import Breadcrumbs from '../../components/Breadcrumbs';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import DevLogForm from '../../components/DevLogForm';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DevLogPage({ searchParams }) {
   const user = await getSessionUser();
-  const isAdmin = isAdminUser(user);
-
   if (!user) {
-    return (
-      <>
-        <Breadcrumbs
-          items={[
-            { href: '/', label: 'Home' },
-            { href: '/devlog', label: 'Development' },
-          ]}
-        />
-        <section className="card">
-          <h2 className="section-title">Development</h2>
-          <p className="muted">Sign in to view Development.</p>
-        </section>
-      </>
-    );
+    redirect('/');
   }
+  const isAdmin = isAdminUser(user);
 
   const db = await getDb();
   let results = [];

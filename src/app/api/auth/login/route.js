@@ -27,8 +27,8 @@ export async function POST(request) {
   const user = await db
     .prepare(
       isEmail
-        ? 'SELECT id, username, role, email, must_change_password, password_hash FROM users WHERE email_norm = ?'
-        : 'SELECT id, username, role, email, must_change_password, password_hash FROM users WHERE username_norm = ?'
+        ? 'SELECT id, username, role, email, password_hash FROM users WHERE email_norm = ?'
+        : 'SELECT id, username, role, email, password_hash FROM users WHERE username_norm = ?'
     )
     .bind(identifier)
     .first();
@@ -53,8 +53,7 @@ export async function POST(request) {
     ok: true,
     username: user.username,
     email: user.email ?? null,
-    role: user.role,
-    mustChangePassword: !!user.must_change_password
+    role: user.role
   });
   setSessionCookie(response, newToken);
   return response;

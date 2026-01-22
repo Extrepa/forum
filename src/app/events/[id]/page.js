@@ -35,6 +35,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function EventDetailPage({ params, searchParams }) {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
   let event = null;
   try {
@@ -150,21 +154,18 @@ export default async function EventDetailPage({ params, searchParams }) {
     }
   }
 
-  const user = await getSessionUser();
   const isAdmin = isAdminUser(user);
-  
+
   // Check if current user has liked this event
   let userLiked = false;
-  if (user) {
-    try {
-      const likeCheck = await db
-        .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
-        .bind('event', event.id, user.id)
-        .first();
-      userLiked = !!likeCheck;
-    } catch (e) {
-      // Table might not exist yet
-    }
+  try {
+    const likeCheck = await db
+      .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+      .bind('event', event.id, user.id)
+      .first();
+    userLiked = !!likeCheck;
+  } catch (e) {
+    // Table might not exist yet
   }
 
   // Get RSVP status and attendees
@@ -215,23 +216,19 @@ export default async function EventDetailPage({ params, searchParams }) {
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
-      ? 'Sign in before commenting.'
-      : error === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : error === 'locked'
       ? 'Comments are locked on this event.'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;
 
-  const canEdit = !!user && (user.id === event.author_user_id || isAdminUser(user));
+  const canEdit = !!user && !!user.password_hash && (user.id === event.author_user_id || isAdminUser(user));
   const canDelete = canEdit;
   
   const editNotice =
     error === 'claim'
-      ? 'Sign in before editing.'
-      : error === 'password'
-      ? 'Set your password to continue.'
+      ? 'Log in to post.'
       : error === 'unauthorized'
       ? 'Only the event author can edit this.'
       : error === 'upload'

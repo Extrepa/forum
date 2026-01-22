@@ -1356,7 +1356,7 @@ span:has(.username) + .status-badge {
   min-width: 0;
 }
 
-/* Legacy support - default to full if just .soundcloud */
+/* Default height for SoundCloud embeds */
 .embed-frame.soundcloud {
   height: 450px;
   min-height: 450px;
@@ -1855,7 +1855,7 @@ header::before {
     min-height: 400px;
   }
 
-  /* Legacy support */
+  /* SoundCloud embed height on mobile */
   .embed-frame.soundcloud {
     height: 400px;
     min-height: 400px;
@@ -2122,6 +2122,31 @@ header::before {
   gap: 10px;
   align-items: center;
   flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+  .page-top-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .page-top-row-right {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .page-top-row-right button,
+  .page-top-row-right form button {
+    font-size: 12px;
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+  
+  .page-top-row-right form {
+    margin: 0;
+  }
 }
 
 .breadcrumb-item {

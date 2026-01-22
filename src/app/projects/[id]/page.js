@@ -204,11 +204,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     }
   }
 
-  const user = await getSessionUser();
   const isAdmin = isAdminUser(user);
   const canEdit =
     !!user &&
-    !user.must_change_password &&
     !!user.password_hash &&
     (user.id === project.author_user_id || isAdmin);
   const canDelete = canEdit;
@@ -249,9 +247,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   
   const editNotice =
     errorParam === 'claim'
-      ? 'Sign in before editing.'
-      : errorParam === 'password'
-      ? 'Set your password to continue.'
+      ? 'Log in to post.'
       : errorParam === 'unauthorized'
       ? 'Only the project author can edit this.'
       : errorParam === 'upload'
@@ -268,9 +264,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   
   const commentNotice =
     errorParam === 'claim'
-      ? 'Sign in before commenting.'
-      : errorParam === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : errorParam === 'locked'
       ? 'Comments are locked on this project.'
       : errorParam === 'notready'

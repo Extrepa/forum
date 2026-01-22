@@ -10,8 +10,11 @@ import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
 export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage({ params }) {
-  const db = await getDb();
   const currentUser = await getSessionUser();
+  if (!currentUser) {
+    redirect('/');
+  }
+  const db = await getDb();
   
   // Decode username from URL
   const username = decodeURIComponent(params.username);

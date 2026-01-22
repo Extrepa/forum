@@ -5,12 +5,16 @@ import { getSessionUser } from '../../lib/auth';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import PostForm from '../../components/PostForm';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function EventsPage({ searchParams }) {
-  const db = await getDb();
   const user = await getSessionUser();
+  if (!user) {
+    redirect('/');
+  }
+  const db = await getDb();
   
   let results = [];
   try {
@@ -91,7 +95,7 @@ export default async function EventsPage({ searchParams }) {
       ? 'Title and date are required.'
       : null;
 
-  const canCreate = !!user && !user.must_change_password && !!user.password_hash;
+  const canCreate = !!user && !!user.password_hash;
 
   return (
     <>

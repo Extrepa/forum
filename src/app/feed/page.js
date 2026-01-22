@@ -3,6 +3,7 @@ import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +37,11 @@ async function safeAll(db, primarySql, primaryBinds, fallbackSql, fallbackBinds)
 
 export default async function FeedPage() {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
+  if (!user) {
+    redirect('/');
+  }
   const db = await getDb();
+  const isSignedIn = true; // Always true after redirect check
   const limitPerType = 20;
 
   const [announcements, threads, events, music, projects, posts, devlogs] = await Promise.all([

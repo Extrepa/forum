@@ -3,17 +3,14 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
+import { parseLocalDateTimeToUTC } from '../../../lib/dates';
 
 export async function POST(request) {
   const user = await getSessionUser();
   const redirectUrl = new URL('/events', request.url);
 
-  if (!user) {
+  if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
-    return NextResponse.redirect(redirectUrl, 303);
-  }
-  if (user.must_change_password || !user.password_hash) {
-    redirectUrl.searchParams.set('error', 'password');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
@@ -21,9 +18,9 @@ export async function POST(request) {
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
   const startsAtRaw = String(formData.get('starts_at') || '').trim();
-  const startsAt = Date.parse(startsAtRaw);
+  const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
 
-  if (!title || Number.isNaN(startsAt)) {
+  if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
     return NextResponse.redirect(redirectUrl, 303);
   }

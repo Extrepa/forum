@@ -202,6 +202,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     console.error('Error getting session user:', e, { threadId: params.id });
     // Continue without viewer - user will see limited functionality
   }
+  if (!viewer) {
+    redirect('/');
+  }
   
   // Pagination
   const REPLIES_PER_PAGE = 20;
@@ -419,7 +422,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   }
   const isAdmin = isAdminUser(viewer);
   const canToggleLock = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdmin);
-  const canEdit = !!viewer && thread && thread.id && !viewer.must_change_password && !!viewer.password_hash && (viewer.id === thread.author_user_id || isAdmin);
+  const canEdit = !!viewer && thread && thread.id && !!viewer.password_hash && (viewer.id === thread.author_user_id || isAdmin);
   const canDelete = canEdit;
   
   // Check if current user has liked this thread
@@ -484,9 +487,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   
   const notice =
     errorParam === 'claim'
-      ? 'Sign in before replying.'
-      : errorParam === 'password'
-      ? 'Set your password to continue posting.'
+      ? 'Log in to post.'
       : errorParam === 'unauthorized'
       ? 'Not authorized to do that.'
       : errorParam === 'locked'
@@ -499,9 +500,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   
   const editNotice =
     errorParam === 'claim'
-      ? 'Sign in before editing.'
-      : errorParam === 'password'
-      ? 'Set your password to continue.'
+      ? 'Log in to post.'
       : errorParam === 'unauthorized'
       ? 'Only the thread author can edit this.'
       : errorParam === 'missing'

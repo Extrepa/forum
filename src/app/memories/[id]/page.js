@@ -4,23 +4,14 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MemoriesDetailPage({ params, searchParams }) {
   const user = await getSessionUser();
-  const isSignedIn = !!user;
-
-  if (!isSignedIn) {
-    return (
-      <>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]} />
-        <section className="card">
-          <h2 className="section-title">Memories</h2>
-          <p className="muted">Sign in to view Memories.</p>
-        </section>
-      </>
-    );
+  if (!user) {
+    redirect('/');
   }
 
   const db = await getDb();
