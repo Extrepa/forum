@@ -493,10 +493,11 @@ header.header--search-open {
 .header-nav-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: nowrap;
   width: 100%;
   min-height: 0;
+  overflow: hidden; /* Ensure content stays inside */
 }
 
 /* Right-side header controls (Account + Search) */
@@ -504,14 +505,17 @@ header.header--search-open {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 nav {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: nowrap;
   flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
+  overflow: hidden; /* Ensure nav doesn't overflow */
 }
 
 .nav-inline {
@@ -552,7 +556,7 @@ nav {
 }
 
 nav a {
-  padding: 7px 11px;
+  padding: 7px 10px;
   min-height: 40px;
   line-height: 1.1;
   display: inline-flex;
@@ -562,6 +566,7 @@ nav a {
   transition: all 0.2s ease;
   background: rgba(2, 7, 10, 0.4);
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+  flex-shrink: 0; /* Prevent nav buttons from shrinking */
 }
 
 .nav-more-toggle {
