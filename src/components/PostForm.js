@@ -14,6 +14,18 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
+// Helper function to convert UTC datetime to local datetime-local format
+function toLocalDateTimeString(utcTimestamp) {
+  if (!utcTimestamp) return '';
+  const date = new Date(utcTimestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export default function PostForm({
   action,
   titleLabel,
@@ -48,7 +60,7 @@ export default function PostForm({
             name="starts_at" 
             type="datetime-local" 
             required 
-            defaultValue={initialData?.starts_at ? new Date(initialData.starts_at).toISOString().slice(0, 16) : ''}
+            defaultValue={initialData?.starts_at ? toLocalDateTimeString(initialData.starts_at) : ''}
           />
         </label>
       ) : null}
