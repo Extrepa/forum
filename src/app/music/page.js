@@ -17,7 +17,7 @@ export default async function MusicPage({ searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, music_posts.embed_style,
+                music_posts.created_at,
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
@@ -35,7 +35,7 @@ export default async function MusicPage({ searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, music_posts.embed_style,
+                music_posts.created_at,
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
@@ -47,6 +47,11 @@ export default async function MusicPage({ searchParams }) {
       )
       .all();
     results = out?.results || [];
+  }
+  
+  // Set embed_style default (migration may not have run yet)
+  for (const row of results) {
+    row.embed_style = row.embed_style || 'auto';
   }
 
   // Pre-render markdown and embed info for server component

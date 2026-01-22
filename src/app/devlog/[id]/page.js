@@ -4,10 +4,11 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
-import EditPostPanel from '../../../components/EditPostPanel';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 
@@ -247,6 +248,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     !user.must_change_password &&
     !!user.password_hash &&
     (isAdmin || user.id === log.author_user_id);
+  const canDelete = canEdit;
   
   // Check if current user has liked this log
   let userLiked = false;
@@ -275,12 +277,28 @@ export default async function DevLogDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/devlog', label: 'Development' },
           { href: `/devlog/${log.id}`, label: log.title },
         ]}
+        right={
+          canEdit ? (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <EditPostButtonWithPanel 
+                buttonLabel="Edit Post" 
+                panelId="edit-devlog-panel"
+              />
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={log.id} 
+                  postType="devlog"
+                />
+              ) : null}
+            </div>
+          ) : null
+        }
       />
 
       <section className="card">
@@ -329,18 +347,21 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       </section>
 
       {canEdit ? (
-        <EditPostPanel buttonLabel="Edit Post" title="Edit Post">
-          {notice ? <div className="notice">{notice}</div> : null}
-          {isAdmin ? (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-              <form action={`/api/devlog/${log.id}/lock`} method="post">
-                <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
-                <button type="submit">{log.is_locked ? 'Unlock comments' : 'Lock comments'}</button>
-              </form>
-            </div>
-          ) : null}
-          <DevLogForm logId={log.id} initialData={log} />
-        </EditPostPanel>
+        <div id="edit-devlog-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Post</h3>
+            {notice ? <div className="notice">{notice}</div> : null}
+            {isAdmin ? (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                <form action={`/api/devlog/${log.id}/lock`} method="post">
+                  <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
+                  <button type="submit">{log.is_locked ? 'Unlock comments' : 'Lock comments'}</button>
+                </form>
+              </div>
+            ) : null}
+            <DevLogForm logId={log.id} initialData={log} />
+          </section>
+        </div>
       ) : null}
 
       <section className="card">

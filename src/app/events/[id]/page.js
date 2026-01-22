@@ -4,7 +4,9 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
-import EditPostButton from '../../../components/EditPostButton';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
+import PostForm from '../../../components/PostForm';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
@@ -215,6 +217,26 @@ export default async function EventDetailPage({ params, searchParams }) {
       : null;
 
   const canEdit = !!user && (user.id === event.author_user_id || isAdminUser(user));
+  const canDelete = canEdit;
+  
+  const editNotice =
+    error === 'claim'
+      ? 'Sign in before editing.'
+      : error === 'password'
+      ? 'Set your password to continue.'
+      : error === 'unauthorized'
+      ? 'Only the event author can edit this.'
+      : error === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : error === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : error === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : error === 'missing'
+      ? 'Title and date are required.'
+      : error === 'notfound'
+      ? 'This event does not exist.'
+      : null;
 
   return (
     <div className="stack">
@@ -225,10 +247,18 @@ export default async function EventDetailPage({ params, searchParams }) {
           { href: `/events/${event.id}`, label: event.title },
         ]}
         right={canEdit ? (
-          <EditPostButton 
-            postId={event.id} 
-            postType="event"
-          />
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <EditPostButtonWithPanel 
+              buttonLabel="Edit Post" 
+              panelId="edit-event-panel"
+            />
+            {canDelete ? (
+              <DeletePostButton 
+                postId={event.id} 
+                postType="event"
+              />
+            ) : null}
+          </div>
         ) : null}
       />
 
@@ -282,6 +312,29 @@ export default async function EventDetailPage({ params, searchParams }) {
           <p className="muted">No details yet.</p>
         )}
       </section>
+
+      {canEdit ? (
+        <div id="edit-event-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Event</h3>
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <PostForm
+              action={`/api/events/${event.id}`}
+              titleLabel="Event title"
+              bodyLabel="Details (optional)"
+              buttonLabel="Update Event"
+              showDate
+              bodyRequired={false}
+              showImage={true}
+              initialData={{
+                title: event.title,
+                details: event.details,
+                starts_at: event.starts_at
+              }}
+            />
+          </section>
+        </div>
+      ) : null}
 
       <EventCommentsSection
         eventId={event.id}

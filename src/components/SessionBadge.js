@@ -4,7 +4,7 @@ import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default async function SessionBadge() {
-  const token = getSessionToken();
+  const token = await getSessionToken();
   if (!token) {
     return <div className="muted">Guest reader</div>;
   }

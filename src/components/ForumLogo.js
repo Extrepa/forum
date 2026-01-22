@@ -13,7 +13,9 @@ export default function ForumLogo({
   ariaLabel
 }) {
   const [isClicked, setIsClicked] = useState(false);
-  const [logoHue, setLogoHue] = useState(() => Math.floor(Math.random() * 360));
+  // Initialize with a fixed value to avoid hydration mismatch
+  // The useEffect will update it after hydration
+  const [logoHue, setLogoHue] = useState(193);
 
   const handleClick = () => {
     if (typeof onActivate === 'function') {

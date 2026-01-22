@@ -40,8 +40,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT music_posts.id, music_posts.author_user_id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, music_posts.embed_style,
-                music_posts.moved_to_type, music_posts.moved_to_id,
+                music_posts.created_at, music_posts.moved_to_type, music_posts.moved_to_id,
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
@@ -52,6 +51,10 @@ export default async function MusicDetailPage({ params, searchParams }) {
       )
       .bind(params.id)
       .first();
+    // Set embed_style default (migration may not have run yet)
+    if (post) {
+      post.embed_style = 'auto';
+    }
   } catch (e) {
     // Rollout compatibility if moved columns aren't migrated yet.
     try {

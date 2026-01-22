@@ -6,7 +6,7 @@ export function isAdminUser(user) {
 }
 
 export async function getSessionUserWithRole() {
-  const token = getSessionToken();
+  const token = await getSessionToken();
   if (!token) {
     return null;
   }

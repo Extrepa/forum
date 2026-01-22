@@ -46,7 +46,7 @@ export default function EventCommentsSection({
   };
   
   return (
-    <section className="card">
+    <section className="card" style={{ marginTop: '16px' }}>
       {/* Attendee list */}
       {attendees.length > 0 && (
         <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--muted)' }}>

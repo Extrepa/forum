@@ -22,7 +22,8 @@ export default function PostForm({
   showDate = false,
   titleRequired = true,
   bodyRequired = true,
-  showImage = false
+  showImage = false,
+  initialData
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
@@ -38,12 +39,17 @@ export default function PostForm({
     <form action={action} method="post" encType="multipart/form-data">
       <label>
         <div className="muted">{titleLabel}</div>
-        <input name="title" placeholder={titleLabel || 'Title'} required={titleRequired} />
+        <input name="title" placeholder={titleLabel || 'Title'} required={titleRequired} defaultValue={initialData?.title || ''} />
       </label>
       {showDate ? (
         <label>
           <div className="muted">Date and time</div>
-          <input name="starts_at" type="datetime-local" required />
+          <input 
+            name="starts_at" 
+            type="datetime-local" 
+            required 
+            defaultValue={initialData?.starts_at ? new Date(initialData.starts_at).toISOString().slice(0, 16) : ''}
+          />
         </label>
       ) : null}
       {showImage ? (
@@ -88,6 +94,7 @@ export default function PostForm({
           name="body"
           placeholder={bodyLabel || 'Share the details...'}
           required={bodyRequired}
+          defaultValue={initialData?.body || initialData?.details || ''}
         />
       </label>
       <button type="submit">{buttonLabel}</button>

@@ -1181,6 +1181,23 @@ a.list-item:hover {
   opacity: 0.9;
 }
 
+/* Remove any active status indicators from usernames */
+.username::before,
+.username::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Hide any active status bubbles or indicators */
+.username + [class*="active"],
+.username + [class*="status"],
+.username + [class*="online"],
+.username + [class*="bubble"],
+.username + [class*="indicator"],
+.username + [class*="dot"] {
+  display: none !important;
+}
+
 /* Status icons spacing */
 .list-item h3 span {
   margin-right: 6px;

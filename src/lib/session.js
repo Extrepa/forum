@@ -2,8 +2,9 @@ import { cookies } from 'next/headers';
 
 const COOKIE_NAME = 'errl_forum_session';
 
-export function getSessionToken() {
-  return cookies().get(COOKIE_NAME)?.value ?? null;
+export async function getSessionToken() {
+  const cookieStore = await cookies();
+  return cookieStore.get(COOKIE_NAME)?.value ?? null;
 }
 
 export function setSessionCookie(response, token) {

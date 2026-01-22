@@ -2,7 +2,7 @@ import { getDb } from './db';
 import { getSessionToken } from './session';
 
 export async function getSessionUser() {
-  const token = getSessionToken();
+  const token = await getSessionToken();
   if (!token) {
     return null;
   }

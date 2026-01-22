@@ -4,7 +4,7 @@ import { getSessionToken } from '../../../lib/session';
 
 export async function GET() {
   const db = await getDb();
-  const existingToken = getSessionToken();
+  const existingToken = await getSessionToken();
 
   if (existingToken) {
     const existingUser = await db

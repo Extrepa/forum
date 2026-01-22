@@ -131,27 +131,34 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       []
     ),
-    safeAll(
-      db,
-      `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
-              users.username AS author_name
-       FROM posts
-       JOIN users ON users.id = posts.author_user_id
-       WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
-         AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
-       ORDER BY posts.created_at DESC
-       LIMIT ${limitPerType}`,
-      [],
-      `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
-              users.username AS author_name
-       FROM posts
-       JOIN users ON users.id = posts.author_user_id
-       WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
-         AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
-       ORDER BY posts.created_at DESC
-       LIMIT ${limitPerType}`,
-      []
-    ),
+    (async () => {
+      try {
+        return await safeAll(
+          db,
+          `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+             AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+           ORDER BY posts.created_at DESC
+           LIMIT ${limitPerType}`,
+          [],
+          `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
+                  users.username AS author_name
+           FROM posts
+           JOIN users ON users.id = posts.author_user_id
+           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+             AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+           ORDER BY posts.created_at DESC
+           LIMIT ${limitPerType}`,
+          []
+        );
+      } catch (e) {
+        // Table doesn't exist yet (migration 0017_shared_posts.sql not run)
+        return [];
+      }
+    })(),
     isSignedIn
       ? safeAll(
           db,
