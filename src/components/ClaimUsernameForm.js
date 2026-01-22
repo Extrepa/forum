@@ -551,7 +551,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               )}
             </p>
             <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
-              Keep it weird. Keep it drippy. Keep it Errl.
+              Born on an overhead projector, mixing oil and water and light—a spark of awe brought to life.
             </p>
           </div>
         </div>
