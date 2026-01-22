@@ -432,7 +432,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{safeProjectTitle}</h2>
-            <span className={`status-badge status-${safeProjectStatus}`}>{safeProjectStatus}</span>
+            {/* Project status badge removed - was appearing next to username and looked like user status */}
           </div>
           {user ? (
             <LikeButton 
