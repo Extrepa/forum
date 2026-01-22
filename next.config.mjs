@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true
+  reactStrictMode: true,
+  // OpenNext for Cloudflare requires standalone output
+  output: 'standalone',
 };
 
 export default nextConfig;
