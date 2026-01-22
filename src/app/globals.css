@@ -792,7 +792,8 @@ label span {
 textarea {
   min-height: 120px;
   resize: vertical;
-  padding-top: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .post-body {
