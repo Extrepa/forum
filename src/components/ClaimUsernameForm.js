@@ -574,7 +574,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               setMode('signup');
             }}
             disabled={status.type === 'loading'}
-            style={{ marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}
+            style={{
+              marginTop: '12px',
+              background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              fontSize: '15px',
+              boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
+            }}
           >
             Create an account
           </button>
@@ -648,7 +655,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               setMode('login');
             }}
             disabled={status.type === 'loading'}
-            style={{ marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}
+            style={{
+              marginTop: '12px',
+              background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              fontSize: '15px',
+              boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
+            }}
           >
             Sign in instead
           </button>
