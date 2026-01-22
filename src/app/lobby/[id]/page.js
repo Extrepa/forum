@@ -482,90 +482,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
   
-  // Pre-process replies rendering to avoid IIFE issues
-  const renderReplies = () => {
-    try {
-      if (!replies || replies.length === 0) return null;
-      
-      // Pre-process searchParams to avoid issues
-      const quoteParam = searchParams?.quote;
-      const quoteArray = quoteParam 
-        ? (Array.isArray(quoteParam) ? quoteParam.map(String) : [String(quoteParam)])
-        : [];
-      const pageParam = searchParams?.page ? String(searchParams.page) : null;
-      
-      return replies
-        .filter(reply => reply && reply.id && reply.body && reply.author_user_id)
-        .map((reply) => {
-          try {
-            const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
-            const isUnread = firstUnreadId && String(reply.id) === String(firstUnreadId);
-            const isQuoted = reply.id && quoteArray.includes(String(reply.id));
-            
-            // Build quote URL
-            const quoteUrlParams = new URLSearchParams();
-            if (pageParam) quoteUrlParams.set('page', pageParam);
-            if (isQuoted) {
-              quoteArray.filter(id => String(id) !== String(reply.id)).forEach(id => quoteUrlParams.append('quote', id));
-            } else {
-              quoteArray.forEach(id => quoteUrlParams.append('quote', id));
-              quoteUrlParams.append('quote', String(reply.id));
-            }
-            const quoteUrl = quoteUrlParams.toString() ? `?${quoteUrlParams.toString()}` : '';
-            
-            return (
-              <div 
-                key={String(reply.id)} 
-                id={`reply-${reply.id}`}
-                className={`reply-item ${isUnread ? 'reply-unread' : ''}`}
-              >
-                <div
-                  className="reply-meta"
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}
-                >
-                  <span className="reply-author">
-                    <Username name={reply.author_name || 'Unknown'} colorIndex={colorIndex} />
-                  </span>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span className="reply-time">{formatDateTime(reply.created_at || Date.now())}</span>
-                    {!thread?.is_locked && reply.id && (
-                      <a
-                        href={quoteUrl}
-                        className="button"
-                        style={{ fontSize: '12px', padding: '4px 8px' }}
-                      >
-                        {isQuoted ? 'Unquote' : 'Quote'}
-                      </a>
-                    )}
-                    {viewer && reply.id && (viewer.id === reply.author_user_id || isAdminUser(viewer)) && (
-                      <>
-                        <EditPostButton postId={params.id} postType="reply" replyId={reply.id} />
-                        <DeletePostButton postId={params.id} postType="reply" replyId={reply.id} />
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
-              </div>
-            );
-          } catch (replyError) {
-            log('lobby/[id]/page.js:reply-render', 'Reply render error', {threadId:params?.id,replyId:reply?.id,error:replyError?.message}, 'E');
-            return null;
-          }
-        })
-        .filter(Boolean);
-    } catch (repliesError) {
-      log('lobby/[id]/page.js:replies-render', 'Replies rendering error', {threadId:params?.id,error:repliesError?.message,errorStack:repliesError?.stack}, 'E');
-      return null;
-    }
-  };
-  
-  const renderedReplies = renderReplies();
+  // Pre-process searchParams once to avoid repeated access
+  const quoteParam = searchParams?.quote;
+  const quoteArray = quoteParam 
+    ? (Array.isArray(quoteParam) ? quoteParam.map(String) : [String(quoteParam)])
+    : [];
+  const pageParam = searchParams?.page ? String(searchParams.page) : null;
   
   return (
     <div className="stack">
@@ -665,9 +587,67 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
           {notice ? <div className="notice">{notice}</div> : null}
 
-          {renderedReplies && renderedReplies.length > 0 && (
+          {replies && replies.length > 0 && (
             <div className="replies-list">
-              {renderedReplies}
+              {replies
+                .filter(reply => reply && reply.id && reply.body && reply.author_user_id)
+                .map((reply) => {
+                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
+                  const isUnread = firstUnreadId && String(reply.id) === String(firstUnreadId);
+                  const isQuoted = reply.id && quoteArray.includes(String(reply.id));
+                  
+                  // Build quote URL
+                  const quoteUrlParams = new URLSearchParams();
+                  if (pageParam) quoteUrlParams.set('page', pageParam);
+                  if (isQuoted) {
+                    quoteArray.filter(id => String(id) !== String(reply.id)).forEach(id => quoteUrlParams.append('quote', id));
+                  } else {
+                    quoteArray.forEach(id => quoteUrlParams.append('quote', id));
+                    quoteUrlParams.append('quote', String(reply.id));
+                  }
+                  const quoteUrl = quoteUrlParams.toString() ? `?${quoteUrlParams.toString()}` : '';
+                  
+                  return (
+                    <div 
+                      key={String(reply.id)} 
+                      id={`reply-${reply.id}`}
+                      className={`reply-item ${isUnread ? 'reply-unread' : ''}`}
+                    >
+                      <div
+                        className="reply-meta"
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '8px'
+                        }}
+                      >
+                        <span className="reply-author">
+                          <Username name={reply.author_name || 'Unknown'} colorIndex={colorIndex} />
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span className="reply-time">{formatDateTime(reply.created_at || Date.now())}</span>
+                          {!thread?.is_locked && reply.id && (
+                            <a
+                              href={quoteUrl}
+                              className="button"
+                              style={{ fontSize: '12px', padding: '4px 8px' }}
+                            >
+                              {isQuoted ? 'Unquote' : 'Quote'}
+                            </a>
+                          )}
+                          {viewer && reply.id && (viewer.id === reply.author_user_id || isAdminUser(viewer)) && (
+                            <>
+                              <EditPostButton postId={params.id} postType="reply" replyId={reply.id} />
+                              <DeletePostButton postId={params.id} postType="reply" replyId={reply.id} />
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
+                    </div>
+                  );
+                })}
             </div>
           )}
 
