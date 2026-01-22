@@ -1023,18 +1023,7 @@ export default async function HomePage({ searchParams }) {
   return (
     <div className="stack">
       {!hasUsername && (
-        <>
-          <HomeWelcome user={null} />
-          <section className="card split">
-            <div>
-              <h3 className="section-title">Sign in</h3>
-              <p className="muted">
-                Create an account with email, username, and password to post from any device. Sign in with your username or email.
-              </p>
-            </div>
-            <ClaimUsernameForm />
-          </section>
-        </>
+        <ClaimUsernameForm />
       )}
 
       {hasUsername && (
