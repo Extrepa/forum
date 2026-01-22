@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { useUiPrefs } from './UiPrefsProvider';
+import { useRotatingPlaceholder } from '../lib/useRotatingPlaceholder';
 
 export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const router = useRouter();
@@ -25,6 +26,80 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   // login (email or username)
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginIdentifierFocused, setLoginIdentifierFocused] = useState(false);
+
+  // signup focus tracking
+  const [signupEmailFocused, setSignupEmailFocused] = useState(false);
+  const [signupUsernameFocused, setSignupUsernameFocused] = useState(false);
+
+  // Rotating placeholder suggestions
+  const USERNAME_SUGGESTIONS = [
+    'DripGoblin',
+    'GooGroove',
+    'BassBlob',
+    'NeonNomad',
+    'PortalPunk',
+    'SlimeSignal',
+    'WinampWizard',
+    'DialupDJ',
+    'LagWizard',
+    'NuggetMage',
+    'GlowstickGremlin',
+    'MixtapeMage',
+    'SavePointSnacks',
+    'LootGoblin',
+    'QuestSnack',
+    'ArcadeAftertaste',
+    'FinalBoss',
+    'GGNoob',
+    'NoScopeNugget',
+    'TacoTactician',
+    'CrunchwrapKing',
+    'SauceGoblin',
+    'MySpacePhantom',
+    'BlockbusterBandit',
+    'xXxDripLordxXx',
+  ];
+
+  const EMAIL_SUGGESTIONS = [
+    'dripgoblin2004@hotmail.com',
+    'googroove@yahoo.com',
+    'bassblob@aol.com',
+    'neonnomad2003@hotmail.com',
+    'portalpunk@yahoo.com',
+    'slimesignal@msn.com',
+    'winampwizard2002@hotmail.com',
+    'dialupdj@aol.com',
+    'lagwizard@yahoo.com',
+    'nuggetmage2004@hotmail.com',
+    'glowstickgremlin@msn.com',
+    'mixtapemage@yahoo.com',
+    'savepointsnacks@hotmail.com',
+    'lootgoblin@aol.com',
+    'questsnack@yahoo.com',
+    'arcadeaftertaste@msn.com',
+    'finalboss2001@hotmail.com',
+    'ggnoob@yahoo.com',
+    'noscope_nugget@aol.com',
+    'tacotactician@hotmail.com',
+    'crunchwrapking@yahoo.com',
+    'saucegoblin@msn.com',
+    'myspacephantom@aol.com',
+    'blockbusterbandit@hotmail.com',
+    'driplordxxx@yahoo.com',
+  ];
+
+  // Combined suggestions for login (can be email or username)
+  const LOGIN_IDENTIFIER_SUGGESTIONS = [...USERNAME_SUGGESTIONS, ...EMAIL_SUGGESTIONS];
+
+  // Rotating placeholders
+  const loginIdentifierActive = loginIdentifier.length === 0;
+  const signupEmailActive = signupEmail.length === 0;
+  const signupUsernameActive = signupUsername.length === 0;
+
+  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive);
+  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive);
+  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive);
 
   // account settings
   const [newEmail, setNewEmail] = useState('');
@@ -569,7 +644,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     name="identifier"
                     value={loginIdentifier}
                     onChange={(event) => setLoginIdentifier(event.target.value)}
-                    placeholder="you@example.com"
+                    onFocus={() => setLoginIdentifierFocused(true)}
+                    onBlur={() => setLoginIdentifierFocused(false)}
+                    placeholder={loginIdentifierActive ? loginIdentifierPlaceholder : 'you@example.com'}
+                    autoComplete="username"
                     required
                   />
                 </label>
@@ -622,7 +700,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     name="email"
                     value={signupEmail}
                     onChange={(event) => setSignupEmail(event.target.value)}
-                    placeholder="you@example.com"
+                    onFocus={() => setSignupEmailFocused(true)}
+                    onBlur={() => setSignupEmailFocused(false)}
+                    placeholder={signupEmailActive ? signupEmailPlaceholder : 'you@example.com'}
+                    autoComplete="email"
                     required
                   />
                 </label>
@@ -632,7 +713,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     name="username"
                     value={signupUsername}
                     onChange={(event) => setSignupUsername(event.target.value)}
-                    placeholder="errlmember"
+                    onFocus={() => setSignupUsernameFocused(true)}
+                    onBlur={() => setSignupUsernameFocused(false)}
+                    placeholder={signupUsernameActive ? signupUsernamePlaceholder : 'errlmember'}
+                    autoComplete="username"
                     required
                   />
                 </label>
