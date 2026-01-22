@@ -46,10 +46,10 @@ export default function EventCommentsSection({
   };
   
   return (
-    <section className="card" style={{ marginTop: '16px' }}>
+    <section className="card" style={{ marginTop: '24px' }}>
       {/* Attendee list */}
       {attendees.length > 0 && (
-        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--muted)' }}>
+        <div style={{ marginBottom: '20px', fontSize: '13px', color: 'var(--muted)' }}>
           <strong style={{ color: 'var(--ink)' }}>
             {attendees.length} {attendees.length === 1 ? 'person' : 'people'} attending:
           </strong>{' '}
