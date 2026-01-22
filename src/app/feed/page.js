@@ -272,28 +272,42 @@ export default async function FeedPage() {
             <p className="muted">Nothing new… the goo is resting.</p>
           ) : (
             items.map((item) => (
-              <div key={`${item.type}:${item.href}`} className="list-item">
+              <a
+                key={`${item.type}:${item.href}`}
+                href={item.href}
+                className="list-item"
+                style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+              >
                 <div className="post-header">
-                  <h3>
-                    <a href={item.href}>{item.title}</a>
-                  </h3>
-                  <span className="muted" style={{ fontSize: 12 }}>
-                    {item.type}
-                  </span>
+                  <h3 style={{ margin: 0 }}>{item.title}</h3>
                 </div>
                 <div
-                  className="list-meta"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    marginTop: '8px',
+                    gap: '16px'
+                  }}
                 >
-                  <span>
-                    <Username name={item.author} colorIndex={getUsernameColorIndex(item.author)} />
-                  </span>
-                  <span>
-                    {formatTimeAgo(item.createdAt)}
-                    {item.meta ? ` · ${item.meta}` : ''}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                      posted by: <Username name={item.author} colorIndex={getUsernameColorIndex(item.author)} />
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                      {formatTimeAgo(item.createdAt)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                    <span className="muted" style={{ fontSize: 12 }}>{item.type}</span>
+                    {item.type === 'Event' && item.meta ? (
+                      <span style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'right' }}>
+                        {item.meta}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
+              </a>
             ))
           )}
         </div>

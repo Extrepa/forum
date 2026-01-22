@@ -3,10 +3,13 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
 import { getSessionUser } from '../../../lib/auth';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import { isAdminUser } from '../../../lib/admin';
+import PageTopRow from '../../../components/PageTopRow';
+import EditPostButton from '../../../components/EditPostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
+import CommentFormWrapper from '../../../components/CommentFormWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +38,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
   try {
     post = await db
       .prepare(
-        `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+        `SELECT music_posts.id, music_posts.author_user_id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at, music_posts.embed_style,
                 music_posts.moved_to_type, music_posts.moved_to_id,
@@ -54,7 +57,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     try {
       post = await db
         .prepare(
-          `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+          `SELECT music_posts.id, music_posts.author_user_id, music_posts.title, music_posts.body, music_posts.url,
                   music_posts.type, music_posts.tags, music_posts.image_key,
                   music_posts.created_at, users.username AS author_name,
                   (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
@@ -76,7 +79,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       try {
         post = await db
           .prepare(
-            `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
+            `SELECT music_posts.id, music_posts.author_user_id, music_posts.title, music_posts.body, music_posts.url,
                     music_posts.type, music_posts.tags, music_posts.image_key,
                     music_posts.created_at, users.username AS author_name,
                     (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
@@ -162,6 +165,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       : null;
 
   const user = await getSessionUser();
+  const canEdit = !!user && (user.id === post.author_user_id || isAdminUser(user));
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   
@@ -181,12 +185,18 @@ export default async function MusicDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/music', label: 'Music' },
           { href: `/music/${post.id}`, label: post.title },
         ]}
+        right={canEdit ? (
+          <EditPostButton 
+            postId={post.id} 
+            postType="music_post"
+          />
+        ) : null}
       />
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -302,14 +312,13 @@ export default async function MusicDetailPage({ params, searchParams }) {
             })()
           )}
         </div>
-        <form action="/api/music/comments" method="post">
-          <input type="hidden" name="post_id" value={post.id} />
-          <label>
-            <div className="muted">Say something</div>
-            <textarea name="body" placeholder="Leave a comment" required />
-          </label>
-          <button type="submit">Post comment</button>
-        </form>
+        <CommentFormWrapper
+          action="/api/music/comments"
+          buttonLabel="Post comment"
+          placeholder="Drop your thoughts into the goo..."
+          labelText="What would you like to say?"
+          hiddenFields={{ post_id: post.id }}
+        />
       </section>
     </div>
   );

@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-
 export default function EditPostButton({ postId, postType = 'thread', replyId = null, onEdit }) {
   const handleClick = () => {
     if (onEdit) {
       onEdit();
+    } else {
+      // Default behavior: navigate to edit mode
+      const url = new URL(window.location.href);
+      url.searchParams.set('edit', 'true');
+      window.location.href = url.toString();
     }
   };
 

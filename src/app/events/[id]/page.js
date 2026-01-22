@@ -2,11 +2,14 @@ import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import { isAdminUser } from '../../../lib/admin';
+import PageTopRow from '../../../components/PageTopRow';
+import EditPostButton from '../../../components/EditPostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
 import LikeButton from '../../../components/LikeButton';
+import EventCommentsSection from '../../../components/EventCommentsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +38,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   try {
     event = await db
       .prepare(
-          `SELECT events.id, events.title, events.details, events.starts_at,
+          `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
                 users.username AS author_name,
@@ -51,7 +54,7 @@ export default async function EventDetailPage({ params, searchParams }) {
     try {
       event = await db
         .prepare(
-            `SELECT events.id, events.title, events.details, events.starts_at,
+            `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
                   users.username AS author_name,
                   0 AS like_count
@@ -70,7 +73,7 @@ export default async function EventDetailPage({ params, searchParams }) {
       try {
         event = await db
           .prepare(
-              `SELECT events.id, events.title, events.details, events.starts_at,
+              `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                     events.created_at, events.image_key,
                     users.username AS author_name,
                     0 AS like_count
@@ -188,6 +191,12 @@ export default async function EventDetailPage({ params, searchParams }) {
     }
   }
 
+  // Pre-render markdown for comments
+  const commentsWithHtml = comments.map(c => ({
+    ...c,
+    body_html: renderMarkdown(c.body)
+  }));
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
@@ -198,14 +207,22 @@ export default async function EventDetailPage({ params, searchParams }) {
       ? 'Comment text is required.'
       : null;
 
+  const canEdit = !!user && (user.id === event.author_user_id || isAdminUser(user));
+
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/events', label: 'Events' },
           { href: `/events/${event.id}`, label: event.title },
         ]}
+        right={canEdit ? (
+          <EditPostButton 
+            postId={event.id} 
+            postType="event"
+          />
+        ) : null}
       />
 
       <section className="card">
@@ -259,75 +276,14 @@ export default async function EventDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      {/* Compact attendee list */}
-      {attendees.length > 0 && (
-        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--muted)' }}>
-          <strong style={{ color: 'var(--ink)' }}>{attendees.length} {attendees.length === 1 ? 'person' : 'people'} attending:</strong>{' '}
-          {attendees.slice(0, 5).map((a, i) => (
-            <span key={a.id}>
-              <Username name={a.username} colorIndex={getUsernameColorIndex(a.username)} />
-              {i < Math.min(attendees.length, 5) - 1 ? ', ' : ''}
-            </span>
-          ))}
-          {attendees.length > 5 && <span className="muted"> and {attendees.length - 5} more</span>}
-        </div>
-      )}
-
-      <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '12px', flexWrap: 'wrap' }}>
-          <h3 className="section-title" style={{ margin: 0 }}>Comments</h3>
-          {user ? (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <input type="checkbox" name="attending" form="event-comment-form" defaultChecked={userAttending} />
-              <span style={{ fontSize: '14px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>I'm attending</span>
-            </label>
-          ) : null}
-        </div>
-        {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <div className="list">
-          {comments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
-          ) : (
-            (() => {
-              let lastName = null;
-              let lastIndex = null;
-              return comments.map((c) => {
-                const colorIndex = getUsernameColorIndex(c.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = c.author_name;
-                lastIndex = colorIndex;
-                return (
-                  <div key={c.id} className="list-item">
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                    <div
-                      className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <span>
-                        <Username name={c.author_name} colorIndex={colorIndex} />
-                      </span>
-                      <span>{new Date(c.created_at).toLocaleString()}</span>
-                    </div>
-                  </div>
-                );
-              });
-            })()
-          )}
-        </div>
-        {user ? (
-          <form id="event-comment-form" action={`/api/events/${event.id}/comments`} method="post">
-            <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <button type="submit">Post comment</button>
-          </form>
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
-      </section>
+      <EventCommentsSection
+        eventId={event.id}
+        initialAttending={userAttending}
+        initialAttendees={attendees}
+        comments={commentsWithHtml}
+        user={user}
+        commentNotice={commentNotice}
+      />
     </div>
   );
 }

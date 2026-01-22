@@ -9,7 +9,7 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import ThreadViewTracker from '../../../components/ThreadViewTracker';
 import Pagination from '../../../components/Pagination';
-import ReplyForm from '../../../components/ReplyForm';
+import CollapsibleReplyFormWrapper from '../../../components/CollapsibleReplyFormWrapper';
 import EditPostButton from '../../../components/EditPostButton';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
@@ -452,7 +452,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               Replies are locked for this thread.
             </p>
           ) : (
-            <ReplyForm 
+            <CollapsibleReplyFormWrapper 
               threadId={thread.id}
               initialQuotes={(() => {
                 const quoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
@@ -463,6 +463,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 }));
               })()}
               action={`/api/forum/${thread.id}/replies`}
+              buttonLabel="Post reply"
             />
           )}
 

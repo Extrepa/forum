@@ -9,6 +9,7 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
+import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -406,26 +407,15 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           )}
         </div>
         {canComment ? (
-          <form id="reply-form" action={`/api/devlog/${log.id}/comments`} method="post">
-            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
-            <label>
-              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
-              <textarea
-                name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
-                required
-                defaultValue={replyPrefill}
-              />
-            </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="submit">Post reply</button>
-              {replyingTo ? (
-                <a className="project-link" href={`/devlog/${log.id}`}>
-                  Cancel
-                </a>
-              ) : null}
-            </div>
-          </form>
+          <ReplyFormWrapper
+            action={`/api/devlog/${log.id}/comments`}
+            buttonLabel="Post reply"
+            placeholder="Share your goo-certified thoughts..."
+            labelText="What would you like to say?"
+            hiddenFields={{ reply_to_id: replyToId || '' }}
+            replyingTo={replyingTo}
+            replyPrefill={replyPrefill}
+          />
         ) : (
           <p className="muted">
             {log.is_locked

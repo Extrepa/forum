@@ -10,6 +10,7 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import AdminControlsBar from '../../../components/AdminControlsBar';
 import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
+import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -300,26 +301,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {repliesEnabled ? (
-          <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
-            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
-            <label>
-              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
-              <textarea
-                name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
-                required
-                defaultValue={replyPrefill}
-              />
-            </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="submit">Post reply</button>
-              {replyingTo ? (
-                <a className="project-link" href={`/projects/${project.id}`}>
-                  Cancel
-                </a>
-              ) : null}
-            </div>
-          </form>
+          <ReplyFormWrapper
+            action={`/api/projects/${project.id}/replies`}
+            buttonLabel="Post reply"
+            placeholder="Share your goo-certified thoughts..."
+            labelText="What would you like to say?"
+            hiddenFields={{ reply_to_id: replyToId || '' }}
+            replyingTo={replyingTo}
+            replyPrefill={replyPrefill}
+          />
         ) : (
           <div className="muted" style={{ fontSize: 13 }}>
             Replies aren’t enabled yet (database updates still applying).
@@ -393,26 +383,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           )}
         </div>
         {repliesEnabled ? (
-          <form id="reply-form" action={`/api/projects/${project.id}/replies`} method="post">
-            <input type="hidden" name="reply_to_id" value={replyToId || ''} />
-            <label>
-              <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : 'Add a reply'}</div>
-              <textarea
-                name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Write a reply…'}
-                required
-                defaultValue={replyPrefill}
-              />
-            </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="submit">Post reply</button>
-              {replyingTo ? (
-                <a className="project-link" href={`/projects/${project.id}`}>
-                  Cancel
-                </a>
-              ) : null}
-            </div>
-          </form>
+          <ReplyFormWrapper
+            action={`/api/projects/${project.id}/replies`}
+            buttonLabel="Post reply"
+            placeholder="Share your goo-certified thoughts..."
+            labelText="What would you like to say?"
+            hiddenFields={{ reply_to_id: replyToId || '' }}
+            replyingTo={replyingTo}
+            replyPrefill={replyPrefill}
+          />
         ) : (
           <div className="muted" style={{ fontSize: 13 }}>
             Replies aren't enabled yet (database updates still applying).

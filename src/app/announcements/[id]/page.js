@@ -6,6 +6,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
+import CommentFormWrapper from '../../../components/CommentFormWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,13 +136,12 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {user ? (
-          <form action={`/api/timeline/${update.id}/comments`} method="post">
-            <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <button type="submit">Post comment</button>
-          </form>
+          <CommentFormWrapper
+            action={`/api/timeline/${update.id}/comments`}
+            buttonLabel="Post comment"
+            placeholder="Drop your thoughts into the goo..."
+            labelText="What would you like to say?"
+          />
         ) : (
           <p className="muted">Sign in to comment.</p>
         )}
