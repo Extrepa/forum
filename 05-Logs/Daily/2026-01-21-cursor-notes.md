@@ -39,6 +39,13 @@
   - Added `min-height: 0` to ensure flex scrolling works
 - **Result**: Navigation menu now shows fixed number of items and scrolls properly with mouse wheel (desktop) and touch (mobile)
 
+### 7. Fix Linter Errors ✅
+- **File**: `src/app/globals.css`
+- **Changes**:
+  - Fixed `.embed-frame.16\\:9` selector (lines 1262-1264) - changed to attribute selector `.embed-frame[class*="16:9"]` to properly match class names with colons
+  - Removed empty ruleset warning by removing unnecessary comment block in mobile media query
+- **Result**: All linter errors resolved, build passes cleanly
+
 ## Verification & Testing
 
 ### Code Review ✅

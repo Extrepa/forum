@@ -171,22 +171,26 @@ header.header--search-open {
 
 .nav-menu-links-scrollable {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-right: 4px;
-  /* Desktop: Show 4 items (4 × 40px + 3 × 10px gaps = 190px) */
-  max-height: 190px;
-  /* Ensure scrolling works */
-  min-height: 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  /* Allow all items to be visible, wrapping to fit */
+  overflow: visible;
+  padding-right: 0;
+  /* Fit approximately 3 rows of items */
+  max-height: 150px; /* Roughly 3 rows × 50px (40px item + 10px gap) */
+  align-content: flex-start;
 }
 
 .nav-menu-links-scrollable a {
-  justify-content: flex-start;
-  width: 100%;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
   white-space: nowrap;
+  /* Allow items to shrink to fit */
+  font-size: 13px;
+  padding: 6px 10px;
+  min-height: 36px;
 }
 
 .nav-menu-links-scrollable::-webkit-scrollbar {
@@ -2248,8 +2252,15 @@ header::before {
   }
 
   .nav-menu-links-scrollable {
-    /* Mobile: Show 3 items (3 × 40px + 2 × 10px gaps = 140px) */
-    max-height: 140px;
+    /* Mobile: Fit approximately 3 rows of items */
+    max-height: 130px;
+    gap: 6px;
+  }
+
+  .nav-menu-links-scrollable a {
+    font-size: 12px;
+    padding: 5px 8px;
+    min-height: 32px;
   }
 
   .search-results-popover {
