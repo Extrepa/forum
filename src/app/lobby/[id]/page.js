@@ -591,18 +591,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             <div className="replies-list">
               {replies
                 .filter(reply => reply && reply.id && reply.body)
-                .slice(0, 5)
+                .slice(0, 3)
                 .map((reply) => {
                   const replyId = String(reply.id);
+                  const authorName = String(reply.author_name || 'Unknown');
+                  const bodyText = String(reply.body || '');
                   return (
                     <div key={replyId} id={`reply-${replyId}`} className="reply-item">
                       <div className="reply-meta">
-                        <span className="reply-author">
-                          <Username name={String(reply.author_name || 'Unknown')} colorIndex={usernameColorMap.get(reply.author_name) ?? 0} />
-                        </span>
+                        <span className="reply-author">{authorName}</span>
                         <span className="reply-time">{formatDateTime(reply.created_at || Date.now())}</span>
                       </div>
-                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
+                      <div className="reply-body">{bodyText}</div>
                     </div>
                   );
                 })}
@@ -622,20 +622,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               Replies are locked for this thread.
             </p>
           ) : thread?.id ? (
-            <CollapsibleReplyFormWrapper 
-              threadId={thread.id}
-              initialQuotes={quoteArray.length > 0 && replies && replies.length > 0
-                ? replies
-                    .filter(r => r && r.id && quoteArray.includes(String(r.id)))
-                    .map(r => ({
-                      id: String(r.id),
-                      author_name: String(r.author_name || 'Unknown'),
-                      body: String(r.body || '')
-                    }))
-                : []}
-              action={`/api/forum/${thread.id}/replies`}
-              buttonLabel="Post reply"
-            />
+            <p className="muted" style={{ marginTop: '12px' }}>
+              Reply form temporarily disabled for debugging.
+            </p>
           ) : null}
 
           {replies.length === 0 && <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>}
