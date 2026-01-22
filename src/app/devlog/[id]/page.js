@@ -284,20 +284,30 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           { href: `/devlog/${log.id}`, label: log.title },
         ]}
         right={
-          canEdit ? (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <EditPostButtonWithPanel 
-                buttonLabel="Edit Post" 
-                panelId="edit-devlog-panel"
-              />
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={log.id} 
-                  postType="devlog"
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? (
+              <form action={`/api/devlog/${log.id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
+                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
+                  {log.is_locked ? 'Unlock comments' : 'Lock comments'}
+                </button>
+              </form>
+            ) : null}
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-devlog-panel"
                 />
-              ) : null}
-            </div>
-          ) : null
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={log.id} 
+                    postType="devlog"
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
         }
       />
 
@@ -351,14 +361,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <section className="card">
             <h3 className="section-title">Edit Post</h3>
             {notice ? <div className="notice">{notice}</div> : null}
-            {isAdmin ? (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                <form action={`/api/devlog/${log.id}/lock`} method="post">
-                  <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
-                  <button type="submit">{log.is_locked ? 'Unlock comments' : 'Lock comments'}</button>
-                </form>
-              </div>
-            ) : null}
             <DevLogForm logId={log.id} initialData={log} />
           </section>
         </div>

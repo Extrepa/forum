@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../lib/db';
-import { getSessionUserWithRole, isAdminUser } from '../../../../lib/admin';
+import { getSessionUser } from '../../../../lib/auth';
+import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 
 export async function GET(request, { params }) {
-  const user = await getSessionUserWithRole();
+  const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -32,7 +33,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const user = await getSessionUserWithRole();
+  const user = await getSessionUser();
   const redirectUrl = new URL(`/devlog/${params.id}`, request.url);
 
   if (!user) {
