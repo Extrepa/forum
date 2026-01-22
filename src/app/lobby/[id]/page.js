@@ -3,17 +3,14 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
-import ThreadViewTracker from '../../../components/ThreadViewTracker';
-import Pagination from '../../../components/Pagination';
-import CollapsibleReplyFormWrapper from '../../../components/CollapsibleReplyFormWrapper';
-import EditPostButton from '../../../components/EditPostButton';
+import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
-import AdminControlsBar from '../../../components/AdminControlsBar';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import { isAdminUser } from '../../../lib/admin';
 
 export const dynamic = 'force-dynamic';
@@ -251,6 +248,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
+                  forum_replies.reply_to_id,
                   COALESCE(users.username, 'Deleted User') AS author_name
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
@@ -278,6 +276,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
+                  forum_replies.reply_to_id,
                   COALESCE(users.username, 'Deleted User') AS author_name
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
@@ -298,7 +297,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       try {
         const result = await db
           .prepare(
-            `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id
+            `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
+                    forum_replies.reply_to_id
              FROM forum_replies
              WHERE forum_replies.thread_id = ?
              ORDER BY forum_replies.created_at ASC
@@ -462,14 +462,23 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     usernameColorMap = new Map();
   }
 
-  // Safely extract error from searchParams
+  // Safely extract searchParams
   let errorParam = null;
+  let replyToId = null;
   try {
-    if (searchParams && typeof searchParams === 'object' && 'error' in searchParams) {
-      errorParam = String(searchParams.error || '');
+    if (searchParams && typeof searchParams === 'object') {
+      if ('error' in searchParams) {
+        errorParam = String(searchParams.error || '');
+      }
+      if ('replyTo' in searchParams) {
+        const replyTo = String(searchParams.replyTo || '').trim();
+        replyToId = replyTo || null;
+      }
     }
   } catch (e) {
-    console.error('Error reading searchParams.error:', e);
+    console.error('Error reading searchParams:', e);
+    errorParam = null;
+    replyToId = null;
   }
   
   const notice =
@@ -486,31 +495,30 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       : errorParam === 'missing'
       ? 'Reply text is required.'
       : null;
+  
+  const editNotice =
+    errorParam === 'claim'
+      ? 'Sign in before editing.'
+      : errorParam === 'password'
+      ? 'Set your password to continue.'
+      : errorParam === 'unauthorized'
+      ? 'Only the thread author can edit this.'
+      : errorParam === 'missing'
+      ? 'Title and body are required.'
+      : null;
+  
+  function quoteMarkdown({ author, body }) {
+    const safeAuthor = String(author || 'Someone').trim() || 'Someone';
+    const text = String(body || '').trim();
+    if (!text) return `> @${safeAuthor} said:\n>\n\n`;
+    const lines = text.split('\n').slice(0, 8);
+    const quoted = lines.map((l) => `> ${l}`).join('\n');
+    return `> @${safeAuthor} said:\n${quoted}\n\n`;
+  }
 
   // #region agent log
   log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
-  
-  // Pre-process searchParams once to avoid repeated access - ensure it's serializable
-  let quoteArray = [];
-  let pageParam = null;
-  try {
-    if (searchParams && typeof searchParams === 'object') {
-      const quoteParam = searchParams.quote;
-      if (quoteParam !== undefined && quoteParam !== null) {
-        quoteArray = Array.isArray(quoteParam) 
-          ? quoteParam.map(v => String(v)).filter(Boolean)
-          : [String(quoteParam)].filter(Boolean);
-      }
-      if (searchParams.page !== undefined && searchParams.page !== null) {
-        pageParam = String(searchParams.page);
-      }
-    }
-  } catch (e) {
-    console.error('Error processing searchParams:', e);
-    quoteArray = [];
-    pageParam = null;
-  }
   
   // Ensure all values are serializable before rendering - convert to primitives
   const safeThreadId = thread?.id ? String(thread.id) : '';
@@ -531,9 +539,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           author_name: String(reply.author_name || 'Unknown'),
           body: String(reply.body || ''),
           created_at: reply.created_at ? Number(reply.created_at) : Date.now(),
-          author_user_id: String(reply.author_user_id || '')
+          author_user_id: String(reply.author_user_id || ''),
+          reply_to_id: reply.reply_to_id ? String(reply.reply_to_id) : null
         }))
     : [];
+  
+  // Find and serialize replyingTo from safeReplies
+  const replyingTo = replyToId ? safeReplies.find((r) => r && r.id && r.id === replyToId) : null;
+  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
   
   // Pre-render markdown to avoid issues
   let threadBodyHtml = '';
@@ -544,90 +557,190 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     threadBodyHtml = safeThreadBody.replace(/\n/g, '<br>');
   }
   
+  // Extract reply rendering logic to avoid IIFE
+  const renderReplies = () => {
+    if (safeReplies.length === 0) return [];
+    
+    const byParent = new Map();
+    const validReplyIds = new Set(safeReplies.map(r => r.id).filter(Boolean));
+    
+    for (const r of safeReplies) {
+      if (!r || !r.id) continue;
+      const key = (r.reply_to_id && validReplyIds.has(r.reply_to_id)) ? r.reply_to_id : null;
+      const arr = byParent.get(key) || [];
+      arr.push(r);
+      byParent.set(key, arr);
+    }
+    
+    const renderReply = (r, { isChild }) => {
+      if (!r || !r.id || !r.body) return null;
+      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
+      
+      let replyBodyHtml = '';
+      try {
+        replyBodyHtml = renderMarkdown(r.body);
+      } catch (e) {
+        console.error('Error rendering reply markdown:', e, { replyId: r.id });
+        replyBodyHtml = r.body.replace(/\n/g, '<br>');
+      }
+      
+      const replyLink = `/lobby/${safeThreadId}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
+      
+      return (
+        <div
+          key={r.id}
+          className={`list-item${isChild ? ' reply-item--child' : ''}`}
+          id={`reply-${r.id}`}
+        >
+          <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
+          <div
+            className="list-meta"
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+          >
+            <span>
+              <Username name={r.author_name} colorIndex={colorIndex} />
+            </span>
+            <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <a className="post-link" href={replyLink}>
+                Reply
+              </a>
+              <span>{r.created_at ? formatDateTime(r.created_at) : ''}</span>
+            </span>
+          </div>
+        </div>
+      );
+    };
+    
+    const top = byParent.get(null) || [];
+    return top.map((r) => {
+      const kids = byParent.get(r.id) || [];
+      const renderedReply = renderReply(r, { isChild: false });
+      const renderedKids = kids.map((c) => renderReply(c, { isChild: true })).filter(Boolean);
+      if (!renderedReply) return null;
+      return (
+        <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
+          {renderedReply}
+          {renderedKids.length ? (
+            <div className="reply-children">
+              {renderedKids}
+            </div>
+          ) : null}
+        </div>
+      );
+    }).filter(Boolean);
+  };
+  
+  const renderedReplies = renderReplies();
+  
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/lobby', label: 'General' },
-          { href: `/lobby/${safeThreadId}`, label: safeThreadTitle }
+          { href: `/lobby/${safeThreadId}`, label: safeThreadTitle },
         ]}
-      />
-      <section className="card thread-container">
-        <div className="thread-post">
-          <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-            <h2 className="section-title" style={{ margin: 0, flex: 1 }}>
-              {safeThreadTitle}
-            </h2>
-          </div>
-          <div className="list-meta">
-            <span>{safeAuthorName}</span> ·{' '}
-            {safeThreadCreatedAt ? formatDateTime(safeThreadCreatedAt) : ''}
-            {safeThreadIsLocked ? ' · Replies locked' : null}
-          </div>
-          {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" /> : null}
-          <div className="post-body" dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
-        </div>
-
-        <div className="thread-replies">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 className="section-title" style={{ margin: 0 }}>Replies ({totalReplies})</h3>
-            {firstUnreadId ? (
-              <a 
-                href={`#reply-${firstUnreadId}`}
-                className="button"
-                style={{ fontSize: '14px', padding: '6px 12px' }}
-              >
-                Jump to first unread
-              </a>
-            ) : null}
-            {totalPages > 1 && safeReplies.length > 0 ? (
-              <a 
-                href={`#reply-${safeReplies[safeReplies.length - 1].id}`}
-                className="button"
-                style={{ fontSize: '14px', padding: '6px 12px', marginLeft: '8px' }}
-              >
-                Jump to bottom
-              </a>
-            ) : null}
-          </div>
-          {notice ? <div className="notice">{notice}</div> : null}
-
-          {safeReplies.length > 0 && (
-            <div className="replies-list">
-              {safeReplies.slice(0, 10).map((reply) => {
-                let replyBodyHtml = '';
-                try {
-                  replyBodyHtml = renderMarkdown(reply.body);
-                } catch (e) {
-                  console.error('Error rendering reply markdown:', e, { replyId: reply.id });
-                  replyBodyHtml = reply.body.replace(/\n/g, '<br>');
-                }
-                return (
-                  <div key={reply.id} id={`reply-${reply.id}`} className="reply-item">
-                    <div className="reply-meta">
-                      <span className="reply-author">{reply.author_name}</span>
-                      <span className="reply-time">{formatDateTime(reply.created_at)}</span>
-                    </div>
-                    <div className="reply-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
-                  </div>
-                );
-              })}
+        right={
+          canEdit ? (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <EditPostButtonWithPanel 
+                buttonLabel="Edit Post" 
+                panelId="edit-thread-panel"
+              />
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={safeThreadId} 
+                  postType="thread"
+                />
+              ) : null}
             </div>
-          )}
-
-          {safeThreadIsLocked ? (
-            <p className="muted" style={{ marginTop: '12px' }}>
-              Replies are locked for this thread.
-            </p>
-          ) : (
-            <p className="muted" style={{ marginTop: '12px' }}>
-              Reply form temporarily disabled.
-            </p>
-          )}
-
-          {safeReplies.length === 0 && <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>}
+          ) : null
+        }
+      />
+      <section className="card">
+        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+          <h2 className="section-title" style={{ margin: 0, flex: 1 }}>
+            {safeThreadTitle}
+          </h2>
+          {viewer ? (
+            <LikeButton 
+              postType="forum_thread" 
+              postId={safeThreadId} 
+              initialLiked={userLiked}
+              initialCount={safeThreadLikeCount}
+            />
+          ) : null}
         </div>
+        <div className="list-meta">
+          <Username name={safeAuthorName} colorIndex={usernameColorMap.get(safeAuthorName) ?? 0} /> ·{' '}
+          {safeThreadCreatedAt ? formatDateTime(safeThreadCreatedAt) : ''}
+          {safeThreadIsLocked ? ' · Replies locked' : null}
+        </div>
+        {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" /> : null}
+        <div className="post-body" dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
+      </section>
+
+      {canEdit ? (
+        <div id="edit-thread-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Thread</h3>
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <EditThreadForm 
+              threadId={safeThreadId}
+              initialTitle={safeThreadTitle}
+              initialBody={safeThreadBody}
+            />
+          </section>
+        </div>
+      ) : null}
+
+      <section className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <h3 className="section-title" style={{ margin: 0 }}>Replies ({totalReplies})</h3>
+          {firstUnreadId ? (
+            <a 
+              href={`#reply-${firstUnreadId}`}
+              className="button"
+              style={{ fontSize: '14px', padding: '6px 12px' }}
+            >
+              Jump to first unread
+            </a>
+          ) : null}
+          {totalPages > 1 && safeReplies.length > 0 ? (
+            <a 
+              href={`#reply-${safeReplies[safeReplies.length - 1].id}`}
+              className="button"
+              style={{ fontSize: '14px', padding: '6px 12px', marginLeft: '8px' }}
+            >
+              Jump to bottom
+            </a>
+          ) : null}
+        </div>
+        {notice ? <div className="notice">{notice}</div> : null}
+        <div className="list">
+          {renderedReplies.length === 0 ? (
+            <p className="muted">No replies yet.</p>
+          ) : (
+            renderedReplies
+          )}
+        </div>
+        {safeThreadIsLocked ? (
+          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
+            Replies are locked for this thread.
+          </div>
+        ) : (
+          <div style={{ marginTop: '12px' }} id="reply-form">
+            <ReplyFormWrapper
+              action={`/api/forum/${safeThreadId}/replies`}
+              buttonLabel="Post reply"
+              placeholder="Share your goo-certified thoughts..."
+              labelText="What would you like to say?"
+              hiddenFields={{ reply_to_id: replyToId || '' }}
+              replyingTo={replyingTo}
+              replyPrefill={replyPrefill}
+            />
+          </div>
+        )}
       </section>
     </div>
   );

@@ -7,6 +7,8 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
+  const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
+  const replyToId = replyToIdRaw ? replyToIdRaw : null;
   const redirectUrl = new URL(`/lobby/${params.id}`, request.url);
 
   if (!user) {
@@ -39,13 +41,53 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
+  // Enforce one-level threading: only allow replying to a top-level reply.
+  let effectiveReplyTo = replyToId;
+  if (replyToId) {
+    try {
+      const parent = await db
+        .prepare(
+          `SELECT id, reply_to_id
+           FROM forum_replies
+           WHERE id = ? AND thread_id = ? AND is_deleted = 0`
+        )
+        .bind(replyToId, params.id)
+        .first();
+      if (!parent) {
+        effectiveReplyTo = null;
+      } else if (parent.reply_to_id) {
+        // Parent is already a child; clamp to one level by replying to the top-level parent.
+        effectiveReplyTo = parent.reply_to_id;
+      }
+    } catch (e) {
+      // If migrations aren't applied yet, just ignore reply-to and post as top-level.
+      effectiveReplyTo = null;
+    }
+  }
+
   const now = Date.now();
-  await db
-    .prepare(
-      'INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
-    )
-    .bind(crypto.randomUUID(), params.id, user.id, body, now)
-    .run();
+  try {
+    await db
+      .prepare(
+        `INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at, reply_to_id)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+      .bind(crypto.randomUUID(), params.id, user.id, body, now, effectiveReplyTo)
+      .run();
+  } catch (e) {
+    // Migration not applied yet - try without reply_to_id
+    try {
+      await db
+        .prepare(
+          'INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
+        )
+        .bind(crypto.randomUUID(), params.id, user.id, body, now)
+        .run();
+    } catch (e2) {
+      redirectUrl.searchParams.set('error', 'notready');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+  }
 
   // Create in-app notifications for thread author + participants (excluding the replier).
   const thread = await db
@@ -125,18 +167,22 @@ export async function POST(request, { params }) {
     // swallow
   }
 
-  // Redirect to last page after posting
-  const db2 = await getDb();
-  const totalRepliesResult = await db2
-    .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
-    .bind(params.id)
-    .first();
-  const totalReplies = totalRepliesResult?.count || 0;
-  const REPLIES_PER_PAGE = 20;
-  const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
-  
-  if (totalPages > 1) {
-    redirectUrl.searchParams.set('page', totalPages.toString());
+  // Redirect to last page after posting, or to nested reply if applicable
+  if (effectiveReplyTo) {
+    redirectUrl.hash = `reply-${effectiveReplyTo}`;
+  } else {
+    const db2 = await getDb();
+    const totalRepliesResult = await db2
+      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
+      .bind(params.id)
+      .first();
+    const totalReplies = totalRepliesResult?.count || 0;
+    const REPLIES_PER_PAGE = 20;
+    const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
+    
+    if (totalPages > 1) {
+      redirectUrl.searchParams.set('page', totalPages.toString());
+    }
   }
 
   return NextResponse.redirect(redirectUrl, 303);
