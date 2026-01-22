@@ -10,6 +10,9 @@ export const metadata = {
   description: 'Announcements, ideas, and plans for the Errl community.'
 };
 
+// Force dynamic rendering to ensure auth state is always fresh
+export const dynamic = 'force-dynamic';
+
 export default async function RootLayout({ children }) {
   const user = await getSessionUserWithRole();
   const isAdmin = isAdminUser(user);

@@ -21,6 +21,20 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  
+  // Check if project is locked (rollout-safe)
+  try {
+    const project = await db
+      .prepare('SELECT is_locked FROM projects WHERE id = ?')
+      .bind(params.id)
+      .first();
+    if (project && project.is_locked) {
+      redirectUrl.searchParams.set('error', 'locked');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+  } catch (e) {
+    // Column might not exist yet, that's okay - allow posting
+  }
 
   // Enforce one-level threading: only allow replying to a top-level reply.
   let effectiveReplyTo = replyToId;
