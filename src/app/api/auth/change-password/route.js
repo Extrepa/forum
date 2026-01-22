@@ -16,8 +16,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
 
-  const oldPassword = String(payload.oldPassword || '');
-  const newPassword = String(payload.newPassword || '');
+  const oldPassword = String(payload.oldPassword || '').trim();
+  const newPassword = String(payload.newPassword || '').trim();
   if (!newPassword || newPassword.length < 8) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
   }

@@ -25,7 +25,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Please provide a valid email.' }, { status: 400 });
   }
 
-  const password = String(payload.password || '');
+  const password = String(payload.password || '').trim();
   if (password.length < 8) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
   }

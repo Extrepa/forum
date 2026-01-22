@@ -39,7 +39,7 @@ export default function ClaimUsernameForm() {
   const [defaultLandingPage, setDefaultLandingPage] = useState('feed');
 
   const validatePassword = (value) => {
-    const pw = String(value || '');
+    const pw = String(value || '').trim();
     if (pw.length < 8) return 'Password must be at least 8 characters.';
     if (/\s/.test(pw)) return 'Password cannot contain spaces.';
     return null;
