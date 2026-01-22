@@ -366,17 +366,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px' }}
           >
             <span>
-              <Username name={r.author_name} colorIndex={colorIndex} />
+              <Username name={r.author_name} colorIndex={colorIndex} /> ·{' '}
+              {r.created_at ? formatDateTime(r.created_at) : ''}
             </span>
-            <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <a className="post-link" href={replyLink}>
-                Reply
-              </a>
-              <span>{r.created_at ? formatDateTime(r.created_at) : ''}</span>
-            </span>
+            <a className="post-link" href={replyLink}>
+              Reply
+            </a>
           </div>
         </div>
       );
