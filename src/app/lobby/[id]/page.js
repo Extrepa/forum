@@ -138,7 +138,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       }
     }
 
-  if (!thread) {
+  if (!thread || !thread.id) {
     return (
       <div className="card">
         <h2 className="section-title">Thread not found</h2>
@@ -146,6 +146,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       </div>
     );
   }
+
+  // Ensure all thread properties have safe defaults
+  thread.title = thread.title || 'Untitled';
+  thread.body = thread.body || '';
+  thread.author_name = thread.author_name || 'Unknown';
+  thread.created_at = thread.created_at || Date.now();
+  thread.is_locked = thread.is_locked || false;
+  thread.like_count = thread.like_count || 0;
+  thread.moved_to_id = thread.moved_to_id || null;
+  thread.moved_to_type = thread.moved_to_type || null;
 
   if (thread.moved_to_id) {
     const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
@@ -486,7 +496,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               }}
             />
           ) : (
-            <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread?.body || '') }} />
+            <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(thread?.body || '')) }} />
           )}
         </div>
 
@@ -575,7 +585,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                           )}
                         </div>
                       </div>
-                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body || '') }} />
+                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
                     </div>
                   );
                 }).filter(Boolean);
