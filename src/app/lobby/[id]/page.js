@@ -38,6 +38,9 @@ function destUrlFor(type, id) {
 }
 
 export default async function LobbyThreadPage({ params, searchParams }) {
+  // #region agent log
+  fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:40',message:'Function entry',data:{threadId:params?.id,hasSearchParams:!!searchParams},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+  // #endregion
   try {
     if (!params?.id) {
       return (
@@ -50,8 +53,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     
     let db;
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:52',message:'Before getDb()',data:{threadId:params?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      // #endregion
       db = await getDb();
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:54',message:'After getDb()',data:{threadId:params?.id,hasDb:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      // #endregion
     } catch (dbError) {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:56',message:'getDb() error',data:{threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      // #endregion
       console.error('Error getting database connection:', dbError, { threadId: params.id });
       return (
         <div className="card">
@@ -73,6 +85,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     const isEditing = searchParams?.edit === 'true';
     let thread = null;
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:76',message:'Before thread query',data:{threadId:params?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       thread = await db
         .prepare(
           `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
@@ -86,13 +101,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )
         .bind(params.id)
         .first();
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:88',message:'After thread query',data:{threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       // Ensure defaults for moved columns
       if (thread) {
         thread.moved_to_id = thread.moved_to_id || null;
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:90',message:'Thread defaults set',data:{threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
       }
     } catch (e) {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:95',message:'Thread query error',data:{threadId:params?.id,error:e?.message,errorStack:e?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       console.error('Error fetching thread:', e, { threadId: params.id });
       // Fallback if post_likes table or moved columns don't exist
       try {
@@ -158,8 +182,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   thread.moved_to_type = thread.moved_to_type || null;
 
   if (thread.moved_to_id) {
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:145',message:'Before redirect',data:{threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:147',message:'After destUrlFor',data:{threadId:params?.id,destUrl:to},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     if (to) {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:149',message:'Calling redirect()',data:{threadId:params?.id,redirectTo:to},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       redirect(to);
     }
   }
@@ -211,6 +244,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   // Get replies for current page
   let replies = [];
   try {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:185',message:'Before replies query',data:{threadId:params?.id,offset,limit:REPLIES_PER_PAGE},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       const result = await db
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
@@ -223,8 +259,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:195',message:'After replies query',data:{threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:197',message:'Replies filtered',data:{threadId:params?.id,replyCount:replies.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
       } else {
         replies = [];
       }
@@ -397,14 +439,23 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   // Assign unique colors to all usernames on this page
   let usernameColorMap = new Map();
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:360',message:'Before username color assignment',data:{threadId:params?.id,replyCount:replies?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     const allUsernames = [
       thread?.author_name,
       ...(Array.isArray(replies) ? replies : []).map(r => r?.author_name)
     ].filter(Boolean).filter(name => name && typeof name === 'string');
     if (allUsernames.length > 0) {
       usernameColorMap = assignUniqueColorsForPage(allUsernames);
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:367',message:'After username color assignment',data:{threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
     }
   } catch (e) {
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:369',message:'Username color error',data:{threadId:params?.id,error:e?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     console.error('Error assigning username colors:', e, { threadId: params.id });
     // Fallback: create empty map, will use default colors
     usernameColorMap = new Map();
@@ -426,6 +477,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       ? 'Reply text is required.'
       : null;
 
+  // #region agent log
+  fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:390',message:'Before render',data:{threadId:params?.id,hasThread:!!thread,replyCount:replies?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
   return (
     <div className="stack">
       <ThreadViewTracker threadId={params.id} />
@@ -627,6 +681,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     </div>
   );
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:575',message:'Top-level catch error',data:{threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+    // #endregion
     console.error('Error loading lobby thread:', error, { threadId: params.id, errorMessage: error.message, errorStack: error.stack });
     return (
       <div className="card">
