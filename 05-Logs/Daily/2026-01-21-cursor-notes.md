@@ -406,3 +406,45 @@
 - [x] Fallback queries handle edge cases
 
 **Reply loading issues fixed. Posts with replies should now load without server-side exceptions.**
+
+---
+
+## Additional Defensive Fixes for Lobby & Projects Pages - 2026-01-21 (Late Evening)
+
+### Additional Issues Fixed ✅
+
+#### 1. Thread/Project Query Improvements
+- **Changed JOIN to LEFT JOIN**: Prevents failures when author users are deleted
+- **Added COALESCE for author_name**: Defaults to 'Deleted User' if user doesn't exist
+- **Added params validation**: Checks for valid params.id before processing
+- **Added database connection check**: Validates db connection before use
+
+#### 2. Comprehensive Null Checks
+- **Thread/Project properties**: Added null checks for all thread/project property accesses
+- **Reply arrays**: Added null checks for replies array operations
+- **Username color map**: Added null-safe access patterns
+- **Rendering**: All thread/project properties use optional chaining (`?.`)
+
+#### 3. Error Handling Enhancements
+- **Early validation**: Checks params and db connection before any queries
+- **Graceful degradation**: All operations have fallbacks
+- **Null-safe rendering**: All JSX uses optional chaining and fallback values
+
+### Files Modified
+1. `src/app/lobby/[id]/page.js` - Added comprehensive null checks and LEFT JOIN for thread query
+2. `src/app/projects/[id]/page.js` - Added params validation and db connection check
+
+### Key Changes
+- Thread query: `JOIN` → `LEFT JOIN` with `COALESCE(users.username, 'Deleted User')`
+- All thread property accesses: `thread.property` → `thread?.property || fallback`
+- Early validation: Check params.id and db connection before processing
+- Reply filtering: Enhanced to handle null/undefined values
+
+### Verification
+- [x] Build test passed successfully
+- [x] No linter errors
+- [x] All null checks in place
+- [x] LEFT JOIN prevents failures with deleted users
+- [x] Early validation prevents invalid requests
+
+**All defensive fixes applied. Pages should now handle edge cases gracefully.**

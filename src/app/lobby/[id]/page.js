@@ -39,8 +39,24 @@ function destUrlFor(type, id) {
 
 export default async function LobbyThreadPage({ params, searchParams }) {
   try {
+    if (!params?.id) {
+      return (
+        <div className="card">
+          <h2 className="section-title">Error</h2>
+          <p className="muted">Invalid thread ID.</p>
+        </div>
+      );
+    }
     const isEditing = searchParams?.edit === 'true';
     const db = await getDb();
+    if (!db) {
+      return (
+        <div className="card">
+          <h2 className="section-title">Error</h2>
+          <p className="muted">Database connection failed. Please try again later.</p>
+        </div>
+      );
+    }
     let thread = null;
     try {
       thread = await db

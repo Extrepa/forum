@@ -44,7 +44,23 @@ function destUrlFor(type, id) {
 
 export default async function ProjectDetailPage({ params, searchParams }) {
   try {
+    if (!params?.id) {
+      return (
+        <div className="card">
+          <h2 className="section-title">Error</h2>
+          <p className="muted">Invalid project ID.</p>
+        </div>
+      );
+    }
     const db = await getDb();
+    if (!db) {
+      return (
+        <div className="card">
+          <h2 className="section-title">Error</h2>
+          <p className="muted">Database connection failed. Please try again later.</p>
+        </div>
+      );
+    }
     let project = null;
   try {
     project = await db
