@@ -1194,7 +1194,10 @@ a.list-item:hover {
 .username + [class*="online"],
 .username + [class*="bubble"],
 .username + [class*="indicator"],
-.username + [class*="dot"] {
+.username + [class*="dot"],
+/* Hide status badges that appear immediately after usernames (project status badges) */
+.username + .status-badge,
+span:has(.username) + .status-badge {
   display: none !important;
 }
 

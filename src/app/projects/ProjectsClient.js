@@ -69,7 +69,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
                         by <Username name={row.author_name} colorIndex={colorIndex} />
                       </span>
-                      <span className={`status-badge status-${row.status}`} style={{ marginLeft: '8px' }}>{row.status}</span>
+                      {/* Project status badge removed - was appearing next to username and looked like user status */}
                     </div>
                     {!condensed && row.image_key ? (
                       <img
