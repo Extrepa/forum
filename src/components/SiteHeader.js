@@ -6,6 +6,7 @@ import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
 import HeaderSetupBanner from './HeaderSetupBanner';
 import SearchResultsPopover from './SearchResultsPopover';
+import SearchBar from './SearchBar';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
@@ -194,6 +195,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
+          <SearchBar />
         </div>
       </div>
 
@@ -264,14 +266,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
       {menuOpen && (
         <div className="nav-menu-expanded" role="menu" aria-label="Site menu">
-          <button
-            type="button"
-            className="nav-menu-button nav-menu-close"
-            onClick={() => setMenuOpen(false)}
-            aria-label="Close navigation menu"
-          >
-            Navigation
-          </button>
           <nav className="nav-menu-links-scrollable">
             <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
           </nav>

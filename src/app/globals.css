@@ -141,7 +141,7 @@ header.header--search-open {
 
 /* Header bottom controls row */
 .header-bottom-controls {
-  display: flex;
+  display: none; /* Hidden on desktop, shown on mobile */
   justify-content: space-between;
   align-items: center;
   width: 100%;
@@ -170,11 +170,6 @@ header.header--search-open {
   overflow: hidden;
 }
 
-.nav-menu-close {
-  width: 100%;
-  margin-bottom: 4px;
-}
-
 .nav-menu-links-scrollable {
   display: flex;
   flex-direction: column;
@@ -183,7 +178,7 @@ header.header--search-open {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-right: 4px;
-  max-height: calc(60vh - 60px);
+  max-height: calc(60vh - 20px); /* Increased from calc(60vh - 60px) since duplicate button removed */
 }
 
 .nav-menu-links-scrollable a {
@@ -1579,6 +1574,11 @@ header::before {
     display: none;
   }
 
+  /* Hide SearchBar in header-right-controls on mobile - use bottom controls search instead */
+  .header-right-controls .header-search-container {
+    display: none;
+  }
+
   header {
     align-items: flex-start;
     gap: 12px;
@@ -2249,7 +2249,7 @@ header::before {
   }
 
   .nav-menu-links-scrollable {
-    max-height: calc(50vh - 60px);
+    max-height: calc(50vh - 20px); /* Increased from calc(50vh - 60px) since duplicate button removed */
   }
 
   .search-results-popover {
