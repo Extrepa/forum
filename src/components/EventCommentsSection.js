@@ -11,7 +11,8 @@ export default function EventCommentsSection({
   comments, 
   user, 
   commentNotice,
-  usernameColorMap = new Map()
+  usernameColorMap = new Map(),
+  isLocked = false
 }) {
   const [attending, setAttending] = useState(initialAttending);
   const [attendees, setAttendees] = useState(initialAttendees);
@@ -105,7 +106,9 @@ export default function EventCommentsSection({
       </div>
       
       {/* Comment form - hidden until activated */}
-      {user ? (
+      {isLocked ? (
+        <p className="muted" style={{ marginTop: '16px' }}>Comments are locked for this event.</p>
+      ) : user ? (
         showCommentBox ? (
           <form id="event-comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '16px' }}>
             <label>

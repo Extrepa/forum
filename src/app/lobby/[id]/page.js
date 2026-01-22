@@ -417,9 +417,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       // Table might not exist yet
     }
   }
-  const canToggleLock = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || viewer.role === 'admin');
-  const canEdit = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdminUser(viewer));
-  const canDelete = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const isAdmin = isAdminUser(viewer);
+  const canToggleLock = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdmin);
+  const canEdit = !!viewer && thread && thread.id && !viewer.must_change_password && !!viewer.password_hash && (viewer.id === thread.author_user_id || isAdmin);
+  const canDelete = canEdit;
   
   // Check if current user has liked this thread
   let userLiked = false;
@@ -641,20 +642,30 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           { href: `/lobby/${safeThreadId}`, label: safeThreadTitle },
         ]}
         right={
-          canEdit ? (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <EditPostButtonWithPanel 
-                buttonLabel="Edit Post" 
-                panelId="edit-thread-panel"
-              />
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={safeThreadId} 
-                  postType="thread"
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? (
+              <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />
+                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
+                  {safeThreadIsLocked ? 'Unlock comments' : 'Lock comments'}
+                </button>
+              </form>
+            ) : null}
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-thread-panel"
                 />
-              ) : null}
-            </div>
-          ) : null
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={safeThreadId} 
+                    postType="thread"
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
         }
       />
       <section className="card">

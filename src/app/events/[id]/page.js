@@ -44,7 +44,8 @@ export default async function EventDetailPage({ params, searchParams }) {
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
                 users.username AS author_name,
-                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
+                COALESCE(events.is_locked, 0) AS is_locked
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
@@ -59,7 +60,8 @@ export default async function EventDetailPage({ params, searchParams }) {
             `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
                   users.username AS author_name,
-                  0 AS like_count
+                  0 AS like_count,
+                  COALESCE(events.is_locked, 0) AS is_locked
            FROM events
            JOIN users ON users.id = events.author_user_id
            WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
@@ -69,6 +71,7 @@ export default async function EventDetailPage({ params, searchParams }) {
       if (event) {
         event.moved_to_id = null;
         event.moved_to_type = null;
+        event.is_locked = event.is_locked ?? 0;
       }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
@@ -78,7 +81,8 @@ export default async function EventDetailPage({ params, searchParams }) {
               `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                     events.created_at, events.image_key,
                     users.username AS author_name,
-                    0 AS like_count
+                    0 AS like_count,
+                    0 AS is_locked
              FROM events
              JOIN users ON users.id = events.author_user_id
              WHERE events.id = ?`
@@ -88,6 +92,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         if (event) {
           event.moved_to_id = null;
           event.moved_to_type = null;
+          event.is_locked = 0;
         }
       } catch (e3) {
         event = null;
@@ -146,6 +151,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   }
 
   const user = await getSessionUser();
+  const isAdmin = isAdminUser(user);
   
   // Check if current user has liked this event
   let userLiked = false;
@@ -212,6 +218,8 @@ export default async function EventDetailPage({ params, searchParams }) {
       ? 'Sign in before commenting.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'locked'
+      ? 'Comments are locked on this event.'
       : error === 'missing'
       ? 'Comment text is required.'
       : null;
@@ -246,20 +254,32 @@ export default async function EventDetailPage({ params, searchParams }) {
           { href: '/events', label: 'Events' },
           { href: `/events/${event.id}`, label: event.title },
         ]}
-        right={canEdit ? (
+        right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <EditPostButtonWithPanel 
-              buttonLabel="Edit Post" 
-              panelId="edit-event-panel"
-            />
-            {canDelete ? (
-              <DeletePostButton 
-                postId={event.id} 
-                postType="event"
-              />
+            {isAdmin ? (
+              <form action={`/api/events/${event.id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={event.is_locked ? '0' : '1'} />
+                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
+                  {event.is_locked ? 'Unlock comments' : 'Lock comments'}
+                </button>
+              </form>
+            ) : null}
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-event-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={event.id} 
+                    postType="event"
+                  />
+                ) : null}
+              </>
             ) : null}
           </div>
-        ) : null}
+        }
       />
 
       <section className="card">
@@ -268,6 +288,7 @@ export default async function EventDetailPage({ params, searchParams }) {
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{event.title}</h2>
             <div className="list-meta">
               <Username name={event.author_name} colorIndex={usernameColorMap.get(event.author_name)} />
+              {event.is_locked ? ' · Comments locked' : null}
             </div>
           </div>
           {user ? (
@@ -344,6 +365,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         user={user}
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
+        isLocked={event.is_locked}
       />
     </div>
   );

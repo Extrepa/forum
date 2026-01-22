@@ -5,7 +5,8 @@ import { safeEmbedFromUrl } from '../../../lib/embeds';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
-import EditPostButton from '../../../components/EditPostButton';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -44,16 +45,18 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 users.username AS author_name,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
+                COALESCE(music_posts.is_locked, 0) AS is_locked,
+                music_posts.embed_style
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
       )
       .bind(params.id)
       .first();
-    // Set embed_style default (migration may not have run yet)
+    // Set embed_style default (migration may not have run yet) - preserve existing value if present
     if (post) {
-      post.embed_style = 'auto';
+      post.embed_style = post.embed_style || 'auto';
     }
   } catch (e) {
     // Rollout compatibility if moved columns aren't migrated yet.
@@ -65,7 +68,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   music_posts.created_at, users.username AS author_name,
                   (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                   (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                  0 AS like_count
+                  0 AS like_count,
+                  COALESCE(music_posts.is_locked, 0) AS is_locked,
+                  music_posts.embed_style
            FROM music_posts
            JOIN users ON users.id = music_posts.author_user_id
            WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
@@ -75,7 +80,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
       if (post) {
         post.moved_to_id = null;
         post.moved_to_type = null;
-        post.embed_style = null; // Will default to 'auto' in safeEmbedFromUrl
+        post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
+        post.is_locked = post.is_locked ?? 0;
       }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
@@ -87,7 +93,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     music_posts.created_at, users.username AS author_name,
                     (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                     (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                    0 AS like_count
+                    0 AS like_count,
+                    0 AS is_locked,
+                    music_posts.embed_style
              FROM music_posts
              JOIN users ON users.id = music_posts.author_user_id
              WHERE music_posts.id = ?`
@@ -97,7 +105,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
         if (post) {
           post.moved_to_id = null;
           post.moved_to_type = null;
-          post.embed_style = null;
+          post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
+          post.is_locked = 0;
         }
       } catch (e3) {
         post = null;
@@ -161,6 +170,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
       ? 'Sign in before rating or commenting.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'locked'
+      ? 'Comments are locked on this post.'
       : error === 'missing'
       ? 'Rating and comment text are required.'
       : error === 'invalid'
@@ -168,7 +179,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
       : null;
 
   const user = await getSessionUser();
-  const canEdit = !!user && (user.id === post.author_user_id || isAdminUser(user));
+  const isAdmin = isAdminUser(user);
+  const canEdit = !!user && !user.must_change_password && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
+  const canDelete = canEdit;
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   
@@ -201,12 +214,32 @@ export default async function MusicDetailPage({ params, searchParams }) {
           { href: '/music', label: 'Music' },
           { href: `/music/${post.id}`, label: post.title },
         ]}
-        right={canEdit ? (
-          <EditPostButton 
-            postId={post.id} 
-            postType="music_post"
-          />
-        ) : null}
+        right={
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? (
+              <form action={`/api/music/${post.id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={post.is_locked ? '0' : '1'} />
+                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
+                  {post.is_locked ? 'Unlock comments' : 'Lock comments'}
+                </button>
+              </form>
+            ) : null}
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-music-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={post.id} 
+                    postType="music_post"
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        }
       />
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -215,6 +248,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             <div className="list-meta">
               <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} /> ·{' '}
               {new Date(post.created_at).toLocaleString()}
+              {post.is_locked ? ' · Comments locked' : null}
             </div>
           </div>
           {user ? (
@@ -311,13 +345,18 @@ export default async function MusicDetailPage({ params, searchParams }) {
             })
           )}
         </div>
-        <CommentFormWrapper
-          action="/api/music/comments"
-          buttonLabel="Post comment"
-          placeholder="Drop your thoughts into the goo..."
-          labelText="What would you like to say?"
-          hiddenFields={{ post_id: post.id }}
-        />
+        {post.is_locked ? (
+          <p className="muted">Comments are locked for this post.</p>
+        ) : (
+          <CommentFormWrapper
+            action="/api/music/comments"
+            buttonLabel="Post comment"
+            placeholder="Drop your thoughts into the goo..."
+            labelText="What would you like to say?"
+            hiddenFields={{ post_id: post.id }}
+            notice={notice}
+          />
+        )}
       </section>
     </div>
   );

@@ -42,6 +42,20 @@ export async function POST(request, { params }) {
 
   const db = await getDb();
   
+  // Check if event is locked (rollout-safe)
+  try {
+    const event = await db
+      .prepare('SELECT is_locked FROM events WHERE id = ?')
+      .bind(params.id)
+      .first();
+    if (event && event.is_locked) {
+      redirectUrl.searchParams.set('error', 'locked');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+  } catch (e) {
+    // Column might not exist yet, that's okay - allow posting
+  }
+  
   // Create comment
   await db
     .prepare(

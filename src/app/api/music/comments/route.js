@@ -24,6 +24,21 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  
+  // Check if music post is locked (rollout-safe)
+  try {
+    const post = await db
+      .prepare('SELECT is_locked FROM music_posts WHERE id = ?')
+      .bind(postId)
+      .first();
+    if (post && post.is_locked) {
+      redirectUrl.searchParams.set('error', 'locked');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+  } catch (e) {
+    // Column might not exist yet, that's okay - allow posting
+  }
+  
   await db
     .prepare(
       'INSERT INTO music_comments (id, post_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'

@@ -70,7 +70,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
                 projects.moved_to_type, projects.moved_to_id,
-                users.username AS author_name
+                users.username AS author_name,
+                COALESCE(projects.is_locked, 0) AS is_locked
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
@@ -86,7 +87,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   projects.github_url, projects.demo_url, projects.image_key,
                   projects.created_at, projects.updated_at,
                   users.username AS author_name,
-                  0 AS like_count
+                  0 AS like_count,
+                  COALESCE(projects.is_locked, 0) AS is_locked
            FROM projects
            JOIN users ON users.id = projects.author_user_id
            WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
@@ -96,17 +98,19 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       if (project) {
         project.moved_to_id = null;
         project.moved_to_type = null;
+        project.is_locked = project.is_locked ?? 0;
       }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
       try {
         project = await db
           .prepare(
-            `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
+             `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
                     projects.github_url, projects.demo_url, projects.image_key,
                     projects.created_at, projects.updated_at,
                     users.username AS author_name,
-                    0 AS like_count
+                    0 AS like_count,
+                    0 AS is_locked
              FROM projects
              JOIN users ON users.id = projects.author_user_id
              WHERE projects.id = ?`
@@ -116,6 +120,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         if (project) {
           project.moved_to_id = null;
           project.moved_to_type = null;
+          project.is_locked = 0;
         }
       } catch (e3) {
         project = null;
@@ -266,6 +271,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       ? 'Sign in before commenting.'
       : errorParam === 'password'
       ? 'Set your password to continue posting.'
+      : errorParam === 'locked'
+      ? 'Comments are locked on this project.'
       : errorParam === 'notready'
       ? 'Replies are not enabled yet (database updates still applying).'
       : errorParam === 'missing'
@@ -410,20 +417,30 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           { href: `/projects/${safeProjectId}`, label: safeProjectTitle },
         ]}
         right={
-          canEdit ? (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <EditPostButtonWithPanel 
-                buttonLabel="Edit Post" 
-                panelId="edit-project-panel"
-              />
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={safeProjectId} 
-                  postType="project"
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? (
+              <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={project.is_locked ? '0' : '1'} />
+                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
+                  {project.is_locked ? 'Unlock comments' : 'Lock comments'}
+                </button>
+              </form>
+            ) : null}
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-project-panel"
                 />
-              ) : null}
-            </div>
-          ) : null
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={safeProjectId} 
+                    postType="project"
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
         }
       />
       <section className="card">
@@ -435,6 +452,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               <Username name={safeProjectAuthorName} colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0} /> ·{' '}
               {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
               {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
+              {project.is_locked ? ' · Comments locked' : null}
             </div>
           </div>
           {user ? (
@@ -501,7 +519,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             renderedReplies
           )}
         </div>
-        {repliesEnabled ? (
+        {project.is_locked ? (
+          <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this project.</p>
+        ) : repliesEnabled ? (
           <div style={{ marginTop: '12px' }} id="reply-form">
             <ReplyFormWrapper
               action={`/api/projects/${safeProjectId}/replies`}
