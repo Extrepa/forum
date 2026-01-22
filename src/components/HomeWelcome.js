@@ -10,8 +10,8 @@ export default function HomeWelcome({ user }) {
   
   if (!user) {
     return (
-      <section className="card">
-        <h2 className="section-title">{strings.hero.title}</h2>
+      <section className="card" style={{ padding: '16px 20px' }}>
+        <h2 className="section-title" style={{ marginBottom: '0' }}>{strings.hero.title}</h2>
       </section>
     );
   }
@@ -20,8 +20,8 @@ export default function HomeWelcome({ user }) {
   const parts = renderTemplateParts(template, 'username');
 
   return (
-    <section className="card">
-      <h2 className="section-title">
+    <section className="card" style={{ padding: '16px 20px' }}>
+      <h2 className="section-title" style={{ marginBottom: '0' }}>
         {parts.hasVar ? (
           <>
             {parts.before}
