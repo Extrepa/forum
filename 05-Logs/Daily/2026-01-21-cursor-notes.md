@@ -448,3 +448,97 @@
 - [x] Early validation prevents invalid requests
 
 **All defensive fixes applied. Pages should now handle edge cases gracefully.**
+
+---
+
+## Critical Reply Loading Server Exception Fixes - 2026-01-21 (Late Evening)
+
+### Critical Issues Fixed ✅
+
+#### 1. Unread Tracking Subquery Failure (CRITICAL) ✅
+- **File**: `src/app/lobby/[id]/page.js`
+- **Problem**: Subquery `SELECT created_at FROM forum_replies WHERE id = ?` could fail if reply was deleted/missing, causing `created_at > NULL` comparison failures
+- **Solution**: 
+  - Separated into two-step process: first verify reply exists, then find next unread
+  - Added fallback logic if reply doesn't exist (treat as never read)
+  - Uses direct timestamp comparison instead of subquery
+  - Added comprehensive error logging
+
+#### 2. Unsafe Array Access ✅
+- **File**: `src/app/lobby/[id]/page.js`
+- **Problem**: `replies[0].id` could fail if array element is null/undefined
+- **Solution**: Changed to `replies[0]?.id` with length check
+
+#### 3. Comprehensive Null Checks ✅
+- **Files**: `src/app/lobby/[id]/page.js`, `src/app/projects/[id]/page.js`
+- **Changes**:
+  - Added null check for `reply.created_at` in formatDateTime calls
+  - Added null check for `reply.id` in quote operations
+  - Added null checks for replies array in quote filtering
+  - Added null check for `r.created_at` in projects page
+
+#### 4. Projects Page Reply Threading ✅
+- **File**: `src/app/projects/[id]/page.js`
+- **Problem**: `reply_to_id` could reference deleted/non-existent replies
+- **Solution**: 
+  - Created `validReplyIds` Set to track valid reply IDs
+  - Only use `reply_to_id` if it exists in the valid replies set
+  - Invalid references default to `null` (top-level reply)
+
+#### 5. Comprehensive Error Logging ✅
+- **Files**: Both `src/app/lobby/[id]/page.js` and `src/app/projects/[id]/page.js`
+- **Changes**: Added `console.error` logging in all catch blocks with context:
+  - Thread/project ID
+  - User ID (where applicable)
+  - Reply ID (where applicable)
+  - Error message and stack trace
+  - Operation context (counting, fetching, unread tracking, etc.)
+
+### Key Implementation Details
+
+**Unread Tracking Fix**:
+- Old approach: Single query with subquery that could fail
+- New approach: 
+  1. Verify reply exists and get timestamp
+  2. If exists, find next unread using direct timestamp comparison
+  3. If doesn't exist, treat as never read (first reply is unread)
+
+**Reply Threading Fix**:
+- Validates `reply_to_id` references before using them
+- Prevents broken thread structures from invalid parent references
+- Invalid references become top-level replies
+
+### Files Modified
+1. `src/app/lobby/[id]/page.js` - Fixed unread tracking, added null checks and error logging
+2. `src/app/projects/[id]/page.js` - Fixed reply threading, added null checks and error logging
+
+### Verification
+- [x] Build test passed successfully
+- [x] No linter errors
+- [x] Unread tracking handles deleted/missing replies gracefully
+- [x] All array accesses are null-safe
+- [x] Reply threading validates parent references
+- [x] Comprehensive error logging in place
+
+**Critical reply loading issues fixed. Server-side exceptions should now be resolved.**
+
+---
+
+## OpenNext Build Configuration Fix - 2026-01-21 (Late Evening)
+
+### Issue Identified
+- **Error**: "Could not find a production build" when running `npm run build:cf`
+- **Root Cause**: Next.js config was missing `output: 'standalone'` which OpenNext for Cloudflare requires
+
+### Fix Applied ✅
+- **File**: `next.config.mjs`
+- **Changes**: Added `output: 'standalone'` to Next.js configuration
+- **Status**: Complete
+
+### Verification
+- [x] Next.js build completes successfully with standalone output
+- [x] OpenNext build completes successfully
+- [x] `.next/standalone` directory is created
+- [x] `.open-next/worker.js` is generated
+
+**OpenNext build configuration fixed. Cloudflare deployment should now work correctly.**

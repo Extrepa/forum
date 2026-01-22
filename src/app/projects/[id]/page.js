@@ -156,6 +156,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       .all();
     replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
   } catch (e) {
+    console.error('Error fetching project replies:', e, { projectId: params.id });
     // Fallback if is_deleted column doesn't exist
     try {
       const out = await db
@@ -172,6 +173,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         .all();
       replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
     } catch (e2) {
+      console.error('Error fetching project replies (fallback 1):', e2, { projectId: params.id });
       // Final fallback: try without JOIN if users table has issues
       try {
         const out = await db
@@ -189,6 +191,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           author_name: 'Unknown User' // Default if user lookup fails
         })).filter(r => r && r.id && r.body);
       } catch (e3) {
+        console.error('Error fetching project replies (fallback 2):', e3, { projectId: params.id });
         replies = [];
         repliesEnabled = false;
       }
@@ -214,6 +217,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         .first();
       userLiked = !!likeCheck;
     } catch (e) {
+      console.error('Error checking project like status:', e, { projectId: project?.id, userId: user?.id });
       // Table might not exist yet
     }
   }
@@ -365,8 +369,11 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           ) : (
             (() => {
               const byParent = new Map();
+              const validReplyIds = new Set(replies.map(r => r.id).filter(Boolean));
               for (const r of replies) {
-                const key = r.reply_to_id || null;
+                if (!r || !r.id) continue; // Skip invalid replies
+                // Only use reply_to_id if it references a valid reply
+                const key = (r.reply_to_id && validReplyIds.has(r.reply_to_id)) ? r.reply_to_id : null;
                 const arr = byParent.get(key) || [];
                 arr.push(r);
                 byParent.set(key, arr);
@@ -395,7 +402,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                         <a className="post-link" href={replyLink}>
                           Reply
                         </a>
-                        <span>{new Date(r.created_at).toLocaleString()}</span>
+                        <span>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</span>
                       </span>
                     </div>
                   </div>
@@ -441,7 +448,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     </div>
   );
   } catch (error) {
-    console.error('Error loading project page:', error);
+    console.error('Error loading project page:', error, { projectId: params.id, errorMessage: error.message, errorStack: error.stack });
     return (
       <div className="card">
         <h2 className="section-title">Error</h2>
