@@ -10,7 +10,7 @@ import { useRotatingPlaceholder } from '../lib/useRotatingPlaceholder';
 export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const router = useRouter();
   const [status, setStatus] = useState({ type: 'idle', message: null });
-  const [mode, setMode] = useState('login'); // signup | login
+  const [mode, setMode] = useState('signup'); // signup | login - defaults to signup, will be updated by useEffect based on session
   const { loreEnabled, setLoreEnabled } = useUiPrefs();
 
   const [me, setMe] = useState(null);
@@ -127,17 +127,26 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         if (!active) {
           return;
         }
-        setMe(payload.user || null);
+        const user = payload.user || null;
+        setMe(user);
         setEditingEmail(false);
-        setNewEmail(payload.user?.email || '');
-        setNewPhone(payload.user?.phone || '');
-        setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
-        setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
-        setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
-        setLoreEnabled(!!payload.user?.uiLoreEnabled);
-        setDefaultLandingPage(payload.user?.defaultLandingPage || 'feed');
+        setNewEmail(user?.email || '');
+        setNewPhone(user?.phone || '');
+        setNotifyEmailEnabled(!!user?.notifyEmailEnabled);
+        setNotifySmsEnabled(!!user?.notifySmsEnabled);
+        setUiLoreEnabled(!!user?.uiLoreEnabled);
+        setLoreEnabled(!!user?.uiLoreEnabled);
+        setDefaultLandingPage(user?.defaultLandingPage || 'feed');
+        
+        // Set default mode based on whether user exists
+        // If no user, default to signup (first-time visitor)
+        // Note: If user exists, this form won't be rendered (handled by parent page)
+        if (!user) {
+          setMode('signup');
+        }
       } catch (error) {
-        // ignore, stays claimable
+        // No session, default to signup for first-time visitors
+        setMode('signup');
       }
     };
     load();
@@ -150,17 +159,20 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     try {
       const response = await fetch('/api/auth/me', { method: 'GET' });
       const payload = await response.json();
-      setMe(payload.user || null);
+      const user = payload.user || null;
+      setMe(user);
       setEditingEmail(false);
-      setNewEmail(payload.user?.email || '');
-      setNewPhone(payload.user?.phone || '');
-      setNotifyEmailEnabled(!!payload.user?.notifyEmailEnabled);
-      setNotifySmsEnabled(!!payload.user?.notifySmsEnabled);
-      setUiLoreEnabled(!!payload.user?.uiLoreEnabled);
-      setLoreEnabled(!!payload.user?.uiLoreEnabled);
-      setDefaultLandingPage(payload.user?.defaultLandingPage || 'feed');
+      setNewEmail(user?.email || '');
+      setNewPhone(user?.phone || '');
+      setNotifyEmailEnabled(!!user?.notifyEmailEnabled);
+      setNotifySmsEnabled(!!user?.notifySmsEnabled);
+      setUiLoreEnabled(!!user?.uiLoreEnabled);
+      setLoreEnabled(!!user?.uiLoreEnabled);
+      setDefaultLandingPage(user?.defaultLandingPage || 'feed');
+      return user; // Return user for navigation logic
     } catch (error) {
       setMe(null);
+      return null;
     }
   };
 
@@ -281,12 +293,17 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setSignupPassword('');
       setSignupNotifyEmail(true);
       setSignupNotifySms(false);
-      await refreshMe();
+      const user = await refreshMe();
       // Refresh server components to update header with new auth state
       router.refresh();
-      // Navigate after refresh to ensure header buttons are enabled
-      // Using replace to avoid adding to history stack
-      router.replace('/');
+      // Navigate to preferred landing page (or home if not set)
+      // Check landing page preference to avoid redirect flash
+      const landingPage = user?.defaultLandingPage || defaultLandingPage || 'home';
+      if (landingPage === 'feed') {
+        router.replace('/feed');
+      } else {
+        router.replace('/');
+      }
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
@@ -314,12 +331,17 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setStatus({ type: 'success', message: 'Signed in.' });
       setLoginIdentifier('');
       setLoginPassword('');
-      await refreshMe();
+      const user = await refreshMe();
       // Refresh server components to update header with new auth state
       router.refresh();
-      // Navigate after refresh to ensure header buttons are enabled
-      // Using replace to avoid adding to history stack
-      router.replace('/');
+      // Navigate to preferred landing page (or home if not set)
+      // Check landing page preference to avoid redirect flash
+      const landingPage = user?.defaultLandingPage || defaultLandingPage || 'home';
+      if (landingPage === 'feed') {
+        router.replace('/feed');
+      } else {
+        router.replace('/');
+      }
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
