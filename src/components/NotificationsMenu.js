@@ -62,10 +62,10 @@ export default function NotificationsMenu({
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 380,
-        maxWidth: '90vw',
+        width: 'min(1020px, calc(100vw - 40px))',
+        maxWidth: 'min(1020px, calc(100vw - 40px))',
         zIndex: 1100,
-        padding: '16px',
+        padding: '20px',
         maxHeight: 'min(80vh, 600px)',
         display: 'flex',
         flexDirection: 'column'
@@ -74,16 +74,16 @@ export default function NotificationsMenu({
       aria-label={title}
     >
       {/* Header with title and action buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: '16px' }}>
-        <strong style={{ fontSize: '16px' }}>{title}</strong>
-        <div style={{ display: 'flex', gap: '6px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: '16px', flexWrap: 'wrap' }}>
+        <strong style={{ fontSize: '16px', overflowWrap: 'break-word', wordWrap: 'break-word', flex: '1 1 auto', minWidth: 0 }}>{title}</strong>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
           <button
             type="button"
             onClick={() => {
               onClose();
               router.push('/account');
             }}
-            style={{ fontSize: '12px', padding: '6px 10px' }}
+            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
             Account
           </button>
@@ -94,7 +94,7 @@ export default function NotificationsMenu({
                 onClose();
                 router.push(`/profile/${encodeURIComponent(currentUsername)}`);
               }}
-              style={{ fontSize: '12px', padding: '6px 10px' }}
+              style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
             >
               Profile
             </button>
@@ -103,7 +103,7 @@ export default function NotificationsMenu({
             type="button" 
             onClick={onRefresh} 
             disabled={status === 'loading'}
-            style={{ fontSize: '12px', padding: '6px 10px' }}
+            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
             {status === 'loading' ? '...' : 'Refresh'}
           </button>
@@ -113,7 +113,7 @@ export default function NotificationsMenu({
       {/* Notifications list - scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
-          <div className="muted" style={{ padding: '12px 0', textAlign: 'center' }}>No notifications yet. The goo is quiet.</div>
+          <div className="muted" style={{ padding: '12px 0', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word' }}>No notifications yet. The goo is quiet.</div>
         ) : (
           <div className="list" style={{ gap: '8px' }}>
             {items.map((n) => {
@@ -149,7 +149,9 @@ export default function NotificationsMenu({
                     borderRadius: '8px',
                     border: isUnread ? '1px solid rgba(52, 225, 255, 0.4)' : '1px solid rgba(22, 58, 74, 0.4)',
                     background: isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    overflowWrap: 'break-word',
+                    wordWrap: 'break-word'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.1)' : 'rgba(4, 16, 23, 0.7)';
@@ -159,7 +161,7 @@ export default function NotificationsMenu({
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4' }}>{label}</span>
+                    <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
                     <span className="muted" style={{ whiteSpace: 'nowrap', fontSize: '12px', flexShrink: 0 }}>
                       {formatTimeAgo(n.created_at)}
                     </span>

@@ -999,16 +999,19 @@ button:hover {
   overflow: visible; /* Allow border to extend outside */
 }
 
-/* Ensure inner content is above border */
-.notifications-popover-errl > * {
-  position: relative;
+/* Make background darker and more opaque */
+.notifications-popover-errl.card {
+  background: rgba(7, 27, 37, 0.98) !important;
+  backdrop-filter: blur(16px);
   z-index: 1;
 }
 
-/* Make sure the card background is above the border */
-.notifications-popover-errl.card {
-  background: var(--card) !important;
+/* Ensure inner content is above border and has proper padding */
+.notifications-popover-errl > * {
+  position: relative;
   z-index: 1;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Override card::before to ensure rainbow border shows properly with higher specificity */
