@@ -2,6 +2,7 @@
 
 import EditPostButton from './EditPostButton';
 import DeletePostButton from './DeletePostButton';
+import { useRouter } from 'next/navigation';
 
 export default function AdminControlsBar({ 
   postId, 
@@ -15,9 +16,24 @@ export default function AdminControlsBar({
   onDeleted,
   onLockToggle
 }) {
+  const router = useRouter();
+  
   if (!canEdit && !canDelete && !canLock) {
     return null;
   }
+
+  const handleLockToggle = onLockToggle || (() => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/api/forum/${postId}/lock`;
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'locked';
+    input.value = isLocked ? '0' : '1';
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  });
 
   return (
     <div 
@@ -46,13 +62,13 @@ export default function AdminControlsBar({
           postId={postId} 
           postType={postType} 
           replyId={replyId}
-          onDeleted={onDeleted}
+          onDeleted={onDeleted || (() => router.refresh())}
         />
       )}
       {canLock && (
         <button
           type="button"
-          onClick={onLockToggle}
+          onClick={handleLockToggle}
           className="button"
           style={{ 
             fontSize: '12px', 
