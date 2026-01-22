@@ -282,8 +282,11 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setSignupNotifyEmail(true);
       setSignupNotifySms(false);
       await refreshMe();
-      // Redirect to home page after successful signup
-      router.push('/');
+      // Refresh server components to update header with new auth state
+      router.refresh();
+      // Navigate after refresh to ensure header buttons are enabled
+      // Using replace to avoid adding to history stack
+      router.replace('/');
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
@@ -312,8 +315,11 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setLoginIdentifier('');
       setLoginPassword('');
       await refreshMe();
-      // Redirect to home page after successful login
-      router.push('/');
+      // Refresh server components to update header with new auth state
+      router.refresh();
+      // Navigate after refresh to ensure header buttons are enabled
+      // Using replace to avoid adding to history stack
+      router.replace('/');
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
@@ -328,6 +334,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     }
     setStatus({ type: 'idle', message: null });
     await refreshMe();
+    // Refresh server components to update header with logged out state
+    router.refresh();
   };
 
   const submitSetEmail = async (event) => {
