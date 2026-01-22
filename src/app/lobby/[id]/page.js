@@ -15,8 +15,6 @@ import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
 import AdminControlsBar from '../../../components/AdminControlsBar';
 import { isAdminUser } from '../../../lib/admin';
-import { writeFile, appendFile } from 'fs/promises';
-import { join } from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,9 +39,8 @@ function destUrlFor(type, id) {
 
 export default async function LobbyThreadPage({ params, searchParams }) {
   // #region agent log
-  const logPath = join(process.cwd(), '.cursor', 'debug.log');
-  const log = (loc, msg, data, hyp) => appendFile(logPath, JSON.stringify({location:loc,message:msg,data:data||{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:hyp||'ALL'})+'\n').catch(()=>{});
-  await log('lobby/[id]/page.js:40', 'Function entry', {threadId:params?.id,hasSearchParams:!!searchParams}, 'ALL');
+  const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
+  log('lobby/[id]/page.js:40', 'Function entry', {threadId:params?.id,hasSearchParams:!!searchParams}, 'ALL');
   // #endregion
   try {
     if (!params?.id) {
@@ -58,15 +55,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let db;
     try {
       // #region agent log
-      await log('lobby/[id]/page.js:52', 'Before getDb()', {threadId:params?.id}, 'ALL');
+      log('lobby/[id]/page.js:52', 'Before getDb()', {threadId:params?.id}, 'ALL');
       // #endregion
       db = await getDb();
       // #region agent log
-      await log('lobby/[id]/page.js:54', 'After getDb()', {threadId:params?.id,hasDb:!!db}, 'ALL');
+      log('lobby/[id]/page.js:54', 'After getDb()', {threadId:params?.id,hasDb:!!db}, 'ALL');
       // #endregion
     } catch (dbError) {
       // #region agent log
-      await log('lobby/[id]/page.js:56', 'getDb() error', {threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack}, 'ALL');
+      log('lobby/[id]/page.js:56', 'getDb() error', {threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack}, 'ALL');
       // #endregion
       console.error('Error getting database connection:', dbError, { threadId: params.id });
       return (
@@ -90,7 +87,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let thread = null;
     try {
       // #region agent log
-      await log('lobby/[id]/page.js:76', 'Before thread query', {threadId:params?.id}, 'A');
+      log('lobby/[id]/page.js:76', 'Before thread query', {threadId:params?.id}, 'A');
       // #endregion
       thread = await db
         .prepare(
@@ -106,7 +103,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .bind(params.id)
         .first();
       // #region agent log
-      await log('lobby/[id]/page.js:88', 'After thread query', {threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
+      log('lobby/[id]/page.js:88', 'After thread query', {threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
       // #endregion
       // Ensure defaults for moved columns
       if (thread) {
@@ -114,12 +111,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
         // #region agent log
-        await log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
+        log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
         // #endregion
       }
     } catch (e) {
       // #region agent log
-      await log('lobby/[id]/page.js:95', 'Thread query error', {threadId:params?.id,error:e?.message,errorStack:e?.stack}, 'A');
+      log('lobby/[id]/page.js:95', 'Thread query error', {threadId:params?.id,error:e?.message,errorStack:e?.stack}, 'A');
       // #endregion
       console.error('Error fetching thread:', e, { threadId: params.id });
       // Fallback if post_likes table or moved columns don't exist
@@ -187,15 +184,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   if (thread.moved_to_id) {
     // #region agent log
-    await log('lobby/[id]/page.js:145', 'Before redirect', {threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id}, 'B');
+    log('lobby/[id]/page.js:145', 'Before redirect', {threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id}, 'B');
     // #endregion
     const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
     // #region agent log
-    await log('lobby/[id]/page.js:147', 'After destUrlFor', {threadId:params?.id,destUrl:to}, 'B');
+    log('lobby/[id]/page.js:147', 'After destUrlFor', {threadId:params?.id,destUrl:to}, 'B');
     // #endregion
     if (to) {
       // #region agent log
-      await log('lobby/[id]/page.js:149', 'Calling redirect()', {threadId:params?.id,redirectTo:to}, 'B');
+      log('lobby/[id]/page.js:149', 'Calling redirect()', {threadId:params?.id,redirectTo:to}, 'B');
       // #endregion
       redirect(to);
     }
@@ -249,7 +246,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let replies = [];
   try {
       // #region agent log
-      await log('lobby/[id]/page.js:185', 'Before replies query', {threadId:params?.id,offset,limit:REPLIES_PER_PAGE}, 'C');
+      log('lobby/[id]/page.js:185', 'Before replies query', {threadId:params?.id,offset,limit:REPLIES_PER_PAGE}, 'C');
       // #endregion
       const result = await db
         .prepare(
@@ -264,12 +261,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
       // #region agent log
-      await log('lobby/[id]/page.js:195', 'After replies query', {threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
+      log('lobby/[id]/page.js:195', 'After replies query', {threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
       // #endregion
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
         // #region agent log
-        await log('lobby/[id]/page.js:197', 'Replies filtered', {threadId:params?.id,replyCount:replies.length}, 'C');
+        log('lobby/[id]/page.js:197', 'Replies filtered', {threadId:params?.id,replyCount:replies.length}, 'C');
         // #endregion
       } else {
         replies = [];
@@ -444,7 +441,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let usernameColorMap = new Map();
   try {
     // #region agent log
-    await log('lobby/[id]/page.js:360', 'Before username color assignment', {threadId:params?.id,replyCount:replies?.length}, 'D');
+    log('lobby/[id]/page.js:360', 'Before username color assignment', {threadId:params?.id,replyCount:replies?.length}, 'D');
     // #endregion
     const allUsernames = [
       thread?.author_name,
@@ -453,12 +450,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     if (allUsernames.length > 0) {
       usernameColorMap = assignUniqueColorsForPage(allUsernames);
       // #region agent log
-      await log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
+      log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
       // #endregion
     }
   } catch (e) {
     // #region agent log
-    await log('lobby/[id]/page.js:369', 'Username color error', {threadId:params?.id,error:e?.message}, 'D');
+    log('lobby/[id]/page.js:369', 'Username color error', {threadId:params?.id,error:e?.message}, 'D');
     // #endregion
     console.error('Error assigning username colors:', e, { threadId: params.id });
     // Fallback: create empty map, will use default colors
@@ -482,7 +479,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       : null;
 
   // #region agent log
-  await log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
+  log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
   return (
     <div className="stack">
@@ -570,9 +567,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 Jump to first unread
               </a>
             )}
-            {totalPages > 1 && (
+            {totalPages > 1 && replies.length > 0 && replies[replies.length - 1]?.id && (
               <a 
-                href={`#reply-${replies[replies.length - 1]?.id || ''}`}
+                href={`#reply-${replies[replies.length - 1].id}`}
                 className="button"
                 style={{ fontSize: '14px', padding: '6px 12px', marginLeft: '8px' }}
               >
@@ -582,27 +579,32 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
           {notice ? <div className="notice">{notice}</div> : null}
 
-          {replies.length > 0 && (
-            <div className="replies-list">
-              {(() => {
-                return replies.map((reply) => {
-                  if (!reply || !reply.id || !reply.body) return null; // Skip invalid replies
-                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
+          {replies.length > 0 && (() => {
+            try {
+              // #region agent log
+              log('lobby/[id]/page.js:585', 'Before replies.map()', {threadId:params?.id,replyCount:replies.length}, 'E');
+              // #endregion
+              return (
+                <div className="replies-list">
+                  {replies.map((reply) => {
+                    try {
+                      if (!reply || !reply.id || !reply.body) return null; // Skip invalid replies
+                      const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
 
                   const isUnread = firstUnreadId && reply.id === firstUnreadId;
-                const currentQuoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
-                const isQuoted = reply.id && currentQuoteIds.includes(reply.id);
+                const currentQuoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [String(searchParams.quote)]) : [];
+                const isQuoted = reply.id && currentQuoteIds.includes(String(reply.id));
                 
                 // Build quote URL
                 const quoteUrlParams = new URLSearchParams();
                 if (searchParams?.page) quoteUrlParams.set('page', searchParams.page);
                 if (isQuoted) {
                   // Remove this quote
-                  currentQuoteIds.filter(id => id !== reply.id).forEach(id => quoteUrlParams.append('quote', id));
+                  currentQuoteIds.filter(id => String(id) !== String(reply.id)).forEach(id => quoteUrlParams.append('quote', id));
                 } else {
                   // Add this quote
                   currentQuoteIds.forEach(id => quoteUrlParams.append('quote', id));
-                  quoteUrlParams.append('quote', reply.id);
+                  quoteUrlParams.append('quote', String(reply.id));
                 }
                 const quoteUrl = quoteUrlParams.toString() ? `?${quoteUrlParams.toString()}` : '';
                 
@@ -646,10 +648,26 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                       <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
                     </div>
                   );
-                }).filter(Boolean);
-              })()}
-            </div>
-          )}
+                    } catch (replyError) {
+                      // #region agent log
+                      log('lobby/[id]/page.js:650', 'Reply render error', {threadId:params?.id,replyId:reply?.id,error:replyError?.message}, 'E');
+                      // #endregion
+                      return null;
+                    }
+                  }).filter(Boolean)}
+                </div>
+              );
+            } catch (repliesError) {
+              // #region agent log
+              log('lobby/[id]/page.js:655', 'Replies rendering error', {threadId:params?.id,error:repliesError?.message,errorStack:repliesError?.stack}, 'E');
+              // #endregion
+              return (
+                <div className="replies-list">
+                  <p className="muted">Error loading replies. Please refresh the page.</p>
+                </div>
+              );
+            }
+          })()}
 
           {totalPages > 1 && thread?.id && (
             <Pagination 
@@ -686,8 +704,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   );
   } catch (error) {
     // #region agent log
-    const logPath = join(process.cwd(), '.cursor', 'debug.log');
-    await appendFile(logPath, JSON.stringify({location:'lobby/[id]/page.js:575',message:'Top-level catch error',data:{threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})+'\n').catch(()=>{});
+    const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
+    log('lobby/[id]/page.js:575', 'Top-level catch error', {threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name}, 'ALL');
     // #endregion
     console.error('Error loading lobby thread:', error, { threadId: params.id, errorMessage: error.message, errorStack: error.stack });
     return (
