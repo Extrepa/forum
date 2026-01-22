@@ -590,67 +590,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           {replies && replies.length > 0 && (
             <div className="replies-list">
               {replies
-                .filter(reply => reply && reply.id && reply.body && reply.author_user_id)
+                .filter(reply => reply && reply.id && reply.body)
+                .slice(0, 5)
                 .map((reply) => {
-                  const replyIdStr = String(reply.id);
-                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
-                  const isUnread = firstUnreadId && String(firstUnreadId) === replyIdStr;
-                  const isQuoted = quoteArray.includes(replyIdStr);
-                  
-                  // Build quote URL - simplified to avoid URLSearchParams recursion
-                  let quoteUrl = '';
-                  if (isQuoted) {
-                    const remainingQuotes = quoteArray.filter(id => id !== replyIdStr);
-                    if (remainingQuotes.length > 0 || pageParam) {
-                      const parts = [];
-                      if (pageParam) parts.push(`page=${encodeURIComponent(pageParam)}`);
-                      remainingQuotes.forEach(id => parts.push(`quote=${encodeURIComponent(id)}`));
-                      quoteUrl = '?' + parts.join('&');
-                    }
-                  } else {
-                    const parts = [];
-                    if (pageParam) parts.push(`page=${encodeURIComponent(pageParam)}`);
-                    quoteArray.forEach(id => parts.push(`quote=${encodeURIComponent(id)}`));
-                    parts.push(`quote=${encodeURIComponent(replyIdStr)}`);
-                    quoteUrl = '?' + parts.join('&');
-                  }
-                  
+                  const replyId = String(reply.id);
                   return (
-                    <div 
-                      key={String(reply.id)} 
-                      id={`reply-${reply.id}`}
-                      className={`reply-item ${isUnread ? 'reply-unread' : ''}`}
-                    >
-                      <div
-                        className="reply-meta"
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '8px'
-                        }}
-                      >
+                    <div key={replyId} id={`reply-${replyId}`} className="reply-item">
+                      <div className="reply-meta">
                         <span className="reply-author">
-                          <Username name={reply.author_name || 'Unknown'} colorIndex={colorIndex} />
+                          <Username name={String(reply.author_name || 'Unknown')} colorIndex={usernameColorMap.get(reply.author_name) ?? 0} />
                         </span>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span className="reply-time">{formatDateTime(reply.created_at || Date.now())}</span>
-                          {!thread?.is_locked && reply.id && (
-                            <a
-                              href={quoteUrl}
-                              className="button"
-                              style={{ fontSize: '12px', padding: '4px 8px' }}
-                            >
-                              {isQuoted ? 'Unquote' : 'Quote'}
-                            </a>
-                          )}
-                          {viewer && reply.id && (viewer.id === reply.author_user_id || isAdminUser(viewer)) && (
-                            <>
-                              <EditPostButton postId={params.id} postType="reply" replyId={reply.id} />
-                              <DeletePostButton postId={params.id} postType="reply" replyId={reply.id} />
-                            </>
-                          )}
-                        </div>
+                        <span className="reply-time">{formatDateTime(reply.created_at || Date.now())}</span>
                       </div>
                       <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(String(reply.body || '')) }} />
                     </div>
