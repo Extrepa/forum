@@ -15,6 +15,8 @@ import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
 import AdminControlsBar from '../../../components/AdminControlsBar';
 import { isAdminUser } from '../../../lib/admin';
+import { writeFile, appendFile } from 'fs/promises';
+import { join } from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +41,9 @@ function destUrlFor(type, id) {
 
 export default async function LobbyThreadPage({ params, searchParams }) {
   // #region agent log
-  fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:40',message:'Function entry',data:{threadId:params?.id,hasSearchParams:!!searchParams},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+  const logPath = join(process.cwd(), '.cursor', 'debug.log');
+  const log = (loc, msg, data, hyp) => appendFile(logPath, JSON.stringify({location:loc,message:msg,data:data||{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:hyp||'ALL'})+'\n').catch(()=>{});
+  await log('lobby/[id]/page.js:40', 'Function entry', {threadId:params?.id,hasSearchParams:!!searchParams}, 'ALL');
   // #endregion
   try {
     if (!params?.id) {
@@ -54,15 +58,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let db;
     try {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:52',message:'Before getDb()',data:{threadId:params?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:52', 'Before getDb()', {threadId:params?.id}, 'ALL');
       // #endregion
       db = await getDb();
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:54',message:'After getDb()',data:{threadId:params?.id,hasDb:!!db},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:54', 'After getDb()', {threadId:params?.id,hasDb:!!db}, 'ALL');
       // #endregion
     } catch (dbError) {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:56',message:'getDb() error',data:{threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:56', 'getDb() error', {threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack}, 'ALL');
       // #endregion
       console.error('Error getting database connection:', dbError, { threadId: params.id });
       return (
@@ -86,7 +90,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let thread = null;
     try {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:76',message:'Before thread query',data:{threadId:params?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:76', 'Before thread query', {threadId:params?.id}, 'A');
       // #endregion
       thread = await db
         .prepare(
@@ -102,7 +106,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .bind(params.id)
         .first();
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:88',message:'After thread query',data:{threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:88', 'After thread query', {threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
       // #endregion
       // Ensure defaults for moved columns
       if (thread) {
@@ -110,12 +114,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
         // #region agent log
-        fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:90',message:'Thread defaults set',data:{threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        await log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
         // #endregion
       }
     } catch (e) {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:95',message:'Thread query error',data:{threadId:params?.id,error:e?.message,errorStack:e?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:95', 'Thread query error', {threadId:params?.id,error:e?.message,errorStack:e?.stack}, 'A');
       // #endregion
       console.error('Error fetching thread:', e, { threadId: params.id });
       // Fallback if post_likes table or moved columns don't exist
@@ -183,15 +187,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   if (thread.moved_to_id) {
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:145',message:'Before redirect',data:{threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    await log('lobby/[id]/page.js:145', 'Before redirect', {threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id}, 'B');
     // #endregion
     const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:147',message:'After destUrlFor',data:{threadId:params?.id,destUrl:to},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    await log('lobby/[id]/page.js:147', 'After destUrlFor', {threadId:params?.id,destUrl:to}, 'B');
     // #endregion
     if (to) {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:149',message:'Calling redirect()',data:{threadId:params?.id,redirectTo:to},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:149', 'Calling redirect()', {threadId:params?.id,redirectTo:to}, 'B');
       // #endregion
       redirect(to);
     }
@@ -245,7 +249,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let replies = [];
   try {
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:185',message:'Before replies query',data:{threadId:params?.id,offset,limit:REPLIES_PER_PAGE},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:185', 'Before replies query', {threadId:params?.id,offset,limit:REPLIES_PER_PAGE}, 'C');
       // #endregion
       const result = await db
         .prepare(
@@ -260,12 +264,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:195',message:'After replies query',data:{threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:195', 'After replies query', {threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
       // #endregion
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
         // #region agent log
-        fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:197',message:'Replies filtered',data:{threadId:params?.id,replyCount:replies.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        await log('lobby/[id]/page.js:197', 'Replies filtered', {threadId:params?.id,replyCount:replies.length}, 'C');
         // #endregion
       } else {
         replies = [];
@@ -440,7 +444,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let usernameColorMap = new Map();
   try {
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:360',message:'Before username color assignment',data:{threadId:params?.id,replyCount:replies?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    await log('lobby/[id]/page.js:360', 'Before username color assignment', {threadId:params?.id,replyCount:replies?.length}, 'D');
     // #endregion
     const allUsernames = [
       thread?.author_name,
@@ -449,12 +453,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     if (allUsernames.length > 0) {
       usernameColorMap = assignUniqueColorsForPage(allUsernames);
       // #region agent log
-      fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:367',message:'After username color assignment',data:{threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      await log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
       // #endregion
     }
   } catch (e) {
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:369',message:'Username color error',data:{threadId:params?.id,error:e?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    await log('lobby/[id]/page.js:369', 'Username color error', {threadId:params?.id,error:e?.message}, 'D');
     // #endregion
     console.error('Error assigning username colors:', e, { threadId: params.id });
     // Fallback: create empty map, will use default colors
@@ -478,7 +482,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       : null;
 
   // #region agent log
-  fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:390',message:'Before render',data:{threadId:params?.id,hasThread:!!thread,replyCount:replies?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+  await log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
   return (
     <div className="stack">
@@ -682,7 +686,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   );
   } catch (error) {
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/6a650ce5-3bea-43a4-a152-aa1bc0a591c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lobby/[id]/page.js:575',message:'Top-level catch error',data:{threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})}).catch(()=>{});
+    const logPath = join(process.cwd(), '.cursor', 'debug.log');
+    await appendFile(logPath, JSON.stringify({location:'lobby/[id]/page.js:575',message:'Top-level catch error',data:{threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'ALL'})+'\n').catch(()=>{});
     // #endregion
     console.error('Error loading lobby thread:', error, { threadId: params.id, errorMessage: error.message, errorStack: error.stack });
     return (
