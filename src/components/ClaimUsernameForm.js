@@ -176,7 +176,8 @@ export default function ClaimUsernameForm() {
 
   const submitSignup = async (event) => {
     event.preventDefault();
-    const pwError = validatePassword(signupPassword);
+    const trimmedPassword = String(signupPassword || '').trim();
+    const pwError = validatePassword(trimmedPassword);
     if (pwError) {
       setStatus({ type: 'error', message: pwError });
       return;
@@ -190,7 +191,7 @@ export default function ClaimUsernameForm() {
         body: JSON.stringify({
           email: signupEmail,
           username: signupUsername,
-          password: signupPassword
+          password: trimmedPassword
         })
       });
 
@@ -274,7 +275,8 @@ export default function ClaimUsernameForm() {
 
   const submitChangePassword = async (event) => {
     event.preventDefault();
-    const pwError = validatePassword(newPassword);
+    const trimmedNewPassword = String(newPassword || '').trim();
+    const pwError = validatePassword(trimmedNewPassword);
     if (pwError) {
       setStatus({ type: 'error', message: pwError });
       return;
@@ -284,7 +286,7 @@ export default function ClaimUsernameForm() {
       const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ oldPassword, newPassword })
+        body: JSON.stringify({ oldPassword: String(oldPassword || '').trim(), newPassword: trimmedNewPassword })
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -395,8 +397,6 @@ export default function ClaimUsernameForm() {
                   onChange={(event) => setNewPassword(event.target.value)}
                   placeholder="New password (8+ chars)"
                   required
-                  pattern="[^\\s]{8,}"
-                  title="Password must be at least 8 characters and contain no spaces."
                 />
               </label>
               <button type="submit" disabled={status.type === 'loading'}>
@@ -630,8 +630,6 @@ export default function ClaimUsernameForm() {
                   onChange={(event) => setSignupPassword(event.target.value)}
                   placeholder="Password"
                   required
-                  pattern="[^\\s]{8,}"
-                  title="Password must be at least 8 characters and contain no spaces."
                 />
               </label>
               <button type="submit" disabled={status.type === 'loading'}>
