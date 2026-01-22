@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
 import HeaderSetupBanner from './HeaderSetupBanner';
-import SearchBar from './SearchBar';
+import SearchResultsPopover from './SearchResultsPopover';
+import { useUiPrefs } from './UiPrefsProvider';
+import { getForumStrings } from '../lib/forum-texts';
 
 function isDetailPath(pathname) {
   if (!pathname) return false;
@@ -16,6 +18,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const pathname = usePathname();
   const router = useRouter();
   const detail = isDetailPath(pathname);
+  const { loreEnabled } = useUiPrefs();
+  const strings = getForumStrings({ useLore: loreEnabled });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -23,16 +27,27 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const moreWrapRef = useRef(null);
   const moreNavRef = useRef(null);
   const [titleClicked, setTitleClicked] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchInputRef = useRef(null);
+  const searchFormRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
     setMoreOpen(false);
+    setSearchMode(false);
+    setSearchQuery('');
+    setSearchResults([]);
   }, [pathname]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
-      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
-      // Check if click is outside both the toggle button container AND the expanded nav section
+      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
       if (moreOpen && moreWrapRef.current && moreNavRef.current) {
         const isInsideToggle = moreWrapRef.current.contains(event.target);
         const isInsideNav = moreNavRef.current.contains(event.target);
@@ -45,12 +60,84 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [menuOpen, moreOpen]);
 
+  const performSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (searchMode && searchQuery) {
+      searchTimeoutRef.current = setTimeout(() => {
+        performSearch(searchQuery);
+      }, 300);
+    } else {
+      setSearchResults([]);
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, searchMode, performSearch]);
+
+  const handleSearchClick = () => {
+    setSearchMode(true);
+    setMenuOpen(false);
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleSearchClose = () => {
+    setSearchMode(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      handleSearchClose();
+    }
+  };
+
+  const handleResultClick = (url) => {
+    router.push(url);
+    handleSearchClose();
+  };
+
   const headerClassName = useMemo(() => {
     const bits = [];
     if (detail) bits.push('header--detail');
     if (moreOpen) bits.push('header--expanded');
+    if (menuOpen) bits.push('header--menu-open');
+    if (searchMode) bits.push('header--search-open');
     return bits.join(' ');
-  }, [detail, moreOpen]);
+  }, [detail, moreOpen, menuOpen, searchMode]);
 
   return (
     <header className={headerClassName}>
@@ -80,26 +167,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       </div>
 
       <div className="header-nav-section">
-        <div className="nav-menu" ref={menuRef}>
-          <button
-            type="button"
-            className="nav-menu-button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Open navigation menu"
-            aria-expanded={menuOpen ? 'true' : 'false'}
-          >
-            Navigation
-          </button>
-
-          {menuOpen ? (
-            <div className="card nav-menu-popover" role="menu" aria-label="Site menu">
-              <nav className="nav-menu-links">
-                <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
-              </nav>
-            </div>
-          ) : null}
-        </div>
-
         <nav className="nav-inline">
           <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="primary" />
         </nav>
@@ -127,7 +194,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <SearchBar />
         </div>
       </div>
 
@@ -136,6 +202,91 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
         </nav>
       ) : null}
+
+      <div className="header-bottom-controls">
+        <div className="header-bottom-left" ref={menuRef}>
+          {searchMode ? (
+            <form ref={searchFormRef} onSubmit={handleSearchSubmit} className="header-search-form-inline">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={strings.search.placeholder || "Search posts, threads, events..."}
+                className="header-search-input-inline"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleSearchClose}
+                className="header-search-close"
+                aria-label="Close search"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m18 6-12 12"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className="nav-menu-button"
+              onClick={() => {
+                setMenuOpen((v) => !v);
+                setSearchMode(false);
+              }}
+              aria-label="Open navigation menu"
+              aria-expanded={menuOpen ? 'true' : 'false'}
+            >
+              Navigation
+            </button>
+          )}
+        </div>
+
+        <div className="header-bottom-right">
+          {!searchMode && (
+            <button
+              type="button"
+              onClick={handleSearchClick}
+              className="header-search-toggle"
+              aria-label="Search"
+              title="Search"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {menuOpen && (
+        <div className="nav-menu-expanded" role="menu" aria-label="Site menu">
+          <button
+            type="button"
+            className="nav-menu-button nav-menu-close"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            Navigation
+          </button>
+          <nav className="nav-menu-links-scrollable">
+            <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
+          </nav>
+        </div>
+      )}
+
+      {searchMode && searchResults.length > 0 && (
+        <SearchResultsPopover
+          results={searchResults}
+          query={searchQuery}
+          onClose={handleSearchClose}
+          onResultClick={handleResultClick}
+          excludeRef={searchFormRef}
+        />
+      )}
 
       <HeaderSetupBanner />
     </header>
