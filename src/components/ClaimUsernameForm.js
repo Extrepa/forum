@@ -97,9 +97,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const signupEmailActive = signupEmail.length === 0;
   const signupUsernameActive = signupUsername.length === 0;
 
-  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive);
-  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive);
-  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive);
+  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 3000, maxMs: 4500 });
+  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 3000, maxMs: 4500 });
+  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 3000, maxMs: 4500 });
 
   // account settings
   const [newEmail, setNewEmail] = useState('');
@@ -640,16 +640,38 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               <form onSubmit={submitLogin}>
                 <label>
                   <div className="muted">Email or username</div>
-                  <input
-                    name="identifier"
-                    value={loginIdentifier}
-                    onChange={(event) => setLoginIdentifier(event.target.value)}
-                    onFocus={() => setLoginIdentifierFocused(true)}
-                    onBlur={() => setLoginIdentifierFocused(false)}
-                    placeholder={loginIdentifierActive ? loginIdentifierPlaceholder : 'you@example.com'}
-                    autoComplete="username"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      name="identifier"
+                      value={loginIdentifier}
+                      onChange={(event) => setLoginIdentifier(event.target.value)}
+                      onFocus={() => setLoginIdentifierFocused(true)}
+                      onBlur={() => setLoginIdentifierFocused(false)}
+                      placeholder={loginIdentifier ? '' : (loginIdentifierActive ? loginIdentifierPlaceholder.placeholder : 'you@example.com')}
+                      autoComplete="username"
+                      required
+                      style={{ position: 'relative', zIndex: 1 }}
+                    />
+                    {!loginIdentifier && loginIdentifierActive && (
+                      <div
+                        className="rotating-placeholder-overlay"
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          pointerEvents: 'none',
+                          color: 'var(--muted)',
+                          fontSize: '16px',
+                          zIndex: 0,
+                          opacity: loginIdentifierPlaceholder.opacity,
+                          transition: 'opacity 0.6s ease-in-out',
+                        }}
+                      >
+                        {loginIdentifierPlaceholder.placeholder}
+                      </div>
+                    )}
+                  </div>
                 </label>
                 <label>
                   <div className="muted">Password</div>
@@ -696,29 +718,73 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               <form onSubmit={submitSignup}>
                 <label>
                   <div className="muted">Email</div>
-                  <input
-                    name="email"
-                    value={signupEmail}
-                    onChange={(event) => setSignupEmail(event.target.value)}
-                    onFocus={() => setSignupEmailFocused(true)}
-                    onBlur={() => setSignupEmailFocused(false)}
-                    placeholder={signupEmailActive ? signupEmailPlaceholder : 'you@example.com'}
-                    autoComplete="email"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      name="email"
+                      value={signupEmail}
+                      onChange={(event) => setSignupEmail(event.target.value)}
+                      onFocus={() => setSignupEmailFocused(true)}
+                      onBlur={() => setSignupEmailFocused(false)}
+                      placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
+                      autoComplete="email"
+                      required
+                      style={{ position: 'relative', zIndex: 1 }}
+                    />
+                    {!signupEmail && signupEmailActive && (
+                      <div
+                        className="rotating-placeholder-overlay"
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          pointerEvents: 'none',
+                          color: 'var(--muted)',
+                          fontSize: '16px',
+                          zIndex: 0,
+                          opacity: signupEmailPlaceholder.opacity,
+                          transition: 'opacity 0.6s ease-in-out',
+                        }}
+                      >
+                        {signupEmailPlaceholder.placeholder}
+                      </div>
+                    )}
+                  </div>
                 </label>
                 <label>
                   <div className="muted">Username (lowercase, 3 to 20 chars)</div>
-                  <input
-                    name="username"
-                    value={signupUsername}
-                    onChange={(event) => setSignupUsername(event.target.value)}
-                    onFocus={() => setSignupUsernameFocused(true)}
-                    onBlur={() => setSignupUsernameFocused(false)}
-                    placeholder={signupUsernameActive ? signupUsernamePlaceholder : 'errlmember'}
-                    autoComplete="username"
-                    required
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      name="username"
+                      value={signupUsername}
+                      onChange={(event) => setSignupUsername(event.target.value)}
+                      onFocus={() => setSignupUsernameFocused(true)}
+                      onBlur={() => setSignupUsernameFocused(false)}
+                      placeholder={signupUsername ? '' : (signupUsernameActive ? signupUsernamePlaceholder.placeholder : 'errlmember')}
+                      autoComplete="username"
+                      required
+                      style={{ position: 'relative', zIndex: 1 }}
+                    />
+                    {!signupUsername && signupUsernameActive && (
+                      <div
+                        className="rotating-placeholder-overlay"
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          pointerEvents: 'none',
+                          color: 'var(--muted)',
+                          fontSize: '16px',
+                          zIndex: 0,
+                          opacity: signupUsernamePlaceholder.opacity,
+                          transition: 'opacity 0.6s ease-in-out',
+                        }}
+                      >
+                        {signupUsernamePlaceholder.placeholder}
+                      </div>
+                    )}
+                  </div>
                 </label>
                 <label>
                   <div className="muted">Password (8+ chars)</div>

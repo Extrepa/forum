@@ -751,6 +751,11 @@ select {
   color: var(--ink);
 }
 
+input::placeholder,
+textarea::placeholder {
+  transition: opacity 0.6s ease-in-out;
+}
+
 input[type="file"] {
   padding: 8px 10px;
   background: rgba(2, 7, 10, 0.4);

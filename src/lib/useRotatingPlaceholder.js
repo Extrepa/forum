@@ -27,18 +27,24 @@ export function useRotatingPlaceholder(
   isActive,
   opts = {}
 ) {
-  const minMs = opts.minMs ?? 800;
-  const maxMs = opts.maxMs ?? 1200;
+  const minMs = opts.minMs ?? 3000;
+  const maxMs = opts.maxMs ?? 4500;
+  const fadeDuration = 600; // Duration for fade in/out
 
   const [placeholder, setPlaceholder] = useState(() => suggestions[0] ?? '');
+  const [opacity, setOpacity] = useState(1);
   const lastRef = useRef(null);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      setOpacity(1);
+      return;
+    }
     if (reduced) {
       // Static placeholder when reduced motion is preferred
       setPlaceholder(suggestions[0] ?? '');
+      setOpacity(1);
       return;
     }
     if (!suggestions.length) return;
@@ -49,26 +55,42 @@ export function useRotatingPlaceholder(
       lastRef.current = next;
       return next;
     });
+    setOpacity(1);
 
     let timer;
+    let fadeTimer;
 
     const tick = () => {
-      setPlaceholder((prev) => {
-        const next = pickNext(suggestions, prev);
-        lastRef.current = next;
-        return next;
-      });
+      // Fade out
+      setOpacity(0);
+      
+      // After fade out, change placeholder and fade in
+      fadeTimer = window.setTimeout(() => {
+        setPlaceholder((prev) => {
+          const next = pickNext(suggestions, prev);
+          lastRef.current = next;
+          return next;
+        });
+        // Small delay before fading in for smoother transition
+        setTimeout(() => {
+          setOpacity(1);
+        }, 50);
+      }, fadeDuration / 2);
+
+      // Schedule next change
       const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
       timer = window.setTimeout(tick, delay);
     };
 
-    const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
-    timer = window.setTimeout(tick, delay);
+    // Initial delay before first change
+    const initialDelay = Math.floor(minMs + Math.random() * (maxMs - minMs));
+    timer = window.setTimeout(tick, initialDelay);
 
     return () => {
       if (timer) window.clearTimeout(timer);
+      if (fadeTimer) window.clearTimeout(fadeTimer);
     };
   }, [isActive, reduced, suggestions, minMs, maxMs]);
 
-  return placeholder;
+  return { placeholder, opacity };
 }
