@@ -166,8 +166,7 @@ header.header--search-open {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 60vh;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to allow scrolling */
 }
 
 .nav-menu-links-scrollable {
@@ -178,7 +177,10 @@ header.header--search-open {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-right: 4px;
-  max-height: calc(60vh - 20px); /* Increased from calc(60vh - 60px) since duplicate button removed */
+  /* Desktop: Show 4 items (4 × 40px + 3 × 10px gaps = 190px) */
+  max-height: 190px;
+  /* Ensure scrolling works */
+  min-height: 0;
 }
 
 .nav-menu-links-scrollable a {
@@ -1257,7 +1259,8 @@ a.list-item:hover {
   box-sizing: border-box;
 }
 
-.embed-frame.16\\:9 {
+/* Use attribute selector to match class name with colon */
+.embed-frame[class*="16:9"] {
   aspect-ratio: 16 / 9;
 }
 
@@ -2244,12 +2247,9 @@ header::before {
     padding: 10px 12px;
   }
 
-  .nav-menu-expanded {
-    max-height: 50vh;
-  }
-
   .nav-menu-links-scrollable {
-    max-height: calc(50vh - 20px); /* Increased from calc(50vh - 60px) since duplicate button removed */
+    /* Mobile: Show 3 items (3 × 40px + 2 × 10px gaps = 140px) */
+    max-height: 140px;
   }
 
   .search-results-popover {
