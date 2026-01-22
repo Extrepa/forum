@@ -495,21 +495,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {repliesEnabled ? (
-          <ReplyFormWrapper
-            action={`/api/projects/${safeProjectId}/replies`}
-            buttonLabel="Post reply"
-            placeholder="Share your goo-certified thoughts..."
-            labelText="What would you like to say?"
-            hiddenFields={{ reply_to_id: replyToId || '' }}
-            replyingTo={replyingTo}
-            replyPrefill={replyPrefill}
-          />
-        ) : (
-          <div className="muted" style={{ fontSize: 13 }}>
-            Replies aren’t enabled yet (database updates still applying).
-          </div>
-        )}
         <div className="list">
           {renderedReplies.length === 0 ? (
             <p className="muted">No replies yet.</p>
@@ -518,17 +503,19 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           )}
         </div>
         {repliesEnabled ? (
-          <ReplyFormWrapper
-            action={`/api/projects/${safeProjectId}/replies`}
-            buttonLabel="Post reply"
-            placeholder="Share your goo-certified thoughts..."
-            labelText="What would you like to say?"
-            hiddenFields={{ reply_to_id: replyToId || '' }}
-            replyingTo={replyingTo}
-            replyPrefill={replyPrefill}
-          />
+          <div style={{ marginTop: '12px' }} id="reply-form">
+            <ReplyFormWrapper
+              action={`/api/projects/${safeProjectId}/replies`}
+              buttonLabel="Post reply"
+              placeholder="Share your goo-certified thoughts..."
+              labelText="What would you like to say?"
+              hiddenFields={{ reply_to_id: replyToId || '' }}
+              replyingTo={replyingTo}
+              replyPrefill={replyPrefill}
+            />
+          </div>
         ) : (
-          <div className="muted" style={{ fontSize: 13 }}>
+          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
             Replies aren't enabled yet (database updates still applying).
           </div>
         )}
