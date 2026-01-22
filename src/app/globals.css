@@ -2373,12 +2373,12 @@ header::before {
     flex-direction: column !important;
   }
 
-  .auth-form-container > div:last-child {
+  .auth-form-container > div:first-child {
     flex: 1 !important;
-    padding-left: 0 !important;
-    padding-top: 24px !important;
-    border-left: none !important;
-    border-top: 1px solid rgba(52, 225, 255, 0.2) !important;
+    padding-right: 0 !important;
+    padding-bottom: 24px !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(52, 225, 255, 0.2) !important;
   }
 
 }

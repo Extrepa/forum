@@ -536,6 +536,25 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   return (
     <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
       <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: '0 0 25%', minWidth: '200px', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
+          <div style={{ position: 'sticky', top: '20px' }}>
+            <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
+            <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+              {mode === 'login' ? (
+                <>
+                  If you have an account, please sign in to the right. If you do not, please click "Create an account" below.
+                </>
+              ) : (
+                <>
+                  Join the community! Create your account to start posting, commenting, and connecting with other Errl members.
+                </>
+              )}
+            </p>
+            <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
+              Keep it weird. Keep it drippy. Keep it Errl.
+            </p>
+          </div>
+        </div>
         <div style={{ flex: '1', minWidth: 0 }}>
           {mode === 'login' ? (
             <>
@@ -673,25 +692,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
             </>
           )}
-        </div>
-        <div style={{ flex: '0 0 25%', minWidth: '200px', paddingLeft: '24px', borderLeft: '1px solid rgba(52, 225, 255, 0.2)' }}>
-          <div style={{ position: 'sticky', top: '20px' }}>
-            <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
-            <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-              {mode === 'login' ? (
-                <>
-                  If you have an account, please sign in to the left. If you do not, please click "Create an account" below.
-                </>
-              ) : (
-                <>
-                  Join the community! Create your account to start posting, commenting, and connecting with other Errl members.
-                </>
-              )}
-            </p>
-            <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
-              Keep it weird. Keep it drippy. Keep it Errl.
-            </p>
-          </div>
         </div>
       </div>
     </Wrapper>
