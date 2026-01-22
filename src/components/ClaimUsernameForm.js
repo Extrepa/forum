@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { useUiPrefs } from './UiPrefsProvider';
 import { detectAuthType } from '../lib/auth-detection';
 
-export default function ClaimUsernameForm() {
+export default function ClaimUsernameForm({ noCardWrapper = false }) {
+  const router = useRouter();
   const [status, setStatus] = useState({ type: 'idle', message: null });
   const [mode, setMode] = useState('login'); // signup | login
   const [authType, setAuthType] = useState('none'); // browser | cookie | none
@@ -211,6 +213,8 @@ export default function ClaimUsernameForm() {
       setSignupNotifyEmail(true);
       setSignupNotifySms(false);
       await refreshMe();
+      // Redirect to home page after successful signup
+      router.push('/');
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
@@ -239,6 +243,8 @@ export default function ClaimUsernameForm() {
       setLoginIdentifier('');
       setLoginPassword('');
       await refreshMe();
+      // Redirect to home page after successful login
+      router.push('/');
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
     }
@@ -311,8 +317,10 @@ export default function ClaimUsernameForm() {
     const colorIndex = getUsernameColorIndex(me.username);
     const canConfigureNotifications = !!me.email && !!me.hasPassword;
     const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
+    const Wrapper = noCardWrapper ? 'div' : 'div';
+    const wrapperProps = noCardWrapper ? {} : { className: 'card' };
     return (
-      <div className="card">
+      <Wrapper {...wrapperProps}>
         <div className="notice">
           Signed in as <Username name={me.username} colorIndex={colorIndex} />
         </div>
@@ -525,7 +533,7 @@ export default function ClaimUsernameForm() {
         </div>
 
         {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}
-      </div>
+      </Wrapper>
     );
   }
 
@@ -534,8 +542,10 @@ export default function ClaimUsernameForm() {
   const showCookieAuth = authType === 'cookie';
   const showNoAuth = authType === 'none';
 
+  const Wrapper = noCardWrapper ? 'div' : 'div';
+  const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
-    <div className="card">
+    <Wrapper {...wrapperProps}>
       <div className="stack" style={{ gap: 12 }}>
         {showBrowserAuth && (
           <p className="muted" style={{ fontSize: 13 }}>
@@ -666,6 +676,6 @@ export default function ClaimUsernameForm() {
 
         {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}
       </div>
-    </div>
+    </Wrapper>
   );
 }
