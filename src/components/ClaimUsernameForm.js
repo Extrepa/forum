@@ -97,9 +97,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const signupEmailActive = signupEmail.length === 0;
   const signupUsernameActive = signupUsername.length === 0;
 
-  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 3000, maxMs: 4500 });
-  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 3000, maxMs: 4500 });
-  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 3000, maxMs: 4500 });
+  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 8000, maxMs: 12000 });
+  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 8000, maxMs: 12000 });
+  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 8000, maxMs: 12000 });
 
   // account settings
   const [newEmail, setNewEmail] = useState('');

@@ -27,9 +27,9 @@ export function useRotatingPlaceholder(
   isActive,
   opts = {}
 ) {
-  const minMs = opts.minMs ?? 3000;
-  const maxMs = opts.maxMs ?? 4500;
-  const fadeDuration = 600; // Duration for fade in/out
+  const minMs = opts.minMs ?? 8000;
+  const maxMs = opts.maxMs ?? 12000;
+  const fadeDuration = 1000; // Duration for fade in/out
 
   const [placeholder, setPlaceholder] = useState(() => suggestions[0] ?? '');
   const [opacity, setOpacity] = useState(1);
@@ -74,12 +74,12 @@ export function useRotatingPlaceholder(
         // Small delay before fading in for smoother transition
         setTimeout(() => {
           setOpacity(1);
+          
+          // After fade in completes, wait the full delay before next change
+          const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
+          timer = window.setTimeout(tick, delay);
         }, 50);
       }, fadeDuration / 2);
-
-      // Schedule next change
-      const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
-      timer = window.setTimeout(tick, delay);
     };
 
     // Initial delay before first change
