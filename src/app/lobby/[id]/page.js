@@ -127,7 +127,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let totalReplies = 0;
   try {
     const totalRepliesResult = await db
-      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
+      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
       .bind(params.id)
       .first();
     totalReplies = totalRepliesResult?.count || 0;
@@ -151,34 +151,52 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
-                  users.username AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name
            FROM forum_replies
-           JOIN users ON users.id = forum_replies.author_user_id
-           WHERE forum_replies.thread_id = ? AND forum_replies.is_deleted = 0
+           LEFT JOIN users ON users.id = forum_replies.author_user_id
+           WHERE forum_replies.thread_id = ? AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
-    replies = result?.results || [];
+    replies = (result?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
   } catch (e) {
     // Fallback if is_deleted column doesn't exist
     try {
       const result = await db
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
-                  users.username AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name
            FROM forum_replies
-           JOIN users ON users.id = forum_replies.author_user_id
+           LEFT JOIN users ON users.id = forum_replies.author_user_id
            WHERE forum_replies.thread_id = ?
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
-      replies = result?.results || [];
+      replies = (result?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
     } catch (e2) {
-      replies = [];
+      // Final fallback: try without JOIN if users table has issues
+      try {
+        const result = await db
+          .prepare(
+            `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id
+             FROM forum_replies
+             WHERE forum_replies.thread_id = ?
+             ORDER BY forum_replies.created_at ASC
+             LIMIT ? OFFSET ?`
+          )
+          .bind(params.id, REPLIES_PER_PAGE, offset)
+          .all();
+        replies = (result?.results || []).map(r => ({
+          ...r,
+          author_name: 'Unknown User' // Default if user lookup fails
+        })).filter(r => r && r.id && r.body);
+      } catch (e3) {
+        replies = [];
+      }
     }
   }
 
@@ -254,8 +272,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   // Assign unique colors to all usernames on this page
   const allUsernames = [
-    thread.author_name,
-    ...replies.map(r => r.author_name)
+    thread?.author_name,
+    ...replies.map(r => r?.author_name)
   ].filter(Boolean);
   const usernameColorMap = assignUniqueColorsForPage(allUsernames);
 
@@ -375,7 +393,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             <div className="replies-list">
               {(() => {
                 return replies.map((reply) => {
-                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name);
+                  if (!reply || !reply.id || !reply.body) return null; // Skip invalid replies
+                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
 
                   const isUnread = firstUnreadId && reply.id === firstUnreadId;
                 const currentQuoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
@@ -431,10 +450,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                           )}
                         </div>
                       </div>
-                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body) }} />
+                      <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(reply.body || '') }} />
                     </div>
                   );
-                });
+                }).filter(Boolean);
               })()}
             </div>
           )}

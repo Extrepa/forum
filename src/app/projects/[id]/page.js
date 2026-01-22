@@ -130,15 +130,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                 project_replies.author_user_id,
-                users.username AS author_name
+                COALESCE(users.username, 'Deleted User') AS author_name
          FROM project_replies
-         JOIN users ON users.id = project_replies.author_user_id
-         WHERE project_replies.project_id = ? AND project_replies.is_deleted = 0
+         LEFT JOIN users ON users.id = project_replies.author_user_id
+         WHERE project_replies.project_id = ? AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
          ORDER BY project_replies.created_at ASC`
       )
       .bind(params.id)
       .all();
-    replies = out?.results || [];
+    replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
   } catch (e) {
     // Fallback if is_deleted column doesn't exist
     try {
@@ -146,18 +146,36 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         .prepare(
           `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                   project_replies.author_user_id,
-                  users.username AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name
            FROM project_replies
-           JOIN users ON users.id = project_replies.author_user_id
+           LEFT JOIN users ON users.id = project_replies.author_user_id
            WHERE project_replies.project_id = ?
            ORDER BY project_replies.created_at ASC`
         )
         .bind(params.id)
         .all();
-      replies = out?.results || [];
+      replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
     } catch (e2) {
-      replies = [];
-      repliesEnabled = false;
+      // Final fallback: try without JOIN if users table has issues
+      try {
+        const out = await db
+          .prepare(
+            `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
+                    project_replies.author_user_id
+             FROM project_replies
+             WHERE project_replies.project_id = ?
+             ORDER BY project_replies.created_at ASC`
+          )
+          .bind(params.id)
+          .all();
+        replies = (out?.results || []).map(r => ({
+          ...r,
+          author_name: 'Unknown User' // Default if user lookup fails
+        })).filter(r => r && r.id && r.body);
+      } catch (e3) {
+        replies = [];
+        repliesEnabled = false;
+      }
     }
   }
 
@@ -221,8 +239,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
 
   // Assign unique colors to all usernames on this page
   const allUsernames = [
-    project.author_name,
-    ...replies.map(r => r.author_name)
+    project?.author_name,
+    ...replies.map(r => r?.author_name)
   ].filter(Boolean);
   const usernameColorMap = assignUniqueColorsForPage(allUsernames);
 
@@ -339,7 +357,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               }
 
               const renderReply = (r, { isChild }) => {
-                const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name);
+                if (!r || !r.id || !r.body) return null; // Skip invalid replies
+                const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
 
                 const replyLink = `/projects/${project.id}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
                 return (
@@ -348,7 +367,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     className={`list-item${isChild ? ' reply-item--child' : ''}`}
                     id={`reply-${r.id}`}
                   >
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(r.body) }} />
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(r.body || '') }} />
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
@@ -370,17 +389,20 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               const top = byParent.get(null) || [];
               return top.map((r) => {
                 const kids = byParent.get(r.id) || [];
+                const renderedReply = renderReply(r, { isChild: false });
+                const renderedKids = kids.map((c) => renderReply(c, { isChild: true })).filter(Boolean);
+                if (!renderedReply) return null;
                 return (
                   <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
-                    {renderReply(r, { isChild: false })}
-                    {kids.length ? (
+                    {renderedReply}
+                    {renderedKids.length ? (
                       <div className="reply-children">
-                        {kids.map((c) => renderReply(c, { isChild: true }))}
+                        {renderedKids}
                       </div>
                     ) : null}
                   </div>
                 );
-              });
+              }).filter(Boolean);
             })()
           )}
         </div>
