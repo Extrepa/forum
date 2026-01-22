@@ -429,10 +429,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         }
       />
       <section className="card">
-        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
           <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{safeProjectTitle}</h2>
+            <h2 className="section-title" style={{ marginBottom: '4px' }}>{safeProjectTitle}</h2>
             {/* Project status badge removed - was appearing next to username and looked like user status */}
+            <div className="list-meta" style={{ marginBottom: '0' }}>
+              <Username name={safeProjectAuthorName} colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0} /> ·{' '}
+              {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
+              {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
+            </div>
           </div>
           {user ? (
             <LikeButton 
@@ -442,11 +447,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               initialCount={safeProjectLikeCount}
             />
           ) : null}
-        </div>
-        <div className="list-meta">
-          <Username name={safeProjectAuthorName} colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0} /> ·{' '}
-          {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
-          {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
         </div>
         {safeProjectImageKey ? (
           <img
@@ -458,6 +458,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         ) : null}
         <div
           className="post-body"
+          style={{ marginTop: '8px', marginBottom: '0' }}
           dangerouslySetInnerHTML={{ __html: projectDescriptionHtml }}
         />
         <div className="project-links">
