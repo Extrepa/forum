@@ -356,3 +356,53 @@
 - [x] All variable references are correct
 
 **Client-side exception fixed. Lobby page should now load without errors.**
+
+---
+
+## Reply Loading Issues Fix - 2026-01-21 (Late Evening)
+
+### Issue Identified
+- **Error**: Server-side exceptions on posts with replies (lobby and projects detail pages)
+- **Root Causes**:
+  1. JOIN queries failing when users are deleted (causing null author_name)
+  2. Missing null checks on reply properties (author_name, body, id)
+  3. No fallback handling for cases where user lookup fails
+  4. Missing filtering of invalid replies before rendering
+
+### Fixes Applied ✅
+
+#### 1. Lobby Page Replies (`src/app/lobby/[id]/page.js`)
+- **Changed JOIN to LEFT JOIN**: Prevents query failures when users are deleted
+- **Added COALESCE for author_name**: Defaults to 'Deleted User' if user doesn't exist
+- **Added null checks and filtering**: Filters out invalid replies before processing
+- **Added fallback query**: Final fallback without JOIN if users table has issues
+- **Added null checks in rendering**: Skips invalid replies and handles null properties safely
+- **Updated is_deleted checks**: Uses `(is_deleted = 0 OR is_deleted IS NULL)` pattern
+
+#### 2. Projects Page Replies (`src/app/projects/[id]/page.js`)
+- **Changed JOIN to LEFT JOIN**: Same fix as lobby page
+- **Added COALESCE for author_name**: Defaults to 'Deleted User' if user doesn't exist
+- **Added null checks and filtering**: Filters out invalid replies before processing
+- **Added fallback query**: Final fallback without JOIN if users table has issues
+- **Added null checks in renderReply**: Skips invalid replies and filters null results
+- **Updated is_deleted checks**: Uses `(is_deleted = 0 OR is_deleted IS NULL)` pattern
+
+### Key Changes
+1. **LEFT JOIN instead of JOIN**: Handles deleted users gracefully
+2. **COALESCE for author_name**: Provides fallback username when user is missing
+3. **Reply filtering**: `filter(r => r && r.id && r.body)` removes invalid entries
+4. **Null-safe rendering**: Checks for null/undefined before accessing properties
+5. **Fallback queries**: Three-level fallback pattern for maximum compatibility
+
+### Files Modified
+1. `src/app/lobby/[id]/page.js` - Fixed reply queries and rendering
+2. `src/app/projects/[id]/page.js` - Fixed reply queries and rendering
+
+### Verification
+- [x] Build test passed successfully
+- [x] No linter errors
+- [x] LEFT JOIN prevents failures when users are deleted
+- [x] Null checks prevent rendering errors
+- [x] Fallback queries handle edge cases
+
+**Reply loading issues fixed. Posts with replies should now load without server-side exceptions.**

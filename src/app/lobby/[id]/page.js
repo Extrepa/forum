@@ -42,63 +42,63 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     const isEditing = searchParams?.edit === 'true';
     const db = await getDb();
     let thread = null;
-  try {
-    thread = await db
-      .prepare(
-        `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-                forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                forum_threads.moved_to_type, forum_threads.moved_to_id,
-                users.username AS author_name,
-                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
-         FROM forum_threads
-         JOIN users ON users.id = forum_threads.author_user_id
-         WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
-      )
-      .bind(params.id)
-      .first();
-  } catch (e) {
-    // Fallback if post_likes table or moved columns don't exist
     try {
       thread = await db
         .prepare(
           `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                   forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                  users.username AS author_name,
-                  0 AS like_count
+                  forum_threads.moved_to_type, forum_threads.moved_to_id,
+                  COALESCE(users.username, 'Deleted User') AS author_name,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
            FROM forum_threads
-           JOIN users ON users.id = forum_threads.author_user_id
+           LEFT JOIN users ON users.id = forum_threads.author_user_id
            WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
         )
         .bind(params.id)
         .first();
-      if (thread) {
-        thread.moved_to_id = null;
-        thread.moved_to_type = null;
-      }
-    } catch (e2) {
-      // Final fallback: remove is_deleted filter in case column doesn't exist
+    } catch (e) {
+      // Fallback if post_likes table or moved columns don't exist
       try {
         thread = await db
           .prepare(
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                    users.username AS author_name,
+                    COALESCE(users.username, 'Deleted User') AS author_name,
                     0 AS like_count
              FROM forum_threads
-             JOIN users ON users.id = forum_threads.author_user_id
-             WHERE forum_threads.id = ?`
+             LEFT JOIN users ON users.id = forum_threads.author_user_id
+             WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
           )
           .bind(params.id)
           .first();
         if (thread) {
-          thread.moved_to_id = null;
-          thread.moved_to_type = null;
+          thread.moved_to_id = thread.moved_to_id || null;
+          thread.moved_to_type = thread.moved_to_type || null;
         }
-      } catch (e3) {
-        thread = null;
+      } catch (e2) {
+        // Final fallback: remove is_deleted filter in case column doesn't exist
+        try {
+          thread = await db
+            .prepare(
+              `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                      forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                      COALESCE(users.username, 'Deleted User') AS author_name,
+                      0 AS like_count
+               FROM forum_threads
+               LEFT JOIN users ON users.id = forum_threads.author_user_id
+               WHERE forum_threads.id = ?`
+            )
+            .bind(params.id)
+            .first();
+          if (thread) {
+            thread.moved_to_id = thread.moved_to_id || null;
+            thread.moved_to_type = thread.moved_to_type || null;
+          }
+        } catch (e3) {
+          thread = null;
+        }
       }
     }
-  }
 
   if (!thread) {
     return (
@@ -252,13 +252,13 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       // Table might not exist yet
     }
   }
-  const canToggleLock = !!viewer && (viewer.id === thread.author_user_id || viewer.role === 'admin');
-  const canEdit = !!viewer && (viewer.id === thread.author_user_id || isAdminUser(viewer));
-  const canDelete = !!viewer && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const canToggleLock = !!viewer && thread && (viewer.id === thread.author_user_id || viewer.role === 'admin');
+  const canEdit = !!viewer && thread && (viewer.id === thread.author_user_id || isAdminUser(viewer));
+  const canDelete = !!viewer && thread && (viewer.id === thread.author_user_id || isAdminUser(viewer));
   
   // Check if current user has liked this thread
   let userLiked = false;
-  if (viewer) {
+  if (viewer && thread && thread.id) {
     try {
       const likeCheck = await db
         .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
@@ -267,13 +267,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       userLiked = !!likeCheck;
     } catch (e) {
       // Table might not exist yet
+      userLiked = false;
     }
   }
 
   // Assign unique colors to all usernames on this page
   const allUsernames = [
     thread?.author_name,
-    ...replies.map(r => r?.author_name)
+    ...(replies || []).map(r => r?.author_name)
   ].filter(Boolean);
   const usernameColorMap = assignUniqueColorsForPage(allUsernames);
 
@@ -300,31 +301,32 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         items={[
           { href: '/', label: 'Home' },
           { href: '/lobby', label: 'General' },
-          { href: `/lobby/${thread.id}`, label: thread.title }
+          { href: `/lobby/${thread?.id || ''}`, label: thread?.title || 'Thread' }
         ]}
       />
       <section className="card thread-container">
         <div className="thread-post">
           <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
             <h2 className="section-title" style={{ margin: 0, flex: 1 }}>
-              {thread.title}
+              {thread?.title || 'Untitled'}
             </h2>
-            {viewer ? (
+            {viewer && thread?.id ? (
               <LikeButton 
                 postType="forum_thread" 
                 postId={thread.id} 
                 initialLiked={userLiked}
-                initialCount={Number(thread.like_count || 0)}
+                initialCount={Number(thread?.like_count || 0)}
               />
             ) : null}
           </div>
+          {thread?.id ? (
           <AdminControlsBar
             postId={thread.id}
             postType="thread"
             canEdit={canEdit && !isEditing}
             canDelete={canDelete}
             canLock={canToggleLock}
-            isLocked={thread.is_locked}
+            isLocked={thread?.is_locked || false}
             onEdit={() => {
               const url = new URL(window.location.href);
               url.searchParams.set('edit', 'true');
@@ -343,17 +345,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               form.submit();
             }}
           />
+          ) : null}
           <div className="list-meta">
-            <Username name={thread.author_name} colorIndex={usernameColorMap.get(thread.author_name)} /> ·{' '}
-            {formatDateTime(thread.created_at)}
-            {thread.is_locked ? ' · Replies locked' : null}
+            <Username name={thread?.author_name || 'Unknown'} colorIndex={usernameColorMap.get(thread?.author_name)} /> ·{' '}
+            {thread?.created_at ? formatDateTime(thread.created_at) : ''}
+            {thread?.is_locked ? ' · Replies locked' : null}
           </div>
-          {thread.image_key ? <img src={`/api/media/${thread.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
-          {isEditing && canEdit ? (
+          {thread?.image_key ? <img src={`/api/media/${thread.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+          {isEditing && canEdit && thread?.id ? (
             <EditThreadForm 
               threadId={thread.id} 
-              initialTitle={thread.title} 
-              initialBody={thread.body}
+              initialTitle={thread?.title || ''} 
+              initialBody={thread?.body || ''}
               onCancel={() => {
                 const url = new URL(window.location.href);
                 url.searchParams.delete('edit');
@@ -361,7 +364,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               }}
             />
           ) : (
-            <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread.body) }} />
+            <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(thread?.body || '') }} />
           )}
         </div>
 
@@ -433,7 +436,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                         </span>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <span className="reply-time">{formatDateTime(reply.created_at)}</span>
-                          {!thread.is_locked && (
+                          {!thread?.is_locked && (
                             <a
                               href={quoteUrl}
                               className="button"
@@ -458,7 +461,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             </div>
           )}
 
-          {totalPages > 1 && (
+          {totalPages > 1 && thread?.id && (
             <Pagination 
               currentPage={currentPage} 
               totalPages={totalPages} 
@@ -466,11 +469,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             />
           )}
 
-          {thread.is_locked ? (
+          {thread?.is_locked ? (
             <p className="muted" style={{ marginTop: '12px' }}>
               Replies are locked for this thread.
             </p>
-          ) : (
+          ) : thread?.id ? (
             <CollapsibleReplyFormWrapper 
               threadId={thread.id}
               initialQuotes={(() => {
@@ -484,7 +487,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               action={`/api/forum/${thread.id}/replies`}
               buttonLabel="Post reply"
             />
-          )}
+          ) : null}
 
           {replies.length === 0 && <p className="muted" style={{ marginTop: '16px' }}>No replies yet. Be the first to reply.</p>}
         </div>
