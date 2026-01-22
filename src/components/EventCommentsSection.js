@@ -10,7 +10,8 @@ export default function EventCommentsSection({
   initialAttendees, 
   comments, 
   user, 
-  commentNotice 
+  commentNotice,
+  usernameColorMap = new Map()
 }) {
   const [attending, setAttending] = useState(initialAttending);
   const [attendees, setAttendees] = useState(initialAttendees);
@@ -84,7 +85,7 @@ export default function EventCommentsSection({
           <p className="muted">No comments yet.</p>
         ) : (
           comments.map((c) => {
-            const colorIndex = getUsernameColorIndex(c.author_name);
+            const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
             return (
               <div key={c.id} className="list-item">
                 <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />

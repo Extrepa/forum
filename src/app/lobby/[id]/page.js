@@ -5,7 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import ThreadViewTracker from '../../../components/ThreadViewTracker';
 import Pagination from '../../../components/Pagination';
@@ -38,9 +38,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function LobbyThreadPage({ params, searchParams }) {
-  const isEditing = searchParams?.edit === 'true';
-  const db = await getDb();
-  let thread = null;
+  try {
+    const isEditing = searchParams?.edit === 'true';
+    const db = await getDb();
+    let thread = null;
   try {
     thread = await db
       .prepare(
@@ -251,6 +252,13 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    thread.author_name,
+    ...replies.map(r => r.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   const error = searchParams?.error;
   const notice =
     error === 'claim'
@@ -318,7 +326,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             }}
           />
           <div className="list-meta">
-            <Username name={thread.author_name} colorIndex={getUsernameColorIndex(thread.author_name)} /> ·{' '}
+            <Username name={thread.author_name} colorIndex={usernameColorMap.get(thread.author_name)} /> ·{' '}
             {formatDateTime(thread.created_at)}
             {thread.is_locked ? ' · Replies locked' : null}
           </div>
@@ -366,16 +374,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           {replies.length > 0 && (
             <div className="replies-list">
               {(() => {
-                let lastName = null;
-                let lastIndex = null;
-
                 return replies.map((reply) => {
-                  const colorIndex = getUsernameColorIndex(reply.author_name, {
-                    avoidIndex: lastIndex,
-                    avoidName: lastName
-                  });
-                  lastName = reply.author_name;
-                  lastIndex = colorIndex;
+                  const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name);
 
                   const isUnread = firstUnreadId && reply.id === firstUnreadId;
                 const currentQuoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
@@ -472,5 +472,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       </section>
     </div>
   );
+  } catch (error) {
+    console.error('Error loading lobby thread:', error);
+    return (
+      <div className="card">
+        <h2 className="section-title">Error</h2>
+        <p className="muted">Unable to load this thread. Please try again later.</p>
+      </div>
+    );
+  }
 }
 

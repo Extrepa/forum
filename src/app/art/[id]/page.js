@@ -3,7 +3,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
 
@@ -101,7 +101,7 @@ export default async function ArtDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title || 'Untitled'}</h2>
             <div className="list-meta">
-              <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} />
+              <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} />
               {post.is_private ? <span className="muted"> · Members-only</span> : null}
             </div>
           </div>
@@ -136,15 +136,18 @@ export default async function ArtDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            comments.map((c) => (
-              <div key={c.id} className="reply-item">
-                <div className="reply-meta">
-                  <Username name={c.author_name} colorIndex={getUsernameColorIndex(c.author_name)} />
-                  <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
+            comments.map((c) => {
+              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
+              return (
+                <div key={c.id} className="reply-item">
+                  <div className="reply-meta">
+                    <Username name={c.author_name} colorIndex={colorIndex} />
+                    <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
+                  </div>
+                  <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                 </div>
-                <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>

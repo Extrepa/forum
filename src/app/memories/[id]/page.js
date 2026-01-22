@@ -3,7 +3,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,6 +91,13 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       ? 'Comments are not enabled yet (database updates still applying).'
       : null;
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    post.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   return (
     <div className="stack">
       <Breadcrumbs
@@ -104,7 +111,7 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       <section className="card">
         <h2 className="section-title">{post.title || 'Untitled'}</h2>
         <div className="list-meta">
-          <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} />
+          <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} />
           <span className="muted"> · {new Date(post.created_at).toLocaleString()}</span>
           {post.is_private ? <span className="muted"> · Members-only</span> : null}
         </div>
@@ -129,7 +136,7 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
             comments.map((c) => (
               <div key={c.id} className="reply-item">
                 <div className="reply-meta">
-                  <Username name={c.author_name} colorIndex={getUsernameColorIndex(c.author_name)} />
+                  <Username name={c.author_name} colorIndex={usernameColorMap.get(c.author_name)} />
                   <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                 </div>
                 <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />

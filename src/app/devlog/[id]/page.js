@@ -6,7 +6,7 @@ import { isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
@@ -266,6 +266,13 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    log.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   return (
     <div className="stack">
       <Breadcrumbs
@@ -281,7 +288,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{log.title}</h2>
             <div className="list-meta">
-              <Username name={log.author_name} colorIndex={getUsernameColorIndex(log.author_name)} /> ·{' '}
+              <Username name={log.author_name} colorIndex={usernameColorMap.get(log.author_name)} /> ·{' '}
               {new Date(log.created_at).toLocaleString()}
               {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
               {log.is_locked ? ' · Comments locked' : null}
@@ -352,16 +359,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 byParent.set(key, arr);
               }
 
-              let lastName = null;
-              let lastIndex = null;
-
               const renderReply = (c, { isChild }) => {
-                const colorIndex = getUsernameColorIndex(c.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName
-                });
-                lastName = c.author_name;
-                lastIndex = colorIndex;
+                const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
 
                 const replyLink = `/devlog/${log.id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
                 return (

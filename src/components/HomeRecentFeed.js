@@ -5,7 +5,7 @@ import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatTimeAgo } from '../lib/dates';
 
-export default function HomeRecentFeed({ recentPosts }) {
+export default function HomeRecentFeed({ recentPosts, usernameColorMap }) {
   if (!recentPosts || recentPosts.length === 0) {
     return null;
   }
@@ -15,7 +15,7 @@ export default function HomeRecentFeed({ recentPosts }) {
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Recent Activity</h3>
       <div className="list">
         {recentPosts.map((activity) => {
-          const colorIndex = getUsernameColorIndex(activity.author_name);
+          const colorIndex = usernameColorMap?.get(activity.author_name) ?? getUsernameColorIndex(activity.author_name);
           const isReplyOrComment = activity.activity_type?.includes('_reply') || activity.activity_type?.includes('_comment');
           
           return (
@@ -34,7 +34,7 @@ export default function HomeRecentFeed({ recentPosts }) {
                     {activity.parent_author && (
                       <>
                         {' by '}
-                        <Username name={activity.parent_author} colorIndex={getUsernameColorIndex(activity.parent_author)} />
+                        <Username name={activity.parent_author} colorIndex={usernameColorMap?.get(activity.parent_author) ?? getUsernameColorIndex(activity.parent_author)} />
                       </>
                     )}
                   </>

@@ -4,7 +4,7 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
 
@@ -89,6 +89,13 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     }
   }
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    update.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
@@ -114,7 +121,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{update.title || 'Update'}</h2>
             <div className="list-meta">
-              <Username name={update.author_name} colorIndex={getUsernameColorIndex(update.author_name)} /> ·{' '}
+              <Username name={update.author_name} colorIndex={usernameColorMap.get(update.author_name)} /> ·{' '}
               {new Date(update.created_at).toLocaleString()}
               {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
             </div>
@@ -149,29 +156,20 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            (() => {
-              let lastName = null;
-              let lastIndex = null;
-              return comments.map((c) => {
-                const colorIndex = getUsernameColorIndex(c.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName
-                });
-                lastName = c.author_name;
-                lastIndex = colorIndex;
-                return (
-                  <div key={c.id} className="list-item">
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                    <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>
-                        <Username name={c.author_name} colorIndex={colorIndex} />
-                      </span>
-                      <span>{new Date(c.created_at).toLocaleString()}</span>
-                    </div>
+            comments.map((c) => {
+              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
+              return (
+                <div key={c.id} className="list-item">
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>
+                      <Username name={c.author_name} colorIndex={colorIndex} />
+                    </span>
+                    <span>{new Date(c.created_at).toLocaleString()}</span>
                   </div>
-                );
-              });
-            })()
+                </div>
+              );
+            })
           )}
         </div>
       </section>

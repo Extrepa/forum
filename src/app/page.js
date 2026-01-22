@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
 import Username from '../components/Username';
-import { getUsernameColorIndex } from '../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../lib/usernameColor';
 import {
   getForumStrings,
   getTimeBasedGreetingTemplate,
@@ -1013,6 +1013,13 @@ export default async function HomePage({ searchParams }) {
     }
   }
 
+  // Assign unique colors to all usernames in recent activity feed
+  const allUsernames = [
+    ...recentPosts.map(p => p.author_name),
+    ...recentPosts.map(p => p.parent_author).filter(Boolean)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)]);
+
   return (
     <div className="stack">
       {!hasUsername && (
@@ -1035,7 +1042,7 @@ export default async function HomePage({ searchParams }) {
         <>
           <HomeWelcome user={user} />
           <HomeStats stats={stats} />
-          <HomeRecentFeed recentPosts={recentPosts} />
+          <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">

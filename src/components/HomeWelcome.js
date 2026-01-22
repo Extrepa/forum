@@ -12,7 +12,6 @@ export default function HomeWelcome({ user }) {
     return (
       <section className="card">
         <h2 className="section-title">{strings.hero.title}</h2>
-        <p className="muted">{strings.hero.subline}</p>
       </section>
     );
   }
@@ -33,7 +32,6 @@ export default function HomeWelcome({ user }) {
           parts.before
         )}
       </h2>
-      <p className="muted">{strings.hero.subline}</p>
     </section>
   );
 }

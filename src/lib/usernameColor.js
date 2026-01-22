@@ -41,3 +41,60 @@ export function getUsernameColorIndex(name, options = {}) {
   return idx;
 }
 
+/**
+ * Assigns unique color indices to all usernames on a page.
+ * Ensures different users get different colors, while same user gets same color.
+ * If a collision occurs, assigns the next available color.
+ * 
+ * @param {string[]} usernames - Array of all usernames that will be displayed on the page
+ * @returns {Map<string, number>} Map of username -> colorIndex (0-7)
+ */
+export function assignUniqueColorsForPage(usernames) {
+  const colorMap = new Map();
+  const usedColors = new Set();
+  const usernameToColor = new Map(); // Track which username has which color
+  
+  // First pass: assign stable colors
+  usernames.forEach(username => {
+    if (!username) return;
+    const normalized = normalizeUsername(username);
+    if (!normalized) return;
+    
+    const stableIndex = getStableUsernameColorIndex(username);
+    colorMap.set(username, stableIndex);
+    usernameToColor.set(stableIndex, username);
+  });
+  
+  // Second pass: resolve collisions
+  usernames.forEach(username => {
+    if (!username) return;
+    const normalized = normalizeUsername(username);
+    if (!normalized) return;
+    
+    let colorIndex = colorMap.get(username);
+    const currentOwner = usernameToColor.get(colorIndex);
+    
+    // If this color is already used by a different user, find next available
+    if (currentOwner && normalizeUsername(currentOwner) !== normalized) {
+      // Try to find an unused color
+      for (let i = 0; i < PALETTE_SIZE; i++) {
+        const testIndex = (colorIndex + i) % PALETTE_SIZE;
+        const owner = usernameToColor.get(testIndex);
+        if (!owner || normalizeUsername(owner) === normalized) {
+          colorIndex = testIndex;
+          break;
+        }
+      }
+      
+      // Update the mapping
+      colorMap.set(username, colorIndex);
+      usernameToColor.set(colorIndex, username);
+    } else {
+      // This user owns this color, mark it as used
+      usernameToColor.set(colorIndex, username);
+    }
+  });
+  
+  return colorMap;
+}
+

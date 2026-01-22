@@ -7,7 +7,7 @@ import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import EditPostButton from '../../../components/EditPostButton';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
 
@@ -169,6 +169,13 @@ export default async function MusicDetailPage({ params, searchParams }) {
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    post.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  
   // Check if current user has liked this post
   let userLiked = false;
   if (user) {
@@ -203,7 +210,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title}</h2>
             <div className="list-meta">
-              <Username name={post.author_name} colorIndex={getUsernameColorIndex(post.author_name)} /> ·{' '}
+              <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} /> ·{' '}
               {new Date(post.created_at).toLocaleString()}
             </div>
           </div>
@@ -282,34 +289,23 @@ export default async function MusicDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            (() => {
-              let lastName = null;
-              let lastIndex = null;
-
-              return comments.map((comment) => {
-                const colorIndex = getUsernameColorIndex(comment.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = comment.author_name;
-                lastIndex = colorIndex;
-
-                return (
-                  <div key={comment.id} className="list-item">
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
-                    <div
-                      className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                      <span>
-                        <Username name={comment.author_name} colorIndex={colorIndex} />
-                      </span>
-                      <span>{new Date(comment.created_at).toLocaleString()}</span>
-                    </div>
+            comments.map((comment) => {
+              const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name);
+              return (
+                <div key={comment.id} className="list-item">
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                  <div
+                    className="list-meta"
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <span>
+                      <Username name={comment.author_name} colorIndex={colorIndex} />
+                    </span>
+                    <span>{new Date(comment.created_at).toLocaleString()}</span>
                   </div>
-                );
-              });
-            })()
+                </div>
+              );
+            })
           )}
         </div>
         <CommentFormWrapper

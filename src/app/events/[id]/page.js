@@ -6,7 +6,7 @@ import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import EditPostButton from '../../../components/EditPostButton';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
 import LikeButton from '../../../components/LikeButton';
 import EventCommentsSection from '../../../components/EventCommentsSection';
@@ -197,6 +197,13 @@ export default async function EventDetailPage({ params, searchParams }) {
     body_html: renderMarkdown(c.body)
   }));
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    event.author_name,
+    ...comments.map(c => c.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
@@ -230,7 +237,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{event.title}</h2>
             <div className="list-meta">
-              <Username name={event.author_name} colorIndex={getUsernameColorIndex(event.author_name)} />
+              <Username name={event.author_name} colorIndex={usernameColorMap.get(event.author_name)} />
             </div>
           </div>
           {user ? (
@@ -283,6 +290,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         comments={commentsWithHtml}
         user={user}
         commentNotice={commentNotice}
+        usernameColorMap={usernameColorMap}
       />
     </div>
   );

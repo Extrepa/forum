@@ -1,7 +1,7 @@
 'use client';
 
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
@@ -38,7 +38,8 @@ export default function ForumClient({ announcements = [], stickies = [], threads
   };
 
   const renderItem = (row, { condensed = false }) => {
-    const colorIndex = getUsernameColorIndex(row.author_name);
+    const authorColorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name);
+    const lastPostColorIndex = row.last_post_author ? (usernameColorMap.get(row.last_post_author) ?? getUsernameColorIndex(row.last_post_author)) : null;
     const isHot = (row.reply_count || 0) > 10;
     const statusIcons = [];
     if (row.is_pinned) statusIcons.push('📌');
@@ -89,7 +90,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
           <span>
             {lastPostAuthor !== row.author_name && (
               <>
-                Last post: {formatTimeAgo(lastActivity)} by <Username name={lastPostAuthor} colorIndex={getUsernameColorIndex(lastPostAuthor)} />
+                Last post: {formatTimeAgo(lastActivity)} by <Username name={lastPostAuthor} colorIndex={lastPostColorIndex} />
               </>
             )}
             {lastPostAuthor === row.author_name && (

@@ -6,7 +6,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
-import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import AdminControlsBar from '../../../components/AdminControlsBar';
 import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
@@ -43,8 +43,9 @@ function destUrlFor(type, id) {
 }
 
 export default async function ProjectDetailPage({ params, searchParams }) {
-  const db = await getDb();
-  let project = null;
+  try {
+    const db = await getDb();
+    let project = null;
   try {
     project = await db
       .prepare(
@@ -128,6 +129,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     const out = await db
       .prepare(
         `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
+                project_replies.author_user_id,
                 users.username AS author_name
          FROM project_replies
          JOIN users ON users.id = project_replies.author_user_id
@@ -143,6 +145,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
+                  project_replies.author_user_id,
                   users.username AS author_name
            FROM project_replies
            JOIN users ON users.id = project_replies.author_user_id
@@ -216,6 +219,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   const replyingTo = replyToId ? replies.find((r) => r.id === replyToId) : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
+  // Assign unique colors to all usernames on this page
+  const allUsernames = [
+    project.author_name,
+    ...replies.map(r => r.author_name)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+
   return (
     <div className="stack">
       <Breadcrumbs
@@ -241,7 +251,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           ) : null}
         </div>
         <div className="list-meta">
-          <Username name={project.author_name} colorIndex={getUsernameColorIndex(project.author_name)} /> ·{' '}
+          <Username name={project.author_name} colorIndex={usernameColorMap.get(project.author_name)} /> ·{' '}
           {new Date(project.created_at).toLocaleString()}
           {project.updated_at ? ` · Updated ${new Date(project.updated_at).toLocaleString()}` : null}
         </div>
@@ -328,16 +338,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 byParent.set(key, arr);
               }
 
-              let lastName = null;
-              let lastIndex = null;
-
               const renderReply = (r, { isChild }) => {
-                const colorIndex = getUsernameColorIndex(r.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName
-                });
-                lastName = r.author_name;
-                lastIndex = colorIndex;
+                const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name);
 
                 const replyLink = `/projects/${project.id}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
                 return (
@@ -400,4 +402,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       </section>
     </div>
   );
+  } catch (error) {
+    console.error('Error loading project page:', error);
+    return (
+      <div className="card">
+        <h2 className="section-title">Error</h2>
+        <p className="muted">Unable to load this project. Please try again later.</p>
+      </div>
+    );
+  }
 }
