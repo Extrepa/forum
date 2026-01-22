@@ -46,10 +46,10 @@ export default function EventCommentsSection({
   };
   
   return (
-    <section className="card" style={{ marginTop: '24px' }}>
+    <section className="card" style={{ marginTop: '16px' }}>
       {/* Attendee list */}
       {attendees.length > 0 && (
-        <div style={{ marginBottom: '20px', fontSize: '13px', color: 'var(--muted)' }}>
+        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--muted)' }}>
           <strong style={{ color: 'var(--ink)' }}>
             {attendees.length} {attendees.length === 1 ? 'person' : 'people'} attending:
           </strong>{' '}
@@ -107,7 +107,7 @@ export default function EventCommentsSection({
       {/* Comment form - hidden until activated */}
       {user ? (
         showCommentBox ? (
-          <form id="event-comment-form" action={`/api/events/${eventId}/comments`} method="post">
+          <form id="event-comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '16px' }}>
             <label>
               <div className="muted">What would you like to say?</div>
               <textarea name="body" placeholder="Drop your thoughts into the goo..." required />
@@ -118,12 +118,12 @@ export default function EventCommentsSection({
             </div>
           </form>
         ) : (
-          <button type="button" onClick={() => setShowCommentBox(true)}>
+          <button type="button" onClick={() => setShowCommentBox(true)} style={{ marginTop: '16px' }}>
             Post comment
           </button>
         )
       ) : (
-        <p className="muted">Sign in to comment.</p>
+        <p className="muted" style={{ marginTop: '16px' }}>Sign in to comment.</p>
       )}
     </section>
   );
