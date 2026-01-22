@@ -992,6 +992,51 @@ button:hover {
   overflow: auto;
 }
 
+/* Enhanced Errl theme styling for notifications popover */
+.notifications-popover-errl {
+  position: relative;
+  isolation: isolate;
+}
+
+.notifications-popover-errl::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    rgba(52, 225, 255, 0.9),
+    rgba(255, 52, 245, 0.9),
+    rgba(245, 255, 183, 0.9),
+    rgba(0, 245, 160, 0.9),
+    rgba(52, 225, 255, 0.9)
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.8;
+  animation: neonChase 4s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.notifications-popover-errl::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 0 24px rgba(52, 225, 255, 0.25),
+    0 0 32px rgba(255, 52, 245, 0.18),
+    0 0 40px rgba(245, 255, 183, 0.12);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: -1;
+}
+
 .notice {
   padding: 12px 14px;
   border-radius: 12px;

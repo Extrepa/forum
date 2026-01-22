@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 function formatTimeAgo(timestamp) {
@@ -29,59 +29,93 @@ export default function NotificationsMenu({
   anchor = 'right',
 }) {
   const router = useRouter();
+  const [currentUsername, setCurrentUsername] = useState(null);
   const hasItems = items && items.length > 0;
   const title = useMemo(() => {
     if (unreadCount > 0) return `Notifications (${unreadCount})`;
     return 'Notifications';
   }, [unreadCount]);
 
+  // Fetch current user's username for profile link
+  useEffect(() => {
+    if (open) {
+      fetch('/api/auth/me')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.user?.username) {
+            setCurrentUsername(data.user.username);
+          }
+        })
+        .catch(() => {
+          // Ignore errors
+        });
+    }
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div
-      className="card notifications-popover"
+      className="card notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 340,
+        width: 380,
         maxWidth: '90vw',
         zIndex: 1100,
-        padding: 12
+        padding: '16px',
+        maxHeight: 'min(80vh, 600px)',
+        display: 'flex',
+        flexDirection: 'column'
       }}
       role="menu"
       aria-label={title}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <strong>{title}</strong>
-        <div style={{ display: 'flex', gap: 8 }}>
+      {/* Header with title and action buttons */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: '12px', flexWrap: 'wrap' }}>
+        <strong style={{ fontSize: '16px' }}>{title}</strong>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => {
               onClose();
               router.push('/account');
             }}
+            style={{ fontSize: '12px', padding: '6px 10px' }}
           >
             Account
           </button>
-          <button type="button" onClick={onRefresh} disabled={status === 'loading'}>
-            Refresh
-          </button>
-          <button type="button" onClick={onMarkAllRead} disabled={unreadCount === 0}>
-            Mark all read
-          </button>
-          <button type="button" onClick={onClose}>
-            Close
+          {currentUsername && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                router.push(`/profile/${encodeURIComponent(currentUsername)}`);
+              }}
+              style={{ fontSize: '12px', padding: '6px 10px' }}
+            >
+              Profile
+            </button>
+          )}
+          <button 
+            type="button" 
+            onClick={onRefresh} 
+            disabled={status === 'loading'}
+            style={{ fontSize: '12px', padding: '6px 10px' }}
+          >
+            {status === 'loading' ? '...' : 'Refresh'}
           </button>
         </div>
       </div>
 
-      <div style={{ marginTop: 10 }}>
+      {/* Notifications list - scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         {!hasItems ? (
-          <div className="muted">No notifications yet. The goo is quiet.</div>
+          <div className="muted" style={{ padding: '8px 0', textAlign: 'center' }}>No notifications yet. The goo is quiet.</div>
         ) : (
-          <div className="list">
+          <div className="list" style={{ gap: '8px' }}>
             {items.map((n) => {
               const isUnread = !n.read_at;
               let href = '#';
@@ -102,18 +136,32 @@ export default function NotificationsMenu({
                 <a
                   key={n.id}
                   href={href}
-                  className={isUnread ? 'active' : ''}
+                  className={`list-item ${isUnread ? 'active' : ''}`}
                   onClick={async (e) => {
                     if (href === '#') return;
                     e.preventDefault();
                     await onMarkRead(n.id);
                     window.location.href = href;
                   }}
-                  style={{ textDecoration: 'none' }}
+                  style={{ 
+                    textDecoration: 'none',
+                    display: 'block',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: isUnread ? '1px solid rgba(52, 225, 255, 0.4)' : '1px solid rgba(22, 58, 74, 0.4)',
+                    background: isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.1)' : 'rgba(4, 16, 23, 0.7)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)';
+                  }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                    <span>{label}</span>
-                    <span className="muted" style={{ whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4' }}>{label}</span>
+                    <span className="muted" style={{ whiteSpace: 'nowrap', fontSize: '12px', flexShrink: 0 }}>
                       {formatTimeAgo(n.created_at)}
                     </span>
                   </div>
@@ -122,6 +170,25 @@ export default function NotificationsMenu({
             })}
           </div>
         )}
+      </div>
+
+      {/* Footer with mark all read and close */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(22, 58, 74, 0.4)' }}>
+        <button 
+          type="button" 
+          onClick={onMarkAllRead} 
+          disabled={unreadCount === 0}
+          style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1 }}
+        >
+          Mark all read
+        </button>
+        <button 
+          type="button" 
+          onClick={onClose}
+          style={{ fontSize: '12px', padding: '6px 10px' }}
+        >
+          Close
+        </button>
       </div>
     </div>
   );
