@@ -14,7 +14,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
     { href: '/feed', label: 'Feed' },
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },
-    ...(isSignedIn ? [{ href: '/devlog', label: 'Development' }] : []),
+    { href: '/devlog', label: 'Development' },
     { href: '/lobby', label: 'General' },
     { href: '/music', label: strings.tabs.music },
     { href: '/projects', label: strings.tabs.projects },
@@ -24,7 +24,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   const moreLinks = [
     { href: '/art-nostalgia', label: 'Art & Nostalgia' },
     { href: '/bugs-rant', label: 'Bugs & Rants' },
-    ...(isSignedIn ? [{ href: '/lore-memories', label: 'Lore & Memories' }] : []),
+    { href: '/lore-memories', label: 'Lore & Memories' },
   ];
 
   const links =
@@ -39,6 +39,13 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   };
 
   const handleLinkClick = (e, href) => {
+    // If not signed in, show message and prevent navigation
+    if (!isSignedIn) {
+      e.preventDefault();
+      alert('Please sign in to access this page.');
+      return;
+    }
+
     // For "more" variant links, ensure navigation happens
     if (variant === 'more') {
       e.preventDefault();
@@ -54,7 +61,7 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
           key={link.href}
           href={link.href}
           className={isActive(link.href) ? 'active' : ''}
-          onClick={variant === 'more' ? (e) => handleLinkClick(e, link.href) : undefined}
+          onClick={(e) => handleLinkClick(e, link.href)}
         >
           {link.label}
         </a>
