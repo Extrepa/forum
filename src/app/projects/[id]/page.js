@@ -5,13 +5,13 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import { formatDateTime } from '../../../lib/dates';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
-import AdminControlsBar from '../../../components/AdminControlsBar';
-import EditPostPanel from '../../../components/EditPostPanel';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
+import DeletePostButton from '../../../components/DeletePostButton';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -405,12 +405,28 @@ export default async function ProjectDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/projects', label: 'Projects' },
           { href: `/projects/${safeProjectId}`, label: safeProjectTitle },
         ]}
+        right={
+          canEdit ? (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <EditPostButtonWithPanel 
+                buttonLabel="Edit Post" 
+                panelId="edit-project-panel"
+              />
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={safeProjectId} 
+                  postType="project"
+                />
+              ) : null}
+            </div>
+          ) : null
+        }
       />
       <section className="card">
         <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
@@ -432,12 +448,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
           {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
         </div>
-        <AdminControlsBar
-          postId={safeProjectId}
-          postType="project"
-          canEdit={canEdit}
-          canDelete={canDelete}
-        />
         {safeProjectImageKey ? (
           <img
             src={`/api/media/${safeProjectImageKey}`}
@@ -465,8 +475,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       </section>
 
       {canEdit ? (
-        <div data-edit-panel>
-          <EditPostPanel buttonLabel="Edit Post" title="Edit Project">
+        <div id="edit-project-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Project</h3>
             {editNotice ? <div className="notice">{editNotice}</div> : null}
             <ProjectForm projectId={safeProjectId} initialData={{
               id: safeProjectId,
@@ -477,7 +488,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               demo_url: safeProjectDemoUrl,
               image_key: safeProjectImageKey
             }} />
-          </EditPostPanel>
+          </section>
         </div>
       ) : null}
 
