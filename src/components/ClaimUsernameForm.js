@@ -535,140 +535,165 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
     <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
-      {mode === 'login' ? (
-        <>
-          <h3 className="section-title" style={{ marginBottom: '16px' }}>Sign in</h3>
-          <p className="muted" style={{ marginBottom: '20px' }}>
-            Sign in with your username or email.
-          </p>
-          <form onSubmit={submitLogin}>
-            <label>
-              <div className="muted">Email or username</div>
-              <input
-                name="identifier"
-                value={loginIdentifier}
-                onChange={(event) => setLoginIdentifier(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Password</div>
-              <input
-                name="password"
-                type="password"
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                placeholder="Password"
-                required
-              />
-            </label>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Sign in
-            </button>
-          </form>
-          <button
-            type="button"
-            onClick={() => {
-              setStatus({ type: 'idle', message: null });
-              setMode('signup');
-            }}
-            disabled={status.type === 'loading'}
-            style={{
-              marginTop: '12px',
-              background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              fontSize: '15px',
-              boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
-            }}
-          >
-            Create an account
-          </button>
-          {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
-        </>
-      ) : (
-        <>
-          <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
-          <p className="muted" style={{ marginBottom: '20px' }}>
-            Create an account with email, username, and password to post from any device.
-          </p>
-          <form onSubmit={submitSignup}>
-            <label>
-              <div className="muted">Email</div>
-              <input
-                name="email"
-                value={signupEmail}
-                onChange={(event) => setSignupEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Username (lowercase, 3 to 20 chars)</div>
-              <input
-                name="username"
-                value={signupUsername}
-                onChange={(event) => setSignupUsername(event.target.value)}
-                placeholder="errlmember"
-                required
-              />
-            </label>
-            <label>
-              <div className="muted">Password (8+ chars)</div>
-              <input
-                name="password"
-                type="password"
-                value={signupPassword}
-                onChange={(event) => setSignupPassword(event.target.value)}
-                placeholder="Password"
-                required
-              />
-            </label>
-            <div style={{ marginTop: '12px', marginBottom: '8px' }}>
-              <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <input
-                  type="checkbox"
-                  checked={signupNotifyEmail}
-                  onChange={(e) => setSignupNotifyEmail(e.target.checked)}
-                />
-                <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  checked={signupNotifySms}
-                  onChange={(e) => setSignupNotifySms(e.target.checked)}
-                />
-                <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
-              </label>
-            </div>
-            <button type="submit" disabled={status.type === 'loading'}>
-              Create account
-            </button>
-          </form>
-          <button
-            type="button"
-            onClick={() => {
-              setStatus({ type: 'idle', message: null });
-              setMode('login');
-            }}
-            disabled={status.type === 'loading'}
-            style={{
-              marginTop: '12px',
-              background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              fontSize: '15px',
-              boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
-            }}
-          >
-            Sign in instead
-          </button>
-          {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
-        </>
-      )}
+      <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: '1', minWidth: 0 }}>
+          {mode === 'login' ? (
+            <>
+              <h3 className="section-title" style={{ marginBottom: '16px' }}>Sign in</h3>
+              <p className="muted" style={{ marginBottom: '20px' }}>
+                Sign in with your username or email.
+              </p>
+              <form onSubmit={submitLogin}>
+                <label>
+                  <div className="muted">Email or username</div>
+                  <input
+                    name="identifier"
+                    value={loginIdentifier}
+                    onChange={(event) => setLoginIdentifier(event.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                </label>
+                <label>
+                  <div className="muted">Password</div>
+                  <input
+                    name="password"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(event) => setLoginPassword(event.target.value)}
+                    placeholder="Password"
+                    required
+                  />
+                </label>
+                <button type="submit" disabled={status.type === 'loading'}>
+                  Sign in
+                </button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus({ type: 'idle', message: null });
+                  setMode('signup');
+                }}
+                disabled={status.type === 'loading'}
+                style={{
+                  marginTop: '12px',
+                  width: '100%',
+                  background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
+                  color: '#001018',
+                  fontWeight: 600,
+                  fontSize: '15px',
+                  boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
+                }}
+              >
+                Create an account
+              </button>
+              {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
+            </>
+          ) : (
+            <>
+              <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
+              <p className="muted" style={{ marginBottom: '20px' }}>
+                Create an account with email, username, and password to post from any device.
+              </p>
+              <form onSubmit={submitSignup}>
+                <label>
+                  <div className="muted">Email</div>
+                  <input
+                    name="email"
+                    value={signupEmail}
+                    onChange={(event) => setSignupEmail(event.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                </label>
+                <label>
+                  <div className="muted">Username (lowercase, 3 to 20 chars)</div>
+                  <input
+                    name="username"
+                    value={signupUsername}
+                    onChange={(event) => setSignupUsername(event.target.value)}
+                    placeholder="errlmember"
+                    required
+                  />
+                </label>
+                <label>
+                  <div className="muted">Password (8+ chars)</div>
+                  <input
+                    name="password"
+                    type="password"
+                    value={signupPassword}
+                    onChange={(event) => setSignupPassword(event.target.value)}
+                    placeholder="Password"
+                    required
+                  />
+                </label>
+                <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                  <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <input
+                      type="checkbox"
+                      checked={signupNotifyEmail}
+                      onChange={(e) => setSignupNotifyEmail(e.target.checked)}
+                    />
+                    <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="checkbox"
+                      checked={signupNotifySms}
+                      onChange={(e) => setSignupNotifySms(e.target.checked)}
+                    />
+                    <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
+                  </label>
+                </div>
+                <button type="submit" disabled={status.type === 'loading'}>
+                  Create account
+                </button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus({ type: 'idle', message: null });
+                  setMode('login');
+                }}
+                disabled={status.type === 'loading'}
+                style={{
+                  marginTop: '12px',
+                  width: '100%',
+                  background: 'linear-gradient(135deg, rgba(255, 52, 245, 0.9), rgba(52, 225, 255, 0.9))',
+                  color: '#001018',
+                  fontWeight: 600,
+                  fontSize: '15px',
+                  boxShadow: '0 0 18px rgba(255, 52, 245, 0.45)'
+                }}
+              >
+                Sign in instead
+              </button>
+              {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
+            </>
+          )}
+        </div>
+        <div style={{ flex: '0 0 25%', minWidth: '200px', paddingLeft: '24px', borderLeft: '1px solid rgba(52, 225, 255, 0.2)' }}>
+          <div style={{ position: 'sticky', top: '20px' }}>
+            <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
+            <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+              {mode === 'login' ? (
+                <>
+                  If you have an account, please sign in to the left. If you do not, please click "Create an account" below.
+                </>
+              ) : (
+                <>
+                  Join the community! Create your account to start posting, commenting, and connecting with other Errl members.
+                </>
+              )}
+            </p>
+            <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
+              Keep it weird. Keep it drippy. Keep it Errl.
+            </p>
+          </div>
+        </div>
+      </div>
     </Wrapper>
   );
 }
