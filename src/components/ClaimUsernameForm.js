@@ -5,18 +5,12 @@ import { useRouter } from 'next/navigation';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { useUiPrefs } from './UiPrefsProvider';
-import { detectAuthType } from '../lib/auth-detection';
 
 export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const router = useRouter();
   const [status, setStatus] = useState({ type: 'idle', message: null });
   const [mode, setMode] = useState('login'); // signup | login
-  const [authType, setAuthType] = useState('none'); // browser | cookie | none
   const { loreEnabled, setLoreEnabled } = useUiPrefs();
-
-  useEffect(() => {
-    setAuthType(detectAuthType());
-  }, []);
 
   const [me, setMe] = useState(null);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -537,145 +531,130 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     );
   }
 
-  // Show different UI based on auth type
-  const showBrowserAuth = authType === 'browser';
-  const showCookieAuth = authType === 'cookie';
-  const showNoAuth = authType === 'none';
-
   const Wrapper = noCardWrapper ? 'div' : 'div';
   const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
-    <Wrapper {...wrapperProps}>
-      <div className="stack" style={{ gap: 12 }}>
-        {showBrowserAuth && (
-          <p className="muted" style={{ fontSize: 13 }}>
-            Your browser supports secure authentication. You can use browser-based sign-in or create an account below.
+    <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
+      {mode === 'login' ? (
+        <>
+          <h3 className="section-title" style={{ marginBottom: '16px' }}>Sign in</h3>
+          <p className="muted" style={{ marginBottom: '20px' }}>
+            Sign in with your username or email.
           </p>
-        )}
-        {showCookieAuth && (
-          <p className="muted" style={{ fontSize: 13 }}>
-            You have an existing session. Sign in to continue or create a new account.
-          </p>
-        )}
-        {showNoAuth && (
-          <p className="muted" style={{ fontSize: 13 }}>
-            Create an account to post and participate in the forum.
-          </p>
-        )}
-
-        {mode === 'login' ? (
-          <>
-            <form onSubmit={submitLogin} className="card" style={{ padding: 12 }}>
-              <label>
-                <div className="muted">Email or username</div>
-                <input
-                  name="identifier"
-                  value={loginIdentifier}
-                  onChange={(event) => setLoginIdentifier(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-              </label>
-              <label>
-                <div className="muted">Password</div>
-                <input
-                  name="password"
-                  type="password"
-                  value={loginPassword}
-                  onChange={(event) => setLoginPassword(event.target.value)}
-                  placeholder="Password"
-                  required
-                />
-              </label>
-              <button type="submit" disabled={status.type === 'loading'}>
-                Sign in
-              </button>
-            </form>
-            <button
-              type="button"
-              onClick={() => {
-                setStatus({ type: 'idle', message: null });
-                setMode('signup');
-              }}
-              disabled={status.type === 'loading'}
-              style={{ marginTop: '-8px' }}
-            >
-              Create account
-            </button>
-          </>
-        ) : (
-          <>
-            <form onSubmit={submitSignup} className="card" style={{ padding: 12 }}>
-              <label>
-                <div className="muted">Email</div>
-                <input
-                  name="email"
-                  value={signupEmail}
-                  onChange={(event) => setSignupEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-              </label>
-              <label>
-                <div className="muted">Username (lowercase, 3 to 20 chars)</div>
-                <input
-                  name="username"
-                  value={signupUsername}
-                  onChange={(event) => setSignupUsername(event.target.value)}
-                  placeholder="errlmember"
-                  required
-                />
-              </label>
-              <label>
-                <div className="muted">Password (8+ chars)</div>
-                <input
-                  name="password"
-                  type="password"
-                  value={signupPassword}
-                  onChange={(event) => setSignupPassword(event.target.value)}
-                  placeholder="Password"
-                  required
-                />
-              </label>
-              <div style={{ marginTop: '12px', marginBottom: '8px' }}>
-                <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <input
-                    type="checkbox"
-                    checked={signupNotifyEmail}
-                    onChange={(e) => setSignupNotifyEmail(e.target.checked)}
-                  />
-                  <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={signupNotifySms}
-                    onChange={(e) => setSignupNotifySms(e.target.checked)}
-                  />
-                  <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
-                </label>
-              </div>
-              <button type="submit" disabled={status.type === 'loading'}>
-                Create account
-              </button>
-            </form>
-            <button
-              type="button"
-              onClick={() => {
-                setStatus({ type: 'idle', message: null });
-                setMode('login');
-              }}
-              disabled={status.type === 'loading'}
-              style={{ marginTop: '-8px' }}
-            >
+          <form onSubmit={submitLogin}>
+            <label>
+              <div className="muted">Email or username</div>
+              <input
+                name="identifier"
+                value={loginIdentifier}
+                onChange={(event) => setLoginIdentifier(event.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label>
+              <div className="muted">Password</div>
+              <input
+                name="password"
+                type="password"
+                value={loginPassword}
+                onChange={(event) => setLoginPassword(event.target.value)}
+                placeholder="Password"
+                required
+              />
+            </label>
+            <button type="submit" disabled={status.type === 'loading'}>
               Sign in
             </button>
-          </>
-        )}
-
-        {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}
-      </div>
+          </form>
+          <button
+            type="button"
+            onClick={() => {
+              setStatus({ type: 'idle', message: null });
+              setMode('signup');
+            }}
+            disabled={status.type === 'loading'}
+            style={{ marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Create an account
+          </button>
+          {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
+        </>
+      ) : (
+        <>
+          <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
+          <p className="muted" style={{ marginBottom: '20px' }}>
+            Create an account with email, username, and password to post from any device.
+          </p>
+          <form onSubmit={submitSignup}>
+            <label>
+              <div className="muted">Email</div>
+              <input
+                name="email"
+                value={signupEmail}
+                onChange={(event) => setSignupEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label>
+              <div className="muted">Username (lowercase, 3 to 20 chars)</div>
+              <input
+                name="username"
+                value={signupUsername}
+                onChange={(event) => setSignupUsername(event.target.value)}
+                placeholder="errlmember"
+                required
+              />
+            </label>
+            <label>
+              <div className="muted">Password (8+ chars)</div>
+              <input
+                name="password"
+                type="password"
+                value={signupPassword}
+                onChange={(event) => setSignupPassword(event.target.value)}
+                placeholder="Password"
+                required
+              />
+            </label>
+            <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+              <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <input
+                  type="checkbox"
+                  checked={signupNotifyEmail}
+                  onChange={(e) => setSignupNotifyEmail(e.target.checked)}
+                />
+                <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={signupNotifySms}
+                  onChange={(e) => setSignupNotifySms(e.target.checked)}
+                />
+                <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
+              </label>
+            </div>
+            <button type="submit" disabled={status.type === 'loading'}>
+              Create account
+            </button>
+          </form>
+          <button
+            type="button"
+            onClick={() => {
+              setStatus({ type: 'idle', message: null });
+              setMode('login');
+            }}
+            disabled={status.type === 'loading'}
+            style={{ marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Sign in instead
+          </button>
+          {status.type !== 'idle' ? <div className="notice" style={{ marginTop: '16px' }}>{status.message}</div> : null}
+        </>
+      )}
     </Wrapper>
   );
 }
