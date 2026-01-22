@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
+import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
@@ -213,7 +214,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     try {
       const likeCheck = await db
         .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
-        .bind('project', project.id, user.id)
+        .bind('project', String(project.id), String(user.id))
         .first();
       userLiked = !!likeCheck;
     } catch (e) {
@@ -222,47 +223,185 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     }
   }
 
-  const error = searchParams?.error;
+  // Safely extract searchParams
+  let errorParam = null;
+  let replyToId = null;
+  try {
+    if (searchParams && typeof searchParams === 'object') {
+      if ('error' in searchParams) {
+        errorParam = String(searchParams.error || '');
+      }
+      if ('replyTo' in searchParams) {
+        const replyTo = String(searchParams.replyTo || '').trim();
+        replyToId = replyTo || null;
+      }
+    }
+  } catch (e) {
+    console.error('Error reading searchParams:', e);
+    errorParam = null;
+    replyToId = null;
+  }
+  
   const editNotice =
-    error === 'claim'
+    errorParam === 'claim'
       ? 'Sign in before editing.'
-      : error === 'password'
+      : errorParam === 'password'
       ? 'Set your password to continue.'
-      : error === 'unauthorized'
+      : errorParam === 'unauthorized'
       ? 'Only the project author can edit this.'
-      : error === 'upload'
+      : errorParam === 'upload'
       ? 'Image upload is not allowed for this username.'
-      : error === 'too_large'
+      : errorParam === 'too_large'
       ? 'Image is too large (max 5MB).'
-      : error === 'invalid_type'
+      : errorParam === 'invalid_type'
       ? 'Only image files are allowed.'
-      : error === 'missing'
+      : errorParam === 'missing'
       ? 'Title, description, and status are required.'
-      : error === 'notfound'
+      : errorParam === 'notfound'
       ? 'This project does not exist.'
       : null;
   
   const commentNotice =
-    error === 'claim'
+    errorParam === 'claim'
       ? 'Sign in before commenting.'
-      : error === 'password'
+      : errorParam === 'password'
       ? 'Set your password to continue posting.'
-      : error === 'notready'
+      : errorParam === 'notready'
       ? 'Replies are not enabled yet (database updates still applying).'
-      : error === 'missing'
+      : errorParam === 'missing'
       ? 'Comment text is required.'
       : null;
 
-  const replyToId = String(searchParams?.replyTo || '').trim() || null;
-  const replyingTo = replyToId ? replies.find((r) => r.id === replyToId) : null;
+  // Fully serialize all data before rendering
+  const safeProjectId = project?.id ? String(project.id) : '';
+  const safeProjectTitle = project?.title ? String(project.title) : 'Untitled';
+  const safeProjectDescription = project?.description ? String(project.description) : '';
+  const safeProjectStatus = project?.status ? String(project.status) : '';
+  const safeProjectAuthorName = project?.author_name ? String(project.author_name) : 'Unknown';
+  const safeProjectCreatedAt = project?.created_at ? Number(project.created_at) : null;
+  const safeProjectUpdatedAt = project?.updated_at ? Number(project.updated_at) : null;
+  const safeProjectImageKey = project?.image_key ? String(project.image_key) : null;
+  const safeProjectGithubUrl = project?.github_url ? String(project.github_url) : null;
+  const safeProjectDemoUrl = project?.demo_url ? String(project.demo_url) : null;
+  const safeProjectLikeCount = project?.like_count ? Number(project.like_count) : 0;
+  
+  // Serialize replies array
+  const safeReplies = Array.isArray(replies)
+    ? replies
+        .filter(r => r && r.id && r.body)
+        .map(r => ({
+          id: String(r.id || ''),
+          author_name: String(r.author_name || 'Unknown'),
+          body: String(r.body || ''),
+          created_at: r.created_at ? Number(r.created_at) : Date.now(),
+          reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
+          author_user_id: String(r.author_user_id || '')
+        }))
+    : [];
+  
+  // Find and serialize replyingTo from safeReplies
+  const replyingTo = replyToId ? safeReplies.find((r) => r && r.id && r.id === replyToId) : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
-
+  
   // Assign unique colors to all usernames on this page
   const allUsernames = [
-    project?.author_name,
-    ...replies.map(r => r?.author_name)
-  ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+    safeProjectAuthorName,
+    ...safeReplies.map(r => r.author_name)
+  ].filter(Boolean).filter(name => name && typeof name === 'string');
+  
+  let usernameColorMap = new Map();
+  try {
+    if (allUsernames.length > 0) {
+      usernameColorMap = assignUniqueColorsForPage(allUsernames);
+    }
+  } catch (e) {
+    console.error('Error assigning username colors:', e);
+    usernameColorMap = new Map();
+  }
+  
+  // Pre-render markdown
+  let projectDescriptionHtml = '';
+  try {
+    projectDescriptionHtml = renderMarkdown(safeProjectDescription);
+  } catch (e) {
+    console.error('Error rendering project markdown:', e);
+    projectDescriptionHtml = safeProjectDescription.replace(/\n/g, '<br>');
+  }
+  
+  // Extract reply rendering logic to avoid IIFE
+  const renderReplies = () => {
+    if (safeReplies.length === 0) return [];
+    
+    const byParent = new Map();
+    const validReplyIds = new Set(safeReplies.map(r => r.id).filter(Boolean));
+    
+    for (const r of safeReplies) {
+      if (!r || !r.id) continue;
+      const key = (r.reply_to_id && validReplyIds.has(r.reply_to_id)) ? r.reply_to_id : null;
+      const arr = byParent.get(key) || [];
+      arr.push(r);
+      byParent.set(key, arr);
+    }
+    
+    const renderReply = (r, { isChild }) => {
+      if (!r || !r.id || !r.body) return null;
+      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
+      
+      let replyBodyHtml = '';
+      try {
+        replyBodyHtml = renderMarkdown(r.body);
+      } catch (e) {
+        console.error('Error rendering reply markdown:', e, { replyId: r.id });
+        replyBodyHtml = r.body.replace(/\n/g, '<br>');
+      }
+      
+      const replyLink = `/projects/${safeProjectId}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
+      
+      return (
+        <div
+          key={r.id}
+          className={`list-item${isChild ? ' reply-item--child' : ''}`}
+          id={`reply-${r.id}`}
+        >
+          <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
+          <div
+            className="list-meta"
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+          >
+            <span>
+              <Username name={r.author_name} colorIndex={colorIndex} />
+            </span>
+            <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <a className="post-link" href={replyLink}>
+                Reply
+              </a>
+              <span>{r.created_at ? formatDateTime(r.created_at) : ''}</span>
+            </span>
+          </div>
+        </div>
+      );
+    };
+    
+    const top = byParent.get(null) || [];
+    return top.map((r) => {
+      const kids = byParent.get(r.id) || [];
+      const renderedReply = renderReply(r, { isChild: false });
+      const renderedKids = kids.map((c) => renderReply(c, { isChild: true })).filter(Boolean);
+      if (!renderedReply) return null;
+      return (
+        <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
+          {renderedReply}
+          {renderedKids.length ? (
+            <div className="reply-children">
+              {renderedKids}
+            </div>
+          ) : null}
+        </div>
+      );
+    }).filter(Boolean);
+  };
+  
+  const renderedReplies = renderReplies();
 
   return (
     <div className="stack">
@@ -270,49 +409,38 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         items={[
           { href: '/', label: 'Home' },
           { href: '/projects', label: 'Projects' },
-          { href: `/projects/${project.id}`, label: project.title },
+          { href: `/projects/${safeProjectId}`, label: safeProjectTitle },
         ]}
       />
       <section className="card">
         <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
           <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{project.title}</h2>
-            <span className={`status-badge status-${project.status}`}>{project.status}</span>
+            <h2 className="section-title" style={{ marginBottom: '8px' }}>{safeProjectTitle}</h2>
+            <span className={`status-badge status-${safeProjectStatus}`}>{safeProjectStatus}</span>
           </div>
           {user ? (
             <LikeButton 
               postType="project" 
-              postId={project.id} 
+              postId={safeProjectId} 
               initialLiked={userLiked}
-              initialCount={Number(project.like_count || 0)}
+              initialCount={safeProjectLikeCount}
             />
           ) : null}
         </div>
         <div className="list-meta">
-          <Username name={project.author_name} colorIndex={usernameColorMap.get(project.author_name)} /> ·{' '}
-          {new Date(project.created_at).toLocaleString()}
-          {project.updated_at ? ` · Updated ${new Date(project.updated_at).toLocaleString()}` : null}
+          <Username name={safeProjectAuthorName} colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0} /> ·{' '}
+          {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
+          {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
         </div>
         <AdminControlsBar
-          postId={project.id}
+          postId={safeProjectId}
           postType="project"
           canEdit={canEdit}
           canDelete={canDelete}
-          onEdit={() => {
-            // Scroll to EditPostPanel and open it
-            const panel = document.querySelector('[data-edit-panel]');
-            if (panel) {
-              panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-              const details = panel.querySelector('details');
-              if (details && !details.open) {
-                details.open = true;
-              }
-            }
-          }}
         />
-        {project.image_key ? (
+        {safeProjectImageKey ? (
           <img
-            src={`/api/media/${project.image_key}`}
+            src={`/api/media/${safeProjectImageKey}`}
             alt=""
             className="post-image"
             loading="lazy"
@@ -320,16 +448,16 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         ) : null}
         <div
           className="post-body"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(project.description) }}
+          dangerouslySetInnerHTML={{ __html: projectDescriptionHtml }}
         />
         <div className="project-links">
-          {project.github_url ? (
-            <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="project-link">
+          {safeProjectGithubUrl ? (
+            <a href={safeProjectGithubUrl} target="_blank" rel="noopener noreferrer" className="project-link">
               GitHub
             </a>
           ) : null}
-          {project.demo_url ? (
-            <a href={project.demo_url} target="_blank" rel="noopener noreferrer" className="project-link">
+          {safeProjectDemoUrl ? (
+            <a href={safeProjectDemoUrl} target="_blank" rel="noopener noreferrer" className="project-link">
               Demo
             </a>
           ) : null}
@@ -340,7 +468,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         <div data-edit-panel>
           <EditPostPanel buttonLabel="Edit Post" title="Edit Project">
             {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <ProjectForm projectId={project.id} initialData={project} />
+            <ProjectForm projectId={safeProjectId} initialData={{
+              id: safeProjectId,
+              title: safeProjectTitle,
+              description: safeProjectDescription,
+              status: safeProjectStatus,
+              github_url: safeProjectGithubUrl,
+              demo_url: safeProjectDemoUrl,
+              image_key: safeProjectImageKey
+            }} />
           </EditPostPanel>
         </div>
       ) : null}
@@ -350,7 +486,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         {repliesEnabled ? (
           <ReplyFormWrapper
-            action={`/api/projects/${project.id}/replies`}
+            action={`/api/projects/${safeProjectId}/replies`}
             buttonLabel="Post reply"
             placeholder="Share your goo-certified thoughts..."
             labelText="What would you like to say?"
@@ -364,74 +500,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           </div>
         )}
         <div className="list">
-          {replies.length === 0 ? (
+          {renderedReplies.length === 0 ? (
             <p className="muted">No replies yet.</p>
           ) : (
-            (() => {
-              const byParent = new Map();
-              const validReplyIds = new Set(replies.map(r => r.id).filter(Boolean));
-              for (const r of replies) {
-                if (!r || !r.id) continue; // Skip invalid replies
-                // Only use reply_to_id if it references a valid reply
-                const key = (r.reply_to_id && validReplyIds.has(r.reply_to_id)) ? r.reply_to_id : null;
-                const arr = byParent.get(key) || [];
-                arr.push(r);
-                byParent.set(key, arr);
-              }
-
-              const renderReply = (r, { isChild }) => {
-                if (!r || !r.id || !r.body) return null; // Skip invalid replies
-                const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
-
-                const replyLink = `/projects/${project.id}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
-                return (
-                  <div
-                    key={r.id}
-                    className={`list-item${isChild ? ' reply-item--child' : ''}`}
-                    id={`reply-${r.id}`}
-                  >
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(r.body || '') }} />
-                    <div
-                      className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
-                    >
-                      <span>
-                        <Username name={r.author_name} colorIndex={colorIndex} />
-                      </span>
-                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <a className="post-link" href={replyLink}>
-                          Reply
-                        </a>
-                        <span>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</span>
-                      </span>
-                    </div>
-                  </div>
-                );
-              };
-
-              const top = byParent.get(null) || [];
-              return top.map((r) => {
-                const kids = byParent.get(r.id) || [];
-                const renderedReply = renderReply(r, { isChild: false });
-                const renderedKids = kids.map((c) => renderReply(c, { isChild: true })).filter(Boolean);
-                if (!renderedReply) return null;
-                return (
-                  <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
-                    {renderedReply}
-                    {renderedKids.length ? (
-                      <div className="reply-children">
-                        {renderedKids}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              }).filter(Boolean);
-            })()
+            renderedReplies
           )}
         </div>
         {repliesEnabled ? (
           <ReplyFormWrapper
-            action={`/api/projects/${project.id}/replies`}
+            action={`/api/projects/${safeProjectId}/replies`}
             buttonLabel="Post reply"
             placeholder="Share your goo-certified thoughts..."
             labelText="What would you like to say?"
