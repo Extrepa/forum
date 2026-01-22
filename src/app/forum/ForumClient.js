@@ -23,6 +23,17 @@ export default function ForumClient({ announcements = [], stickies = [], threads
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
+  // Collect all usernames from all thread lists for unique color assignment
+  const allUsernames = [
+    ...announcements.map(t => t.author_name),
+    ...announcements.map(t => t.last_post_author).filter(Boolean),
+    ...stickies.map(t => t.author_name),
+    ...stickies.map(t => t.last_post_author).filter(Boolean),
+    ...threads.map(t => t.author_name),
+    ...threads.map(t => t.last_post_author).filter(Boolean)
+  ].filter(Boolean);
+  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)]);
+
   const truncateBody = (body, maxLength = 150) => {
     if (!body) return '';
     // Strip markdown formatting for preview
@@ -63,7 +74,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
             {row.title}
           </h3>
           <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-            by <Username name={row.author_name} colorIndex={colorIndex} />
+            by <Username name={row.author_name} colorIndex={authorColorIndex} />
           </span>
         </div>
         {!condensed ? (

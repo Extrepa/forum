@@ -332,3 +332,27 @@
 - All changes maintain backward compatibility with existing database schemas through fallback queries
 
 **All implementations complete and verified. Ready for migration and build testing.**
+
+---
+
+## Client-Side Exception Fix for Lobby Page - 2026-01-21 (Late Evening)
+
+### Issue Identified
+- **Error**: Client-side exception on `/lobby` page
+- **Error Message**: "Application error: a client-side exception has occurred while loading forum.errl.wtf"
+- **Root Cause**: `ForumClient.js` was referencing `usernameColorMap` without creating it, causing `ReferenceError: usernameColorMap is not defined`
+
+### Fix Applied ✅
+- **File**: `src/app/forum/ForumClient.js`
+- **Changes**:
+  1. Created `usernameColorMap` by collecting all usernames from announcements, stickies, and threads (line 35)
+  2. Fixed variable name bug: Changed `colorIndex` to `authorColorIndex` on line 77
+- **Status**: Complete
+
+### Verification
+- [x] Build test passed successfully
+- [x] No linter errors
+- [x] `usernameColorMap` is now properly created before use
+- [x] All variable references are correct
+
+**Client-side exception fixed. Lobby page should now load without errors.**
