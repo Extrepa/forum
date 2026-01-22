@@ -74,9 +74,9 @@ export default function NotificationsMenu({
       aria-label={title}
     >
       {/* Header with title and action buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: '12px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: '16px' }}>
         <strong style={{ fontSize: '16px' }}>{title}</strong>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
           <button
             type="button"
             onClick={() => {
@@ -111,9 +111,9 @@ export default function NotificationsMenu({
       </div>
 
       {/* Notifications list - scrollable */}
-      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, marginBottom: '12px' }}>
         {!hasItems ? (
-          <div className="muted" style={{ padding: '8px 0', textAlign: 'center' }}>No notifications yet. The goo is quiet.</div>
+          <div className="muted" style={{ padding: '12px 0', textAlign: 'center' }}>No notifications yet. The goo is quiet.</div>
         ) : (
           <div className="list" style={{ gap: '8px' }}>
             {items.map((n) => {
@@ -136,7 +136,6 @@ export default function NotificationsMenu({
                 <a
                   key={n.id}
                   href={href}
-                  className={`list-item ${isUnread ? 'active' : ''}`}
                   onClick={async (e) => {
                     if (href === '#') return;
                     e.preventDefault();
@@ -173,7 +172,7 @@ export default function NotificationsMenu({
       </div>
 
       {/* Footer with mark all read and close */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(22, 58, 74, 0.4)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <button 
           type="button" 
           onClick={onMarkAllRead} 

@@ -998,41 +998,43 @@ button:hover {
   isolation: isolate;
 }
 
-.notifications-popover-errl::before {
-  content: "";
+/* Override card::before to ensure rainbow border shows properly with higher specificity */
+.notifications-popover-errl.card::before {
+  content: "" !important;
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
   background: linear-gradient(
     120deg,
-    rgba(52, 225, 255, 0.9),
-    rgba(255, 52, 245, 0.9),
-    rgba(245, 255, 183, 0.9),
-    rgba(0, 245, 160, 0.9),
-    rgba(52, 225, 255, 0.9)
-  );
+    rgba(52, 225, 255, 1),
+    rgba(255, 52, 245, 1),
+    rgba(245, 255, 183, 1),
+    rgba(0, 245, 160, 1),
+    rgba(52, 225, 255, 1)
+  ) !important;
   background-size: 300% 300%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  opacity: 0.8;
-  animation: neonChase 4s linear infinite;
+  opacity: 1 !important;
+  animation: neonChase 4s linear infinite !important;
   pointer-events: none;
   z-index: -1;
 }
 
-.notifications-popover-errl::after {
-  content: "";
+/* Enhanced glow effect - override card::after */
+.notifications-popover-errl.card::after {
+  content: "" !important;
   position: absolute;
   inset: 0;
   border-radius: inherit;
   box-shadow:
-    0 0 24px rgba(52, 225, 255, 0.25),
-    0 0 32px rgba(255, 52, 245, 0.18),
-    0 0 40px rgba(245, 255, 183, 0.12);
-  opacity: 0.9;
+    0 0 32px rgba(52, 225, 255, 0.35),
+    0 0 40px rgba(255, 52, 245, 0.25),
+    0 0 48px rgba(245, 255, 183, 0.18) !important;
+  opacity: 1 !important;
   pointer-events: none;
   z-index: -1;
 }
