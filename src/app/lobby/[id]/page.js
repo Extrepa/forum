@@ -592,20 +592,28 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               {replies
                 .filter(reply => reply && reply.id && reply.body && reply.author_user_id)
                 .map((reply) => {
+                  const replyIdStr = String(reply.id);
                   const colorIndex = usernameColorMap.get(reply.author_name) ?? getUsernameColorIndex(reply.author_name || 'Unknown');
-                  const isUnread = firstUnreadId && String(reply.id) === String(firstUnreadId);
-                  const isQuoted = reply.id && quoteArray.includes(String(reply.id));
+                  const isUnread = firstUnreadId && String(firstUnreadId) === replyIdStr;
+                  const isQuoted = quoteArray.includes(replyIdStr);
                   
-                  // Build quote URL
-                  const quoteUrlParams = new URLSearchParams();
-                  if (pageParam) quoteUrlParams.set('page', pageParam);
+                  // Build quote URL - simplified to avoid URLSearchParams recursion
+                  let quoteUrl = '';
                   if (isQuoted) {
-                    quoteArray.filter(id => String(id) !== String(reply.id)).forEach(id => quoteUrlParams.append('quote', id));
+                    const remainingQuotes = quoteArray.filter(id => id !== replyIdStr);
+                    if (remainingQuotes.length > 0 || pageParam) {
+                      const parts = [];
+                      if (pageParam) parts.push(`page=${encodeURIComponent(pageParam)}`);
+                      remainingQuotes.forEach(id => parts.push(`quote=${encodeURIComponent(id)}`));
+                      quoteUrl = '?' + parts.join('&');
+                    }
                   } else {
-                    quoteArray.forEach(id => quoteUrlParams.append('quote', id));
-                    quoteUrlParams.append('quote', String(reply.id));
+                    const parts = [];
+                    if (pageParam) parts.push(`page=${encodeURIComponent(pageParam)}`);
+                    quoteArray.forEach(id => parts.push(`quote=${encodeURIComponent(id)}`));
+                    parts.push(`quote=${encodeURIComponent(replyIdStr)}`);
+                    quoteUrl = '?' + parts.join('&');
                   }
-                  const quoteUrl = quoteUrlParams.toString() ? `?${quoteUrlParams.toString()}` : '';
                   
                   return (
                     <div 
