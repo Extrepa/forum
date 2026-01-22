@@ -29,7 +29,7 @@ export function useRotatingPlaceholder(
 ) {
   const minMs = opts.minMs ?? 8000;
   const maxMs = opts.maxMs ?? 12000;
-  const fadeDuration = 1000; // Duration for fade in/out
+  const fadeDuration = 500; // Duration for fade in/out
 
   // Keep suggestions stable (prevents effect restarts if caller passes new arrays)
   const stableSuggestions = useMemo(() => suggestions, [suggestions.join(',')]);
