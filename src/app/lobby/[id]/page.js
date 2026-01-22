@@ -674,14 +674,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           ) : thread?.id ? (
             <CollapsibleReplyFormWrapper 
               threadId={thread.id}
-              initialQuotes={(() => {
-                const quoteIds = searchParams?.quote ? (Array.isArray(searchParams.quote) ? searchParams.quote : [searchParams.quote]) : [];
-                return (replies || []).filter(r => r && r.id && quoteIds.includes(r.id)).map(r => ({
-                  id: r.id,
-                  author_name: r.author_name || 'Unknown',
-                  body: r.body || ''
-                }));
-              })()}
+              initialQuotes={quoteArray.length > 0 && replies && replies.length > 0
+                ? replies
+                    .filter(r => r && r.id && quoteArray.includes(String(r.id)))
+                    .map(r => ({
+                      id: String(r.id),
+                      author_name: String(r.author_name || 'Unknown'),
+                      body: String(r.body || '')
+                    }))
+                : []}
               action={`/api/forum/${thread.id}/replies`}
               buttonLabel="Post reply"
             />
