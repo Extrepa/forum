@@ -33,7 +33,17 @@ export function useRotatingPlaceholder(
 
   // Keep suggestions stable (prevents effect restarts if caller passes new arrays)
   const stableSuggestions = useMemo(() => suggestions, [suggestions.join(',')]);
-  const [placeholder, setPlaceholder] = useState(() => stableSuggestions[0] ?? '');
+  
+  // Pick a random initial placeholder
+  const getRandomInitial = (suggestionsList) => {
+    if (!suggestionsList || !suggestionsList.length) return '';
+    return suggestionsList[Math.floor(Math.random() * suggestionsList.length)];
+  };
+  
+  const [placeholder, setPlaceholder] = useState(() => {
+    if (!suggestions.length) return '';
+    return suggestions[Math.floor(Math.random() * suggestions.length)];
+  });
   const [opacity, setOpacity] = useState(1);
   const lastRef = useRef(null);
   const timerRef = useRef(null);
@@ -57,16 +67,20 @@ export function useRotatingPlaceholder(
     }
     if (reduced) {
       // Static placeholder when reduced motion is preferred
-      setPlaceholder(stableSuggestions[0] ?? '');
+      const initial = getRandomInitial(stableSuggestions);
+      setPlaceholder(initial);
       setOpacity(1);
       return;
     }
     if (!stableSuggestions.length) return;
 
-    // Set initial placeholder
-    setPlaceholder(stableSuggestions[0] ?? '');
+    // Set initial placeholder to random one (only if not already set)
+    if (!lastRef.current) {
+      const initial = getRandomInitial(stableSuggestions);
+      setPlaceholder(initial);
+      lastRef.current = initial;
+    }
     setOpacity(1);
-    lastRef.current = stableSuggestions[0] ?? null;
 
     const tick = () => {
       // Fade out completely
