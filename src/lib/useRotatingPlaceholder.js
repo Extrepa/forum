@@ -31,66 +31,80 @@ export function useRotatingPlaceholder(
   const maxMs = opts.maxMs ?? 12000;
   const fadeDuration = 1000; // Duration for fade in/out
 
-  const [placeholder, setPlaceholder] = useState(() => suggestions[0] ?? '');
+  // Keep suggestions stable (prevents effect restarts if caller passes new arrays)
+  const stableSuggestions = useMemo(() => suggestions, [suggestions.join(',')]);
+  const [placeholder, setPlaceholder] = useState(() => stableSuggestions[0] ?? '');
   const [opacity, setOpacity] = useState(1);
   const lastRef = useRef(null);
+  const timerRef = useRef(null);
+  const fadeTimerRef = useRef(null);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   useEffect(() => {
+    // Clear any existing timers
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (fadeTimerRef.current) {
+      window.clearTimeout(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+
     if (!isActive) {
       setOpacity(1);
       return;
     }
     if (reduced) {
       // Static placeholder when reduced motion is preferred
-      setPlaceholder(suggestions[0] ?? '');
+      setPlaceholder(stableSuggestions[0] ?? '');
       setOpacity(1);
       return;
     }
-    if (!suggestions.length) return;
+    if (!stableSuggestions.length) return;
 
-    // Set immediately so it feels alive
-    setPlaceholder((prev) => {
-      const next = pickNext(suggestions, prev);
-      lastRef.current = next;
-      return next;
-    });
+    // Set initial placeholder
+    setPlaceholder(stableSuggestions[0] ?? '');
     setOpacity(1);
-
-    let timer;
-    let fadeTimer;
+    lastRef.current = stableSuggestions[0] ?? null;
 
     const tick = () => {
       // Fade out
       setOpacity(0);
       
       // After fade out, change placeholder and fade in
-      fadeTimer = window.setTimeout(() => {
-        setPlaceholder((prev) => {
-          const next = pickNext(suggestions, prev);
-          lastRef.current = next;
-          return next;
-        });
+      fadeTimerRef.current = window.setTimeout(() => {
+        const next = pickNext(stableSuggestions, lastRef.current);
+        lastRef.current = next;
+        setPlaceholder(next);
+        
         // Small delay before fading in for smoother transition
-        setTimeout(() => {
+        window.setTimeout(() => {
           setOpacity(1);
-          
-          // After fade in completes, wait the full delay before next change
-          const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
-          timer = window.setTimeout(tick, delay);
         }, 50);
       }, fadeDuration / 2);
+
+      // Schedule next change AFTER fade completes
+      // Total time = fade duration + delay
+      const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
+      timerRef.current = window.setTimeout(tick, fadeDuration + delay);
     };
 
-    // Initial delay before first change
+    // Initial delay before first change (longer to let user see first placeholder)
     const initialDelay = Math.floor(minMs + Math.random() * (maxMs - minMs));
-    timer = window.setTimeout(tick, initialDelay);
+    timerRef.current = window.setTimeout(tick, initialDelay);
 
     return () => {
-      if (timer) window.clearTimeout(timer);
-      if (fadeTimer) window.clearTimeout(fadeTimer);
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (fadeTimerRef.current) {
+        window.clearTimeout(fadeTimerRef.current);
+        fadeTimerRef.current = null;
+      }
     };
-  }, [isActive, reduced, suggestions, minMs, maxMs]);
+  }, [isActive, reduced, stableSuggestions, minMs, maxMs, fadeDuration]);
 
   return { placeholder, opacity };
 }

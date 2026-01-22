@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
@@ -32,8 +32,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [signupEmailFocused, setSignupEmailFocused] = useState(false);
   const [signupUsernameFocused, setSignupUsernameFocused] = useState(false);
 
-  // Rotating placeholder suggestions
-  const USERNAME_SUGGESTIONS = [
+  // Rotating placeholder suggestions - memoized to prevent effect restarts
+  const USERNAME_SUGGESTIONS = useMemo(() => [
     'DripGoblin',
     'GooGroove',
     'BassBlob',
@@ -59,9 +59,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     'MySpacePhantom',
     'BlockbusterBandit',
     'xXxDripLordxXx',
-  ];
+  ], []);
 
-  const EMAIL_SUGGESTIONS = [
+  const EMAIL_SUGGESTIONS = useMemo(() => [
     'dripgoblin2004@hotmail.com',
     'googroove@yahoo.com',
     'bassblob@aol.com',
@@ -87,10 +87,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     'myspacephantom@aol.com',
     'blockbusterbandit@hotmail.com',
     'driplordxxx@yahoo.com',
-  ];
+  ], []);
 
-  // Combined suggestions for login (can be email or username)
-  const LOGIN_IDENTIFIER_SUGGESTIONS = [...USERNAME_SUGGESTIONS, ...EMAIL_SUGGESTIONS];
+  // Combined suggestions for login (can be email or username) - memoized
+  const LOGIN_IDENTIFIER_SUGGESTIONS = useMemo(() => [...USERNAME_SUGGESTIONS, ...EMAIL_SUGGESTIONS], [USERNAME_SUGGESTIONS, EMAIL_SUGGESTIONS]);
 
   // Rotating placeholders
   const loginIdentifierActive = loginIdentifier.length === 0;
