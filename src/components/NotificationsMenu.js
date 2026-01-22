@@ -62,8 +62,8 @@ export default function NotificationsMenu({
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 'min(1020px, calc(100vw - 40px))',
-        maxWidth: 'min(1020px, calc(100vw - 40px))',
+        width: 380,
+        maxWidth: '90vw',
         zIndex: 1100,
         padding: '20px',
         maxHeight: 'min(80vh, 600px)',
@@ -113,7 +113,7 @@ export default function NotificationsMenu({
       {/* Notifications list - scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
-          <div className="muted" style={{ padding: '12px 0', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word' }}>No notifications yet. The goo is quiet.</div>
+          <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
           <div className="list" style={{ gap: '8px' }}>
             {items.map((n) => {
