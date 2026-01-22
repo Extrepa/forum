@@ -69,25 +69,26 @@ export function useRotatingPlaceholder(
     lastRef.current = stableSuggestions[0] ?? null;
 
     const tick = () => {
-      // Fade out
+      // Fade out completely
       setOpacity(0);
       
-      // After fade out, change placeholder and fade in
+      // After full fade out, change placeholder
       fadeTimerRef.current = window.setTimeout(() => {
         const next = pickNext(stableSuggestions, lastRef.current);
         lastRef.current = next;
         setPlaceholder(next);
         
-        // Small delay before fading in for smoother transition
-        window.setTimeout(() => {
+        // Immediately start fading in for smooth crossfade
+        // Use requestAnimationFrame to ensure smooth transition
+        requestAnimationFrame(() => {
           setOpacity(1);
-        }, 50);
-      }, fadeDuration / 2);
+        });
+      }, fadeDuration);
 
-      // Schedule next change AFTER fade completes
-      // Total time = fade duration + delay
+      // Schedule next change AFTER both fade out and fade in complete
+      // Total time = fade out + fade in + delay
       const delay = Math.floor(minMs + Math.random() * (maxMs - minMs));
-      timerRef.current = window.setTimeout(tick, fadeDuration + delay);
+      timerRef.current = window.setTimeout(tick, fadeDuration * 2 + delay);
     };
 
     // Initial delay before first change (longer to let user see first placeholder)

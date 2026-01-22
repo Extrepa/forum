@@ -633,12 +633,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         <div style={{ flex: '1', minWidth: 0 }}>
           {mode === 'login' ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <h3 className="section-title" style={{ marginBottom: 0 }}>Sign in</h3>
-                <p className="muted" style={{ marginBottom: 0, marginTop: '4px', textAlign: 'right' }}>
-                  Sign in with your username or email.
-                </p>
-              </div>
+              <h3 className="section-title" style={{ marginBottom: '20px' }}>Sign in</h3>
               <form onSubmit={submitLogin}>
                 <label>
                   <div className="muted">Email or username</div>
