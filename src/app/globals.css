@@ -996,14 +996,30 @@ button:hover {
 .notifications-popover-errl {
   position: relative;
   isolation: isolate;
+  overflow: visible; /* Allow border to extend outside */
+}
+
+/* Ensure inner content is above border */
+.notifications-popover-errl > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Make sure the card background is above the border */
+.notifications-popover-errl.card {
+  background: var(--card) !important;
+  z-index: 1;
 }
 
 /* Override card::before to ensure rainbow border shows properly with higher specificity */
 .notifications-popover-errl.card::before {
   content: "" !important;
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
+  top: -2px;
+  right: -2px;
+  bottom: -2px;
+  left: -2px;
+  border-radius: calc(var(--radius) + 1px);
   padding: 1px;
   background: linear-gradient(
     120deg,
@@ -1021,7 +1037,7 @@ button:hover {
   opacity: 1 !important;
   animation: neonChase 4s linear infinite !important;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 /* Enhanced glow effect - override card::after */
@@ -1036,7 +1052,7 @@ button:hover {
     0 0 48px rgba(245, 255, 183, 0.18) !important;
   opacity: 1 !important;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 .notice {

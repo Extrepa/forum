@@ -111,7 +111,7 @@ export default function NotificationsMenu({
       </div>
 
       {/* Notifications list - scrollable */}
-      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, marginBottom: '12px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
           <div className="muted" style={{ padding: '12px 0', textAlign: 'center' }}>No notifications yet. The goo is quiet.</div>
         ) : (

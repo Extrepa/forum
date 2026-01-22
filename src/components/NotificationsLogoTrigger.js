@@ -78,7 +78,7 @@ export default function NotificationsLogoTrigger() {
   };
 
   return (
-    <div className="notifications-logo-trigger" style={{ position: 'relative' }}>
+    <div className="notifications-logo-trigger" style={{ position: 'relative', overflow: 'visible' }}>
       <ForumLogo
         variant="header"
         showText={false}
