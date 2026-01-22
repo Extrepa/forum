@@ -47,8 +47,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         </div>
       );
     }
-    const isEditing = searchParams?.edit === 'true';
-    const db = await getDb();
+    
+    let db;
+    try {
+      db = await getDb();
+    } catch (dbError) {
+      console.error('Error getting database connection:', dbError, { threadId: params.id });
+      return (
+        <div className="card">
+          <h2 className="section-title">Error</h2>
+          <p className="muted">Database connection failed. Please try again later.</p>
+        </div>
+      );
+    }
+    
     if (!db) {
       return (
         <div className="card">
@@ -57,6 +69,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         </div>
       );
     }
+    
+    const isEditing = searchParams?.edit === 'true';
     let thread = null;
     try {
       thread = await db
@@ -140,12 +154,25 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
 
-  const viewer = await getSessionUser();
+  let viewer = null;
+  try {
+    viewer = await getSessionUser();
+  } catch (e) {
+    console.error('Error getting session user:', e, { threadId: params.id });
+    // Continue without viewer - user will see limited functionality
+  }
   
   // Pagination
   const REPLIES_PER_PAGE = 20;
-  const currentPage = Math.max(1, parseInt(searchParams?.page || '1', 10));
-  const offset = (currentPage - 1) * REPLIES_PER_PAGE;
+  let currentPage = 1;
+  let offset = 0;
+  try {
+    currentPage = Math.max(1, parseInt(searchParams?.page || '1', 10));
+    offset = (currentPage - 1) * REPLIES_PER_PAGE;
+  } catch (e) {
+    console.error('Error parsing pagination:', e, { searchParams });
+    // Use defaults
+  }
 
   // Get total reply count
   let totalReplies = 0;
@@ -186,7 +213,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
-    replies = (result?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
+      if (result && Array.isArray(result.results)) {
+        replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
+      } else {
+        replies = [];
+      }
   } catch (e) {
     console.error('Error fetching replies:', e, { threadId: params.id, offset, limit: REPLIES_PER_PAGE });
     // Fallback if is_deleted column doesn't exist
@@ -203,7 +234,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )
         .bind(params.id, REPLIES_PER_PAGE, offset)
         .all();
-      replies = (result?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
+      if (result && Array.isArray(result.results)) {
+        replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
+      } else {
+        replies = [];
+      }
     } catch (e2) {
       console.error('Error fetching replies (fallback 1):', e2, { threadId: params.id });
       // Final fallback: try without JOIN if users table has issues
@@ -218,10 +253,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           )
           .bind(params.id, REPLIES_PER_PAGE, offset)
           .all();
-        replies = (result?.results || []).map(r => ({
-          ...r,
-          author_name: 'Unknown User' // Default if user lookup fails
-        })).filter(r => r && r.id && r.body);
+        if (result && Array.isArray(result.results)) {
+          replies = result.results.map(r => ({
+            ...r,
+            author_name: r.author_name || 'Unknown User' // Default if user lookup fails
+          })).filter(r => r && r.id && r.body && r.author_user_id);
+        } else {
+          replies = [];
+        }
       } catch (e3) {
         console.error('Error fetching replies (fallback 2):', e3, { threadId: params.id });
         replies = [];
@@ -238,27 +277,33 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .bind(viewer.id, params.id)
         .first();
 
-      if (readState?.last_read_reply_id) {
+      if (readState?.last_read_reply_id && params.id) {
         // First, verify the reply exists and get its timestamp safely
         let lastReadReply = null;
         try {
-          lastReadReply = await db
+          const replyCheck = await db
             .prepare(
               `SELECT created_at FROM forum_replies 
                WHERE id = ? AND thread_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)`
             )
-            .bind(readState.last_read_reply_id, params.id)
+            .bind(String(readState.last_read_reply_id), String(params.id))
             .first();
+          if (replyCheck && replyCheck.created_at) {
+            lastReadReply = replyCheck;
+          }
         } catch (e) {
           // Fallback: try without is_deleted check
           try {
-            lastReadReply = await db
+            const replyCheck2 = await db
               .prepare(
                 `SELECT created_at FROM forum_replies 
                  WHERE id = ? AND thread_id = ?`
               )
-              .bind(readState.last_read_reply_id, params.id)
+              .bind(String(readState.last_read_reply_id), String(params.id))
               .first();
+            if (replyCheck2 && replyCheck2.created_at) {
+              lastReadReply = replyCheck2;
+            }
           } catch (e2) {
             // Reply doesn't exist or was deleted - treat as never read
             console.error('Error fetching last read reply:', e2, { replyId: readState.last_read_reply_id, threadId: params.id });
@@ -266,30 +311,36 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           }
         }
 
-        if (lastReadReply?.created_at) {
+        if (lastReadReply?.created_at && params.id) {
           // Find first reply after the last read one
           let firstUnread = null;
           try {
-            firstUnread = await db
+            const unreadResult = await db
               .prepare(
                 `SELECT id FROM forum_replies 
                  WHERE thread_id = ? AND (is_deleted = 0 OR is_deleted IS NULL) 
                  AND created_at > ?
                  ORDER BY created_at ASC LIMIT 1`
               )
-              .bind(params.id, lastReadReply.created_at)
+              .bind(String(params.id), lastReadReply.created_at)
               .first();
+            if (unreadResult && unreadResult.id) {
+              firstUnread = unreadResult;
+            }
           } catch (e) {
             // Fallback if is_deleted column doesn't exist
             try {
-              firstUnread = await db
+              const unreadResult2 = await db
                 .prepare(
                   `SELECT id FROM forum_replies 
                    WHERE thread_id = ? AND created_at > ?
                    ORDER BY created_at ASC LIMIT 1`
                 )
-                .bind(params.id, lastReadReply.created_at)
+                .bind(String(params.id), lastReadReply.created_at)
                 .first();
+              if (unreadResult2 && unreadResult2.id) {
+                firstUnread = unreadResult2;
+              }
             } catch (e2) {
               console.error('Error finding first unread reply:', e2, { threadId: params.id, lastReadAt: lastReadReply.created_at });
             }
@@ -319,13 +370,13 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   
   // Check if current user has liked this thread
   let userLiked = false;
-  if (viewer && thread && thread.id) {
+  if (viewer && viewer.id && thread && thread.id) {
     try {
       const likeCheck = await db
         .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
-        .bind('forum_thread', thread.id, viewer.id)
+        .bind('forum_thread', String(thread.id), String(viewer.id))
         .first();
-      userLiked = !!likeCheck;
+      userLiked = !!(likeCheck && likeCheck.id);
     } catch (e) {
       console.error('Error checking like status:', e, { threadId: thread?.id, userId: viewer?.id });
       // Table might not exist yet
@@ -338,9 +389,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   try {
     const allUsernames = [
       thread?.author_name,
-      ...(replies || []).map(r => r?.author_name)
-    ].filter(Boolean);
-    usernameColorMap = assignUniqueColorsForPage(allUsernames);
+      ...(Array.isArray(replies) ? replies : []).map(r => r?.author_name)
+    ].filter(Boolean).filter(name => name && typeof name === 'string');
+    if (allUsernames.length > 0) {
+      usernameColorMap = assignUniqueColorsForPage(allUsernames);
+    }
   } catch (e) {
     console.error('Error assigning username colors:', e, { threadId: params.id });
     // Fallback: create empty map, will use default colors
