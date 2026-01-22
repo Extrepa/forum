@@ -97,9 +97,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const signupEmailActive = signupEmail.length === 0;
   const signupUsernameActive = signupUsername.length === 0;
 
-  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 8000, maxMs: 12000 });
-  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 8000, maxMs: 12000 });
-  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 8000, maxMs: 12000 });
+  const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 3000, maxMs: 5000 });
+  const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 3000, maxMs: 5000 });
+  const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 3000, maxMs: 5000 });
 
   // account settings
   const [newEmail, setNewEmail] = useState('');
@@ -665,7 +665,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: loginIdentifierPlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.25s ease-in-out',
+                          transition: 'opacity 0.6s ease-in-out',
                         }}
                       >
                         {loginIdentifierPlaceholder.placeholder}
@@ -743,7 +743,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: signupEmailPlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.25s ease-in-out',
+                          transition: 'opacity 0.6s ease-in-out',
                         }}
                       >
                         {signupEmailPlaceholder.placeholder}
@@ -778,7 +778,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: signupUsernamePlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.25s ease-in-out',
+                          transition: 'opacity 0.6s ease-in-out',
                         }}
                       >
                         {signupUsernamePlaceholder.placeholder}
