@@ -145,12 +145,17 @@ export function parseLocalDateTimeToUTC(localDateTimeString) {
   const [datePart, timePart] = trimmed.split('T');
   if (!datePart || !timePart) return null;
   
-  const [year, month, day] = datePart.split('-').map(Number);
-  const [hours, minutes] = timePart.split(':').map(Number);
+  // Validate time format has both hours and minutes
+  const timeParts = timePart.split(':');
+  if (timeParts.length !== 2) return null;
   
-  // Validate parsed values
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timeParts.map(Number);
+  
+  // Validate parsed values (check for undefined as well as NaN)
   if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day) || 
-      Number.isNaN(hours) || Number.isNaN(minutes)) {
+      Number.isNaN(hours) || Number.isNaN(minutes) ||
+      hours === undefined || minutes === undefined) {
     return null;
   }
   
