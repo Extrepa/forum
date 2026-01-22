@@ -47,7 +47,7 @@ export default function CollapsibleReplyForm({
         <input key={name} type="hidden" name={name} value={value || ''} />
       ))}
       <label>
-        <div className="muted">{replyingTo ? `Replying to ${replyingTo.author_name}` : labelText}</div>
+        <div className="muted" style={{ marginBottom: '8px' }}>{replyingTo ? `Replying to ${replyingTo.author_name}` : labelText}</div>
         <textarea 
           name="body" 
           placeholder={replyingTo ? 'Write your reply…' : placeholder} 
