@@ -665,7 +665,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: loginIdentifierPlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.5s ease-in-out',
+                          transition: 'opacity 0.25s ease-in-out',
                         }}
                       >
                         {loginIdentifierPlaceholder.placeholder}
@@ -743,7 +743,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: signupEmailPlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.5s ease-in-out',
+                          transition: 'opacity 0.25s ease-in-out',
                         }}
                       >
                         {signupEmailPlaceholder.placeholder}
@@ -778,7 +778,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           fontSize: '16px',
                           zIndex: 0,
                           opacity: signupUsernamePlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.5s ease-in-out',
+                          transition: 'opacity 0.25s ease-in-out',
                         }}
                       >
                         {signupUsernamePlaceholder.placeholder}
