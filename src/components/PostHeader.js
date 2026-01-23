@@ -59,20 +59,23 @@ export default function PostHeader({
             )}
           </div>
         </div>
+        {likeButton}
+      </div>
+
+      {/* Bottom Row - View count on right */}
+      {views !== undefined && views !== null && (
         <div style={{ 
           display: 'flex', 
+          justifyContent: 'flex-end', 
           alignItems: 'center', 
-          gap: '8px',
-          flexWrap: 'wrap'
+          fontSize: '12px',
+          marginTop: '8px'
         }}>
-          {likeButton}
-          {views !== undefined && views !== null && (
-            <span className="muted" style={{ fontSize: '12px' }}>
-              {views} {views === 1 ? 'view' : 'views'}
-            </span>
-          )}
+          <span className="muted">
+            {views} {views === 1 ? 'view' : 'views'}
+          </span>
         </div>
-      </div>
+      )}
     </div>
   );
 }
