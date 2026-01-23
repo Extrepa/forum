@@ -210,12 +210,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       }}
                       style={{
                         fontSize: '11px',
-                        padding: '3px 6px',
+                        padding: '2px 6px',
+                        height: '20px',
                         background: 'rgba(52, 225, 255, 0.1)',
                         border: '1px solid rgba(52, 225, 255, 0.3)',
                         borderRadius: '4px',
                         color: 'var(--accent)',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
                       Edit
@@ -281,7 +285,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {/* Right side: Color picker icons */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
-                <span style={{ fontSize: '12px', color: 'var(--muted)', marginRight: '2px' }}>Username color:</span>
+                <strong>Username color:</strong>
                 {colorOptions.map((option) => (
                   <button
                     key={option.index ?? 'auto'}
@@ -289,10 +293,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => handleColorUpdate(option.index)}
                     disabled={colorStatus.type === 'loading'}
                     style={{
-                      width: option.index === null ? 'auto' : '24px',
-                      height: '24px',
-                      minWidth: option.index === null ? '40px' : '24px',
-                      borderRadius: '4px',
+                      width: option.index === null ? 'auto' : '20px',
+                      height: '20px',
+                      minWidth: option.index === null ? '36px' : '20px',
+                      borderRadius: '3px',
                       border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                       background: option.index === null 
                         ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
@@ -300,11 +304,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                       opacity: colorStatus.type === 'loading' ? 0.6 : 1,
                       transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 6px' : 0,
+                      padding: option.index === null ? '0 5px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '11px' : '0',
+                      fontSize: option.index === null ? '10px' : '0',
                       color: 'var(--ink)',
                       fontWeight: 'bold'
                     }}
