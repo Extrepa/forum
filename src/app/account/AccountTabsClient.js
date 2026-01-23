@@ -209,11 +209,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         setUsernameStatus({ type: 'idle', message: null });
                       }}
                       style={{
-                        fontSize: '12px',
-                        padding: '4px 8px',
+                        fontSize: '11px',
+                        padding: '3px 6px',
                         background: 'rgba(52, 225, 255, 0.1)',
                         border: '1px solid rgba(52, 225, 255, 0.3)',
-                        borderRadius: '6px',
+                        borderRadius: '4px',
                         color: 'var(--accent)',
                         cursor: 'pointer'
                       }}
@@ -281,7 +281,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {/* Right side: Color picker icons */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
-                <span style={{ fontSize: '12px', color: 'var(--muted)', marginRight: '4px' }}>Color:</span>
+                <span style={{ fontSize: '12px', color: 'var(--muted)', marginRight: '2px' }}>Username color:</span>
                 {colorOptions.map((option) => (
                   <button
                     key={option.index ?? 'auto'}
@@ -289,8 +289,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => handleColorUpdate(option.index)}
                     disabled={colorStatus.type === 'loading'}
                     style={{
-                      width: '24px',
+                      width: option.index === null ? 'auto' : '24px',
                       height: '24px',
+                      minWidth: option.index === null ? '40px' : '24px',
                       borderRadius: '4px',
                       border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                       background: option.index === null 
@@ -299,17 +300,17 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                       opacity: colorStatus.type === 'loading' ? 0.6 : 1,
                       transition: 'all 0.2s ease',
-                      padding: 0,
+                      padding: option.index === null ? '0 6px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '10px' : '0',
+                      fontSize: option.index === null ? '11px' : '0',
                       color: 'var(--ink)',
                       fontWeight: 'bold'
                     }}
                     title={option.name}
                   >
-                    {option.index === null ? 'A' : ''}
+                    {option.index === null ? 'Auto' : ''}
                   </button>
                 ))}
               </div>
@@ -353,25 +354,48 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             <div>
               <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
               <div className="list">
-                {stats.recentActivity.map((item) => (
-                  <a
-                    key={`${item.type}-${item.id}`}
-                    href={item.type === 'thread' ? `/lobby/${item.id}` : `/lobby/${item.thread_id}`}
-                    className="list-item"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                  >
-                    <div style={{ marginBottom: '4px' }}>
-                      {item.type === 'thread' ? (
-                        <strong>{item.title}</strong>
-                      ) : (
-                        <>Replied to <strong>{item.thread_title}</strong></>
-                      )}
-                    </div>
-                    <div className="list-meta" style={{ fontSize: '12px' }}>
-                      {formatDateTime(item.created_at)}
-                    </div>
-                  </a>
-                ))}
+                {stats.recentActivity.map((item) => {
+                  // Determine URL based on post/reply type
+                  let href = '#';
+                  if (item.type === 'thread') {
+                    const postType = item.postType || item.post_type;
+                    if (postType === 'forum_thread') href = `/lobby/${item.id}`;
+                    else if (postType === 'dev_log') href = `/devlog/${item.id}`;
+                    else if (postType === 'music_post') href = `/music/${item.id}`;
+                    else if (postType === 'project') href = `/projects/${item.id}`;
+                    else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
+                    else if (postType === 'event') href = `/events/${item.id}`;
+                  } else {
+                    const replyType = item.replyType || item.reply_type;
+                    const threadId = item.thread_id;
+                    if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
+                    else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
+                    else if (replyType === 'music_comment') href = `/music/${threadId}`;
+                    else if (replyType === 'project_reply') href = `/projects/${threadId}`;
+                    else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
+                    else if (replyType === 'event_comment') href = `/events/${threadId}`;
+                  }
+                  
+                  return (
+                    <a
+                      key={`${item.type}-${item.id}`}
+                      href={href}
+                      className="list-item"
+                      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                    >
+                      <div style={{ marginBottom: '4px' }}>
+                        {item.type === 'thread' ? (
+                          <strong>{item.title}</strong>
+                        ) : (
+                          <>Replied to <strong>{item.thread_title}</strong></>
+                        )}
+                      </div>
+                      <div className="list-meta" style={{ fontSize: '12px' }}>
+                        {formatDateTime(item.created_at)}
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           ) : (
