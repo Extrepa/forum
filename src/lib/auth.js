@@ -8,30 +8,37 @@ export async function getSessionUser() {
   }
   const db = await getDb();
   try {
-    return await db
+    // Try with all columns including preferred_username_color_index
+    const user = await db
       .prepare(
         'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, ui_lore_enabled, default_landing_page, preferred_username_color_index FROM users WHERE session_token = ?'
       )
       .bind(token)
       .first();
+    if (user) {
+      user.preferred_username_color_index = user.preferred_username_color_index ?? null;
+    }
+    return user;
   } catch (e) {
+    // Fallback: column might not exist yet, try without it
     try {
       const user = await db
         .prepare(
-          'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, ui_lore_enabled, preferred_username_color_index FROM users WHERE session_token = ?'
+          'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, ui_lore_enabled, default_landing_page FROM users WHERE session_token = ?'
         )
         .bind(token)
         .first();
       if (user) {
         user.ui_lore_enabled = user.ui_lore_enabled ?? 0;
-        user.default_landing_page = 'home';
-        user.preferred_username_color_index = user.preferred_username_color_index ?? null;
+        user.default_landing_page = user.default_landing_page ?? 'home';
+        user.preferred_username_color_index = null;
       }
       return user;
     } catch (e2) {
+      // Final fallback: minimal columns
       const user = await db
         .prepare(
-          'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, preferred_username_color_index FROM users WHERE session_token = ?'
+          'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled FROM users WHERE session_token = ?'
         )
         .bind(token)
         .first();
