@@ -53,12 +53,62 @@ export async function POST(request, { params }) {
   }
   
   // Create comment
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, body, Date.now())
+    .bind(crypto.randomUUID(), params.id, user.id, body, now)
     .run();
+
+  // Create in-app notifications for event author + participants (excluding the commenter).
+  try {
+    const event = await db
+      .prepare('SELECT author_user_id FROM events WHERE id = ?')
+      .bind(params.id)
+      .first();
+
+    const recipients = new Set();
+    if (event?.author_user_id) {
+      recipients.add(event.author_user_id);
+    }
+
+    const { results: participants } = await db
+      .prepare(
+        'SELECT DISTINCT author_user_id FROM event_comments WHERE event_id = ? AND is_deleted = 0'
+      )
+      .bind(params.id)
+      .all();
+
+    for (const row of participants || []) {
+      if (row?.author_user_id) {
+        recipients.add(row.author_user_id);
+      }
+    }
+
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          `INSERT INTO notifications
+            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'comment',
+          'event',
+          params.id,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
+  }
 
   // Handle RSVP if checkbox was checked
   if (attending) {

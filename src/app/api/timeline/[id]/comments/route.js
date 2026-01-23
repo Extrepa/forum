@@ -36,12 +36,62 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO timeline_comments (id, update_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, body, Date.now())
+    .bind(crypto.randomUUID(), params.id, user.id, body, now)
     .run();
+
+  // Create in-app notifications for timeline update author + participants (excluding the commenter).
+  try {
+    const update = await db
+      .prepare('SELECT author_user_id FROM timeline_updates WHERE id = ?')
+      .bind(params.id)
+      .first();
+
+    const recipients = new Set();
+    if (update?.author_user_id) {
+      recipients.add(update.author_user_id);
+    }
+
+    const { results: participants } = await db
+      .prepare(
+        'SELECT DISTINCT author_user_id FROM timeline_comments WHERE update_id = ? AND is_deleted = 0'
+      )
+      .bind(params.id)
+      .all();
+
+    for (const row of participants || []) {
+      if (row?.author_user_id) {
+        recipients.add(row.author_user_id);
+      }
+    }
+
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          `INSERT INTO notifications
+            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'comment',
+          'timeline_update',
+          params.id,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

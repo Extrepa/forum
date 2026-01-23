@@ -115,8 +115,8 @@ export async function POST(request, { params }) {
     await db
       .prepare(
         `INSERT INTO notifications
-          (id, user_id, actor_user_id, type, target_type, target_id, created_at, read_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
       )
       .bind(
         crypto.randomUUID(),
@@ -125,8 +125,7 @@ export async function POST(request, { params }) {
         'reply',
         'forum_thread',
         params.id,
-        now,
-        null
+        now
       )
       .run();
   }

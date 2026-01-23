@@ -130,6 +130,18 @@ export default function NotificationsMenu({
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${n.actor_username || 'Someone'} replied to a thread`;
+              } else if (n.type === 'comment' && n.target_type === 'timeline_update') {
+                href = `/timeline/${n.target_id}`;
+                label = `${n.actor_username || 'Someone'} commented on a timeline update`;
+              } else if (n.type === 'comment' && n.target_type === 'event') {
+                href = `/events/${n.target_id}`;
+                label = `${n.actor_username || 'Someone'} commented on an event`;
+              } else if (n.type === 'comment' && n.target_type === 'project') {
+                href = `/projects/${n.target_id}`;
+                label = `${n.actor_username || 'Someone'} commented on a project`;
+              } else if (n.type === 'comment' && n.target_type === 'music_post') {
+                href = `/music/${n.target_id}`;
+                label = `${n.actor_username || 'Someone'} commented on a music post`;
               }
               
               return (

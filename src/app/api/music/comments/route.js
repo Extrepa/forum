@@ -35,12 +35,62 @@ export async function POST(request) {
     // Column might not exist yet, that's okay - allow posting
   }
   
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO music_comments (id, post_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), postId, user.id, body, Date.now())
+    .bind(crypto.randomUUID(), postId, user.id, body, now)
     .run();
+
+  // Create in-app notifications for music post author + participants (excluding the commenter).
+  try {
+    const post = await db
+      .prepare('SELECT author_user_id FROM music_posts WHERE id = ?')
+      .bind(postId)
+      .first();
+
+    const recipients = new Set();
+    if (post?.author_user_id) {
+      recipients.add(post.author_user_id);
+    }
+
+    const { results: participants } = await db
+      .prepare(
+        'SELECT DISTINCT author_user_id FROM music_comments WHERE post_id = ? AND is_deleted = 0'
+      )
+      .bind(postId)
+      .all();
+
+    for (const row of participants || []) {
+      if (row?.author_user_id) {
+        recipients.add(row.author_user_id);
+      }
+    }
+
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          `INSERT INTO notifications
+            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'comment',
+          'music_post',
+          postId,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }
