@@ -11,8 +11,10 @@ export default function LoreClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <h2 className="section-title">{title}</h2>
-        <p className="muted">{description}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>{title}</h2>
+          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{description}</p>
+        </div>
       </section>
 
       <section className="card">
