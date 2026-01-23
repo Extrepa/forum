@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
@@ -67,7 +67,11 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                     <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
                       <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
                       <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                        by <Username 
+                          name={row.author_name} 
+                          colorIndex={colorIndex}
+                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                        />
                       </span>
                       {/* Project status badge removed - was appearing next to username and looked like user status */}
                     </div>

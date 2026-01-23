@@ -22,6 +22,7 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
       forum_threads.is_locked,
       forum_threads.is_announcement,
       users.username AS author_name,
+      users.preferred_username_color_index AS author_color_preference,
       users.role AS author_role,
       (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)) AS reply_count,
       COALESCE(

@@ -23,6 +23,7 @@ export default async function ProjectsPage({ searchParams }) {
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0) AS reply_count
          FROM projects
          JOIN users ON users.id = projects.author_user_id
@@ -39,6 +40,7 @@ export default async function ProjectsPage({ searchParams }) {
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS reply_count
          FROM projects
          JOIN users ON users.id = projects.author_user_id

@@ -1,7 +1,7 @@
 'use client';
 
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 
@@ -26,8 +26,15 @@ export default function MusicClient({ posts, notice }) {
             <p className="muted">{strings.cards.music.empty}</p>
           ) : (
             (() => {
-              let lastName = null;
-              let lastIndex = null;
+              // Build preferences map and assign unique colors
+              const allUsernames = posts.map(p => p.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              posts.forEach(p => {
+                if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
+                  preferredColors.set(p.author_name, Number(p.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
               const latest = posts[0];
               const rest = posts.slice(1);
@@ -35,12 +42,8 @@ export default function MusicClient({ posts, notice }) {
               const renderItem = (row, { condensed }) => {
                 const tags = row.tags ? row.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
 
-                const colorIndex = getUsernameColorIndex(row.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = row.author_name;
-                lastIndex = colorIndex;
+                const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
 
                 return (
                   <a
@@ -52,7 +55,11 @@ export default function MusicClient({ posts, notice }) {
                     <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
                       <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
                       <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                        by <Username 
+                          name={row.author_name} 
+                          colorIndex={colorIndex}
+                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                        />
                       </span>
                     </div>
                     {!condensed && row.bodyHtml ? (

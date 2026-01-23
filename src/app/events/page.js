@@ -22,7 +22,8 @@ export default async function EventsPage({ searchParams }) {
       .prepare(
         `SELECT events.id, events.title, events.details, events.starts_at,
                 events.created_at, events.image_key,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
@@ -38,7 +39,8 @@ export default async function EventsPage({ searchParams }) {
         .prepare(
           `SELECT events.id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM events
            JOIN users ON users.id = events.author_user_id
            ORDER BY events.starts_at ASC

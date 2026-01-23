@@ -24,6 +24,7 @@ export default async function MusicPage({ searchParams }) {
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
@@ -42,6 +43,7 @@ export default async function MusicPage({ searchParams }) {
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count

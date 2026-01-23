@@ -32,7 +32,16 @@ export default function ForumClient({ announcements = [], stickies = [], threads
     ...threads.map(t => t.author_name),
     ...threads.map(t => t.last_post_author).filter(Boolean)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)]);
+  
+  // Build preferences map
+  const preferredColors = new Map();
+  [...announcements, ...stickies, ...threads].forEach(t => {
+    if (t.author_name && t.author_color_preference !== null && t.author_color_preference !== undefined) {
+      preferredColors.set(t.author_name, Number(t.author_color_preference));
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
 
   const truncateBody = (body, maxLength = 150) => {
     if (!body) return '';
@@ -49,8 +58,10 @@ export default function ForumClient({ announcements = [], stickies = [], threads
   };
 
   const renderItem = (row, { condensed = false }) => {
-    const authorColorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name);
-    const lastPostColorIndex = row.last_post_author ? (usernameColorMap.get(row.last_post_author) ?? getUsernameColorIndex(row.last_post_author)) : null;
+    const authorPreferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
+    const authorColorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: authorPreferredColor });
+    const lastPostPreferredColor = null; // We don't have preference for last_post_author in this query
+    const lastPostColorIndex = row.last_post_author ? (usernameColorMap.get(row.last_post_author) ?? getUsernameColorIndex(row.last_post_author, { preferredColorIndex: lastPostPreferredColor })) : null;
     const isHot = (row.reply_count || 0) > 10;
     const statusIcons = [];
     if (row.is_pinned) statusIcons.push('📌');
@@ -74,7 +85,11 @@ export default function ForumClient({ announcements = [], stickies = [], threads
             {row.title}
           </h3>
           <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-            by <Username name={row.author_name} colorIndex={authorColorIndex} />
+            by <Username 
+              name={row.author_name} 
+              colorIndex={authorColorIndex}
+              preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+            />
           </span>
         </div>
         {!condensed ? (

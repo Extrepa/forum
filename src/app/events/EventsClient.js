@@ -1,7 +1,7 @@
 'use client';
 
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../lib/dates';
@@ -27,19 +27,22 @@ export default function EventsClient({ events, notice }) {
             <p className="muted">{strings.cards.events.empty}</p>
           ) : (
             (() => {
-              let lastName = null;
-              let lastIndex = null;
+              // Build preferences map and assign unique colors
+              const allUsernames = events.map(e => e.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              events.forEach(e => {
+                if (e.author_name && e.author_color_preference !== null && e.author_color_preference !== undefined) {
+                  preferredColors.set(e.author_name, Number(e.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
               const latest = events[0];
               const rest = events.slice(1);
 
               const renderItem = (row, { condensed }) => {
-                const colorIndex = getUsernameColorIndex(row.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = row.author_name;
-                lastIndex = colorIndex;
+                const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
 
                 const formatTimeAgo = (timestamp) => {
                   const now = Date.now();
@@ -88,7 +91,11 @@ export default function EventsClient({ events, notice }) {
                     >
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                         <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
-                          posted by: <Username name={row.author_name} colorIndex={colorIndex} />
+                          posted by: <Username 
+                            name={row.author_name} 
+                            colorIndex={colorIndex}
+                            preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                          />
                         </span>
                         <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
                           {formatTimeAgo(row.created_at)}

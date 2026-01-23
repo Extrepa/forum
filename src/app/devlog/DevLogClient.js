@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 
 export default function DevLogClient({ logs, notice }) {
   const router = useRouter();
@@ -31,20 +31,23 @@ export default function DevLogClient({ logs, notice }) {
             <p className="muted">No Development posts yet.</p>
           ) : (
             (() => {
-              let lastName = null;
-              let lastIndex = null;
+              // Build preferences map and assign unique colors
+              const allUsernames = logs.map(l => l.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              logs.forEach(l => {
+                if (l.author_name && l.author_color_preference !== null && l.author_color_preference !== undefined) {
+                  preferredColors.set(l.author_name, Number(l.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
               const latest = logs[0];
               const rest = logs.slice(1);
 
               const renderItem = (row, { condensed }) => {
                 const href = `/devlog/${row.id}`;
-                const colorIndex = getUsernameColorIndex(row.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = row.author_name;
-                lastIndex = colorIndex;
+                const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
 
                 return (
                   <a
@@ -56,7 +59,11 @@ export default function DevLogClient({ logs, notice }) {
                     <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
                       <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
                       <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username name={row.author_name} colorIndex={colorIndex} />
+                        by <Username 
+                          name={row.author_name} 
+                          colorIndex={colorIndex}
+                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                        />
                       </span>
                       {row.is_locked ? (
                         <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }}>
