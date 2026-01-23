@@ -309,7 +309,6 @@ export default async function EventDetailPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(event.author_name)}
           authorPreferredColorIndex={event.author_color_preference !== null && event.author_color_preference !== undefined ? Number(event.author_color_preference) : null}
           createdAt={event.created_at}
-          views={event.views || 0}
           likeButton={user ? (
             <LikeButton 
               postType="event" 
@@ -355,6 +354,19 @@ export default async function EventDetailPage({ params, searchParams }) {
           <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(event.details) }} />
         ) : (
           <p className="muted">No details yet.</p>
+        )}
+        {event.views !== undefined && event.views !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {event.views} {event.views === 1 ? 'view' : 'views'}
+            </span>
+          </div>
         )}
       </section>
 

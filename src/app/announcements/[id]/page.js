@@ -141,7 +141,6 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(update.author_name)}
           authorPreferredColorIndex={update.author_color_preference !== null && update.author_color_preference !== undefined ? Number(update.author_color_preference) : null}
           createdAt={update.created_at}
-          views={update.views || 0}
           likeButton={
             <LikeButton 
               postType="timeline_update" 
@@ -155,6 +154,19 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         />
         {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
+        {update.views !== undefined && update.views !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {update.views} {update.views === 1 ? 'view' : 'views'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="card">

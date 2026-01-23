@@ -329,7 +329,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(log.author_name)}
           authorPreferredColorIndex={log.author_color_preference !== null && log.author_color_preference !== undefined ? log.author_color_preference : null}
           createdAt={log.created_at}
-          views={log.views || 0}
           likeButton={user ? (
             <LikeButton 
               postType="dev_log" 
@@ -369,6 +368,19 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <img src={`/api/media/${log.image_key}`} alt="" className="post-image" loading="lazy" />
         ) : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(log.body) }} />
+        {log.views !== undefined && log.views !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {log.views} {log.views === 1 ? 'view' : 'views'}
+            </span>
+          </div>
+        )}
       </section>
 
       {canEdit ? (

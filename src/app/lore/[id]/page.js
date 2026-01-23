@@ -143,7 +143,6 @@ export default async function LoreDetailPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(post.author_name) ?? getUsernameColorIndex(post.author_name, { preferredColorIndex: post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null })}
           authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
           createdAt={post.created_at}
-          views={post.views || 0}
           likeButton={
             <LikeButton 
               postType="post" 
@@ -159,6 +158,19 @@ export default async function LoreDetailPage({ params, searchParams }) {
           </span>
         ) : null}
         {post.body ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
+        {post.views !== undefined && post.views !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {post.views} {post.views === 1 ? 'view' : 'views'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="card">

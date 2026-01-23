@@ -707,7 +707,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(safeAuthorName) ?? 0}
           authorPreferredColorIndex={thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null}
           createdAt={safeThreadCreatedAt}
-          views={safeThreadViews}
           likeButton={viewer ? (
             <LikeButton 
               postType="forum_thread" 
@@ -724,6 +723,19 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         ) : null}
         {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" style={{ marginTop: '8px' }} /> : null}
         <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
+        {safeThreadViews !== undefined && safeThreadViews !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {safeThreadViews} {safeThreadViews === 1 ? 'view' : 'views'}
+            </span>
+          </div>
+        )}
       </section>
 
       {canEdit ? (

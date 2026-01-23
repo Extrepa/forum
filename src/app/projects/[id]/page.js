@@ -475,7 +475,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           authorColorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0}
           authorPreferredColorIndex={project?.author_color_preference !== null && project?.author_color_preference !== undefined ? Number(project.author_color_preference) : null}
           createdAt={safeProjectCreatedAt}
-          views={project?.views || 0}
           likeButton={user ? (
             <LikeButton 
               postType="project" 
@@ -517,6 +516,19 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             </a>
           ) : null}
         </div>
+        {project?.views !== undefined && project?.views !== null && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            fontSize: '12px',
+            marginTop: '12px'
+          }}>
+            <span className="muted">
+              {project.views} {project.views === 1 ? 'view' : 'views'}
+            </span>
+          </div>
+        )}
       </section>
 
       {canEdit ? (

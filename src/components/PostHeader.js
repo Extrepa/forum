@@ -10,9 +10,9 @@ import LikeButton from './LikeButton';
  * Top Row:
  *   Left: Post Title by <username>
  *   Right: Like Button
- * Bottom Row:
- *   Left: Post date and time
- *   Right: View Count (only counts new viewers)
+ * 
+ * Note: View count is displayed at the bottom right of the entire post card,
+ * not in this header component.
  */
 export default function PostHeader({
   title,
@@ -20,7 +20,6 @@ export default function PostHeader({
   authorColorIndex,
   authorPreferredColorIndex,
   createdAt,
-  views = 0,
   likeButton,
   className = '',
   showUpdatedAt = false,
@@ -62,20 +61,6 @@ export default function PostHeader({
         {likeButton}
       </div>
 
-      {/* Bottom Row - View count on right */}
-      {views !== undefined && views !== null && (
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
-          alignItems: 'center', 
-          fontSize: '12px',
-          marginTop: '8px'
-        }}>
-          <span className="muted">
-            {views} {views === 1 ? 'view' : 'views'}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
