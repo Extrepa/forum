@@ -500,6 +500,25 @@ header.header--search-open {
   overflow: hidden; /* Ensure content stays inside */
 }
 
+/* Switch to mobile navigation when viewport is too small for all nav items */
+@media (max-width: 1000px) {
+  .header-nav-section .nav-inline {
+    display: none;
+  }
+
+  .header-nav-section .nav-more-toggle {
+    display: none;
+  }
+
+  .header-bottom-controls {
+    display: flex;
+  }
+
+  .nav-inline--more {
+    display: none;
+  }
+}
+
 /* Right-side header controls (Account + Search) */
 .header-right-controls {
   margin-left: auto;

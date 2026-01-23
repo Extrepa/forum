@@ -284,11 +284,15 @@ export default async function EventDetailPage({ params, searchParams }) {
                     fontSize: '12px',
                     padding: '4px 8px',
                     minWidth: '56px',
+                    maxWidth: '80px',
                     display: 'inline-flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     lineHeight: 1.2,
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    overflow: 'hidden',
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>

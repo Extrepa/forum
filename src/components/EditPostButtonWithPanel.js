@@ -28,11 +28,15 @@ export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', pan
     fontSize: '12px',
     padding: '4px 8px',
     minWidth: '56px',
+    maxWidth: '80px',
     lineHeight: 1.2,
     display: 'inline-flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
+    overflow: 'hidden',
   };
 
   const parts = (buttonLabel || 'Edit Post').split(/\s+/);

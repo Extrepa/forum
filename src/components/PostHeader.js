@@ -33,11 +33,11 @@ export default function PostHeader({
         justifyContent: 'space-between', 
         alignItems: 'flex-start', 
         marginBottom: '12px',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
         gap: '12px'
       }}>
-        <div style={{ flex: 1 }}>
-          <h2 className="section-title" style={{ marginBottom: '8px' }}>{title}</h2>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 className="section-title" style={{ marginBottom: '8px', wordBreak: 'break-word' }}>{title}</h2>
           <div className="list-meta">
             <Username 
               name={author} 
@@ -58,7 +58,9 @@ export default function PostHeader({
             )}
           </div>
         </div>
-        {likeButton}
+        <div style={{ flexShrink: 0 }}>
+          {likeButton}
+        </div>
       </div>
 
     </div>
