@@ -59,23 +59,20 @@ export default function PostHeader({
             )}
           </div>
         </div>
-        {likeButton}
-      </div>
-
-      {/* Bottom Row - Only show view count on right, date/time already shown above */}
-      {views !== undefined && views !== null && (
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'flex-end', 
           alignItems: 'center', 
-          fontSize: '12px',
-          marginTop: '8px'
+          gap: '8px',
+          flexWrap: 'wrap'
         }}>
-          <span className="muted">
-            {views} {views === 1 ? 'view' : 'views'}
-          </span>
+          {likeButton}
+          {views !== undefined && views !== null && (
+            <span className="muted" style={{ fontSize: '12px' }}>
+              {views} {views === 1 ? 'view' : 'views'}
+            </span>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
