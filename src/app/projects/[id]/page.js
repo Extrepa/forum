@@ -307,7 +307,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             author_name: String(r.author_name || 'Unknown'),
             body: String(r.body || ''),
             body_html: bodyHtml,
-            created_at: r.created_at ? Number(r.created_at) : Date.now(),
+            created_at: r.created_at ? Number(r.created_at) : 0,
             reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
             author_user_id: String(r.author_user_id || ''),
             author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null

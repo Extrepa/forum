@@ -182,7 +182,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   thread.title = thread.title || 'Untitled';
   thread.body = thread.body || '';
   thread.author_name = thread.author_name || 'Unknown';
-  thread.created_at = thread.created_at || Date.now();
+  thread.created_at = thread.created_at ?? 0;
   thread.is_locked = thread.is_locked || false;
   thread.like_count = thread.like_count || 0;
   thread.moved_to_id = thread.moved_to_id || null;
@@ -566,7 +566,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           author_name: String(reply.author_name || 'Unknown'),
           author_color_preference: reply.author_color_preference !== null && reply.author_color_preference !== undefined ? Number(reply.author_color_preference) : null,
           body: String(reply.body || ''),
-          created_at: reply.created_at ? Number(reply.created_at) : Date.now(),
+          created_at: reply.created_at ? Number(reply.created_at) : 0,
           author_user_id: String(reply.author_user_id || ''),
           reply_to_id: reply.reply_to_id ? String(reply.reply_to_id) : null
         }))
