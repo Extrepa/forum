@@ -55,6 +55,45 @@ export default async function AnnouncementsPage({ searchParams }) {
     results = out?.results || [];
   }
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const updateIds = results.map(u => u.id);
+      if (updateIds.length > 0) {
+        const placeholders = updateIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'timeline_update' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...updateIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(update => {
+          update.is_unread = !readSet.has(update.id);
+        });
+      } else {
+        results.forEach(update => {
+          update.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(update => {
+        update.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(update => {
+      update.is_unread = false;
+    });
+  }
+
   const updates = results.map((row) => ({
     ...row,
     bodyHtml: renderMarkdown(row.body)

@@ -41,16 +41,21 @@ export default function LoreClient({ posts, notice }) {
               const renderItem = (p, { condensed }) => {
                 const preferredColor = p.author_color_preference !== null && p.author_color_preference !== undefined ? Number(p.author_color_preference) : null;
                 const colorIndex = usernameColorMap.get(p.author_name) ?? getUsernameColorIndex(p.author_name, { preferredColorIndex: preferredColor });
+                const statusIcons = [];
+                if (p.is_unread) statusIcons.push('🆕');
+                const titleWithIcons = statusIcons.length > 0 
+                  ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{p.title || 'Untitled'}</>
+                  : (p.title || 'Untitled');
                 
                 return (
                 <a
                   key={p.id}
                   href={`/lore/${p.id}`}
-                  className="list-item"
+                  className={`list-item ${p.is_unread ? 'thread-unread' : ''}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                 >
                   <PostMetaBar
-                    title={p.title || 'Untitled'}
+                    title={titleWithIcons}
                     author={p.author_name}
                     authorColorIndex={colorIndex}
                     authorPreferredColorIndex={preferredColor}

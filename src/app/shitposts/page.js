@@ -56,6 +56,77 @@ export default async function ShitpostsPage({ searchParams }) {
     results = out?.results || [];
   }
 
+  // Add unread status for logged-in users (forum_threads use forum_thread_reads table)
+  const userId = user?.id;
+  if (userId && results.length > 0) {
+    try {
+      const threadIds = results.map(t => t.id);
+      if (threadIds.length > 0) {
+        const placeholders = threadIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT thread_id, last_read_reply_id FROM forum_thread_reads 
+             WHERE user_id = ? AND thread_id IN (${placeholders})`
+          )
+          .bind(userId, ...threadIds)
+          .all();
+
+        const readMap = new Map();
+        (readStates?.results || []).forEach(r => {
+          readMap.set(r.thread_id, r.last_read_reply_id);
+        });
+
+        // Get latest reply IDs for each thread
+        try {
+          const latestReplies = await db
+            .prepare(
+              `SELECT r1.thread_id, r1.id AS latest_reply_id 
+               FROM forum_replies r1
+               INNER JOIN (
+                 SELECT thread_id, MAX(created_at) AS max_created_at
+                 FROM forum_replies
+                 WHERE thread_id IN (${placeholders}) AND is_deleted = 0
+                 GROUP BY thread_id
+               ) r2 ON r1.thread_id = r2.thread_id AND r1.created_at = r2.max_created_at
+               WHERE r1.is_deleted = 0`
+            )
+            .bind(...threadIds, ...threadIds)
+            .all();
+
+          const latestReplyMap = new Map();
+          (latestReplies?.results || []).forEach(r => {
+            latestReplyMap.set(r.thread_id, r.latest_reply_id);
+          });
+
+          results.forEach(thread => {
+            const lastReadReplyId = readMap.get(thread.id);
+            const latestReplyId = latestReplyMap.get(thread.id);
+            thread.is_unread = !lastReadReplyId || (latestReplyId && lastReadReplyId !== latestReplyId);
+          });
+        } catch (e) {
+          // Latest replies query failed, just use read states
+          results.forEach(thread => {
+            const lastReadReplyId = readMap.get(thread.id);
+            thread.is_unread = !lastReadReplyId;
+          });
+        }
+      } else {
+        results.forEach(thread => {
+          thread.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // forum_thread_reads table might not exist yet, mark all as read
+      results.forEach(thread => {
+        thread.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(thread => {
+      thread.is_unread = false;
+    });
+  }
+
   const error = searchParams?.error;
   const notice =
     error === 'claim'

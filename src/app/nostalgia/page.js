@@ -44,6 +44,45 @@ export default async function NostalgiaPage({ searchParams }) {
     results = [];
   }
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const postIds = results.map(p => p.id);
+      if (postIds.length > 0) {
+        const placeholders = postIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'post' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...postIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(post => {
+          post.is_unread = !readSet.has(post.id);
+        });
+      } else {
+        results.forEach(post => {
+          post.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(post => {
+        post.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(post => {
+      post.is_unread = false;
+    });
+  }
+
   const posts = results.map((row) => ({
     ...row,
     bodyHtml: row.body ? renderMarkdown(row.body) : null
