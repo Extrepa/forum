@@ -638,6 +638,12 @@ main {
   backdrop-filter: blur(12px);
 }
 
+/* Allow account/profile card to shrink with viewport like header */
+.account-profile-card {
+  min-width: 0;
+  width: 100%;
+}
+
 .section-title {
   font-family: "Unbounded", "Space Grotesk", sans-serif;
   font-size: 22px;
@@ -698,6 +704,7 @@ main {
 .stack {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
 .split {

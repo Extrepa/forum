@@ -142,12 +142,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     fontSize: '15px',
     whiteSpace: 'nowrap',
     width: '100%',
-    textAlign: 'left',
+    textAlign: 'center',
     boxSizing: 'border-box'
   };
 
   return (
-    <section className="card" style={{ overflow: 'visible' }}>
+    <section className="card account-profile-card">
       <div
         className="account-profile-tabs"
         style={{
@@ -166,8 +166,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             ...tabBase,
             borderBottomColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
             color: activeTab === 'account' ? 'var(--accent)' : 'var(--muted)',
-            fontWeight: activeTab === 'account' ? '600' : '400',
-            textAlign: 'left'
+            fontWeight: activeTab === 'account' ? '600' : '400'
           }}
         >
           Account
@@ -179,8 +178,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             ...tabBase,
             borderBottomColor: activeTab === 'profile' ? 'var(--accent)' : 'transparent',
             color: activeTab === 'profile' ? 'var(--accent)' : 'var(--muted)',
-            fontWeight: activeTab === 'profile' ? '600' : '400',
-            textAlign: 'right'
+            fontWeight: activeTab === 'profile' ? '600' : '400'
           }}
         >
           Profile
@@ -199,7 +197,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       )}
 
       {activeTab === 'profile' && user && stats && (
-        <div style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+        <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <h2 className="section-title" style={{ borderBottom: 'none' }}>Profile</h2>
           
           {/* Username and Color Section */}
@@ -240,10 +238,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Username color label and picker - same row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
               <strong>Username color:</strong>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden', flex: '1 1 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', flex: '0 0 auto' }}>
               {colorOptions.map((option) => {
                 const isSelected = selectedColorIndex === option.index;
                 const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                const size = 18;
                 return (
                   <button
                     key={option.index ?? 'auto'}
@@ -251,11 +250,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
                     disabled={disabled}
                     style={{
-                      flex: option.index === null ? '0 0 auto' : '1 1 0',
-                      width: option.index === null ? 'auto' : undefined,
-                      height: option.index === null ? '18px' : '14px',
-                      minWidth: option.index === null ? '36px' : '10px',
-                      maxWidth: option.index === null ? 'none' : undefined,
+                      flex: '0 0 auto',
+                      width: option.index === null ? 'auto' : size,
+                      height: size,
+                      minWidth: option.index === null ? 'auto' : size,
                       aspectRatio: option.index === null ? 'auto' : '1',
                       borderRadius: option.index === null ? '3px' : '50%',
                       border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
@@ -265,7 +263,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: disabled ? 'default' : 'pointer',
                       opacity: disabled ? 0.7 : 1,
                       transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 5px' : 0,
+                      padding: option.index === null ? '0 6px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
