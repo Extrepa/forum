@@ -27,8 +27,8 @@ export default function ReplyButton({ replyId, replyAuthor, replyBody, replyHref
         }
       }));
       
-      // Scroll to form
-      const formElement = document.getElementById('reply-form');
+      // Scroll to form (try both reply-form and comment-form for compatibility)
+      const formElement = document.getElementById('reply-form') || document.getElementById('comment-form');
       if (formElement) {
         formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }

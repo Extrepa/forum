@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
-import CommentActions from './CommentActions';
+import ReplyButton from './ReplyButton';
 
 export default function EventCommentsSection({ 
   eventId, 
@@ -18,7 +18,53 @@ export default function EventCommentsSection({
   const [attending, setAttending] = useState(initialAttending);
   const [attendees, setAttendees] = useState(initialAttendees);
   const [showCommentBox, setShowCommentBox] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyPrefill, setReplyPrefill] = useState('');
+  const textareaRef = useRef(null);
+  const hiddenReplyToRef = useRef(null);
   
+  // Listen for dynamic reply changes from ReplyButton clicks
+  useEffect(() => {
+    const handleReplyToChanged = (event) => {
+      const { replyId, replyAuthor, replyBody } = event.detail;
+      
+      setReplyingTo({ id: replyId, author_name: replyAuthor, body: replyBody });
+      const quoteText = `> @${replyAuthor} said:\n${replyBody.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
+      setReplyPrefill(quoteText);
+      
+      if (hiddenReplyToRef.current) {
+        hiddenReplyToRef.current.value = replyId;
+      }
+      if (textareaRef.current) {
+        textareaRef.current.value = quoteText;
+      }
+      setShowCommentBox(true);
+    };
+    
+    window.addEventListener('replyToChanged', handleReplyToChanged);
+    
+    return () => {
+      window.removeEventListener('replyToChanged', handleReplyToChanged);
+    };
+  }, []);
+
+  // Check URL for replyTo parameter on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const replyToId = urlParams.get('replyTo');
+      if (replyToId) {
+        const comment = comments.find(c => c.id === replyToId);
+        if (comment) {
+          setReplyingTo({ id: comment.id, author_name: comment.author_name, body: comment.body });
+          const quoteText = `> @${comment.author_name} said:\n${comment.body.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
+          setReplyPrefill(quoteText);
+          setShowCommentBox(true);
+        }
+      }
+    }
+  }, [comments]);
+
   const handleAttendingChange = async (e) => {
     const newValue = e.target.checked;
     const previousValue = attending;
@@ -44,6 +90,17 @@ export default function EventCommentsSection({
       // Revert on error
       setAttending(previousValue);
       console.error('Failed to update attendance:', error);
+    }
+  };
+
+  const handleCancelComment = () => {
+    setShowCommentBox(false);
+    setReplyingTo(null);
+    setReplyPrefill('');
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('replyTo');
+      window.history.pushState({}, '', url.toString());
     }
   };
   
@@ -104,13 +161,13 @@ export default function EventCommentsSection({
                     {' · '}
                     {new Date(c.created_at).toLocaleString()}
                   </span>
+                  <ReplyButton
+                    replyId={c.id}
+                    replyAuthor={c.author_name}
+                    replyBody={c.body}
+                    replyHref={`/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
+                  />
                 </div>
-                <CommentActions
-                  commentId={c.id}
-                  commentAuthor={c.author_name}
-                  commentBody={c.body}
-                  replyHref={`/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
-                />
               </div>
             );
           })
@@ -122,14 +179,30 @@ export default function EventCommentsSection({
         <p className="muted" style={{ marginTop: '16px' }}>Comments are locked for this event.</p>
       ) : user ? (
         showCommentBox ? (
-          <form id="event-comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '16px' }}>
+          <form id="comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '16px' }}>
+            {replyingTo ? (
+              <input
+                ref={hiddenReplyToRef}
+                type="hidden"
+                name="reply_to_id"
+                value={replyingTo.id || ''}
+              />
+            ) : null}
             <label>
-              <div className="muted">What would you like to say?</div>
-              <textarea name="body" placeholder="Drop your thoughts into the goo..." required />
+              <div className="muted">
+                {replyingTo ? `Replying to ${replyingTo.author_name}` : 'What would you like to say?'}
+              </div>
+              <textarea
+                ref={textareaRef}
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
+                required
+                defaultValue={replyPrefill}
+              />
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="submit">Post comment</button>
-              <button type="button" onClick={() => setShowCommentBox(false)}>Cancel</button>
+              <button type="button" onClick={handleCancelComment}>Cancel</button>
             </div>
           </form>
         ) : (
