@@ -208,19 +208,21 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         setNewUsername(user.username);
                         setUsernameStatus({ type: 'idle', message: null });
                       }}
-                      style={{
-                        fontSize: '11px',
-                        padding: '2px 6px',
-                        height: '20px',
-                        background: 'rgba(52, 225, 255, 0.1)',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        borderRadius: '4px',
-                        color: 'var(--accent)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
+                    style={{
+                      fontSize: '11px',
+                      padding: '4px 10px',
+                      height: '28px',
+                      minWidth: '28px',
+                      aspectRatio: '1',
+                      background: 'rgba(52, 225, 255, 0.1)',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      borderRadius: '3px',
+                      color: 'var(--accent)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                     >
                       Edit
                     </button>
@@ -293,9 +295,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => handleColorUpdate(option.index)}
                     disabled={colorStatus.type === 'loading'}
                     style={{
-                      width: option.index === null ? 'auto' : '20px',
-                      height: '20px',
-                      minWidth: option.index === null ? '36px' : '20px',
+                      width: option.index === null ? 'auto' : '28px',
+                      height: '28px',
+                      minWidth: option.index === null ? '48px' : '28px',
+                      aspectRatio: option.index === null ? 'auto' : '1',
                       borderRadius: '3px',
                       border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                       background: option.index === null 
@@ -304,11 +307,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                       opacity: colorStatus.type === 'loading' ? 0.6 : 1,
                       transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 5px' : 0,
+                      padding: option.index === null ? '0 8px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '10px' : '0',
+                      fontSize: option.index === null ? '11px' : '0',
                       color: 'var(--ink)',
                       fontWeight: 'bold'
                     }}
