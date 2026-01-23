@@ -47,6 +47,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at, music_posts.moved_to_type, music_posts.moved_to_id,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
@@ -139,7 +140,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
     const result = await db
       .prepare(
         `SELECT music_comments.id, music_comments.body, music_comments.created_at,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM music_comments
          JOIN users ON users.id = music_comments.author_user_id
          WHERE music_comments.post_id = ? AND music_comments.is_deleted = 0
@@ -154,7 +156,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT music_comments.id, music_comments.body, music_comments.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM music_comments
            JOIN users ON users.id = music_comments.author_user_id
            WHERE music_comments.post_id = ?
@@ -186,12 +189,24 @@ export default async function MusicDetailPage({ params, searchParams }) {
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   
-  // Assign unique colors to all usernames on this page
+  // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [
     post.author_name,
     ...comments.map(c => c.author_name)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (post.author_name && post.author_color_preference !== null && post.author_color_preference !== undefined) {
+    preferredColors.set(post.author_name, Number(post.author_color_preference));
+  }
+  comments.forEach(c => {
+    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+      preferredColors.set(c.author_name, Number(c.author_color_preference));
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
   
   // Check if current user has liked this post
   let userLiked = false;
@@ -247,7 +262,11 @@ export default async function MusicDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title}</h2>
             <div className="list-meta">
-              <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} /> ·{' '}
+              <Username 
+                name={post.author_name} 
+                colorIndex={usernameColorMap.get(post.author_name)}
+                preferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+              /> ·{' '}
               {new Date(post.created_at).toLocaleString()}
               {post.is_locked ? ' · Comments locked' : null}
             </div>
@@ -328,7 +347,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
             <p className="muted">No comments yet.</p>
           ) : (
             comments.map((comment) => {
-              const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name);
+              const preferredColor = comment.author_color_preference !== null && comment.author_color_preference !== undefined ? Number(comment.author_color_preference) : null;
+              const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
               return (
                 <div key={comment.id} className="list-item">
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />

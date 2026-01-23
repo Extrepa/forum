@@ -7,7 +7,8 @@ export async function GET(request, { params }) {
   const { results } = await db
     .prepare(
       `SELECT event_comments.id, event_comments.body, event_comments.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM event_comments
        JOIN users ON users.id = event_comments.author_user_id
        WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0

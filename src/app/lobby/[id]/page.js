@@ -92,6 +92,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                   forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                   forum_threads.moved_to_type, forum_threads.moved_to_id,
                   COALESCE(users.username, 'Deleted User') AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
            FROM forum_threads
            LEFT JOIN users ON users.id = forum_threads.author_user_id
@@ -123,6 +124,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                     COALESCE(users.username, 'Deleted User') AS author_name,
+                    users.preferred_username_color_index AS author_color_preference,
                     0 AS like_count
              FROM forum_threads
              LEFT JOIN users ON users.id = forum_threads.author_user_id
@@ -142,6 +144,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                       forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                       COALESCE(users.username, 'Deleted User') AS author_name,
+                      users.preferred_username_color_index AS author_color_preference,
                       0 AS like_count
                FROM forum_threads
                LEFT JOIN users ON users.id = forum_threads.author_user_id
@@ -252,7 +255,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
                   forum_replies.reply_to_id,
-                  COALESCE(users.username, 'Deleted User') AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
            WHERE forum_replies.thread_id = ? AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
@@ -280,7 +284,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
                   forum_replies.reply_to_id,
-                  COALESCE(users.username, 'Deleted User') AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
            WHERE forum_replies.thread_id = ?
@@ -441,7 +446,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
 
-  // Assign unique colors to all usernames on this page
+  // Build preferences map and assign unique colors to all usernames on this page
   let usernameColorMap = new Map();
   try {
     // #region agent log
@@ -451,8 +456,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       thread?.author_name,
       ...(Array.isArray(replies) ? replies : []).map(r => r?.author_name)
     ].filter(Boolean).filter(name => name && typeof name === 'string');
+    
+    // Build map of username -> preferred color index
+    const preferredColors = new Map();
+    if (thread?.author_name && thread?.author_color_preference !== null && thread?.author_color_preference !== undefined) {
+      preferredColors.set(thread.author_name, Number(thread.author_color_preference));
+    }
+    if (Array.isArray(replies)) {
+      replies.forEach(r => {
+        if (r?.author_name && r?.author_color_preference !== null && r?.author_color_preference !== undefined) {
+          preferredColors.set(r.author_name, Number(r.author_color_preference));
+        }
+      });
+    }
+    
     if (allUsernames.length > 0) {
-      usernameColorMap = assignUniqueColorsForPage(allUsernames);
+      usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
       // #region agent log
       log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
       // #endregion
@@ -529,6 +548,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   const safeThreadIsLocked = thread?.is_locked ? Boolean(thread.is_locked) : false;
   const safeThreadLikeCount = thread?.like_count ? Number(thread.like_count) : 0;
   const safeThreadImageKey = thread?.image_key ? String(thread.image_key) : null;
+  const safeThreadAuthorColorPreference = thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null;
   
   // Ensure all arrays are properly serialized
   const safeReplies = Array.isArray(replies) 
@@ -537,6 +557,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         .map(reply => ({
           id: String(reply.id || ''),
           author_name: String(reply.author_name || 'Unknown'),
+          author_color_preference: reply.author_color_preference !== null && reply.author_color_preference !== undefined ? Number(reply.author_color_preference) : null,
           body: String(reply.body || ''),
           created_at: reply.created_at ? Number(reply.created_at) : Date.now(),
           author_user_id: String(reply.author_user_id || ''),
@@ -574,7 +595,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     
     const renderReply = (r, { isChild }) => {
       if (!r || !r.id || !r.body) return null;
-      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
+      const preferredColor = r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null;
+      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown', { preferredColorIndex: preferredColor });
       
       let replyBodyHtml = '';
       try {
@@ -682,7 +704,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           ) : null}
         </div>
         <div className="list-meta">
-          <Username name={safeAuthorName} colorIndex={usernameColorMap.get(safeAuthorName) ?? 0} /> ·{' '}
+          <Username 
+            name={safeAuthorName} 
+            colorIndex={usernameColorMap.get(safeAuthorName) ?? 0}
+            preferredColorIndex={thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null}
+          /> ·{' '}
           {safeThreadCreatedAt ? formatDateTime(safeThreadCreatedAt) : ''}
           {safeThreadIsLocked ? ' · Replies locked' : null}
         </div>

@@ -9,7 +9,8 @@ export async function GET(request, { params }) {
     const out = await db
       .prepare(
         `SELECT event_attendees.id, event_attendees.created_at,
-                users.username, users.id AS user_id
+                users.username, users.id AS user_id,
+                users.preferred_username_color_index AS preferred_username_color_index
          FROM event_attendees
          JOIN users ON users.id = event_attendees.user_id
          WHERE event_attendees.event_id = ?

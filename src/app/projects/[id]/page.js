@@ -71,6 +71,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 projects.created_at, projects.updated_at,
                 projects.moved_to_type, projects.moved_to_id,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 COALESCE(projects.is_locked, 0) AS is_locked
          FROM projects
          JOIN users ON users.id = projects.author_user_id
@@ -87,6 +88,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   projects.github_url, projects.demo_url, projects.image_key,
                   projects.created_at, projects.updated_at,
                   users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   0 AS like_count,
                   COALESCE(projects.is_locked, 0) AS is_locked
            FROM projects
@@ -109,6 +111,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     projects.github_url, projects.demo_url, projects.image_key,
                     projects.created_at, projects.updated_at,
                     users.username AS author_name,
+                    users.preferred_username_color_index AS author_color_preference,
                     0 AS like_count,
                     0 AS is_locked
              FROM projects
@@ -152,7 +155,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                 project_replies.author_user_id,
-                COALESCE(users.username, 'Deleted User') AS author_name
+                COALESCE(users.username, 'Deleted User') AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM project_replies
          LEFT JOIN users ON users.id = project_replies.author_user_id
          WHERE project_replies.project_id = ? AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
@@ -169,7 +173,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         .prepare(
           `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                   project_replies.author_user_id,
-                  COALESCE(users.username, 'Deleted User') AS author_name
+                  COALESCE(users.username, 'Deleted User') AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM project_replies
            LEFT JOIN users ON users.id = project_replies.author_user_id
            WHERE project_replies.project_id = ?
@@ -310,10 +315,23 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     ...safeReplies.map(r => r.author_name)
   ].filter(Boolean).filter(name => name && typeof name === 'string');
   
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (project?.author_name && project?.author_color_preference !== null && project?.author_color_preference !== undefined) {
+    preferredColors.set(project.author_name, Number(project.author_color_preference));
+  }
+  if (Array.isArray(replies)) {
+    replies.forEach(r => {
+      if (r?.author_name && r?.author_color_preference !== null && r?.author_color_preference !== undefined) {
+        preferredColors.set(r.author_name, Number(r.author_color_preference));
+      }
+    });
+  }
+  
   let usernameColorMap = new Map();
   try {
     if (allUsernames.length > 0) {
-      usernameColorMap = assignUniqueColorsForPage(allUsernames);
+      usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
     }
   } catch (e) {
     console.error('Error assigning username colors:', e);
@@ -346,7 +364,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     
     const renderReply = (r, { isChild }) => {
       if (!r || !r.id || !r.body) return null;
-      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown');
+      const preferredColor = r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null;
+      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown', { preferredColorIndex: preferredColor });
       
       let replyBodyHtml = '';
       try {
@@ -443,7 +462,11 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             <h2 className="section-title" style={{ marginBottom: '4px' }}>{safeProjectTitle}</h2>
             {/* Project status badge removed - was appearing next to username and looked like user status */}
             <div className="list-meta" style={{ marginBottom: '0' }}>
-              <Username name={safeProjectAuthorName} colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0} /> ·{' '}
+              <Username 
+                name={safeProjectAuthorName} 
+                colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0}
+                preferredColorIndex={project?.author_color_preference !== null && project?.author_color_preference !== undefined ? Number(project.author_color_preference) : null}
+              /> ·{' '}
               {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
               {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
               {project.is_locked ? ' · Comments locked' : null}

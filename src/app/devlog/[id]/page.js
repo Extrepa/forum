@@ -79,6 +79,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
                 dev_logs.github_url, dev_logs.demo_url, dev_logs.links,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
@@ -94,6 +95,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                   dev_logs.created_at, dev_logs.updated_at,
                   users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   0 AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
@@ -172,7 +174,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     const out = await db
       .prepare(
         `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM dev_log_comments
          JOIN users ON users.id = dev_log_comments.author_user_id
          WHERE dev_log_comments.log_id = ? AND dev_log_comments.is_deleted = 0
@@ -187,7 +190,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM dev_log_comments
            JOIN users ON users.id = dev_log_comments.author_user_id
            WHERE dev_log_comments.log_id = ?
@@ -257,12 +261,24 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
-  // Assign unique colors to all usernames on this page
+  // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [
     log.author_name,
     ...comments.map(c => c.author_name)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (log.author_name && log.author_color_preference !== null && log.author_color_preference !== undefined) {
+    preferredColors.set(log.author_name, log.author_color_preference);
+  }
+  comments.forEach(c => {
+    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+      preferredColors.set(c.author_name, c.author_color_preference);
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
   return (
     <div className="stack">
@@ -305,7 +321,11 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{log.title}</h2>
             <div className="list-meta">
-              <Username name={log.author_name} colorIndex={usernameColorMap.get(log.author_name)} /> ·{' '}
+              <Username 
+                name={log.author_name} 
+                colorIndex={usernameColorMap.get(log.author_name)} 
+                preferredColorIndex={log.author_color_preference !== null && log.author_color_preference !== undefined ? log.author_color_preference : null}
+              /> ·{' '}
               {new Date(log.created_at).toLocaleString()}
               {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
               {log.is_locked ? ' · Comments locked' : null}
@@ -372,7 +392,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
               }
 
               const renderReply = (c, { isChild }) => {
-                const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
+                const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? c.author_color_preference : null;
+                const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
 
                 const replyLink = `/devlog/${log.id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
                 return (

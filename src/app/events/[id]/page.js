@@ -48,6 +48,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                 COALESCE(events.is_locked, 0) AS is_locked
          FROM events
@@ -64,6 +65,7 @@ export default async function EventDetailPage({ params, searchParams }) {
             `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
                   users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   0 AS like_count,
                   COALESCE(events.is_locked, 0) AS is_locked
            FROM events
@@ -85,6 +87,7 @@ export default async function EventDetailPage({ params, searchParams }) {
               `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                     events.created_at, events.image_key,
                     users.username AS author_name,
+                    users.preferred_username_color_index AS author_color_preference,
                     0 AS like_count,
                     0 AS is_locked
              FROM events
@@ -125,7 +128,8 @@ export default async function EventDetailPage({ params, searchParams }) {
     const result = await db
       .prepare(
         `SELECT event_comments.id, event_comments.body, event_comments.created_at,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM event_comments
          JOIN users ON users.id = event_comments.author_user_id
          WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
@@ -140,7 +144,8 @@ export default async function EventDetailPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT event_comments.id, event_comments.body, event_comments.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM event_comments
            JOIN users ON users.id = event_comments.author_user_id
            WHERE event_comments.event_id = ?
@@ -186,7 +191,8 @@ export default async function EventDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT event_attendees.id, event_attendees.created_at,
-                  users.username, users.id AS user_id
+                  users.username, users.id AS user_id,
+                users.preferred_username_color_index AS preferred_username_color_index
            FROM event_attendees
            JOIN users ON users.id = event_attendees.user_id
            WHERE event_attendees.event_id = ?
@@ -203,7 +209,8 @@ export default async function EventDetailPage({ params, searchParams }) {
   // Pre-render markdown for comments
   const commentsWithHtml = comments.map(c => ({
     ...c,
-    body_html: renderMarkdown(c.body)
+    body_html: renderMarkdown(c.body),
+    author_color_preference: c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null
   }));
 
   // Assign unique colors to all usernames on this page
@@ -211,7 +218,18 @@ export default async function EventDetailPage({ params, searchParams }) {
     event.author_name,
     ...comments.map(c => c.author_name)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (event.author_name && event.author_color_preference !== null && event.author_color_preference !== undefined) {
+    preferredColors.set(event.author_name, Number(event.author_color_preference));
+  }
+  comments.forEach(c => {
+    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+      preferredColors.set(c.author_name, Number(c.author_color_preference));
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
   const error = searchParams?.error;
   const commentNotice =
@@ -284,7 +302,11 @@ export default async function EventDetailPage({ params, searchParams }) {
           <div style={{ flex: 1 }}>
             <h2 className="section-title" style={{ marginBottom: '8px' }}>{event.title}</h2>
             <div className="list-meta">
-              <Username name={event.author_name} colorIndex={usernameColorMap.get(event.author_name)} />
+              <Username 
+                name={event.author_name} 
+                colorIndex={usernameColorMap.get(event.author_name)}
+                preferredColorIndex={event.author_color_preference !== null && event.author_color_preference !== undefined ? Number(event.author_color_preference) : null}
+              />
               {event.is_locked ? ' · Comments locked' : null}
             </div>
           </div>

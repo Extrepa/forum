@@ -56,7 +56,10 @@ export default function EventCommentsSection({
           </strong>{' '}
           {attendees.slice(0, 5).map((a, i) => (
             <span key={a.id}>
-              <Username name={a.username} colorIndex={getUsernameColorIndex(a.username)} />
+              <Username 
+                name={a.username} 
+                colorIndex={getUsernameColorIndex(a.username, { preferredColorIndex: a.preferred_username_color_index !== null && a.preferred_username_color_index !== undefined ? Number(a.preferred_username_color_index) : null })} 
+              />
               {i < Math.min(attendees.length, 5) - 1 ? ', ' : ''}
             </span>
           ))}
@@ -86,7 +89,8 @@ export default function EventCommentsSection({
           <p className="muted">No comments yet.</p>
         ) : (
           comments.map((c) => {
-            const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
+            const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
+            const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
             return (
               <div key={c.id} className="list-item">
                 <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
