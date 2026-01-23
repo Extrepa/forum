@@ -5,7 +5,7 @@ import CollapsibleReplyForm from './CollapsibleReplyForm';
 export default function ReplyFormWrapper({ 
   action, 
   buttonLabel = 'Post reply',
-  placeholder = 'Share your goo-certified thoughts...',
+  placeholder = 'Share your drip-certified thoughts...',
   labelText = 'What would you like to say?',
   hiddenFields = {},
   replyingTo = null,

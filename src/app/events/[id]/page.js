@@ -282,9 +282,9 @@ export default async function EventDetailPage({ params, searchParams }) {
                   className="button"
                   style={{
                     fontSize: '12px',
-                    padding: '4px 8px',
-                    minWidth: '56px',
-                    maxWidth: '80px',
+                    padding: '6px 10px',
+                    minWidth: '90px',
+                    minHeight: '44px',
                     display: 'inline-flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -292,7 +292,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                     lineHeight: 1.2,
                     whiteSpace: 'normal',
                     wordBreak: 'break-word',
-                    overflow: 'hidden',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>

@@ -420,6 +420,9 @@ header.header--search-open {
   font-family: "Unbounded", "Space Grotesk", sans-serif;
   font-size: 26px;
   letter-spacing: 0.6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .brand-left p {
@@ -1728,8 +1731,9 @@ header::before {
     gap: 0;
   }
 
+  /* Keep description visible on detail pages */
   header.header--detail .brand-left p {
-    display: none;
+    display: block;
   }
 
   header.header--detail .brand-left h1 {
@@ -2301,10 +2305,13 @@ header::before {
   .brand-left {
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 100%;
   }
 
   .brand-left h1 {
-    white-space: nowrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .brand > :last-child {

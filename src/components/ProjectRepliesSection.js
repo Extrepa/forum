@@ -141,7 +141,7 @@ export default function ProjectRepliesSection({
             <ReplyFormWrapper
               action={`/api/projects/${projectId}/replies`}
               buttonLabel="Post reply"
-              placeholder="Share your goo-certified thoughts..."
+              placeholder="Share your drip-certified thoughts..."
               labelText="What would you like to say?"
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}

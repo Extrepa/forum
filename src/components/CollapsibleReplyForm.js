@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 export default function CollapsibleReplyForm({ 
   action, 
   buttonLabel = 'Post reply',
-  placeholder = 'Share your goo-certified thoughts...',
+  placeholder = 'Share your drip-certified thoughts...',
   labelText = 'What would you like to say?',
   hiddenFields = {},
   replyingTo = null,

@@ -1,7 +1,7 @@
 export const errlForumStrings = {
   header: {
     title: 'Errl Forum',
-    subtitle: 'Drops, devlogs, and goo-certified community chaos.'
+    subtitle: 'Drops, devlogs, and drip-certified community chaos.'
   },
   hero: {
     // For UIs that render the username as a component (styled), use prefix/suffix.
@@ -33,7 +33,7 @@ export const errlForumStrings = {
     },
     general: {
       title: 'General',
-      description: 'Random thoughts, wild ideas, and general goo-certified chaos.',
+      description: 'Random thoughts, wild ideas, and general drip-certified chaos.',
       empty: 'Nothing new… the goo is resting.'
     },
     music: {
