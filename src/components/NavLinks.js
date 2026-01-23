@@ -39,19 +39,13 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   };
 
   const handleLinkClick = (e, href) => {
-    // If not signed in, show message and prevent navigation
-    if (!isSignedIn) {
-      e.preventDefault();
-      alert('Please sign in to access this page.');
-      return;
-    }
-
     // For "more" variant links, ensure navigation happens
     if (variant === 'more') {
       e.preventDefault();
       router.push(href);
     }
     // For other variants, let default navigation happen
+    // Note: Pages themselves handle authentication checks, so we don't block navigation here
   };
 
   return (
