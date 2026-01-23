@@ -186,21 +186,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       )}
 
       {activeTab === 'profile' && user && stats && (
-        <div>
+        <div style={{ minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
           <h2 className="section-title" style={{ borderBottom: 'none' }}>Profile</h2>
           
-          {/* Username and Color Section - Same Row */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              {/* Left side: Username */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: '1 1 auto', minWidth: 0 }}>
-                <strong>Username:</strong>
+          {/* Username and Color Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', minWidth: 0, maxWidth: '100%' }}>
+            {/* Username label on its own row */}
+            <div>
+              <strong>Username:</strong>
+            </div>
+            
+            {/* Username value and Edit button - can wrap */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                 {!isEditingUsername ? (
                   <>
-                    <Username 
-                      name={user.username} 
-                      colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
-                    />
+                    <div style={{ flexShrink: 0 }}>
+                      <Username 
+                        name={user.username} 
+                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -208,27 +213,28 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         setNewUsername(user.username);
                         setUsernameStatus({ type: 'idle', message: null });
                       }}
-                    style={{
-                      fontSize: '11px',
-                      padding: '4px 10px',
-                      height: '28px',
-                      minWidth: '28px',
-                      aspectRatio: '1',
-                      background: 'rgba(52, 225, 255, 0.1)',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      borderRadius: '3px',
-                      color: 'var(--accent)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
+                      style={{
+                        fontSize: '11px',
+                        padding: '4px 10px',
+                        height: '28px',
+                        minWidth: '28px',
+                        background: 'rgba(52, 225, 255, 0.1)',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        borderRadius: '3px',
+                        color: 'var(--accent)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
+                      }}
                     >
                       Edit
                     </button>
                   </>
                 ) : (
-                  <form onSubmit={handleUsernameUpdate} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <form onSubmit={handleUsernameUpdate} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                     <input
                       type="text"
                       value={newUsername}
@@ -242,7 +248,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         background: 'rgba(2, 7, 10, 0.6)',
                         color: 'var(--ink)',
                         fontSize: '14px',
-                        minWidth: '120px'
+                        minWidth: '120px',
+                        maxWidth: '100%',
+                        flex: '1 1 auto'
                       }}
                       autoFocus
                     />
@@ -257,7 +265,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         borderRadius: '6px',
                         color: 'var(--bg)',
                         cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                        opacity: usernameStatus.type === 'loading' ? 0.6 : 1
+                        opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       Save
@@ -276,18 +286,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         border: '1px solid rgba(52, 225, 255, 0.3)',
                         borderRadius: '6px',
                         color: 'var(--muted)',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       Cancel
                     </button>
                   </form>
                 )}
-              </div>
-
-              {/* Right side: Color picker icons */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
-                <strong>Username color:</strong>
+            </div>
+            
+            {/* Username color picker - separate row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0, minWidth: 0, maxWidth: '100%' }}>
+              <strong>Username color:</strong>
                 {colorOptions.map((option) => (
                   <button
                     key={option.index ?? 'auto'}
@@ -320,7 +332,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {option.index === null ? 'Auto' : ''}
                   </button>
                 ))}
-              </div>
             </div>
             {usernameStatus.message && (
               <div style={{

@@ -413,6 +413,7 @@ header.header--search-open {
   gap: 4px;
   flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 .brand-left h1 {
@@ -1738,6 +1739,9 @@ header::before {
 
   header.header--detail .brand-left h1 {
     font-size: 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   header.header--detail .header-nav-section {
@@ -1786,10 +1790,15 @@ header::before {
 
   .brand h1 {
     font-size: 22px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .brand p {
     font-size: 13px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .section-title {
