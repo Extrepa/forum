@@ -63,66 +63,62 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   }, [activeTab, user]);
 
-  const handleUsernameUpdate = async (e) => {
-    e.preventDefault();
-    setUsernameStatus({ type: 'loading', message: 'Updating username...' });
+  const handleSave = async (e) => {
+    e?.preventDefault?.();
+    const trimmed = (newUsername || '').trim();
+    if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) {
+      setUsernameStatus({ type: 'error', message: 'Username must be 3–20 characters (lowercase letters, numbers, underscores).' });
+      return;
+    }
+    setNewUsername(trimmed);
+    setUsernameStatus({ type: 'loading', message: 'Saving...' });
 
-    const formData = new FormData();
-    formData.append('username', newUsername);
+    const usernameChanged = trimmed !== (user?.username || '');
+    const colorChanged = selectedColorIndex !== (user?.preferred_username_color_index ?? null);
+
+    if (!usernameChanged && !colorChanged) {
+      handleCancel();
+      return;
+    }
 
     try {
-      const res = await fetch('/api/account/username', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setUsernameStatus({ type: 'success', message: 'Username updated successfully!' });
-        setIsEditingUsername(false);
-        // Refresh the page to get updated user data
-        setTimeout(() => {
-          router.refresh();
-        }, 1000);
-      } else {
-        setUsernameStatus({ type: 'error', message: data.error || 'Failed to update username' });
+      if (usernameChanged) {
+        const fd = new FormData();
+        fd.append('username', trimmed);
+        const res = await fetch('/api/account/username', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          setUsernameStatus({ type: 'error', message: data.error || 'Failed to update username' });
+          return;
+        }
       }
-    } catch (e) {
+      if (colorChanged) {
+        const fd = new FormData();
+        fd.append('color_index', selectedColorIndex === null ? '' : String(selectedColorIndex));
+        const res = await fetch('/api/account/username-color', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          setUsernameStatus({ type: 'error', message: data.error || 'Failed to update color' });
+          return;
+        }
+      }
+      setUsernameStatus({ type: 'success', message: 'Profile updated!' });
+      setIsEditingUsername(false);
+      setTimeout(() => {
+        setUsernameStatus({ type: 'idle', message: null });
+        router.refresh();
+      }, 1000);
+    } catch (err) {
       setUsernameStatus({ type: 'error', message: 'Network error. Please try again.' });
     }
   };
 
-  const handleColorUpdate = async (colorIndex) => {
-    setSelectedColorIndex(colorIndex);
-    setColorStatus({ type: 'loading', message: 'Updating color...' });
-
-    const formData = new FormData();
-    formData.append('color_index', colorIndex === null ? '' : String(colorIndex));
-
-    try {
-      const res = await fetch('/api/account/username-color', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setColorStatus({ type: 'success', message: 'Color preference updated!' });
-        setTimeout(() => {
-          setColorStatus({ type: 'idle', message: null });
-          router.refresh();
-        }, 1000);
-      } else {
-        setColorStatus({ type: 'error', message: data.error || 'Failed to update color' });
-        // Revert selection
-        setSelectedColorIndex(user?.preferred_username_color_index ?? null);
-      }
-    } catch (e) {
-      setColorStatus({ type: 'error', message: 'Network error. Please try again.' });
-      setSelectedColorIndex(user?.preferred_username_color_index ?? null);
-    }
+  const handleCancel = () => {
+    setNewUsername(user?.username || '');
+    setSelectedColorIndex(user?.preferred_username_color_index ?? null);
+    setUsernameStatus({ type: 'idle', message: null });
+    setColorStatus({ type: 'idle', message: null });
+    setIsEditingUsername(false);
   };
 
   const colorOptions = [
@@ -191,67 +187,121 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           
           {/* Username and Color Section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', minWidth: 0, maxWidth: '100%' }}>
-            {/* Username label, value, and Edit button - same row */}
+            {/* Username row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
               <strong>Username:</strong>
               {!isEditingUsername ? (
-                <>
-                  <div style={{ flexShrink: 0 }}>
-                    <Username 
-                      name={user.username} 
-                      colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
-                    />
-                  </div>
+                <div style={{ flexShrink: 0 }}>
+                  <Username
+                    name={user.username}
+                    colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                  />
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="username"
+                  pattern="[a-z0-9_]{3,20}"
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(52, 225, 255, 0.3)',
+                    background: 'rgba(2, 7, 10, 0.6)',
+                    color: 'var(--ink)',
+                    fontSize: '14px',
+                    minWidth: '120px',
+                    maxWidth: '100%',
+                    flex: '1 1 auto'
+                  }}
+                  autoFocus
+                />
+              )}
+            </div>
+
+            {/* Username color label - own row */}
+            <div>
+              <strong>Username color:</strong>
+            </div>
+
+            {/* Username color picker - next row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+              {colorOptions.map((option) => {
+                const isSelected = selectedColorIndex === option.index;
+                const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                return (
                   <button
+                    key={option.index ?? 'auto'}
                     type="button"
-                    onClick={() => {
-                      setIsEditingUsername(true);
-                      setNewUsername(user.username);
-                      setUsernameStatus({ type: 'idle', message: null });
-                    }}
+                    onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
+                    disabled={disabled}
                     style={{
-                      fontSize: '11px',
-                      padding: '4px 10px',
+                      flex: option.index === null ? '0 0 auto' : '1 1 0',
+                      width: option.index === null ? 'auto' : undefined,
                       height: '28px',
-                      minWidth: '28px',
-                      background: 'rgba(52, 225, 255, 0.1)',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      borderRadius: '3px',
-                      color: 'var(--accent)',
-                      cursor: 'pointer',
+                      minWidth: option.index === null ? '48px' : '16px',
+                      maxWidth: option.index === null ? 'none' : undefined,
+                      aspectRatio: option.index === null ? 'auto' : '1',
+                      borderRadius: option.index === null ? '3px' : '50%',
+                      border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                      background: option.index === null
+                        ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                        : option.color,
+                      cursor: disabled ? 'default' : 'pointer',
+                      opacity: disabled ? 0.7 : 1,
+                      transition: 'all 0.2s ease',
+                      padding: option.index === null ? '0 8px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Edit
-                  </button>
-                </>
-              ) : (
-                <form onSubmit={handleUsernameUpdate} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  <input
-                    type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="username"
-                    pattern="[a-z0-9_]{3,20}"
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
+                      fontSize: option.index === null ? '11px' : '0',
                       color: 'var(--ink)',
-                      fontSize: '14px',
-                      minWidth: '120px',
-                      maxWidth: '100%',
-                      flex: '1 1 auto'
+                      fontWeight: 'bold',
+                      boxSizing: 'border-box'
                     }}
-                    autoFocus
-                  />
+                    title={option.name}
+                  >
+                    {option.index === null ? 'Auto' : ''}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Edit / Save / Cancel row - below username and color */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {!isEditingUsername ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingUsername(true);
+                    setNewUsername(user.username);
+                    setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                    setUsernameStatus({ type: 'idle', message: null });
+                    setColorStatus({ type: 'idle', message: null });
+                  }}
+                  style={{
+                    fontSize: '12px',
+                    padding: '6px 12px',
+                    height: '32px',
+                    background: 'rgba(52, 225, 255, 0.1)',
+                    border: '1px solid rgba(52, 225, 255, 0.3)',
+                    borderRadius: '6px',
+                    color: 'var(--accent)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Edit
+                </button>
+              ) : (
+                <>
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={handleSave}
                     disabled={usernameStatus.type === 'loading'}
                     style={{
                       fontSize: '12px',
@@ -262,19 +312,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       color: 'var(--bg)',
                       cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                       opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
-                      flexShrink: 0,
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    Save
+                    {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsEditingUsername(false);
-                      setNewUsername(user.username);
-                      setUsernameStatus({ type: 'idle', message: null });
-                    }}
+                    onClick={handleCancel}
+                    disabled={usernameStatus.type === 'loading'}
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
@@ -282,74 +328,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       border: '1px solid rgba(52, 225, 255, 0.3)',
                       borderRadius: '6px',
                       color: 'var(--muted)',
-                      cursor: 'pointer',
-                      flexShrink: 0,
+                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                       whiteSpace: 'nowrap'
                     }}
                   >
                     Cancel
                   </button>
-                </form>
+                </>
               )}
             </div>
-            
-            {/* Username color label - own row */}
-            <div>
-              <strong>Username color:</strong>
-            </div>
-            
-            {/* Username color picker - next row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
-              {colorOptions.map((option) => (
-                <button
-                  key={option.index ?? 'auto'}
-                  type="button"
-                  onClick={() => handleColorUpdate(option.index)}
-                  disabled={colorStatus.type === 'loading'}
-                  style={{
-                    width: option.index === null ? 'auto' : '28px',
-                    height: '28px',
-                    minWidth: option.index === null ? '48px' : '20px',
-                    maxWidth: option.index === null ? 'none' : '28px',
-                    aspectRatio: option.index === null ? 'auto' : '1',
-                    borderRadius: option.index === null ? '3px' : '50%',
-                    border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                    background: option.index === null 
-                      ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                      : option.color,
-                    cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                    opacity: colorStatus.type === 'loading' ? 0.6 : 1,
-                    transition: 'all 0.2s ease',
-                    padding: option.index === null ? '0 8px' : 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: option.index === null ? '11px' : '0',
-                    color: 'var(--ink)',
-                    fontWeight: 'bold',
-                    flexShrink: 1,
-                    boxSizing: 'border-box'
-                  }}
-                  title={option.name}
-                >
-                  {option.index === null ? 'Auto' : ''}
-                </button>
-              ))}
-            </div>
+
             {usernameStatus.message && (
               <div style={{
                 fontSize: '12px',
                 color: usernameStatus.type === 'error' ? '#ff6b6b' : usernameStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
               }}>
                 {usernameStatus.message}
-              </div>
-            )}
-            {colorStatus.message && (
-              <div style={{
-                fontSize: '12px',
-                color: colorStatus.type === 'error' ? '#ff6b6b' : colorStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
-              }}>
-                {colorStatus.message}
               </div>
             )}
           </div>
