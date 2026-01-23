@@ -133,34 +133,41 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { index: 7, name: 'Lime', color: '#CCFF00' },
   ];
 
+  const tabBase = {
+    padding: '8px 12px',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '2px solid transparent',
+    cursor: 'pointer',
+    fontSize: '15px',
+    whiteSpace: 'nowrap',
+    width: '100%',
+    textAlign: 'left',
+    boxSizing: 'border-box'
+  };
+
   return (
-    <section className="card">
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: '16px',
-        marginBottom: '16px',
-        flexShrink: 0,
-        flexWrap: 'nowrap',
-        width: '100%',
-        position: 'relative'
-      }}>
+    <section className="card" style={{ overflow: 'visible' }}>
+      <div
+        className="account-profile-tabs"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          gap: '12px',
+          marginBottom: '16px',
+          width: '100%',
+          minWidth: 0
+        }}
+      >
         <button
           type="button"
           onClick={() => handleTabChange('account')}
           style={{
-            padding: '8px 16px',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'account' ? '2px solid var(--accent)' : '2px solid transparent',
+            ...tabBase,
+            borderBottomColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
             color: activeTab === 'account' ? 'var(--accent)' : 'var(--muted)',
-            cursor: 'pointer',
-            fontSize: '16px',
             fontWeight: activeTab === 'account' ? '600' : '400',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            minWidth: 'fit-content'
+            textAlign: 'left'
           }}
         >
           Account
@@ -169,17 +176,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           type="button"
           onClick={() => handleTabChange('profile')}
           style={{
-            padding: '8px 16px',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'profile' ? '2px solid var(--accent)' : '2px solid transparent',
+            ...tabBase,
+            borderBottomColor: activeTab === 'profile' ? 'var(--accent)' : 'transparent',
             color: activeTab === 'profile' ? 'var(--accent)' : 'var(--muted)',
-            cursor: 'pointer',
-            fontSize: '16px',
             fontWeight: activeTab === 'profile' ? '600' : '400',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            minWidth: 'fit-content'
+            textAlign: 'right'
           }}
         >
           Profile
@@ -239,7 +240,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Username color label and picker - same row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
               <strong>Username color:</strong>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden', flex: '1 1 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden', flex: '1 1 auto' }}>
               {colorOptions.map((option) => {
                 const isSelected = selectedColorIndex === option.index;
                 const disabled = !isEditingUsername || usernameStatus.type === 'loading';
@@ -252,8 +253,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     style={{
                       flex: option.index === null ? '0 0 auto' : '1 1 0',
                       width: option.index === null ? 'auto' : undefined,
-                      height: option.index === null ? '20px' : '18px',
-                      minWidth: option.index === null ? '40px' : '12px',
+                      height: option.index === null ? '18px' : '14px',
+                      minWidth: option.index === null ? '36px' : '10px',
                       maxWidth: option.index === null ? 'none' : undefined,
                       aspectRatio: option.index === null ? 'auto' : '1',
                       borderRadius: option.index === null ? '3px' : '50%',
@@ -264,11 +265,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: disabled ? 'default' : 'pointer',
                       opacity: disabled ? 0.7 : 1,
                       transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 6px' : 0,
+                      padding: option.index === null ? '0 5px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '10px' : '0',
+                      fontSize: option.index === null ? '9px' : '0',
                       color: 'var(--ink)',
                       fontWeight: 'bold',
                       boxSizing: 'border-box'
