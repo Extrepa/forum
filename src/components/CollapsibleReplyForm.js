@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function CollapsibleReplyForm({ 
   action, 
@@ -13,15 +13,54 @@ export default function CollapsibleReplyForm({
   onCancel
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [currentReplyingTo, setCurrentReplyingTo] = useState(replyingTo);
+  const [currentPrefill, setCurrentPrefill] = useState(replyPrefill);
+  const textareaRef = useRef(null);
+  const hiddenReplyToRef = useRef(null);
   
   // Show form if replyingTo is set (user clicked "Reply" on a specific comment)
   useEffect(() => {
     if (replyingTo) {
       setShowForm(true);
+      setCurrentReplyingTo(replyingTo);
+      setCurrentPrefill(replyPrefill);
     }
-  }, [replyingTo]);
+  }, [replyingTo, replyPrefill]);
   
-  if (!showForm && !replyingTo) {
+  // Listen for dynamic reply changes from ReplyButton clicks
+  useEffect(() => {
+    const handleReplyToChanged = (event) => {
+      const { replyId, replyAuthor, replyBody } = event.detail;
+      
+      // Update the replyingTo state
+      setCurrentReplyingTo({ id: replyId, author_name: replyAuthor, body: replyBody });
+      
+      // Generate prefill text
+      const quoteText = `> @${replyAuthor} said:\n${replyBody.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
+      setCurrentPrefill(quoteText);
+      
+      // Update hidden field
+      if (hiddenReplyToRef.current) {
+        hiddenReplyToRef.current.value = replyId;
+      }
+      
+      // Update textarea
+      if (textareaRef.current) {
+        textareaRef.current.value = quoteText;
+      }
+      
+      // Show form if it's hidden
+      setShowForm(true);
+    };
+    
+    window.addEventListener('replyToChanged', handleReplyToChanged);
+    
+    return () => {
+      window.removeEventListener('replyToChanged', handleReplyToChanged);
+    };
+  }, []);
+  
+  if (!showForm && !currentReplyingTo) {
     return (
       <button type="button" onClick={() => setShowForm(true)}>
         {buttonLabel}
@@ -31,28 +70,47 @@ export default function CollapsibleReplyForm({
   
   const handleCancel = () => {
     setShowForm(false);
+    setCurrentReplyingTo(null);
+    setCurrentPrefill('');
     if (onCancel) {
       onCancel();
-    } else if (replyingTo && typeof window !== 'undefined') {
+    } else if (currentReplyingTo && typeof window !== 'undefined') {
       // If replying to someone, navigate away from reply mode
       const url = new URL(window.location.href);
       url.searchParams.delete('replyTo');
-      window.location.href = url.toString();
+      window.history.pushState({}, '', url.toString());
     }
   };
   
   return (
     <form action={action} method="post">
-      {Object.entries(hiddenFields).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value || ''} />
-      ))}
+      {Object.entries(hiddenFields).map(([name, value]) => {
+        // Use ref for reply_to_id so we can update it dynamically
+        if (name === 'reply_to_id') {
+          return (
+            <input 
+              key={name} 
+              ref={hiddenReplyToRef}
+              type="hidden" 
+              name={name} 
+              value={currentReplyingTo?.id || value || ''} 
+            />
+          );
+        }
+        return (
+          <input key={name} type="hidden" name={name} value={value || ''} />
+        );
+      })}
       <label>
-        <div className="muted" style={{ marginBottom: '8px' }}>{replyingTo ? `Replying to ${replyingTo.author_name}` : labelText}</div>
+        <div className="muted" style={{ marginBottom: '8px' }}>
+          {currentReplyingTo ? `Replying to ${currentReplyingTo.author_name}` : labelText}
+        </div>
         <textarea 
+          ref={textareaRef}
           name="body" 
-          placeholder={replyingTo ? 'Write your reply…' : placeholder} 
+          placeholder={currentReplyingTo ? 'Write your reply…' : placeholder} 
           required
-          defaultValue={replyPrefill}
+          defaultValue={currentPrefill}
         />
       </label>
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

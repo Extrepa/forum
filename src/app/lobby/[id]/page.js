@@ -14,7 +14,7 @@ import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel
 import { isAdminUser } from '../../../lib/admin';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ReplyButton from '../../../components/ReplyButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -624,20 +624,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px' }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
           >
             <span>
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
               {r.created_at ? formatDateTime(r.created_at) : ''}
             </span>
+            <ReplyButton
+              replyId={r.id}
+              replyAuthor={r.author_name}
+              replyBody={r.body}
+              replyHref={replyLink}
+            />
           </div>
-          <CommentActions
-            commentId={r.id}
-            commentAuthor={r.author_name}
-            commentBody={r.body}
-            replyHref={replyLink}
-          />
         </div>
       );
     };
