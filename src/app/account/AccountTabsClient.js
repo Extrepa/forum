@@ -135,7 +135,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
   return (
     <section className="card">
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        marginBottom: '16px',
+        flexShrink: 0,
+        flexWrap: 'nowrap',
+        minWidth: 0
+      }}>
         <button
           type="button"
           onClick={() => handleTabChange('account')}
@@ -147,7 +155,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             color: activeTab === 'account' ? 'var(--accent)' : 'var(--muted)',
             cursor: 'pointer',
             fontSize: '16px',
-            fontWeight: activeTab === 'account' ? '600' : '400'
+            fontWeight: activeTab === 'account' ? '600' : '400',
+            flexShrink: 0,
+            whiteSpace: 'nowrap'
           }}
         >
           Account
@@ -163,7 +173,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             color: activeTab === 'profile' ? 'var(--accent)' : 'var(--muted)',
             cursor: 'pointer',
             fontSize: '16px',
-            fontWeight: activeTab === 'profile' ? '600' : '400'
+            fontWeight: activeTab === 'profile' ? '600' : '400',
+            flexShrink: 0,
+            whiteSpace: 'nowrap'
           }}
         >
           Profile

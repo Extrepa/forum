@@ -414,6 +414,8 @@ header.header--search-open {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
+  /* Reserve space for profile icon locked top-right; avoid overlap */
+  padding-right: 96px;
 }
 
 .brand-left h1 {
@@ -436,8 +438,12 @@ header.header--search-open {
 }
 
 .brand > :last-child {
+  position: absolute;
+  top: 0;
+  right: 0;
   flex-shrink: 0;
-  position: relative;
+  min-width: 80px;
+  min-height: 80px;
   z-index: 1;
 }
 
@@ -2328,6 +2334,8 @@ header::before {
     top: 0;
     right: 0;
     flex-shrink: 0;
+    min-width: 80px;
+    min-height: 80px;
   }
 
   .brand .muted {
