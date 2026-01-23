@@ -48,17 +48,22 @@ export default function DevLogClient({ logs, notice }) {
                 const href = `/devlog/${row.id}`;
                 const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
                 const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
+                const statusIcons = [];
+                if (row.is_unread) statusIcons.push('🆕');
+                const titleWithIcons = statusIcons.length > 0 
+                  ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>
+                  : row.title;
 
                 return (
                   <a
                     key={row.id}
                     href={href}
-                    className="list-item"
+                    className={`list-item ${row.is_unread ? 'thread-unread' : ''}`}
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                     onClick={(e) => navigateToLog(e, href)}
                   >
                     <PostMetaBar
-                      title={row.title}
+                      title={titleWithIcons}
                       author={row.author_name}
                       authorColorIndex={colorIndex}
                       authorPreferredColorIndex={preferredColor}

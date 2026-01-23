@@ -67,6 +67,45 @@ export default async function DevLogPage({ searchParams }) {
     }
   }
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const logIds = results.map(l => l.id);
+      if (logIds.length > 0) {
+        const placeholders = logIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'dev_log' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...logIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(log => {
+          log.is_unread = !readSet.has(log.id);
+        });
+      } else {
+        results.forEach(log => {
+          log.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(log => {
+        log.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(log => {
+      log.is_unread = false;
+    });
+  }
+
   const logs = results.map((row) => {
     const text = String(row.body || '').trim();
     const lines = text.split('\n');

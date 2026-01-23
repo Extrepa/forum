@@ -59,6 +59,45 @@ export default async function ProjectsPage({ searchParams }) {
 
   const canCreate = !!user && !!user.password_hash;
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const projectIds = results.map(p => p.id);
+      if (projectIds.length > 0) {
+        const placeholders = projectIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'project' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...projectIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(project => {
+          project.is_unread = !readSet.has(project.id);
+        });
+      } else {
+        results.forEach(project => {
+          project.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(project => {
+        project.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(project => {
+      project.is_unread = false;
+    });
+  }
+
   // Pre-render markdown for server component
   const projects = results.map(row => {
     const descriptionPreview = row.description.length > 200

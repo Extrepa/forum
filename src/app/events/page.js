@@ -82,6 +82,45 @@ export default async function EventsPage({ searchParams }) {
     }
   }
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const eventIds = results.map(e => e.id);
+      if (eventIds.length > 0) {
+        const placeholders = eventIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'event' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...eventIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(event => {
+          event.is_unread = !readSet.has(event.id);
+        });
+      } else {
+        results.forEach(event => {
+          event.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(event => {
+        event.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(event => {
+      event.is_unread = false;
+    });
+  }
+
   // Pre-render markdown for server component
   const events = results.map(row => ({
     ...row,

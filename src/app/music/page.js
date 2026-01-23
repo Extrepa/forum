@@ -67,6 +67,45 @@ export default async function MusicPage({ searchParams }) {
     row.embed_style = row.embed_style || 'auto';
   }
 
+  // Add unread status for logged-in users
+  if (user && results.length > 0) {
+    try {
+      const postIds = results.map(p => p.id);
+      if (postIds.length > 0) {
+        const placeholders = postIds.map(() => '?').join(',');
+        const readStates = await db
+          .prepare(
+            `SELECT content_id FROM content_reads 
+             WHERE user_id = ? AND content_type = 'music_post' AND content_id IN (${placeholders})`
+          )
+          .bind(user.id, ...postIds)
+          .all();
+
+        const readSet = new Set();
+        (readStates?.results || []).forEach(r => {
+          readSet.add(r.content_id);
+        });
+
+        results.forEach(post => {
+          post.is_unread = !readSet.has(post.id);
+        });
+      } else {
+        results.forEach(post => {
+          post.is_unread = false;
+        });
+      }
+    } catch (e) {
+      // content_reads table might not exist yet, mark all as read
+      results.forEach(post => {
+        post.is_unread = false;
+      });
+    }
+  } else {
+    results.forEach(post => {
+      post.is_unread = false;
+    });
+  }
+
   // Pre-render markdown and embed info for server component
   const posts = results.map(row => ({
     ...row,
