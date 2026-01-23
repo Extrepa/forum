@@ -2,7 +2,7 @@ import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +48,8 @@ export default async function FeedPage() {
     safeAll(
       db,
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.moved_to_id IS NULL
@@ -56,7 +57,8 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       [],
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        ORDER BY timeline_updates.created_at DESC
@@ -66,7 +68,8 @@ export default async function FeedPage() {
     safeAll(
       db,
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.moved_to_id IS NULL
@@ -74,7 +77,8 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       [],
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        ORDER BY forum_threads.created_at DESC
@@ -84,7 +88,8 @@ export default async function FeedPage() {
     safeAll(
       db,
       `SELECT events.id, events.title, events.created_at, events.starts_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM events
        JOIN users ON users.id = events.author_user_id
        WHERE events.moved_to_id IS NULL
@@ -92,7 +97,8 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       [],
       `SELECT events.id, events.title, events.created_at, events.starts_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM events
        JOIN users ON users.id = events.author_user_id
        ORDER BY events.created_at DESC
@@ -102,7 +108,8 @@ export default async function FeedPage() {
     safeAll(
       db,
       `SELECT music_posts.id, music_posts.title, music_posts.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        WHERE music_posts.moved_to_id IS NULL
@@ -110,7 +117,8 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       [],
       `SELECT music_posts.id, music_posts.title, music_posts.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        ORDER BY music_posts.created_at DESC
@@ -120,7 +128,8 @@ export default async function FeedPage() {
     safeAll(
       db,
       `SELECT projects.id, projects.title, projects.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        WHERE projects.moved_to_id IS NULL
@@ -128,7 +137,8 @@ export default async function FeedPage() {
        LIMIT ${limitPerType}`,
       [],
       `SELECT projects.id, projects.title, projects.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        ORDER BY projects.created_at DESC
@@ -140,7 +150,8 @@ export default async function FeedPage() {
         return await safeAll(
           db,
           `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
@@ -149,7 +160,8 @@ export default async function FeedPage() {
            LIMIT ${limitPerType}`,
           [],
           `SELECT posts.id, posts.type, posts.title, posts.created_at, posts.is_private,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
@@ -167,14 +179,16 @@ export default async function FeedPage() {
       ? safeAll(
           db,
           `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            ORDER BY dev_logs.created_at DESC
            LIMIT ${limitPerType}`,
           [],
           `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            ORDER BY dev_logs.created_at DESC
@@ -210,6 +224,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title || 'Update',
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: null
     })),
     ...threads.map((row) => ({
@@ -218,6 +233,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title,
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: null
     })),
     ...events.map((row) => ({
@@ -226,6 +242,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title,
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: row.starts_at ? `Starts ${new Date(row.starts_at).toLocaleString()}` : null
     })),
     ...music.map((row) => ({
@@ -234,6 +251,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title,
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: null
     })),
     ...projects.map((row) => ({
@@ -242,6 +260,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title,
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: null
     })),
     ...posts.map((row) => ({
@@ -250,6 +269,7 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title || 'Untitled',
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: row.is_private ? 'Members-only' : null
     })),
     ...devlogs.map((row) => ({
@@ -258,12 +278,23 @@ export default async function FeedPage() {
       createdAt: row.created_at,
       title: row.title || 'Development update',
       author: row.author_name,
+      authorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
       meta: null
     }))
   ]
     .filter((x) => !!x.createdAt)
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 5);
+
+  // Build preferences map and assign unique colors
+  const allUsernames = items.map(i => i.author).filter(Boolean);
+  const preferredColors = new Map();
+  items.forEach(item => {
+    if (item.author && item.authorColorPreference !== null && item.authorColorPreference !== undefined) {
+      preferredColors.set(item.author, Number(item.authorColorPreference));
+    }
+  });
+  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
 
   return (
     <div className="stack">
@@ -303,7 +334,11 @@ export default async function FeedPage() {
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                      posted by: <Username name={item.author} colorIndex={getUsernameColorIndex(item.author)} />
+                      posted by: <Username 
+                        name={item.author} 
+                        colorIndex={usernameColorMap.get(item.author) ?? getUsernameColorIndex(item.author, { preferredColorIndex: item.authorColorPreference })}
+                        preferredColorIndex={item.authorColorPreference}
+                      />
                     </span>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
                       {formatTimeAgo(item.createdAt)}
