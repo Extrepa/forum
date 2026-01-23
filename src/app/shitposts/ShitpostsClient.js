@@ -1,9 +1,9 @@
 'use client';
 
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function ShitpostsClient({ posts, notice }) {
   const { loreEnabled } = useUiPrefs();
@@ -64,49 +64,33 @@ export default function ShitpostsClient({ posts, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username 
-                          name={row.author_name} 
-                          colorIndex={colorIndex}
-                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
-                        />
-                      </span>
-                    </div>
+                    <PostMetaBar
+                      title={row.title}
+                      author={row.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                      views={row.views || 0}
+                      replies={row.reply_count || 0}
+                      likes={row.like_count || 0}
+                      createdAt={row.created_at}
+                      lastActivity={row.last_activity_at || row.created_at}
+                      titleHref={`/lobby/${row.id}`}
+                      showTitleLink={false}
+                    />
                     {!condensed && row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ maxHeight: '200px', width: 'auto', marginBottom: '8px' }}
+                        style={{ maxHeight: '200px', width: 'auto', marginTop: '8px' }}
                       />
                     ) : null}
                     {!condensed ? (
-                      <p className="muted" style={{ marginBottom: '8px', fontSize: '13px' }}>
+                      <p className="muted" style={{ marginTop: '8px', marginBottom: '8px', fontSize: '13px' }}>
                         {truncateBody(row.body)}
                       </p>
                     ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>
-                        {new Date(row.created_at).toLocaleString()}
-                      </span>
-                      <span>
-                        {row.reply_count > 0
-                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
-                          : ''}
-                      </span>
-                    </div>
                   </a>
                 );
               };

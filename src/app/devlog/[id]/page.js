@@ -11,6 +11,9 @@ import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel
 import DeletePostButton from '../../../components/DeletePostButton';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +81,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
                 dev_logs.github_url, dev_logs.demo_url, dev_logs.links,
+                COALESCE(dev_logs.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
@@ -316,22 +320,17 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         }
       />
 
+      <ViewTracker contentType="devlog" contentId={log.id} />
+      
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{log.title}</h2>
-            <div className="list-meta">
-              <Username 
-                name={log.author_name} 
-                colorIndex={usernameColorMap.get(log.author_name)} 
-                preferredColorIndex={log.author_color_preference !== null && log.author_color_preference !== undefined ? log.author_color_preference : null}
-              /> ·{' '}
-              {new Date(log.created_at).toLocaleString()}
-              {log.updated_at ? ` · Updated ${new Date(log.updated_at).toLocaleString()}` : null}
-              {log.is_locked ? ' · Comments locked' : null}
-            </div>
-          </div>
-          {user ? (
+        <PostHeader
+          title={log.title}
+          author={log.author_name}
+          authorColorIndex={usernameColorMap.get(log.author_name)}
+          authorPreferredColorIndex={log.author_color_preference !== null && log.author_color_preference !== undefined ? log.author_color_preference : null}
+          createdAt={log.created_at}
+          views={log.views || 0}
+          likeButton={user ? (
             <LikeButton 
               postType="dev_log" 
               postId={log.id} 
@@ -339,7 +338,14 @@ export default async function DevLogDetailPage({ params, searchParams }) {
               initialCount={Number(log.like_count || 0)}
             />
           ) : null}
-        </div>
+          showUpdatedAt={true}
+          updatedAt={log.updated_at}
+        />
+        {log.is_locked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
+          </span>
+        ) : null}
         {log.github_url || log.demo_url || log.links ? (
           <div className="project-links">
             {log.github_url ? (
@@ -405,18 +411,26 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px' }}
                     >
                       <span>
-                        <Username name={c.author_name} colorIndex={colorIndex} />
-                      </span>
-                      <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <a className="post-link" href={replyLink}>
-                          Reply
-                        </a>
-                        <span>{new Date(c.created_at).toLocaleString()}</span>
+                        <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                        {' · '}
+                        {new Date(c.created_at).toLocaleString()}
                       </span>
                     </div>
+                    <CommentActions
+                      commentId={c.id}
+                      commentAuthor={c.author_name}
+                      commentBody={c.body}
+                      replyHref={replyLink}
+                      onQuote={(quoteData) => {
+                        // Could scroll to form and populate with quote
+                        const quoteText = quoteMarkdown(quoteData);
+                        // For now, just log - could be enhanced to populate form
+                        console.log('Quote:', quoteText);
+                      }}
+                    />
                   </div>
                 );
               };

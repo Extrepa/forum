@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import CommentActions from './CommentActions';
 
 export default function EventCommentsSection({ 
   eventId, 
@@ -96,13 +97,20 @@ export default function EventCommentsSection({
                 <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
                 <div
                   className="list-meta"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
                 >
                   <span>
-                    <Username name={c.author_name} colorIndex={colorIndex} />
+                    <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                    {' · '}
+                    {new Date(c.created_at).toLocaleString()}
                   </span>
-                  <span>{new Date(c.created_at).toLocaleString()}</span>
                 </div>
+                <CommentActions
+                  commentId={c.id}
+                  commentAuthor={c.author_name}
+                  commentBody={c.body}
+                  replyHref={`/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
+                />
               </div>
             );
           })

@@ -12,6 +12,9 @@ import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import { isAdminUser } from '../../../lib/admin';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,6 +94,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                   forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                   forum_threads.moved_to_type, forum_threads.moved_to_id,
+                  COALESCE(forum_threads.views, 0) AS views,
                   COALESCE(users.username, 'Deleted User') AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
@@ -123,9 +127,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           .prepare(
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                    COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
-                    0 AS like_count
+                    COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count
              FROM forum_threads
              LEFT JOIN users ON users.id = forum_threads.author_user_id
              WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
@@ -141,14 +146,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         try {
           thread = await db
             .prepare(
-              `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-                      forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                      COALESCE(users.username, 'Deleted User') AS author_name,
-                      users.preferred_username_color_index AS author_color_preference,
-                      0 AS like_count
-               FROM forum_threads
-               LEFT JOIN users ON users.id = forum_threads.author_user_id
-               WHERE forum_threads.id = ?`
+            `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                    forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                    COALESCE(forum_threads.views, 0) AS views,
+                    COALESCE(users.username, 'Deleted User') AS author_name,
+                    users.preferred_username_color_index AS author_color_preference,
+                    COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count
+             FROM forum_threads
+             LEFT JOIN users ON users.id = forum_threads.author_user_id
+             WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
             )
             .bind(params.id)
             .first();
@@ -547,6 +553,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   const safeThreadCreatedAt = thread?.created_at ? Number(thread.created_at) : null;
   const safeThreadIsLocked = thread?.is_locked ? Boolean(thread.is_locked) : false;
   const safeThreadLikeCount = thread?.like_count ? Number(thread.like_count) : 0;
+  const safeThreadViews = thread?.views ? Number(thread.views) : 0;
   const safeThreadImageKey = thread?.image_key ? String(thread.image_key) : null;
   const safeThreadAuthorColorPreference = thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null;
   
@@ -617,18 +624,20 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px' }}
           >
             <span>
-              <Username name={r.author_name} colorIndex={colorIndex} />
-            </span>
-            <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <a className="post-link" href={replyLink}>
-                Reply
-              </a>
-              <span>{r.created_at ? formatDateTime(r.created_at) : ''}</span>
+              <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+              {' · '}
+              {r.created_at ? formatDateTime(r.created_at) : ''}
             </span>
           </div>
+          <CommentActions
+            commentId={r.id}
+            commentAuthor={r.author_name}
+            commentBody={r.body}
+            replyHref={replyLink}
+          />
         </div>
       );
     };
@@ -689,12 +698,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
         }
       />
+      <ViewTracker contentType="forum" contentId={safeThreadId} />
+      
       <section className="card">
-        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-          <h2 className="section-title" style={{ margin: 0, flex: 1 }}>
-            {safeThreadTitle}
-          </h2>
-          {viewer ? (
+        <PostHeader
+          title={safeThreadTitle}
+          author={safeAuthorName}
+          authorColorIndex={usernameColorMap.get(safeAuthorName) ?? 0}
+          authorPreferredColorIndex={thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null}
+          createdAt={safeThreadCreatedAt}
+          views={safeThreadViews}
+          likeButton={viewer ? (
             <LikeButton 
               postType="forum_thread" 
               postId={safeThreadId} 
@@ -702,18 +716,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               initialCount={safeThreadLikeCount}
             />
           ) : null}
-        </div>
-        <div className="list-meta">
-          <Username 
-            name={safeAuthorName} 
-            colorIndex={usernameColorMap.get(safeAuthorName) ?? 0}
-            preferredColorIndex={thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null}
-          /> ·{' '}
-          {safeThreadCreatedAt ? formatDateTime(safeThreadCreatedAt) : ''}
-          {safeThreadIsLocked ? ' · Replies locked' : null}
-        </div>
-        {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" /> : null}
-        <div className="post-body" dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
+        />
+        {safeThreadIsLocked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Replies locked
+          </span>
+        ) : null}
+        {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" style={{ marginTop: '8px' }} /> : null}
+        <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
       </section>
 
       {canEdit ? (

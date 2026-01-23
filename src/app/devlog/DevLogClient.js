@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function DevLogClient({ logs, notice }) {
   const router = useRouter();
@@ -55,53 +55,38 @@ export default function DevLogClient({ logs, notice }) {
                     href={href}
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                    onClick={(e) => navigateToLog(e, href)}
                   >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username 
-                          name={row.author_name} 
-                          colorIndex={colorIndex}
-                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
-                        />
+                    <PostMetaBar
+                      title={row.title}
+                      author={row.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={preferredColor}
+                      views={row.views || 0}
+                      replies={row.comment_count || 0}
+                      likes={row.like_count || 0}
+                      createdAt={row.created_at}
+                      lastActivity={row.last_activity_at || row.created_at}
+                      titleHref={href}
+                      showTitleLink={false}
+                    />
+                    {row.is_locked ? (
+                      <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                        Comments locked
                       </span>
-                      {row.is_locked ? (
-                        <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }}>
-                          Comments locked
-                        </span>
-                      ) : null}
-                    </div>
+                    ) : null}
                     {row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ marginBottom: '8px' }}
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
                     {!condensed ? (
-                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>
-                        {new Date(row.created_at).toLocaleString()}
-                      </span>
-                      <span>
-                        {row.comment_count > 0
-                          ? `${row.comment_count} ${row.comment_count === 1 ? 'reply' : 'replies'}`
-                          : ''}
-                      </span>
-                    </div>
                   </a>
                 );
               };

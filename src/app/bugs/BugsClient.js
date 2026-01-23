@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function BugsClient({ posts, notice }) {
   const title = useMemo(() => 'Bugs', []);
@@ -43,27 +43,32 @@ export default function BugsClient({ posts, notice }) {
                 const colorIndex = usernameColorMap.get(p.author_name) ?? getUsernameColorIndex(p.author_name, { preferredColorIndex: preferredColor });
                 
                 return (
-                <div key={p.id} className="list-item">
-                  <div className="post-header">
-                    <h3>
-                      <a href={`/bugs/${p.id}`}>{p.title || 'Bug report'}</a>
-                    </h3>
-                    {p.is_private ? (
-                      <span className="muted" style={{ fontSize: 12 }}>
-                        Members-only
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="list-meta">
-                    <Username 
-                      name={p.author_name} 
-                      colorIndex={colorIndex}
-                      preferredColorIndex={preferredColor}
-                    /> ·{' '}
-                    {new Date(p.created_at).toLocaleString()}
-                  </div>
-                  {!condensed && p.bodyHtml ? <div className="post-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
-                </div>
+                <a
+                  key={p.id}
+                  href={`/bugs/${p.id}`}
+                  className="list-item"
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                >
+                  <PostMetaBar
+                    title={p.title || 'Bug report'}
+                    author={p.author_name}
+                    authorColorIndex={colorIndex}
+                    authorPreferredColorIndex={preferredColor}
+                    views={p.views || 0}
+                    replies={p.comment_count || 0}
+                    likes={p.like_count || 0}
+                    createdAt={p.created_at}
+                    lastActivity={p.last_activity_at || p.created_at}
+                    titleHref={`/bugs/${p.id}`}
+                    showTitleLink={false}
+                  />
+                  {p.is_private ? (
+                    <span className="muted" style={{ fontSize: 12, marginTop: '4px', display: 'block' }}>
+                      Members-only
+                    </span>
+                  ) : null}
+                  {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
+                </a>
                 );
               };
 

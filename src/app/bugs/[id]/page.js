@@ -4,6 +4,10 @@ import { renderMarkdown } from '../../../lib/markdown';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
+import LikeButton from '../../../components/LikeButton';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -25,8 +29,10 @@ export default async function BugDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
+                COALESCE(posts.views, 0) AS views,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type = 'bugs'`
@@ -97,6 +103,21 @@ export default async function BugDetailPage({ params, searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
+  // Check if current user has liked this post
+  let userLiked = false;
+  let likeCount = 0;
+  try {
+    const likeCheck = await db
+      .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+      .bind('post', post.id, user.id)
+      .first();
+    userLiked = !!likeCheck;
+    likeCount = post.like_count || 0;
+  } catch (e) {
+    // Table might not exist yet
+    likeCount = post.like_count || 0;
+  }
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
@@ -119,17 +140,30 @@ export default async function BugDetailPage({ params, searchParams }) {
         ]}
       />
 
+      <ViewTracker contentType="posts" contentId={post.id} />
+      
       <section className="card">
-        <h2 className="section-title">{post.title || 'Bug report'}</h2>
-        <div className="list-meta">
-          <Username 
-            name={post.author_name} 
-            colorIndex={usernameColorMap.get(post.author_name) ?? getUsernameColorIndex(post.author_name, { preferredColorIndex: post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null })}
-            preferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
-          />
-          <span className="muted"> · {new Date(post.created_at).toLocaleString()}</span>
-          {post.is_private ? <span className="muted"> · Members-only</span> : null}
-        </div>
+        <PostHeader
+          title={post.title || 'Bug report'}
+          author={post.author_name}
+          authorColorIndex={usernameColorMap.get(post.author_name) ?? getUsernameColorIndex(post.author_name, { preferredColorIndex: post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null })}
+          authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          createdAt={post.created_at}
+          views={post.views || 0}
+          likeButton={
+            <LikeButton 
+              postType="post" 
+              postId={post.id} 
+              initialLiked={userLiked}
+              initialCount={Number(likeCount)}
+            />
+          }
+        />
+        {post.is_private ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Members-only
+          </span>
+        ) : null}
         {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
       </section>
@@ -153,19 +187,29 @@ export default async function BugDetailPage({ params, searchParams }) {
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            comments.map((c) => (
-              <div key={c.id} className="reply-item">
-                <div className="reply-meta">
-                  <Username 
-                    name={c.author_name} 
-                    colorIndex={usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null })}
-                    preferredColorIndex={c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null}
+            comments.map((c) => {
+              const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
+              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
+              return (
+                <div key={c.id} className="reply-item">
+                  <div className="reply-meta" style={{ fontSize: '12px' }}>
+                    <Username 
+                      name={c.author_name} 
+                      colorIndex={colorIndex}
+                      preferredColorIndex={preferredColor}
+                    />
+                    <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
+                  </div>
+                  <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                  <CommentActions
+                    commentId={c.id}
+                    commentAuthor={c.author_name}
+                    commentBody={c.body}
+                    replyHref={`/bugs/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
                   />
-                  <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                 </div>
-                <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>

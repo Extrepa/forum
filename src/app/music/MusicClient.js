@@ -1,9 +1,9 @@
 'use client';
 
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function MusicClient({ posts, notice }) {
   const { loreEnabled } = useUiPrefs();
@@ -52,23 +52,27 @@ export default function MusicClient({ posts, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username 
-                          name={row.author_name} 
-                          colorIndex={colorIndex}
-                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
-                        />
-                      </span>
-                    </div>
+                    <PostMetaBar
+                      title={row.title}
+                      author={row.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={preferredColor}
+                      views={row.views || 0}
+                      replies={row.comment_count || 0}
+                      likes={row.like_count || 0}
+                      createdAt={row.created_at}
+                      lastActivity={row.last_activity_at || row.created_at}
+                      titleHref={`/music/${row.id}`}
+                      showTitleLink={false}
+                    />
                     {!condensed && row.bodyHtml ? (
-                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
                     {!condensed && row.embed ? (
                       <div 
                         className={`embed-frame ${row.embed.aspect}`}
                         style={{
+                          marginTop: '8px',
                           marginBottom: '8px',
                           ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
                         }}
@@ -88,11 +92,11 @@ export default function MusicClient({ posts, notice }) {
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ marginBottom: '8px' }}
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
                     {!condensed && tags.length ? (
-                      <div className="tag-row" style={{ marginBottom: '8px' }}>
+                      <div className="tag-row" style={{ marginTop: '8px', marginBottom: '8px' }}>
                         {tags.map((tag) => (
                           <span key={tag} className="tag-pill">
                             {tag}
@@ -101,24 +105,12 @@ export default function MusicClient({ posts, notice }) {
                       </div>
                     ) : null}
                     {!condensed ? (
-                      <div className="rating-row" style={{ fontSize: '12px', marginBottom: '8px' }}>
+                      <div className="rating-row" style={{ fontSize: '12px', marginTop: '8px', marginBottom: '8px' }}>
                         <span>Rating: {row.avg_rating ? Number(row.avg_rating).toFixed(1) : '—'}</span>
                         <span>{row.rating_count} votes</span>
                         <span>{row.comment_count} comments</span>
                       </div>
                     ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>{new Date(row.created_at).toLocaleString()}</span>
-                    </div>
                   </a>
                 );
               };

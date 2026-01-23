@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function ProjectsClient({ projects, canCreate, notice }) {
   const router = useRouter();
@@ -35,19 +35,22 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
             <p className="muted">{strings.cards.projects.empty}</p>
           ) : (
             (() => {
-              let lastName = null;
-              let lastIndex = null;
+              // Build preferences map and assign unique colors
+              const allUsernames = projects.map(p => p.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              projects.forEach(p => {
+                if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
+                  preferredColors.set(p.author_name, Number(p.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
               const latest = projects[0];
               const rest = projects.slice(1);
 
               const renderItem = (row, { condensed }) => {
-                const colorIndex = getUsernameColorIndex(row.author_name, {
-                  avoidIndex: lastIndex,
-                  avoidName: lastName,
-                });
-                lastName = row.author_name;
-                lastIndex = colorIndex;
+                const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
                 const href = `/projects/${row.id}`;
 
                 return (
@@ -62,31 +65,34 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         e.stopPropagation();
                         return;
                       }
+                      navigateToProject(e, href);
                     }}
                   >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{row.title}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username 
-                          name={row.author_name} 
-                          colorIndex={colorIndex}
-                          preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
-                        />
-                      </span>
-                      {/* Project status badge removed - was appearing next to username and looked like user status */}
-                    </div>
+                    <PostMetaBar
+                      title={row.title}
+                      author={row.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={preferredColor}
+                      views={row.views || 0}
+                      replies={row.reply_count || 0}
+                      likes={row.like_count || 0}
+                      createdAt={row.created_at}
+                      lastActivity={row.last_activity_at || row.created_at}
+                      titleHref={href}
+                      showTitleLink={false}
+                    />
                     {!condensed && row.image_key ? (
                       <img
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ marginBottom: '8px' }}
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
-                    {!condensed ? <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
+                    {!condensed ? <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
                     {!condensed ? (
-                      <div className="project-links" style={{ marginBottom: '8px' }}>
+                      <div className="project-links" style={{ marginTop: '8px', marginBottom: '8px' }}>
                         {row.github_url ? (
                           <a href={row.github_url} target="_blank" rel="noopener noreferrer" className="project-link" onClick={(e) => e.stopPropagation()}>
                             GitHub
@@ -99,25 +105,6 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         ) : null}
                       </div>
                     ) : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>
-                        {new Date(row.created_at).toLocaleString()}
-                      </span>
-                      <span>
-                        {row.reply_count > 0
-                          ? `${row.reply_count} ${row.reply_count === 1 ? 'reply' : 'replies'}`
-                          : ''}
-                      </span>
-                    </div>
                   </a>
                 );
               };

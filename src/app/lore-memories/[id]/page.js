@@ -5,6 +5,9 @@ import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -26,8 +29,10 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
+                COALESCE(posts.views, 0) AS views,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type IN ('lore', 'memories')`
@@ -94,6 +99,21 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
+  // Check if current user has liked this post
+  let userLiked = false;
+  let likeCount = 0;
+  try {
+    const likeCheck = await db
+      .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
+      .bind('post', post.id, user.id)
+      .first();
+    userLiked = !!likeCheck;
+    likeCount = post.like_count || 0;
+  } catch (e) {
+    // Table might not exist yet
+    likeCount = post.like_count || 0;
+  }
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'password'
@@ -114,20 +134,30 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
         ]}
       />
 
+      <ViewTracker contentType="posts" contentId={post.id} />
+      
       <section className="card">
-        <h2 className="section-title">{post.title || 'Untitled'}</h2>
-        <div className="list-meta">
-          <span>
-            <span className="muted" style={{ fontSize: 12 }}>
-              {post.type === 'lore' ? 'Lore' : 'Memories'}
-            </span>
-            {' · '}
-            <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} />
-          </span>
-          <span className="muted"> · {new Date(post.created_at).toLocaleString()}</span>
-          {post.is_private ? <span className="muted"> · Members-only</span> : null}
-        </div>
-        {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
+        <PostHeader
+          title={post.title || 'Untitled'}
+          author={post.author_name}
+          authorColorIndex={usernameColorMap.get(post.author_name)}
+          authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          createdAt={post.created_at}
+          views={post.views || 0}
+          likeButton={
+            <LikeButton 
+              postType="post" 
+              postId={post.id} 
+              initialLiked={userLiked}
+              initialCount={Number(likeCount)}
+            />
+          }
+        />
+        <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+          {post.type === 'lore' ? 'Lore' : 'Memories'}
+          {post.is_private ? ' · Members-only' : ''}
+        </span>
+        {post.body ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
       </section>
 
       <section className="card">
@@ -150,7 +180,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               return (
                 <div key={c.id} className="reply-item">
-                  <div className="reply-meta">
+                  <div className="reply-meta" style={{ fontSize: '12px' }}>
                     <Username 
                       name={c.author_name} 
                       colorIndex={colorIndex}
@@ -159,6 +189,12 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                     <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                   </div>
                   <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                  <CommentActions
+                    commentId={c.id}
+                    commentAuthor={c.author_name}
+                    commentBody={c.body}
+                    replyHref={`/lore-memories/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
+                  />
                 </div>
               );
             })

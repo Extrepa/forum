@@ -7,6 +7,9 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +43,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
               timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
               timeline_updates.moved_to_type, timeline_updates.moved_to_id,
+              COALESCE(timeline_updates.views, 0) AS views,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
@@ -128,27 +132,27 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         ]}
       />
 
+      <ViewTracker contentType="timeline" contentId={update.id} />
+      
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{update.title || 'Update'}</h2>
-            <div className="list-meta">
-              <Username 
-                name={update.author_name} 
-                colorIndex={usernameColorMap.get(update.author_name)}
-                preferredColorIndex={update.author_color_preference !== null && update.author_color_preference !== undefined ? Number(update.author_color_preference) : null}
-              /> ·{' '}
-              {new Date(update.created_at).toLocaleString()}
-              {update.updated_at ? ` · Updated ${new Date(update.updated_at).toLocaleString()}` : null}
-            </div>
-          </div>
-          <LikeButton 
-            postType="timeline_update" 
-            postId={update.id} 
-            initialLiked={userLiked}
-            initialCount={Number(update.like_count || 0)}
-          />
-        </div>
+        <PostHeader
+          title={update.title || 'Update'}
+          author={update.author_name}
+          authorColorIndex={usernameColorMap.get(update.author_name)}
+          authorPreferredColorIndex={update.author_color_preference !== null && update.author_color_preference !== undefined ? Number(update.author_color_preference) : null}
+          createdAt={update.created_at}
+          views={update.views || 0}
+          likeButton={
+            <LikeButton 
+              postType="timeline_update" 
+              postId={update.id} 
+              initialLiked={userLiked}
+              initialCount={Number(update.like_count || 0)}
+            />
+          }
+          showUpdatedAt={true}
+          updatedAt={update.updated_at}
+        />
         {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
       </section>
@@ -172,12 +176,19 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               return (
                 <div key={c.id} className="list-item">
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span>
-                      <Username name={c.author_name} colorIndex={colorIndex} />
+                      <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                      {' · '}
+                      {new Date(c.created_at).toLocaleString()}
                     </span>
-                    <span>{new Date(c.created_at).toLocaleString()}</span>
                   </div>
+                  <CommentActions
+                    commentId={c.id}
+                    commentAuthor={c.author_name}
+                    commentBody={c.body}
+                    replyHref={`/announcements/${update.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
+                  />
                 </div>
               );
             })

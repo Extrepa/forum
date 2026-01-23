@@ -20,9 +20,12 @@ export default async function ShitpostsPage({ searchParams }) {
       .prepare(
         `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                 forum_threads.created_at, forum_threads.image_key,
+                COALESCE(forum_threads.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
-                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM forum_replies WHERE thread_id = forum_threads.id AND is_deleted = 0), forum_threads.created_at) AS last_activity_at
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.image_key IS NOT NULL
@@ -37,9 +40,12 @@ export default async function ShitpostsPage({ searchParams }) {
       .prepare(
         `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                 forum_threads.created_at, forum_threads.image_key,
+                COALESCE(forum_threads.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
-                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+                (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM forum_replies WHERE thread_id = forum_threads.id AND is_deleted = 0), forum_threads.created_at) AS last_activity_at
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.image_key IS NOT NULL

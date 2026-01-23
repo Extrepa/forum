@@ -22,9 +22,12 @@ export default async function ProjectsPage({ searchParams }) {
         `SELECT projects.id, projects.title, projects.description, projects.status,
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
+                COALESCE(projects.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
-                (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0) AS reply_count
+                (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0) AS reply_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM project_replies WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.moved_to_id IS NULL
@@ -39,9 +42,12 @@ export default async function ProjectsPage({ searchParams }) {
         `SELECT projects.id, projects.title, projects.description, projects.status,
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
+                COALESCE(projects.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
-                (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS reply_count
+                (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS reply_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM project_comments WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          ORDER BY projects.created_at DESC

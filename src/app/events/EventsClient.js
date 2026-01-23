@@ -1,10 +1,10 @@
 'use client';
 
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../lib/dates';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function EventsClient({ events, notice }) {
   const { loreEnabled } = useUiPrefs();
@@ -65,11 +65,21 @@ export default function EventsClient({ events, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div className="post-header">
-                      <h3 style={{ margin: 0 }}>{row.title}</h3>
-                    </div>
+                    <PostMetaBar
+                      title={row.title}
+                      author={row.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
+                      views={row.views || 0}
+                      replies={row.comment_count || 0}
+                      likes={row.like_count || 0}
+                      createdAt={row.created_at}
+                      lastActivity={row.last_activity_at || row.created_at}
+                      titleHref={`/events/${row.id}`}
+                      showTitleLink={false}
+                    />
                     {!condensed && row.details ? (
-                      <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
                     {row.image_key ? (
                       <img
@@ -77,64 +87,39 @@ export default function EventsClient({ events, notice }) {
                         alt=""
                         className="post-image"
                         loading="lazy"
-                        style={{ marginBottom: '8px' }}
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-end',
-                        marginTop: '4px',
-                        gap: '16px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                        <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
-                          posted by: <Username 
-                            name={row.author_name} 
-                            colorIndex={colorIndex}
-                            preferredColorIndex={row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null}
-                          />
-                        </span>
-                        <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
-                          {formatTimeAgo(row.created_at)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Event</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: condensed ? '12px' : '14px' }}>
-                          <svg
-                            width={condensed ? "12" : "14"}
-                            height={condensed ? "12" : "14"}
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
-                          >
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                          </svg>
-                          <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
-                            {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
-                            {isEventUpcoming(row.starts_at) ? (
-                              <span className="muted" style={{ marginLeft: '4px' }}>
-                                ({formatRelativeEventDate(row.starts_at)})
-                              </span>
-                            ) : null}
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: condensed ? '12px' : '14px' }}>
+                      <svg
+                        width={condensed ? "12" : "14"}
+                        height={condensed ? "12" : "14"}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
+                        {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
+                        {isEventUpcoming(row.starts_at) ? (
+                          <span className="muted" style={{ marginLeft: '4px' }}>
+                            ({formatRelativeEventDate(row.starts_at)})
                           </span>
-                          {row.user_attending ? (
-                            <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>
-                              ✓ Attending
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
+                        ) : null}
+                      </span>
+                      {row.user_attending ? (
+                        <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>
+                          ✓ Attending
+                        </span>
+                      ) : null}
                     </div>
                   </a>
                 );

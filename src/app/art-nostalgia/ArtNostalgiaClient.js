@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import Username from '../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
+import PostMetaBar from '../../components/PostMetaBar';
 
 export default function ArtNostalgiaClient({ posts, notice }) {
   const title = useMemo(() => 'Art & Nostalgia', []);
@@ -49,36 +49,27 @@ export default function ArtNostalgiaClient({ posts, notice }) {
                     className="list-item"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                   >
-                    <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
-                      <h3 style={{ marginBottom: 0, display: 'inline' }}>{p.title || 'Untitled'}</h3>
-                      <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username 
-                          name={p.author_name} 
-                          colorIndex={colorIndex}
-                          preferredColorIndex={preferredColor}
-                        />
-                      </span>
-                      <span className="muted" style={{ fontSize: 12, marginLeft: '8px' }}>
-                        {p.type === 'art' ? 'Art' : 'Nostalgia'}
-                        {p.is_private ? ' · Members-only' : ''}
-                      </span>
-                    </div>
+                    <PostMetaBar
+                      title={p.title || 'Untitled'}
+                      author={p.author_name}
+                      authorColorIndex={colorIndex}
+                      authorPreferredColorIndex={preferredColor}
+                      views={p.views || 0}
+                      replies={p.comment_count || 0}
+                      likes={p.like_count || 0}
+                      createdAt={p.created_at}
+                      lastActivity={p.last_activity_at || p.created_at}
+                      titleHref={`/${p.type}/${p.id}`}
+                      showTitleLink={false}
+                    />
+                    <span className="muted" style={{ fontSize: 12, marginTop: '4px', display: 'block' }}>
+                      {p.type === 'art' ? 'Art' : 'Nostalgia'}
+                      {p.is_private ? ' · Members-only' : ''}
+                    </span>
                     {!condensed && p.image_key ? (
-                      <img src={`/api/media/${p.image_key}`} alt="" className="post-image" loading="lazy" style={{ marginBottom: '8px' }} />
+                      <img src={`/api/media/${p.image_key}`} alt="" className="post-image" loading="lazy" style={{ marginTop: '8px' }} />
                     ) : null}
-                    {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
-                    <div
-                      className="list-meta"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '4px'
-                      }}
-                    >
-                      <span>{new Date(p.created_at).toLocaleString()}</span>
-                    </div>
+                    {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                   </a>
                 );
               };

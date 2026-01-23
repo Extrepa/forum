@@ -22,8 +22,12 @@ export default async function EventsPage({ searchParams }) {
       .prepare(
         `SELECT events.id, events.title, events.details, events.starts_at,
                 events.created_at, events.image_key,
+                COALESCE(events.views, 0) AS views,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
@@ -39,8 +43,12 @@ export default async function EventsPage({ searchParams }) {
         .prepare(
           `SELECT events.id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
+                  COALESCE(events.views, 0) AS views,
                   users.username AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
+                  COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
            FROM events
            JOIN users ON users.id = events.author_user_id
            ORDER BY events.starts_at ASC

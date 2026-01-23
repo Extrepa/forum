@@ -11,6 +11,9 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +49,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
         `SELECT music_posts.id, music_posts.author_user_id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at, music_posts.moved_to_type, music_posts.moved_to_id,
+                COALESCE(music_posts.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
@@ -257,21 +261,17 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </div>
         }
       />
+      <ViewTracker contentType="music" contentId={post.id} />
+      
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{post.title}</h2>
-            <div className="list-meta">
-              <Username 
-                name={post.author_name} 
-                colorIndex={usernameColorMap.get(post.author_name)}
-                preferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
-              /> ·{' '}
-              {new Date(post.created_at).toLocaleString()}
-              {post.is_locked ? ' · Comments locked' : null}
-            </div>
-          </div>
-          {user ? (
+        <PostHeader
+          title={post.title}
+          author={post.author_name}
+          authorColorIndex={usernameColorMap.get(post.author_name)}
+          authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          createdAt={post.created_at}
+          views={post.views || 0}
+          likeButton={user ? (
             <LikeButton 
               postType="music_post" 
               postId={post.id} 
@@ -279,7 +279,12 @@ export default async function MusicDetailPage({ params, searchParams }) {
               initialCount={Number(post.like_count || 0)}
             />
           ) : null}
-        </div>
+        />
+        {post.is_locked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
+          </span>
+        ) : null}
         {embed ? (
           <div 
             className={`embed-frame ${embed.aspect}`}
@@ -354,13 +359,20 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
                   <div
                     className="list-meta"
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
                   >
                     <span>
-                      <Username name={comment.author_name} colorIndex={colorIndex} />
+                      <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                      {' · '}
+                      {new Date(comment.created_at).toLocaleString()}
                     </span>
-                    <span>{new Date(comment.created_at).toLocaleString()}</span>
                   </div>
+                  <CommentActions
+                    commentId={comment.id}
+                    commentAuthor={comment.author_name}
+                    commentBody={comment.body}
+                    replyHref={`/music/${post.id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
+                  />
                 </div>
               );
             })

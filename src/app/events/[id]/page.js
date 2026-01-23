@@ -12,6 +12,8 @@ import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/u
 import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
 import LikeButton from '../../../components/LikeButton';
 import EventCommentsSection from '../../../components/EventCommentsSection';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +49,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
+                COALESCE(events.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
@@ -297,20 +300,17 @@ export default async function EventDetailPage({ params, searchParams }) {
         }
       />
 
+      <ViewTracker contentType="events" contentId={event.id} />
+      
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '8px' }}>{event.title}</h2>
-            <div className="list-meta">
-              <Username 
-                name={event.author_name} 
-                colorIndex={usernameColorMap.get(event.author_name)}
-                preferredColorIndex={event.author_color_preference !== null && event.author_color_preference !== undefined ? Number(event.author_color_preference) : null}
-              />
-              {event.is_locked ? ' · Comments locked' : null}
-            </div>
-          </div>
-          {user ? (
+        <PostHeader
+          title={event.title}
+          author={event.author_name}
+          authorColorIndex={usernameColorMap.get(event.author_name)}
+          authorPreferredColorIndex={event.author_color_preference !== null && event.author_color_preference !== undefined ? Number(event.author_color_preference) : null}
+          createdAt={event.created_at}
+          views={event.views || 0}
+          likeButton={user ? (
             <LikeButton 
               postType="event" 
               postId={event.id} 
@@ -318,8 +318,13 @@ export default async function EventDetailPage({ params, searchParams }) {
               initialCount={Number(event.like_count || 0)}
             />
           ) : null}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
+        />
+        {event.is_locked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
+          </span>
+        ) : null}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
           <svg
             width="24"
             height="24"

@@ -24,8 +24,12 @@ export default async function BugsPage({ searchParams }) {
     const out = await db
       .prepare(
         `SELECT posts.id, posts.title, posts.body, posts.image_key, posts.is_private, posts.created_at,
+                COALESCE(posts.views, 0) AS views,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM post_comments WHERE post_id = posts.id AND is_deleted = 0), posts.created_at) AS last_activity_at
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'bugs'

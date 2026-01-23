@@ -12,6 +12,9 @@ import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import PostHeader from '../../../components/PostHeader';
+import ViewTracker from '../../../components/ViewTracker';
+import CommentActions from '../../../components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,8 +73,10 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
                 projects.moved_to_type, projects.moved_to_id,
+                COALESCE(projects.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                 COALESCE(projects.is_locked, 0) AS is_locked
          FROM projects
          JOIN users ON users.id = projects.author_user_id
@@ -87,9 +92,10 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
                   projects.github_url, projects.demo_url, projects.image_key,
                   projects.created_at, projects.updated_at,
+                  COALESCE(projects.views, 0) AS views,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
-                  0 AS like_count,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                   COALESCE(projects.is_locked, 0) AS is_locked
            FROM projects
            JOIN users ON users.id = projects.author_user_id
@@ -110,9 +116,10 @@ export default async function ProjectDetailPage({ params, searchParams }) {
              `SELECT projects.id, projects.author_user_id, projects.title, projects.description, projects.status,
                     projects.github_url, projects.demo_url, projects.image_key,
                     projects.created_at, projects.updated_at,
+                    COALESCE(projects.views, 0) AS views,
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
-                    0 AS like_count,
+                    (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                     0 AS is_locked
              FROM projects
              JOIN users ON users.id = projects.author_user_id
@@ -386,16 +393,19 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px' }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px', fontSize: '12px' }}
           >
             <span>
-              <Username name={r.author_name} colorIndex={colorIndex} /> ·{' '}
+              <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} /> ·{' '}
               {r.created_at ? formatDateTime(r.created_at) : ''}
             </span>
-            <a className="post-link" href={replyLink}>
-              Reply
-            </a>
           </div>
+          <CommentActions
+            commentId={r.id}
+            commentAuthor={r.author_name}
+            commentBody={r.body}
+            replyHref={replyLink}
+          />
         </div>
       );
     };
@@ -456,23 +466,17 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           </div>
         }
       />
+      <ViewTracker contentType="projects" contentId={safeProjectId} />
+      
       <section className="card">
-        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 className="section-title" style={{ marginBottom: '4px' }}>{safeProjectTitle}</h2>
-            {/* Project status badge removed - was appearing next to username and looked like user status */}
-            <div className="list-meta" style={{ marginBottom: '0' }}>
-              <Username 
-                name={safeProjectAuthorName} 
-                colorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0}
-                preferredColorIndex={project?.author_color_preference !== null && project?.author_color_preference !== undefined ? Number(project.author_color_preference) : null}
-              /> ·{' '}
-              {safeProjectCreatedAt ? formatDateTime(safeProjectCreatedAt) : ''}
-              {safeProjectUpdatedAt ? ` · Updated ${formatDateTime(safeProjectUpdatedAt)}` : null}
-              {project.is_locked ? ' · Comments locked' : null}
-            </div>
-          </div>
-          {user ? (
+        <PostHeader
+          title={safeProjectTitle}
+          author={safeProjectAuthorName}
+          authorColorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0}
+          authorPreferredColorIndex={project?.author_color_preference !== null && project?.author_color_preference !== undefined ? Number(project.author_color_preference) : null}
+          createdAt={safeProjectCreatedAt}
+          views={project?.views || 0}
+          likeButton={user ? (
             <LikeButton 
               postType="project" 
               postId={safeProjectId} 
@@ -480,7 +484,14 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               initialCount={safeProjectLikeCount}
             />
           ) : null}
-        </div>
+          showUpdatedAt={true}
+          updatedAt={safeProjectUpdatedAt}
+        />
+        {project.is_locked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
+          </span>
+        ) : null}
         {safeProjectImageKey ? (
           <img
             src={`/api/media/${safeProjectImageKey}`}

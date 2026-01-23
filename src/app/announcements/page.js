@@ -21,7 +21,12 @@ export default async function AnnouncementsPage({ searchParams }) {
       .prepare(
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                 timeline_updates.created_at, timeline_updates.image_key,
-                users.username AS author_name
+                COALESCE(timeline_updates.views, 0) AS views,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM timeline_comments WHERE update_id = timeline_updates.id AND is_deleted = 0), timeline_updates.created_at) AS last_activity_at
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          WHERE timeline_updates.moved_to_id IS NULL
@@ -35,7 +40,12 @@ export default async function AnnouncementsPage({ searchParams }) {
       .prepare(
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                 timeline_updates.created_at, timeline_updates.image_key,
-                users.username AS author_name
+                COALESCE(timeline_updates.views, 0) AS views,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM timeline_comments WHERE update_id = timeline_updates.id AND is_deleted = 0), timeline_updates.created_at) AS last_activity_at
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          ORDER BY timeline_updates.created_at DESC

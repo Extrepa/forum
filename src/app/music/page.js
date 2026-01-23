@@ -23,11 +23,14 @@ export default async function MusicPage({ searchParams }) {
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at,
+                COALESCE(music_posts.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
+                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
@@ -42,11 +45,14 @@ export default async function MusicPage({ searchParams }) {
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
                 music_posts.created_at,
+                COALESCE(music_posts.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id) AS comment_count
+                (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0) AS comment_count,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
+                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          ORDER BY music_posts.created_at DESC

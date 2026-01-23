@@ -25,6 +25,7 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
       users.preferred_username_color_index AS author_color_preference,
       users.role AS author_role,
       (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)) AS reply_count,
+      COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count,
       COALESCE(
         (SELECT MAX(forum_replies.created_at) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0),
         forum_threads.created_at
@@ -191,6 +192,7 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
         const threads = out?.results || [];
         threads.forEach(t => {
           t.views = 0;
+          t.like_count = 0;
           t.is_pinned = 0;
           t.is_locked = 0;
           t.is_announcement = 0;
@@ -268,16 +270,17 @@ export default async function LobbyPage({ searchParams }) {
            LIMIT 50`
         )
         .all();
-      threads = (out?.results || []).map(t => ({
-        ...t,
-        views: 0,
-        is_pinned: 0,
-        is_locked: 0,
-        is_announcement: 0,
-        last_activity_at: t.created_at,
-        last_post_author: t.author_name,
-        is_unread: false
-      }));
+        threads = (out?.results || []).map(t => ({
+          ...t,
+          views: 0,
+          like_count: 0,
+          is_pinned: 0,
+          is_locked: 0,
+          is_announcement: 0,
+          last_activity_at: t.created_at,
+          last_post_author: t.author_name,
+          is_unread: false
+        }));
     } catch (e2) {
       // Even simpler fallback - no moved_to_id check
       try {
@@ -296,6 +299,7 @@ export default async function LobbyPage({ searchParams }) {
         threads = (out?.results || []).map(t => ({
           ...t,
           views: 0,
+          like_count: 0,
           is_pinned: 0,
           is_locked: 0,
           is_announcement: 0,
