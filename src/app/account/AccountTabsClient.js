@@ -139,7 +139,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
   return (
     <section className="card">
-      <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
         <button
           type="button"
           onClick={() => handleTabChange('account')}
@@ -299,7 +299,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             </div>
             
             {/* Username color picker - next row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0, minWidth: 0, maxWidth: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
               {colorOptions.map((option) => (
                 <button
                   key={option.index ?? 'auto'}
@@ -309,7 +309,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   style={{
                     width: option.index === null ? 'auto' : '28px',
                     height: '28px',
-                    minWidth: option.index === null ? '48px' : '28px',
+                    minWidth: option.index === null ? '48px' : '20px',
+                    maxWidth: option.index === null ? 'none' : '28px',
                     aspectRatio: option.index === null ? 'auto' : '1',
                     borderRadius: option.index === null ? '3px' : '50%',
                     border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
@@ -325,7 +326,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     justifyContent: 'center',
                     fontSize: option.index === null ? '11px' : '0',
                     color: 'var(--ink)',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    flexShrink: 1,
+                    boxSizing: 'border-box'
                   }}
                   title={option.name}
                 >
