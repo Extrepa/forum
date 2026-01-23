@@ -138,11 +138,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'flex-start',
         gap: '16px',
         marginBottom: '16px',
         flexShrink: 0,
         flexWrap: 'nowrap',
-        minWidth: 0
+        width: '100%',
+        position: 'relative'
       }}>
         <button
           type="button"
@@ -157,7 +159,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             fontSize: '16px',
             fontWeight: activeTab === 'account' ? '600' : '400',
             flexShrink: 0,
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            minWidth: 'fit-content'
           }}
         >
           Account
@@ -175,7 +178,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             fontSize: '16px',
             fontWeight: activeTab === 'profile' ? '600' : '400',
             flexShrink: 0,
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            minWidth: 'fit-content'
           }}
         >
           Profile
@@ -248,8 +252,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     style={{
                       flex: option.index === null ? '0 0 auto' : '1 1 0',
                       width: option.index === null ? 'auto' : undefined,
-                      height: '28px',
-                      minWidth: option.index === null ? '48px' : '16px',
+                      height: option.index === null ? '20px' : '18px',
+                      minWidth: option.index === null ? '40px' : '12px',
                       maxWidth: option.index === null ? 'none' : undefined,
                       aspectRatio: option.index === null ? 'auto' : '1',
                       borderRadius: option.index === null ? '3px' : '50%',
@@ -260,11 +264,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       cursor: disabled ? 'default' : 'pointer',
                       opacity: disabled ? 0.7 : 1,
                       transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 8px' : 0,
+                      padding: option.index === null ? '0 6px' : 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '11px' : '0',
+                      fontSize: option.index === null ? '10px' : '0',
                       color: 'var(--ink)',
                       fontWeight: 'bold',
                       boxSizing: 'border-box'
