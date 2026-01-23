@@ -1,6 +1,7 @@
 import { normalizeUsername } from './username';
 
 const PALETTE_SIZE = 8;
+const DEFAULT_PURPLE_INDEX = 5; // Neon purple (#B026FF)
 
 function fnv1a32(input) {
   let hash = 0x811c9dc5;
@@ -12,21 +13,31 @@ function fnv1a32(input) {
   return hash >>> 0;
 }
 
-export function getStableUsernameColorIndex(name) {
+export function getStableUsernameColorIndex(name, preferredColorIndex = null) {
+  // If user has a preferred color, use it (unless it's invalid)
+  if (typeof preferredColorIndex === 'number' && preferredColorIndex >= 0 && preferredColorIndex < PALETTE_SIZE) {
+    return preferredColorIndex;
+  }
+  
+  // Default to purple for new users (when no preference and no hash-based color yet)
+  // For existing users, use hash-based system
   const normalized = normalizeUsername(name);
-  if (!normalized) return 0;
+  if (!normalized) return DEFAULT_PURPLE_INDEX;
+  
   return fnv1a32(normalized) % PALETTE_SIZE;
 }
 
 export function getUsernameColorIndex(name, options = {}) {
-  const { avoidIndex, avoidName, force } = options;
+  const { avoidIndex, avoidName, force, preferredColorIndex } = options;
 
   if (force === 'purple') {
     return 0;
   }
 
-  let idx = getStableUsernameColorIndex(name);
+  // Use preferred color if provided and valid
+  let idx = getStableUsernameColorIndex(name, preferredColorIndex);
 
+  // Handle collision avoidance (for page-level uniqueness)
   if (
     typeof avoidIndex === 'number' &&
     avoidIndex >= 0 &&
@@ -45,22 +56,25 @@ export function getUsernameColorIndex(name, options = {}) {
  * Assigns unique color indices to all usernames on a page.
  * Ensures different users get different colors, while same user gets same color.
  * If a collision occurs, assigns the next available color.
+ * Respects user preferences when possible, but prioritizes uniqueness.
  * 
  * @param {string[]} usernames - Array of all usernames that will be displayed on the page
+ * @param {Map<string, number>} preferredColors - Optional map of username -> preferred color index
  * @returns {Map<string, number>} Map of username -> colorIndex (0-7)
  */
-export function assignUniqueColorsForPage(usernames) {
+export function assignUniqueColorsForPage(usernames, preferredColors = new Map()) {
   const colorMap = new Map();
-  const usedColors = new Set();
   const usernameToColor = new Map(); // Track which username has which color
   
-  // First pass: assign stable colors
+  // First pass: assign preferred or stable colors
   usernames.forEach(username => {
     if (!username) return;
     const normalized = normalizeUsername(username);
     if (!normalized) return;
     
-    const stableIndex = getStableUsernameColorIndex(username);
+    // Check for preferred color first
+    const preferred = preferredColors.get(username);
+    const stableIndex = getStableUsernameColorIndex(username, preferred);
     colorMap.set(username, stableIndex);
     usernameToColor.set(stableIndex, username);
   });

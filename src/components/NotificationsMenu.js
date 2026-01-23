@@ -81,24 +81,22 @@ export default function NotificationsMenu({
             type="button"
             onClick={() => {
               onClose();
-              router.push('/account');
+              router.push('/account?tab=account');
             }}
             style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
             Account
           </button>
-          {currentUsername && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                router.push(`/profile/${encodeURIComponent(currentUsername)}`);
-              }}
-              style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-            >
-              Profile
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/account?tab=profile');
+            }}
+            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+          >
+            Profile
+          </button>
           <button 
             type="button" 
             onClick={onRefresh} 

@@ -2,9 +2,6 @@ import ClaimUsernameForm from '../../components/ClaimUsernameForm';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
-import { formatDateTime } from '../../lib/dates';
-import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
 import AccountTabsClient from './AccountTabsClient';
 
 export const dynamic = 'force-dynamic';
@@ -27,12 +24,12 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .first();
 
-      // Get recent activity (last 5 threads and replies)
+      // Get recent activity (last 10 items total - threads and replies combined)
       const recentThreads = await db
         .prepare(
           `SELECT id, title, created_at FROM forum_threads 
            WHERE author_user_id = ? 
-           ORDER BY created_at DESC LIMIT 5`
+           ORDER BY created_at DESC LIMIT 10`
         )
         .bind(user.id)
         .all();
@@ -43,7 +40,7 @@ export default async function AccountPage({ searchParams }) {
            FROM forum_replies
            JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
            WHERE forum_replies.author_user_id = ? AND forum_replies.is_deleted = 0
-           ORDER BY forum_replies.created_at DESC LIMIT 5`
+           ORDER BY forum_replies.created_at DESC LIMIT 10`
         )
         .bind(user.id)
         .all();
@@ -54,12 +51,19 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .first();
 
+      // Merge and sort recent activity
+      const allActivity = [
+        ...(recentThreads?.results || []).map(t => ({ ...t, type: 'thread' })),
+        ...(recentReplies?.results || []).map(r => ({ ...r, type: 'reply' }))
+      ].sort((a, b) => b.created_at - a.created_at).slice(0, 10);
+
       stats = {
         threadCount: threadCount?.count || 0,
         replyCount: replyCount?.count || 0,
         joinDate: userInfo?.created_at || user.created_at,
         recentThreads: recentThreads?.results || [],
         recentReplies: recentReplies?.results || [],
+        recentActivity: allActivity,
       };
     } catch (e) {
       // Fallback if queries fail
@@ -69,6 +73,7 @@ export default async function AccountPage({ searchParams }) {
         joinDate: user.created_at,
         recentThreads: [],
         recentReplies: [],
+        recentActivity: [],
       };
     }
   }

@@ -9,6 +9,7 @@ export default function Username({
   avoidIndex,
   avoidName,
   colorIndex,
+  preferredColorIndex,
   className = '',
   title,
   href,
@@ -19,7 +20,7 @@ export default function Username({
   const idx =
     typeof colorIndex === 'number'
       ? colorIndex
-      : getUsernameColorIndex(safeName, { force, avoidIndex, avoidName });
+      : getUsernameColorIndex(safeName, { force, avoidIndex, avoidName, preferredColorIndex });
 
   const classes = ['username', `username--${idx}`, className].filter(Boolean).join(' ');
   
