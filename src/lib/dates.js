@@ -106,7 +106,7 @@ export function formatRelativeEventDate(timestamp) {
     
     if (days === 0) return 'Today';
     if (days === 1) return 'Tomorrow';
-    if (days < 7) return `In ${days} ${days === 1 ? 'day' : 'days'}`;
+    if (days < 14) return `In ${days} ${days === 1 ? 'day' : 'days'}`;
     if (weeks < 4) return `In ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
     if (months < 12) return `In ${months} ${months === 1 ? 'month' : 'months'}`;
     return 'Over a year away';
