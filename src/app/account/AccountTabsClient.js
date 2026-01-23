@@ -191,147 +191,147 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           
           {/* Username and Color Section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', minWidth: 0, maxWidth: '100%' }}>
-            {/* Username label on its own row */}
-            <div>
-              <strong>Username:</strong>
-            </div>
-            
-            {/* Username value and Edit button - can wrap */}
+            {/* Username label, value, and Edit button - same row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                {!isEditingUsername ? (
-                  <>
-                    <div style={{ flexShrink: 0 }}>
-                      <Username 
-                        name={user.username} 
-                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingUsername(true);
-                        setNewUsername(user.username);
-                        setUsernameStatus({ type: 'idle', message: null });
-                      }}
-                      style={{
-                        fontSize: '11px',
-                        padding: '4px 10px',
-                        height: '28px',
-                        minWidth: '28px',
-                        background: 'rgba(52, 225, 255, 0.1)',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        borderRadius: '3px',
-                        color: 'var(--accent)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </>
-                ) : (
-                  <form onSubmit={handleUsernameUpdate} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                    <input
-                      type="text"
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      placeholder="username"
-                      pattern="[a-z0-9_]{3,20}"
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--ink)',
-                        fontSize: '14px',
-                        minWidth: '120px',
-                        maxWidth: '100%',
-                        flex: '1 1 auto'
-                      }}
-                      autoFocus
+              <strong>Username:</strong>
+              {!isEditingUsername ? (
+                <>
+                  <div style={{ flexShrink: 0 }}>
+                    <Username 
+                      name={user.username} 
+                      colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
                     />
-                    <button
-                      type="submit"
-                      disabled={usernameStatus.type === 'loading'}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 12px',
-                        background: 'var(--accent)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: 'var(--bg)',
-                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                        opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingUsername(false);
-                        setNewUsername(user.username);
-                        setUsernameStatus({ type: 'idle', message: null });
-                      }}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 12px',
-                        background: 'transparent',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        borderRadius: '6px',
-                        color: 'var(--muted)',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </form>
-                )}
-            </div>
-            
-            {/* Username color picker - separate row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0, minWidth: 0, maxWidth: '100%' }}>
-              <strong>Username color:</strong>
-                {colorOptions.map((option) => (
+                  </div>
                   <button
-                    key={option.index ?? 'auto'}
                     type="button"
-                    onClick={() => handleColorUpdate(option.index)}
-                    disabled={colorStatus.type === 'loading'}
+                    onClick={() => {
+                      setIsEditingUsername(true);
+                      setNewUsername(user.username);
+                      setUsernameStatus({ type: 'idle', message: null });
+                    }}
                     style={{
-                      width: option.index === null ? 'auto' : '28px',
+                      fontSize: '11px',
+                      padding: '4px 10px',
                       height: '28px',
-                      minWidth: option.index === null ? '48px' : '28px',
-                      aspectRatio: option.index === null ? 'auto' : '1',
+                      minWidth: '28px',
+                      background: 'rgba(52, 225, 255, 0.1)',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
                       borderRadius: '3px',
-                      border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                      background: option.index === null 
-                        ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                        : option.color,
-                      cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      opacity: colorStatus.type === 'loading' ? 0.6 : 1,
-                      transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 8px' : 0,
+                      color: 'var(--accent)',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: option.index === null ? '11px' : '0',
-                      color: 'var(--ink)',
-                      fontWeight: 'bold'
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
                     }}
-                    title={option.name}
                   >
-                    {option.index === null ? 'Auto' : ''}
+                    Edit
                   </button>
-                ))}
+                </>
+              ) : (
+                <form onSubmit={handleUsernameUpdate} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="username"
+                    pattern="[a-z0-9_]{3,20}"
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--ink)',
+                      fontSize: '14px',
+                      minWidth: '120px',
+                      maxWidth: '100%',
+                      flex: '1 1 auto'
+                    }}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={usernameStatus.type === 'loading'}
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 12px',
+                      background: 'var(--accent)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'var(--bg)',
+                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                      opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingUsername(false);
+                      setNewUsername(user.username);
+                      setUsernameStatus({ type: 'idle', message: null });
+                    }}
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 12px',
+                      background: 'transparent',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      borderRadius: '6px',
+                      color: 'var(--muted)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              )}
+            </div>
+            
+            {/* Username color label - own row */}
+            <div>
+              <strong>Username color:</strong>
+            </div>
+            
+            {/* Username color picker - next row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flexShrink: 0, minWidth: 0, maxWidth: '100%' }}>
+              {colorOptions.map((option) => (
+                <button
+                  key={option.index ?? 'auto'}
+                  type="button"
+                  onClick={() => handleColorUpdate(option.index)}
+                  disabled={colorStatus.type === 'loading'}
+                  style={{
+                    width: option.index === null ? 'auto' : '28px',
+                    height: '28px',
+                    minWidth: option.index === null ? '48px' : '28px',
+                    aspectRatio: option.index === null ? 'auto' : '1',
+                    borderRadius: option.index === null ? '3px' : '50%',
+                    border: selectedColorIndex === option.index ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                    background: option.index === null 
+                      ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                      : option.color,
+                    cursor: colorStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                    opacity: colorStatus.type === 'loading' ? 0.6 : 1,
+                    transition: 'all 0.2s ease',
+                    padding: option.index === null ? '0 8px' : 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: option.index === null ? '11px' : '0',
+                    color: 'var(--ink)',
+                    fontWeight: 'bold'
+                  }}
+                  title={option.name}
+                >
+                  {option.index === null ? 'Auto' : ''}
+                </button>
+              ))}
             </div>
             {usernameStatus.message && (
               <div style={{
