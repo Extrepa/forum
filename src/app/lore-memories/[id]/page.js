@@ -26,7 +26,8 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type IN ('lore', 'memories')`
@@ -38,7 +39,8 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT post_comments.id, post_comments.body, post_comments.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM post_comments
            JOIN users ON users.id = post_comments.author_user_id
            WHERE post_comments.post_id = ?
@@ -73,12 +75,24 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
     );
   }
 
-  // Assign unique colors to all usernames on this page
+  // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [
     post.author_name,
     ...comments.map(c => c.author_name)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (post.author_name && post.author_color_preference !== null && post.author_color_preference !== undefined) {
+    preferredColors.set(post.author_name, Number(post.author_color_preference));
+  }
+  comments.forEach(c => {
+    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+      preferredColors.set(c.author_name, Number(c.author_color_preference));
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
   const error = searchParams?.error;
   const commentNotice =
@@ -132,11 +146,16 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
             <p className="muted">No comments yet.</p>
           ) : (
             comments.map((c) => {
-              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name);
+              const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
+              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               return (
                 <div key={c.id} className="reply-item">
                   <div className="reply-meta">
-                    <Username name={c.author_name} colorIndex={colorIndex} />
+                    <Username 
+                      name={c.author_name} 
+                      colorIndex={colorIndex}
+                      preferredColorIndex={preferredColor}
+                    />
                     <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                   </div>
                   <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />

@@ -25,7 +25,8 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type = 'memories'`
@@ -37,7 +38,8 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT post_comments.id, post_comments.body, post_comments.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM post_comments
            JOIN users ON users.id = post_comments.author_user_id
            WHERE post_comments.post_id = ?
@@ -82,12 +84,24 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       ? 'Comments are not enabled yet (database updates still applying).'
       : null;
 
-  // Assign unique colors to all usernames on this page
+  // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [
     post.author_name,
     ...comments.map(c => c.author_name)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage(allUsernames);
+  
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  if (post.author_name && post.author_color_preference !== null && post.author_color_preference !== undefined) {
+    preferredColors.set(post.author_name, Number(post.author_color_preference));
+  }
+  comments.forEach(c => {
+    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+      preferredColors.set(c.author_name, Number(c.author_color_preference));
+    }
+  });
+  
+  const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
   return (
     <div className="stack">
@@ -102,7 +116,11 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
       <section className="card">
         <h2 className="section-title">{post.title || 'Untitled'}</h2>
         <div className="list-meta">
-          <Username name={post.author_name} colorIndex={usernameColorMap.get(post.author_name)} />
+          <Username 
+            name={post.author_name} 
+            colorIndex={usernameColorMap.get(post.author_name)}
+            preferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          />
           <span className="muted"> · {new Date(post.created_at).toLocaleString()}</span>
           {post.is_private ? <span className="muted"> · Members-only</span> : null}
         </div>
@@ -127,7 +145,11 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
             comments.map((c) => (
               <div key={c.id} className="reply-item">
                 <div className="reply-meta">
-                  <Username name={c.author_name} colorIndex={usernameColorMap.get(c.author_name)} />
+                  <Username 
+                    name={c.author_name} 
+                    colorIndex={usernameColorMap.get(c.author_name)}
+                    preferredColorIndex={c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null}
+                  />
                   <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                 </div>
                 <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />

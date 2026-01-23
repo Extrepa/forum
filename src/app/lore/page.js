@@ -23,7 +23,8 @@ export default async function LorePage({ searchParams }) {
     const out = await db
       .prepare(
         `SELECT posts.id, posts.title, posts.body, posts.image_key, posts.is_private, posts.created_at,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'lore'

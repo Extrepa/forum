@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 
 export default function ArtNostalgiaClient({ posts, notice }) {
   const title = useMemo(() => 'Art & Nostalgia', []);
@@ -25,11 +25,23 @@ export default function ArtNostalgiaClient({ posts, notice }) {
             <p className="muted">No posts yet.</p>
           ) : (
             (() => {
+              // Build preferences map and assign unique colors
+              const allUsernames = posts.map(p => p.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              posts.forEach(p => {
+                if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
+                  preferredColors.set(p.author_name, Number(p.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
+
               const latest = posts[0];
               const rest = posts.slice(1);
 
               const renderItem = (p, { condensed }) => {
-                const colorIndex = getUsernameColorIndex(p.author_name);
+                const preferredColor = p.author_color_preference !== null && p.author_color_preference !== undefined ? Number(p.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(p.author_name) ?? getUsernameColorIndex(p.author_name, { preferredColorIndex: preferredColor });
+                
                 return (
                   <a
                     key={p.id}
@@ -40,7 +52,11 @@ export default function ArtNostalgiaClient({ posts, notice }) {
                     <div style={{ marginBottom: condensed ? '4px' : '8px' }}>
                       <h3 style={{ marginBottom: 0, display: 'inline' }}>{p.title || 'Untitled'}</h3>
                       <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-                        by <Username name={p.author_name} colorIndex={colorIndex} />
+                        by <Username 
+                          name={p.author_name} 
+                          colorIndex={colorIndex}
+                          preferredColorIndex={preferredColor}
+                        />
                       </span>
                       <span className="muted" style={{ fontSize: 12, marginLeft: '8px' }}>
                         {p.type === 'art' ? 'Art' : 'Nostalgia'}

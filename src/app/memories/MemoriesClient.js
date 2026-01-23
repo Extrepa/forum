@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Username from '../../components/Username';
-import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 
 export default function MemoriesClient({ posts, notice }) {
   const title = useMemo(() => 'Memories', []);
@@ -26,10 +26,24 @@ export default function MemoriesClient({ posts, notice }) {
             <p className="muted">No memories yet.</p>
           ) : (
             (() => {
+              // Build preferences map and assign unique colors
+              const allUsernames = posts.map(p => p.author_name).filter(Boolean);
+              const preferredColors = new Map();
+              posts.forEach(p => {
+                if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
+                  preferredColors.set(p.author_name, Number(p.author_color_preference));
+                }
+              });
+              const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
+
               const latest = posts[0];
               const rest = posts.slice(1);
 
-              const renderItem = (p, { condensed }) => (
+              const renderItem = (p, { condensed }) => {
+                const preferredColor = p.author_color_preference !== null && p.author_color_preference !== undefined ? Number(p.author_color_preference) : null;
+                const colorIndex = usernameColorMap.get(p.author_name) ?? getUsernameColorIndex(p.author_name, { preferredColorIndex: preferredColor });
+                
+                return (
                 <a
                   key={p.id}
                   href={`/memories/${p.id}`}
@@ -55,13 +69,18 @@ export default function MemoriesClient({ posts, notice }) {
                     }}
                   >
                     <span>
-                      <Username name={p.author_name} colorIndex={getUsernameColorIndex(p.author_name)} />
+                      <Username 
+                        name={p.author_name} 
+                        colorIndex={colorIndex}
+                        preferredColorIndex={preferredColor}
+                      />
                     </span>
                     <span>{new Date(p.created_at).toLocaleString()}</span>
                   </div>
                   {!condensed && p.bodyHtml ? <div className="post-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                 </a>
-              );
+                );
+              };
 
               return (
                 <>
