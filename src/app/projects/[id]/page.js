@@ -56,6 +56,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         </div>
       );
     }
+    const user = await getSessionUser();
     const db = await getDb();
     if (!db) {
       return (
@@ -206,7 +207,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           .all();
         replies = (out?.results || []).map(r => ({
           ...r,
-          author_name: 'Unknown User' // Default if user lookup fails
+          author_name: 'Unknown User', // Default if user lookup fails
+          author_color_preference: null
         })).filter(r => r && r.id && r.body);
       } catch (e3) {
         console.error('Error fetching project replies (fallback 2):', e3, { projectId: params.id });
@@ -308,7 +310,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           body: String(r.body || ''),
           created_at: r.created_at ? Number(r.created_at) : Date.now(),
           reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
-          author_user_id: String(r.author_user_id || '')
+          author_user_id: String(r.author_user_id || ''),
+          author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null
         }))
     : [];
   
