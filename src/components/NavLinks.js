@@ -44,6 +44,12 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
       e.preventDefault();
       router.push(href);
     }
+    // For "all" variant (mobile menu), ensure navigation happens
+    // This prevents the menu from closing before navigation completes
+    if (variant === 'all') {
+      // Let default navigation happen, but ensure it proceeds
+      // The pathname change will close the menu via useEffect in SiteHeader
+    }
     // For other variants, let default navigation happen
     // Note: Pages themselves handle authentication checks, so we don't block navigation here
   };

@@ -220,13 +220,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               )}
             </div>
 
-            {/* Username color label - own row */}
-            <div>
+            {/* Username color label and picker - same row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
               <strong>Username color:</strong>
-            </div>
-
-            {/* Username color picker - next row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap', minWidth: 0, maxWidth: '100%', overflow: 'hidden', flex: '1 1 auto' }}>
               {colorOptions.map((option) => {
                 const isSelected = selectedColorIndex === option.index;
                 const disabled = !isEditingUsername || usernameStatus.type === 'loading';
@@ -266,10 +263,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </button>
                 );
               })}
+              </div>
             </div>
 
             {/* Edit / Save / Cancel row - below username and color */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%' }}>
               {!isEditingUsername ? (
                 <button
                   type="button"
@@ -284,6 +282,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     fontSize: '12px',
                     padding: '6px 12px',
                     height: '32px',
+                    width: '100%',
                     background: 'rgba(52, 225, 255, 0.1)',
                     border: '1px solid rgba(52, 225, 255, 0.3)',
                     borderRadius: '6px',
@@ -306,6 +305,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
+                      flex: '1 1 auto',
                       background: 'var(--accent)',
                       border: 'none',
                       borderRadius: '6px',
@@ -324,6 +324,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
+                      flex: '1 1 auto',
                       background: 'transparent',
                       border: '1px solid rgba(52, 225, 255, 0.3)',
                       borderRadius: '6px',

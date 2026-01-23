@@ -24,6 +24,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const menuExpandedRef = useRef(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreWrapRef = useRef(null);
   const moreNavRef = useRef(null);
@@ -46,8 +47,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
-      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
+      if (menuOpen) {
+        const isInsideButton = menuRef.current && menuRef.current.contains(event.target);
+        const isInsideMenu = menuExpandedRef.current && menuExpandedRef.current.contains(event.target);
+        // Only close if click is outside both the button and the expanded menu
+        if (!isInsideButton && !isInsideMenu) {
+          setMenuOpen(false);
+        }
       }
       if (moreOpen && moreWrapRef.current && moreNavRef.current) {
         const isInsideToggle = moreWrapRef.current.contains(event.target);
@@ -265,7 +271,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       </div>
 
       {menuOpen && (
-        <div className="nav-menu-expanded" role="menu" aria-label="Site menu">
+        <div ref={menuExpandedRef} className="nav-menu-expanded" role="menu" aria-label="Site menu">
           <nav className="nav-menu-links-scrollable">
             <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
           </nav>
