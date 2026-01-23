@@ -17,7 +17,8 @@ export async function GET() {
       notifyEmailEnabled: !!user.notify_email_enabled,
       notifySmsEnabled: !!user.notify_sms_enabled,
       uiLoreEnabled: !!user.ui_lore_enabled,
-      defaultLandingPage: user.default_landing_page ?? 'home'
+      defaultLandingPage: user.default_landing_page ?? 'home',
+      preferredUsernameColorIndex: user.preferred_username_color_index ?? null
     }
   });
 }

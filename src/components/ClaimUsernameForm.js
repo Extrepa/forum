@@ -413,7 +413,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   };
 
   if (me?.username) {
-    const colorIndex = getUsernameColorIndex(me.username);
+    const colorIndex = getUsernameColorIndex(me.username, { preferredColorIndex: me.preferredUsernameColorIndex });
     const canConfigureNotifications = !!me.email && !!me.hasPassword;
     const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
     const Wrapper = noCardWrapper ? 'div' : 'div';

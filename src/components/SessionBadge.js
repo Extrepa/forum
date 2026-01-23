@@ -16,7 +16,7 @@ export default async function SessionBadge() {
     return <div className="muted">Guest reader</div>;
   }
   const user = await db
-    .prepare('SELECT username FROM users WHERE session_token = ?')
+    .prepare('SELECT username, preferred_username_color_index FROM users WHERE session_token = ?')
     .bind(token)
     .first();
 
@@ -26,7 +26,10 @@ export default async function SessionBadge() {
 
   return (
     <div className="muted">
-      Posting as <Username name={user.username} colorIndex={getUsernameColorIndex(user.username)} />
+      Posting as <Username 
+        name={user.username} 
+        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
+      />
     </div>
   );
 }

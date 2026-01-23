@@ -3,6 +3,7 @@
 import { getForumStrings, getTimeBasedGreetingTemplate, renderTemplateParts } from '../lib/forum-texts';
 import Username from './Username';
 import { useUiPrefs } from './UiPrefsProvider';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default function HomeWelcome({ user }) {
   const { loreEnabled } = useUiPrefs();
@@ -25,7 +26,12 @@ export default function HomeWelcome({ user }) {
         {parts.hasVar ? (
           <>
             {parts.before}
-            {user?.username ? <Username name={user.username} force="purple" /> : 'friend'}
+            {user?.username ? (
+              <Username 
+                name={user.username} 
+                colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} 
+              />
+            ) : 'friend'}
             {parts.after}
           </>
         ) : (
