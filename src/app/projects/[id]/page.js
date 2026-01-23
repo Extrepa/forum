@@ -4,28 +4,18 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
-import { formatDateTime } from '../../../lib/dates';
 import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
-import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
 
 export const dynamic = 'force-dynamic';
 
-function quoteMarkdown({ author, body }) {
-  const safeAuthor = String(author || 'Someone').trim() || 'Someone';
-  const text = String(body || '').trim();
-  if (!text) return `> @${safeAuthor} said:\n>\n\n`;
-  const lines = text.split('\n').slice(0, 8); // keep it short by default
-  const quoted = lines.map((l) => `> ${l}`).join('\n');
-  return `> @${safeAuthor} said:\n${quoted}\n\n`;
-}
 
 function destUrlFor(type, id) {
   switch (type) {
@@ -300,24 +290,30 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   const safeProjectDemoUrl = project?.demo_url ? String(project.demo_url) : null;
   const safeProjectLikeCount = project?.like_count ? Number(project.like_count) : 0;
   
-  // Serialize replies array
+  // Serialize replies array with markdown rendering
   const safeReplies = Array.isArray(replies)
     ? replies
         .filter(r => r && r.id && r.body)
-        .map(r => ({
-          id: String(r.id || ''),
-          author_name: String(r.author_name || 'Unknown'),
-          body: String(r.body || ''),
-          created_at: r.created_at ? Number(r.created_at) : Date.now(),
-          reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
-          author_user_id: String(r.author_user_id || ''),
-          author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null
-        }))
+        .map(r => {
+          let bodyHtml = '';
+          try {
+            bodyHtml = renderMarkdown(r.body);
+          } catch (e) {
+            console.error('Error rendering reply markdown:', e, { replyId: r.id });
+            bodyHtml = r.body.replace(/\n/g, '<br>');
+          }
+          return {
+            id: String(r.id || ''),
+            author_name: String(r.author_name || 'Unknown'),
+            body: String(r.body || ''),
+            body_html: bodyHtml,
+            created_at: r.created_at ? Number(r.created_at) : Date.now(),
+            reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
+            author_user_id: String(r.author_user_id || ''),
+            author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null
+          };
+        })
     : [];
-  
-  // Find and serialize replyingTo from safeReplies
-  const replyingTo = replyToId ? safeReplies.find((r) => r && r.id && r.id === replyToId) : null;
-  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
   
   // Assign unique colors to all usernames on this page
   const allUsernames = [
@@ -356,83 +352,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     console.error('Error rendering project markdown:', e);
     projectDescriptionHtml = safeProjectDescription.replace(/\n/g, '<br>');
   }
-  
-  // Extract reply rendering logic to avoid IIFE
-  const renderReplies = () => {
-    if (safeReplies.length === 0) return [];
-    
-    const byParent = new Map();
-    const validReplyIds = new Set(safeReplies.map(r => r.id).filter(Boolean));
-    
-    for (const r of safeReplies) {
-      if (!r || !r.id) continue;
-      const key = (r.reply_to_id && validReplyIds.has(r.reply_to_id)) ? r.reply_to_id : null;
-      const arr = byParent.get(key) || [];
-      arr.push(r);
-      byParent.set(key, arr);
-    }
-    
-    const renderReply = (r, { isChild }) => {
-      if (!r || !r.id || !r.body) return null;
-      const preferredColor = r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null;
-      const colorIndex = usernameColorMap.get(r.author_name) ?? getUsernameColorIndex(r.author_name || 'Unknown', { preferredColorIndex: preferredColor });
-      
-      let replyBodyHtml = '';
-      try {
-        replyBodyHtml = renderMarkdown(r.body);
-      } catch (e) {
-        console.error('Error rendering reply markdown:', e, { replyId: r.id });
-        replyBodyHtml = r.body.replace(/\n/g, '<br>');
-      }
-      
-      const replyLink = `/projects/${safeProjectId}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
-      
-      return (
-        <div
-          key={r.id}
-          className={`list-item${isChild ? ' reply-item--child' : ''}`}
-          id={`reply-${r.id}`}
-        >
-          <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
-          <div
-            className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px', fontSize: '12px' }}
-          >
-            <span>
-              <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} /> ·{' '}
-              {r.created_at ? formatDateTime(r.created_at) : ''}
-            </span>
-          </div>
-          <CommentActions
-            commentId={r.id}
-            commentAuthor={r.author_name}
-            commentBody={r.body}
-            replyHref={replyLink}
-          />
-        </div>
-      );
-    };
-    
-    const top = byParent.get(null) || [];
-    return top.map((r) => {
-      const kids = byParent.get(r.id) || [];
-      const renderedReply = renderReply(r, { isChild: false });
-      const renderedKids = kids.map((c) => renderReply(c, { isChild: true })).filter(Boolean);
-      if (!renderedReply) return null;
-      return (
-        <div key={`thread-${r.id}`} className="stack" style={{ gap: 10 }}>
-          {renderedReply}
-          {renderedKids.length ? (
-            <div className="reply-children">
-              {renderedKids}
-            </div>
-          ) : null}
-        </div>
-      );
-    }).filter(Boolean);
-  };
-  
-  const renderedReplies = renderReplies();
 
   return (
     <div className="stack">
@@ -552,36 +471,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         </div>
       ) : null}
 
-      <section className="card">
-        <h3 className="section-title">Replies</h3>
-        {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <div className="list">
-          {renderedReplies.length === 0 ? (
-            <p className="muted">No replies yet.</p>
-          ) : (
-            renderedReplies
-          )}
-        </div>
-        {project.is_locked ? (
-          <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this project.</p>
-        ) : repliesEnabled ? (
-          <div style={{ marginTop: '12px' }} id="reply-form">
-            <ReplyFormWrapper
-              action={`/api/projects/${safeProjectId}/replies`}
-              buttonLabel="Post reply"
-              placeholder="Share your goo-certified thoughts..."
-              labelText="What would you like to say?"
-              hiddenFields={{ reply_to_id: replyToId || '' }}
-              replyingTo={replyingTo}
-              replyPrefill={replyPrefill}
-            />
-          </div>
-        ) : (
-          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
-            Replies aren't enabled yet (database updates still applying).
-          </div>
-        )}
-      </section>
+      <ProjectRepliesSection
+        projectId={safeProjectId}
+        replies={safeReplies}
+        user={user}
+        commentNotice={commentNotice}
+        usernameColorMap={usernameColorMap}
+        isLocked={project.is_locked}
+        repliesEnabled={repliesEnabled}
+      />
     </div>
   );
   } catch (error) {
