@@ -366,8 +366,24 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             {isAdmin ? (
               <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={project.is_locked ? '0' : '1'} />
-                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
-                  {project.is_locked ? 'Unlock comments' : 'Lock comments'}
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '4px 8px',
+                    minWidth: '56px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{project.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>comments</span>
+                  </span>
                 </button>
               </form>
             ) : null}

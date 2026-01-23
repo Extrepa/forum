@@ -24,9 +24,30 @@ export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', pan
     }, 100);
   };
 
+  const compactStyle = {
+    fontSize: '12px',
+    padding: '4px 8px',
+    minWidth: '56px',
+    lineHeight: 1.2,
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const parts = (buttonLabel || 'Edit Post').split(/\s+/);
+  const twoLine = parts.length >= 2;
+
   return (
-    <button type="button" className="button" onClick={handleButtonClick}>
-      {buttonLabel}
+    <button type="button" className="button" onClick={handleButtonClick} style={compactStyle}>
+      {twoLine ? (
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+          <span>{parts[0]}</span>
+          <span>{parts.slice(1).join(' ')}</span>
+        </span>
+      ) : (
+        buttonLabel
+      )}
     </button>
   );
 }

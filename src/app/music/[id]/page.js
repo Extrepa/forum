@@ -239,8 +239,24 @@ export default async function MusicDetailPage({ params, searchParams }) {
             {isAdmin ? (
               <form action={`/api/music/${post.id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={post.is_locked ? '0' : '1'} />
-                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
-                  {post.is_locked ? 'Unlock comments' : 'Lock comments'}
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '4px 8px',
+                    minWidth: '56px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{post.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>comments</span>
+                  </span>
                 </button>
               </form>
             ) : null}

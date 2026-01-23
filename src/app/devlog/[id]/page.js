@@ -297,8 +297,24 @@ export default async function DevLogDetailPage({ params, searchParams }) {
             {isAdmin ? (
               <form action={`/api/devlog/${log.id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
-                <button type="submit" style={{ fontSize: '14px', padding: '6px 12px' }}>
-                  {log.is_locked ? 'Unlock comments' : 'Lock comments'}
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '4px 8px',
+                    minWidth: '56px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{log.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>comments</span>
+                  </span>
                 </button>
               </form>
             ) : null}
