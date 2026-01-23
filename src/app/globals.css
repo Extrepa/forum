@@ -517,6 +517,11 @@ header.header--search-open {
   .nav-inline--more {
     display: none;
   }
+
+  /* Hide SearchBar in header-right-controls when bottom controls are shown */
+  .header-right-controls .header-search-container {
+    display: none;
+  }
 }
 
 /* Right-side header controls (Account + Search) */

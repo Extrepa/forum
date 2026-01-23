@@ -696,7 +696,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
                     <span>{safeThreadIsLocked ? 'Unlock' : 'Lock'}</span>
-                    <span>comments</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>

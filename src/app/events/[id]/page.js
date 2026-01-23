@@ -297,7 +297,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
                     <span>{event.is_locked ? 'Unlock' : 'Lock'}</span>
-                    <span>comments</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>
