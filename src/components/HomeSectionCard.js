@@ -25,24 +25,27 @@ export default function HomeSectionCard({ title, description, count, recentActiv
     <>
       <Username
         name={recentActivity.activityAuthor}
-        colorIndex={getUsernameColorIndex(recentActivity.activityAuthor)}
+        colorIndex={getUsernameColorIndex(recentActivity.activityAuthor, { preferredColorIndex: recentActivity.activityAuthorColorPreference })}
+        preferredColorIndex={recentActivity.activityAuthorColorPreference}
       />
       {recentActivity.type === 'comment' ? ' commented on ' : ' replied to '}
       <span style={{ color: 'var(--errl-accent-3)' }}>{recentActivity.postTitle}</span>
       {' by '}
       <Username
         name={recentActivity.postAuthor}
-        colorIndex={getUsernameColorIndex(recentActivity.postAuthor)}
+        colorIndex={getUsernameColorIndex(recentActivity.postAuthor, { preferredColorIndex: recentActivity.postAuthorColorPreference })}
+        preferredColorIndex={recentActivity.postAuthorColorPreference}
       />
     </>
   ) : (
     <>
       <Username
-        name={recentActivity.postAuthor}
-        colorIndex={getUsernameColorIndex(recentActivity.postAuthor)}
+        name={recentActivity.postAuthor || recentActivity.author}
+        colorIndex={getUsernameColorIndex(recentActivity.postAuthor || recentActivity.author, { preferredColorIndex: recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference })}
+        preferredColorIndex={recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference}
       />
       {' posted '}
-      <span style={{ color: 'var(--errl-accent-3)' }}>{recentActivity.postTitle}</span>
+      <span style={{ color: 'var(--errl-accent-3)' }}>{recentActivity.postTitle || recentActivity.title}</span>
     </>
   );
 

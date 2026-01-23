@@ -5,7 +5,7 @@ import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatTimeAgo } from '../lib/dates';
 
-export default function HomeRecentFeed({ recentPosts, usernameColorMap }) {
+export default function HomeRecentFeed({ recentPosts, usernameColorMap, preferredColors }) {
   if (!recentPosts || recentPosts.length === 0) {
     return null;
   }
@@ -15,7 +15,8 @@ export default function HomeRecentFeed({ recentPosts, usernameColorMap }) {
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Recent Activity</h3>
       <div className="list">
         {recentPosts.map((activity) => {
-          const colorIndex = usernameColorMap?.get(activity.author_name) ?? getUsernameColorIndex(activity.author_name);
+          const preferredColor = activity.author_color_preference !== null && activity.author_color_preference !== undefined ? Number(activity.author_color_preference) : null;
+          const colorIndex = usernameColorMap?.get(activity.author_name) ?? getUsernameColorIndex(activity.author_name, { preferredColorIndex: preferredColor });
           const isReplyOrComment = activity.activity_type?.includes('_reply') || activity.activity_type?.includes('_comment');
           
           return (
@@ -34,7 +35,16 @@ export default function HomeRecentFeed({ recentPosts, usernameColorMap }) {
                     {activity.parent_author && (
                       <>
                         {' by '}
-                        <Username name={activity.parent_author} colorIndex={usernameColorMap?.get(activity.parent_author) ?? getUsernameColorIndex(activity.parent_author)} />
+                        {(() => {
+                          const parentPreferredColor = preferredColors?.get(activity.parent_author);
+                          return (
+                            <Username 
+                              name={activity.parent_author} 
+                              colorIndex={usernameColorMap?.get(activity.parent_author) ?? getUsernameColorIndex(activity.parent_author, { preferredColorIndex: parentPreferredColor })}
+                              preferredColorIndex={parentPreferredColor}
+                            />
+                          );
+                        })()}
                       </>
                     )}
                   </>

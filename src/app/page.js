@@ -75,7 +75,8 @@ export default async function HomePage({ searchParams }) {
     const timelineRecent = await safeFirst(
       db,
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.moved_to_id IS NULL
@@ -83,7 +84,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        ORDER BY timeline_updates.created_at DESC
@@ -104,7 +106,8 @@ export default async function HomePage({ searchParams }) {
     const forumRecentPost = await safeFirst(
       db,
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
@@ -113,7 +116,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        ORDER BY forum_threads.created_at DESC
@@ -129,7 +133,9 @@ export default async function HomePage({ searchParams }) {
           `SELECT forum_replies.created_at,
                   forum_threads.id AS thread_id, forum_threads.title AS thread_title,
                   reply_users.username AS reply_author,
-                  thread_users.username AS thread_author
+                  reply_users.preferred_username_color_index AS reply_author_color_preference,
+                  thread_users.username AS thread_author,
+                  thread_users.preferred_username_color_index AS thread_author_color_preference
            FROM forum_replies
            JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
            JOIN users AS reply_users ON reply_users.id = forum_replies.author_user_id
@@ -153,7 +159,9 @@ export default async function HomePage({ searchParams }) {
           postId: forumRecentReply.thread_id,
           postTitle: forumRecentReply.thread_title,
           postAuthor: forumRecentReply.thread_author,
+          postAuthorColorPreference: forumRecentReply.thread_author_color_preference !== null && forumRecentReply.thread_author_color_preference !== undefined ? Number(forumRecentReply.thread_author_color_preference) : null,
           activityAuthor: forumRecentReply.reply_author,
+          activityAuthorColorPreference: forumRecentReply.reply_author_color_preference !== null && forumRecentReply.reply_author_color_preference !== undefined ? Number(forumRecentReply.reply_author_color_preference) : null,
           createdAt: forumRecentReply.created_at,
           href: `/lobby/${forumRecentReply.thread_id}`
         };
@@ -163,7 +171,9 @@ export default async function HomePage({ searchParams }) {
           postId: forumRecentPost.id,
           postTitle: forumRecentPost.title,
           postAuthor: forumRecentPost.author_name,
+          postAuthorColorPreference: forumRecentPost.author_color_preference !== null && forumRecentPost.author_color_preference !== undefined ? Number(forumRecentPost.author_color_preference) : null,
           activityAuthor: forumRecentPost.author_name,
+          activityAuthorColorPreference: forumRecentPost.author_color_preference !== null && forumRecentPost.author_color_preference !== undefined ? Number(forumRecentPost.author_color_preference) : null,
           createdAt: forumRecentPost.created_at,
           href: `/lobby/${forumRecentPost.id}`
         };
@@ -202,7 +212,8 @@ export default async function HomePage({ searchParams }) {
     const eventsRecentPost = await safeFirst(
       db,
       `SELECT events.id, events.title, events.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM events
        JOIN users ON users.id = events.author_user_id
        WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
@@ -211,7 +222,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT events.id, events.title, events.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM events
        JOIN users ON users.id = events.author_user_id
        ORDER BY events.created_at DESC
@@ -226,7 +238,9 @@ export default async function HomePage({ searchParams }) {
           `SELECT event_comments.created_at,
                   events.id AS event_id, events.title AS event_title,
                   comment_users.username AS comment_author,
-                  event_users.username AS event_author
+                  comment_users.preferred_username_color_index AS comment_author_color_preference,
+                  event_users.username AS event_author,
+                  event_users.preferred_username_color_index AS event_author_color_preference
            FROM event_comments
            JOIN events ON events.id = event_comments.event_id
            JOIN users AS comment_users ON comment_users.id = event_comments.author_user_id
@@ -249,7 +263,9 @@ export default async function HomePage({ searchParams }) {
           postId: eventsRecentComment.event_id,
           postTitle: eventsRecentComment.event_title,
           postAuthor: eventsRecentComment.event_author,
+          postAuthorColorPreference: eventsRecentComment.event_author_color_preference !== null && eventsRecentComment.event_author_color_preference !== undefined ? Number(eventsRecentComment.event_author_color_preference) : null,
           activityAuthor: eventsRecentComment.comment_author,
+          activityAuthorColorPreference: eventsRecentComment.comment_author_color_preference !== null && eventsRecentComment.comment_author_color_preference !== undefined ? Number(eventsRecentComment.comment_author_color_preference) : null,
           createdAt: eventsRecentComment.created_at,
           href: `/events/${eventsRecentComment.event_id}`
         };
@@ -259,7 +275,9 @@ export default async function HomePage({ searchParams }) {
           postId: eventsRecentPost.id,
           postTitle: eventsRecentPost.title,
           postAuthor: eventsRecentPost.author_name,
+          postAuthorColorPreference: eventsRecentPost.author_color_preference !== null && eventsRecentPost.author_color_preference !== undefined ? Number(eventsRecentPost.author_color_preference) : null,
           activityAuthor: eventsRecentPost.author_name,
+          activityAuthorColorPreference: eventsRecentPost.author_color_preference !== null && eventsRecentPost.author_color_preference !== undefined ? Number(eventsRecentPost.author_color_preference) : null,
           createdAt: eventsRecentPost.created_at,
           href: `/events/${eventsRecentPost.id}`
         };
@@ -270,7 +288,9 @@ export default async function HomePage({ searchParams }) {
         postId: eventsRecentPost.id,
         postTitle: eventsRecentPost.title,
         postAuthor: eventsRecentPost.author_name,
+        postAuthorColorPreference: eventsRecentPost.author_color_preference !== null && eventsRecentPost.author_color_preference !== undefined ? Number(eventsRecentPost.author_color_preference) : null,
         activityAuthor: eventsRecentPost.author_name,
+        activityAuthorColorPreference: eventsRecentPost.author_color_preference !== null && eventsRecentPost.author_color_preference !== undefined ? Number(eventsRecentPost.author_color_preference) : null,
         createdAt: eventsRecentPost.created_at,
         href: `/events/${eventsRecentPost.id}`
       };
@@ -280,7 +300,9 @@ export default async function HomePage({ searchParams }) {
         postId: eventsRecentComment.event_id,
         postTitle: eventsRecentComment.event_title,
         postAuthor: eventsRecentComment.event_author,
+        postAuthorColorPreference: eventsRecentComment.event_author_color_preference !== null && eventsRecentComment.event_author_color_preference !== undefined ? Number(eventsRecentComment.event_author_color_preference) : null,
         activityAuthor: eventsRecentComment.comment_author,
+        activityAuthorColorPreference: eventsRecentComment.comment_author_color_preference !== null && eventsRecentComment.comment_author_color_preference !== undefined ? Number(eventsRecentComment.comment_author_color_preference) : null,
         createdAt: eventsRecentComment.created_at,
         href: `/events/${eventsRecentComment.event_id}`
       };
@@ -298,7 +320,8 @@ export default async function HomePage({ searchParams }) {
     const musicRecentPost = await safeFirst(
       db,
       `SELECT music_posts.id, music_posts.title, music_posts.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
@@ -307,7 +330,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT music_posts.id, music_posts.title, music_posts.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        ORDER BY music_posts.created_at DESC
@@ -322,7 +346,9 @@ export default async function HomePage({ searchParams }) {
           `SELECT music_comments.created_at,
                   music_posts.id AS post_id, music_posts.title AS post_title,
                   comment_users.username AS comment_author,
-                  post_users.username AS post_author
+                  comment_users.preferred_username_color_index AS comment_author_color_preference,
+                  post_users.username AS post_author,
+                  post_users.preferred_username_color_index AS post_author_color_preference
            FROM music_comments
            JOIN music_posts ON music_posts.id = music_comments.post_id
            JOIN users AS comment_users ON comment_users.id = music_comments.author_user_id
@@ -345,7 +371,9 @@ export default async function HomePage({ searchParams }) {
           postId: musicRecentComment.post_id,
           postTitle: musicRecentComment.post_title,
           postAuthor: musicRecentComment.post_author,
+          postAuthorColorPreference: musicRecentComment.post_author_color_preference !== null && musicRecentComment.post_author_color_preference !== undefined ? Number(musicRecentComment.post_author_color_preference) : null,
           activityAuthor: musicRecentComment.comment_author,
+          activityAuthorColorPreference: musicRecentComment.comment_author_color_preference !== null && musicRecentComment.comment_author_color_preference !== undefined ? Number(musicRecentComment.comment_author_color_preference) : null,
           createdAt: musicRecentComment.created_at,
           href: `/music/${musicRecentComment.post_id}`
         };
@@ -355,7 +383,9 @@ export default async function HomePage({ searchParams }) {
           postId: musicRecentPost.id,
           postTitle: musicRecentPost.title,
           postAuthor: musicRecentPost.author_name,
+          postAuthorColorPreference: musicRecentPost.author_color_preference !== null && musicRecentPost.author_color_preference !== undefined ? Number(musicRecentPost.author_color_preference) : null,
           activityAuthor: musicRecentPost.author_name,
+          activityAuthorColorPreference: musicRecentPost.author_color_preference !== null && musicRecentPost.author_color_preference !== undefined ? Number(musicRecentPost.author_color_preference) : null,
           createdAt: musicRecentPost.created_at,
           href: `/music/${musicRecentPost.id}`
         };
@@ -366,7 +396,9 @@ export default async function HomePage({ searchParams }) {
         postId: musicRecentPost.id,
         postTitle: musicRecentPost.title,
         postAuthor: musicRecentPost.author_name,
+        postAuthorColorPreference: musicRecentPost.author_color_preference !== null && musicRecentPost.author_color_preference !== undefined ? Number(musicRecentPost.author_color_preference) : null,
         activityAuthor: musicRecentPost.author_name,
+        activityAuthorColorPreference: musicRecentPost.author_color_preference !== null && musicRecentPost.author_color_preference !== undefined ? Number(musicRecentPost.author_color_preference) : null,
         createdAt: musicRecentPost.created_at,
         href: `/music/${musicRecentPost.id}`
       };
@@ -376,7 +408,9 @@ export default async function HomePage({ searchParams }) {
         postId: musicRecentComment.post_id,
         postTitle: musicRecentComment.post_title,
         postAuthor: musicRecentComment.post_author,
+        postAuthorColorPreference: musicRecentComment.post_author_color_preference !== null && musicRecentComment.post_author_color_preference !== undefined ? Number(musicRecentComment.post_author_color_preference) : null,
         activityAuthor: musicRecentComment.comment_author,
+        activityAuthorColorPreference: musicRecentComment.comment_author_color_preference !== null && musicRecentComment.comment_author_color_preference !== undefined ? Number(musicRecentComment.comment_author_color_preference) : null,
         createdAt: musicRecentComment.created_at,
         href: `/music/${musicRecentComment.post_id}`
       };
@@ -394,7 +428,8 @@ export default async function HomePage({ searchParams }) {
     const projectsRecentPost = await safeFirst(
       db,
       `SELECT projects.id, projects.title, projects.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
@@ -403,7 +438,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT projects.id, projects.title, projects.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        ORDER BY projects.created_at DESC
@@ -418,7 +454,9 @@ export default async function HomePage({ searchParams }) {
           `SELECT project_replies.created_at,
                   projects.id AS project_id, projects.title AS project_title,
                   reply_users.username AS reply_author,
-                  project_users.username AS project_author
+                  reply_users.preferred_username_color_index AS reply_author_color_preference,
+                  project_users.username AS project_author,
+                  project_users.preferred_username_color_index AS project_author_color_preference
            FROM project_replies
            JOIN projects ON projects.id = project_replies.project_id
            JOIN users AS reply_users ON reply_users.id = project_replies.author_user_id
@@ -441,7 +479,9 @@ export default async function HomePage({ searchParams }) {
           postId: projectsRecentReply.project_id,
           postTitle: projectsRecentReply.project_title,
           postAuthor: projectsRecentReply.project_author,
+          postAuthorColorPreference: projectsRecentReply.project_author_color_preference !== null && projectsRecentReply.project_author_color_preference !== undefined ? Number(projectsRecentReply.project_author_color_preference) : null,
           activityAuthor: projectsRecentReply.reply_author,
+          activityAuthorColorPreference: projectsRecentReply.reply_author_color_preference !== null && projectsRecentReply.reply_author_color_preference !== undefined ? Number(projectsRecentReply.reply_author_color_preference) : null,
           createdAt: projectsRecentReply.created_at,
           href: `/projects/${projectsRecentReply.project_id}`
         };
@@ -451,7 +491,9 @@ export default async function HomePage({ searchParams }) {
           postId: projectsRecentPost.id,
           postTitle: projectsRecentPost.title,
           postAuthor: projectsRecentPost.author_name,
+          postAuthorColorPreference: projectsRecentPost.author_color_preference !== null && projectsRecentPost.author_color_preference !== undefined ? Number(projectsRecentPost.author_color_preference) : null,
           activityAuthor: projectsRecentPost.author_name,
+          activityAuthorColorPreference: projectsRecentPost.author_color_preference !== null && projectsRecentPost.author_color_preference !== undefined ? Number(projectsRecentPost.author_color_preference) : null,
           createdAt: projectsRecentPost.created_at,
           href: `/projects/${projectsRecentPost.id}`
         };
@@ -462,7 +504,9 @@ export default async function HomePage({ searchParams }) {
         postId: projectsRecentPost.id,
         postTitle: projectsRecentPost.title,
         postAuthor: projectsRecentPost.author_name,
+        postAuthorColorPreference: projectsRecentPost.author_color_preference !== null && projectsRecentPost.author_color_preference !== undefined ? Number(projectsRecentPost.author_color_preference) : null,
         activityAuthor: projectsRecentPost.author_name,
+        activityAuthorColorPreference: projectsRecentPost.author_color_preference !== null && projectsRecentPost.author_color_preference !== undefined ? Number(projectsRecentPost.author_color_preference) : null,
         createdAt: projectsRecentPost.created_at,
         href: `/projects/${projectsRecentPost.id}`
       };
@@ -472,7 +516,9 @@ export default async function HomePage({ searchParams }) {
         postId: projectsRecentReply.project_id,
         postTitle: projectsRecentReply.project_title,
         postAuthor: projectsRecentReply.project_author,
+        postAuthorColorPreference: projectsRecentReply.project_author_color_preference !== null && projectsRecentReply.project_author_color_preference !== undefined ? Number(projectsRecentReply.project_author_color_preference) : null,
         activityAuthor: projectsRecentReply.reply_author,
+        activityAuthorColorPreference: projectsRecentReply.reply_author_color_preference !== null && projectsRecentReply.reply_author_color_preference !== undefined ? Number(projectsRecentReply.reply_author_color_preference) : null,
         createdAt: projectsRecentReply.created_at,
         href: `/projects/${projectsRecentReply.project_id}`
       };
@@ -489,7 +535,8 @@ export default async function HomePage({ searchParams }) {
     const shitpostsRecent = await safeFirst(
       db,
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.image_key IS NOT NULL
@@ -498,7 +545,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.image_key IS NOT NULL
@@ -518,7 +566,8 @@ export default async function HomePage({ searchParams }) {
     const artNostalgiaRecent = await safeFirst(
       db,
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('art', 'nostalgia')
@@ -527,7 +576,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('art', 'nostalgia')
@@ -547,7 +597,8 @@ export default async function HomePage({ searchParams }) {
     const bugsRantRecent = await safeFirst(
       db,
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('bugs', 'rant')
@@ -556,7 +607,8 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       [],
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
-              users.username AS author_name
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('bugs', 'rant')
@@ -581,7 +633,8 @@ export default async function HomePage({ searchParams }) {
         const devlogRecentPost = await safeFirst(
           db,
           `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
@@ -589,7 +642,8 @@ export default async function HomePage({ searchParams }) {
            LIMIT 1`,
           [],
           `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            ORDER BY dev_logs.created_at DESC
@@ -604,7 +658,9 @@ export default async function HomePage({ searchParams }) {
               `SELECT dev_log_comments.created_at,
                       dev_logs.id AS log_id, dev_logs.title AS log_title,
                       comment_users.username AS comment_author,
-                      log_users.username AS log_author
+                      comment_users.preferred_username_color_index AS comment_author_color_preference,
+                      log_users.username AS log_author,
+                      log_users.preferred_username_color_index AS log_author_color_preference
                FROM dev_log_comments
                JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
                JOIN users AS comment_users ON comment_users.id = dev_log_comments.author_user_id
@@ -626,7 +682,9 @@ export default async function HomePage({ searchParams }) {
               postId: devlogRecentComment.log_id,
               postTitle: devlogRecentComment.log_title,
               postAuthor: devlogRecentComment.log_author,
+              postAuthorColorPreference: devlogRecentComment.log_author_color_preference !== null && devlogRecentComment.log_author_color_preference !== undefined ? Number(devlogRecentComment.log_author_color_preference) : null,
               activityAuthor: devlogRecentComment.comment_author,
+              activityAuthorColorPreference: devlogRecentComment.comment_author_color_preference !== null && devlogRecentComment.comment_author_color_preference !== undefined ? Number(devlogRecentComment.comment_author_color_preference) : null,
               createdAt: devlogRecentComment.created_at,
               href: `/devlog/${devlogRecentComment.log_id}`
             };
@@ -636,7 +694,9 @@ export default async function HomePage({ searchParams }) {
               postId: devlogRecentPost.id,
               postTitle: devlogRecentPost.title,
               postAuthor: devlogRecentPost.author_name,
+              postAuthorColorPreference: devlogRecentPost.author_color_preference !== null && devlogRecentPost.author_color_preference !== undefined ? Number(devlogRecentPost.author_color_preference) : null,
               activityAuthor: devlogRecentPost.author_name,
+              activityAuthorColorPreference: devlogRecentPost.author_color_preference !== null && devlogRecentPost.author_color_preference !== undefined ? Number(devlogRecentPost.author_color_preference) : null,
               createdAt: devlogRecentPost.created_at,
               href: `/devlog/${devlogRecentPost.id}`
             };
@@ -647,7 +707,9 @@ export default async function HomePage({ searchParams }) {
             postId: devlogRecentPost.id,
             postTitle: devlogRecentPost.title,
             postAuthor: devlogRecentPost.author_name,
+            postAuthorColorPreference: devlogRecentPost.author_color_preference !== null && devlogRecentPost.author_color_preference !== undefined ? Number(devlogRecentPost.author_color_preference) : null,
             activityAuthor: devlogRecentPost.author_name,
+            activityAuthorColorPreference: devlogRecentPost.author_color_preference !== null && devlogRecentPost.author_color_preference !== undefined ? Number(devlogRecentPost.author_color_preference) : null,
             createdAt: devlogRecentPost.created_at,
             href: `/devlog/${devlogRecentPost.id}`
           };
@@ -657,7 +719,9 @@ export default async function HomePage({ searchParams }) {
             postId: devlogRecentComment.log_id,
             postTitle: devlogRecentComment.log_title,
             postAuthor: devlogRecentComment.log_author,
+            postAuthorColorPreference: devlogRecentComment.log_author_color_preference !== null && devlogRecentComment.log_author_color_preference !== undefined ? Number(devlogRecentComment.log_author_color_preference) : null,
             activityAuthor: devlogRecentComment.comment_author,
+            activityAuthorColorPreference: devlogRecentComment.comment_author_color_preference !== null && devlogRecentComment.comment_author_color_preference !== undefined ? Number(devlogRecentComment.comment_author_color_preference) : null,
             createdAt: devlogRecentComment.created_at,
             href: `/devlog/${devlogRecentComment.log_id}`
           };
@@ -682,7 +746,8 @@ export default async function HomePage({ searchParams }) {
         loreMemoriesRecent = await safeFirst(
           db,
           `SELECT posts.id, posts.title, posts.created_at, posts.type,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('lore', 'memories')
@@ -690,7 +755,8 @@ export default async function HomePage({ searchParams }) {
            LIMIT 1`,
           [],
           `SELECT posts.id, posts.title, posts.created_at, posts.type,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('lore', 'memories')
@@ -711,6 +777,7 @@ export default async function HomePage({ searchParams }) {
               id: timelineRecent.id,
               title: timelineRecent.title,
               author: timelineRecent.author_name,
+              authorColorPreference: timelineRecent.author_color_preference !== null && timelineRecent.author_color_preference !== undefined ? Number(timelineRecent.author_color_preference) : null,
               timeAgo: formatTimeAgo(timelineRecent.created_at),
               url: `/announcements/${timelineRecent.id}`
             }
@@ -724,7 +791,9 @@ export default async function HomePage({ searchParams }) {
               postId: forumRecent.postId,
               postTitle: forumRecent.postTitle,
               postAuthor: forumRecent.postAuthor,
+              postAuthorColorPreference: forumRecent.postAuthorColorPreference,
               activityAuthor: forumRecent.activityAuthor,
+              activityAuthorColorPreference: forumRecent.activityAuthorColorPreference,
               timeAgo: formatTimeAgo(forumRecent.createdAt),
               href: forumRecent.href
             }
@@ -738,7 +807,9 @@ export default async function HomePage({ searchParams }) {
               postId: eventsRecent.postId,
               postTitle: eventsRecent.postTitle,
               postAuthor: eventsRecent.postAuthor,
+              postAuthorColorPreference: eventsRecent.postAuthorColorPreference,
               activityAuthor: eventsRecent.activityAuthor,
+              activityAuthorColorPreference: eventsRecent.activityAuthorColorPreference,
               timeAgo: formatTimeAgo(eventsRecent.createdAt),
               href: eventsRecent.href
             }
@@ -752,7 +823,9 @@ export default async function HomePage({ searchParams }) {
               postId: musicRecent.postId,
               postTitle: musicRecent.postTitle,
               postAuthor: musicRecent.postAuthor,
+              postAuthorColorPreference: musicRecent.postAuthorColorPreference,
               activityAuthor: musicRecent.activityAuthor,
+              activityAuthorColorPreference: musicRecent.activityAuthorColorPreference,
               timeAgo: formatTimeAgo(musicRecent.createdAt),
               href: musicRecent.href
             }
@@ -766,7 +839,9 @@ export default async function HomePage({ searchParams }) {
               postId: projectsRecent.postId,
               postTitle: projectsRecent.postTitle,
               postAuthor: projectsRecent.postAuthor,
+              postAuthorColorPreference: projectsRecent.postAuthorColorPreference,
               activityAuthor: projectsRecent.activityAuthor,
+              activityAuthorColorPreference: projectsRecent.activityAuthorColorPreference,
               timeAgo: formatTimeAgo(projectsRecent.createdAt),
               href: projectsRecent.href
             }
@@ -779,6 +854,7 @@ export default async function HomePage({ searchParams }) {
               id: shitpostsRecent.id,
               title: shitpostsRecent.title,
               author: shitpostsRecent.author_name,
+              authorColorPreference: shitpostsRecent.author_color_preference !== null && shitpostsRecent.author_color_preference !== undefined ? Number(shitpostsRecent.author_color_preference) : null,
               timeAgo: formatTimeAgo(shitpostsRecent.created_at),
               url: `/lobby/${shitpostsRecent.id}`
             }
@@ -791,6 +867,7 @@ export default async function HomePage({ searchParams }) {
               id: artNostalgiaRecent.id,
               title: artNostalgiaRecent.title || 'Untitled',
               author: artNostalgiaRecent.author_name,
+              authorColorPreference: artNostalgiaRecent.author_color_preference !== null && artNostalgiaRecent.author_color_preference !== undefined ? Number(artNostalgiaRecent.author_color_preference) : null,
               timeAgo: formatTimeAgo(artNostalgiaRecent.created_at),
               url: `/${artNostalgiaRecent.type}/${artNostalgiaRecent.id}`
             }
@@ -803,6 +880,7 @@ export default async function HomePage({ searchParams }) {
               id: bugsRantRecent.id,
               title: bugsRantRecent.title || (bugsRantRecent.type === 'bugs' ? 'Bug report' : 'Untitled'),
               author: bugsRantRecent.author_name,
+              authorColorPreference: bugsRantRecent.author_color_preference !== null && bugsRantRecent.author_color_preference !== undefined ? Number(bugsRantRecent.author_color_preference) : null,
               timeAgo: formatTimeAgo(bugsRantRecent.created_at),
               url: `/${bugsRantRecent.type}/${bugsRantRecent.id}`
             }
@@ -816,7 +894,9 @@ export default async function HomePage({ searchParams }) {
               postId: devlogRecent.postId,
               postTitle: devlogRecent.postTitle,
               postAuthor: devlogRecent.postAuthor,
+              postAuthorColorPreference: devlogRecent.postAuthorColorPreference,
               activityAuthor: devlogRecent.activityAuthor,
+              activityAuthorColorPreference: devlogRecent.activityAuthorColorPreference,
               timeAgo: formatTimeAgo(devlogRecent.createdAt),
               href: devlogRecent.href
             }
@@ -829,6 +909,7 @@ export default async function HomePage({ searchParams }) {
               id: loreMemoriesRecent.id,
               title: loreMemoriesRecent.title || 'Untitled',
               author: loreMemoriesRecent.author_name,
+              authorColorPreference: loreMemoriesRecent.author_color_preference !== null && loreMemoriesRecent.author_color_preference !== undefined ? Number(loreMemoriesRecent.author_color_preference) : null,
               timeAgo: formatTimeAgo(loreMemoriesRecent.created_at),
               url: `/lore-memories/${loreMemoriesRecent.id}`
             }
@@ -976,7 +1057,7 @@ export default async function HomePage({ searchParams }) {
           for (const activity of recentActivityResult.results) {
             try {
               const authorResult = await db
-                .prepare('SELECT username FROM users WHERE id = ?')
+                .prepare('SELECT username, preferred_username_color_index FROM users WHERE id = ?')
                 .bind(activity.author_user_id)
                 .first();
               
@@ -984,6 +1065,7 @@ export default async function HomePage({ searchParams }) {
                 id: activity.id,
                 title: activity.title || activity.parent_title || 'Untitled',
                 author_name: authorResult?.username || 'Unknown',
+                author_color_preference: authorResult?.preferred_username_color_index !== null && authorResult?.preferred_username_color_index !== undefined ? Number(authorResult.preferred_username_color_index) : null,
                 created_at: activity.created_at,
                 section: activity.section,
                 activity_type: activity.activity_type,
@@ -1013,12 +1095,43 @@ export default async function HomePage({ searchParams }) {
     }
   }
 
-  // Assign unique colors to all usernames in recent activity feed
+  // Build preferences map and assign unique colors to all usernames in recent activity feed
   const allUsernames = [
     ...recentPosts.map(p => p.author_name),
     ...recentPosts.map(p => p.parent_author).filter(Boolean)
   ].filter(Boolean);
-  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)]);
+  
+  // Build map of username -> preferred color index
+  const preferredColors = new Map();
+  recentPosts.forEach(p => {
+    if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
+      preferredColors.set(p.author_name, Number(p.author_color_preference));
+    }
+  });
+  // Also get preferences for parent authors (need to fetch separately)
+  const uniqueParentAuthors = [...new Set(recentPosts.map(p => p.parent_author).filter(Boolean))];
+  if (uniqueParentAuthors.length > 0) {
+    try {
+      const db = await getDb();
+      for (const parentAuthor of uniqueParentAuthors) {
+        try {
+          const parentResult = await db
+            .prepare('SELECT preferred_username_color_index FROM users WHERE username = ?')
+            .bind(parentAuthor)
+            .first();
+          if (parentResult?.preferred_username_color_index !== null && parentResult?.preferred_username_color_index !== undefined) {
+            preferredColors.set(parentAuthor, Number(parentResult.preferred_username_color_index));
+          }
+        } catch (e) {
+          // Skip if lookup fails
+        }
+      }
+    } catch (e) {
+      // DB might not be available
+    }
+  }
+  
+  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
 
   return (
     <div className="stack">
@@ -1030,7 +1143,7 @@ export default async function HomePage({ searchParams }) {
         <>
           <HomeWelcome user={user} />
           <HomeStats stats={stats} />
-          <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} />
+          <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} preferredColors={preferredColors} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">
