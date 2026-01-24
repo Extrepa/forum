@@ -1,9 +1,10 @@
 export const errlForumStrings = {
   header: {
     title: 'Errl Forum',
-    subtitle: 'Drops, devlogs, and drip-certified community chaos.'
+    subtitle: 'Pulled together by chance and light.'
   },
   hero: {
+    title: 'Welcome to the Errl Forum',
     // For UIs that render the username as a component (styled), use prefix/suffix.
     greetingPrefix: 'Welcome back',
     greetingSuffix: '.',
@@ -103,27 +104,38 @@ export const errlForumStrings = {
   ],
   loreAlternatives: {
     header: {
-      subtitle: 'Where wonder meets community.'
+      subtitle: 'The drip that followed us home.'
     },
     hero: {
-      greetingWithUser: 'Welcome back, {username}. The Nomads saved your spot.',
-      subline: 'Fresh transmissions detected in:'
+      title: 'Welcome to the Errl Forum',
+      greetingWithUser: 'Welcome back, {username}. The drip that followed us home.',
+      subline: 'Latest drips collected in:'
     },
     actions: {
-      newPost: 'Open a Portal',
+      newPost: 'Drop a Drip',
       reply: 'Echo Back',
-      like: 'Empathy Approved'
-    },
-    footer: {
-      tagline: 'EMPATHY FIRST. WONDER ALWAYS. ERRL FOREVER.'
+      like: 'Drip Approved'
     },
     easterEggs: [
-      'The Projectionist is watching. (Be kind.)',
-      'Portal Keepers maintain this connection.',
-      'Nomads guide, but you choose your path.',
-      'Empathy learned immediately. Wonder permanent.',
-      'Face never changes. Body expresses everything.'
-    ]
+      'Errl was born May 1, 2015. Pulled together by chance and light.',
+      'Effervescent Remnant of Radical Liminality.',
+      'The drip that followed us home.',
+      'Geoff found Errl in the projector goo. The Nomads made it real.',
+      'Face never changes. Body expresses everything.',
+      'Consistency inside chaos. The world melts; the vibe holds.',
+      "From Mayday Heyday to the Portal—Errl's journey continues."
+    ],
+    cards: {
+      loreMemories: {
+        title: 'Lore & Memories',
+        description: "Errl's story and history, Nomad history, and everything since Mayday Heyday.",
+        empty: "No lore yet. The story starts May 1, 2015. What's your Errl story?"
+      }
+    },
+    search: {
+      placeholder: "Search the Nomads' story…",
+      noResults: "Nothing found. The goo keeps its secrets."
+    }
   }
 };
 

@@ -152,6 +152,38 @@ gap: 12px;
 - **SiteHeader.js**: `menuExpandedRef`, click-outside check for both `menuRef` and `menuExpandedRef`, and `ref={menuExpandedRef}` on `nav-menu-expanded` confirmed (mobile nav fix).
 - No linter errors on modified files.
 
+## Branch cleanup (2026-01-23)
+
+**Merged-into-main branches deleted (local + remote):**
+- `feat/auth-form-improvements`
+- `feat/auth-overhaul-and-post-controls`
+- `feat/notifications-complete`
+- `feat/profile-enhancements`
+- `feature/profile-enhancements`
+- `fix/devlog-edit-improvements`
+- `fix/ui-improvements-2026-01-22`
+
+**Unmerged branch deleted:** `fix/header-buttons-after-signin`
+- Addressed router.refresh/force-dynamic; main already had equivalent (and landing-page) logic from other merges.
+- Merge was attempted but aborted: repo blocks direct commits to `main` (hook). Resolved conflicts by keeping HEAD; no merge commit.
+
+**Result:** Only `main` remains locally and on `origin`. All feature/fix branches removed.
+
+## Double-check verification (2026-01-23)
+
+- **Git:** `main` only; up to date with `origin/main`; clean working tree. `git fetch` + `git status` + `git branch -a` confirmed.
+- **Profile implementation:** `account-profile-card`, `account-profile-tabs`, `tabBase`/`textAlign: 'center'`, grid `minmax(0,1fr)`, profile content `minWidth: 0; maxWidth: 100%` (no `overflow: hidden`), color `flex: '0 0 auto'`, `size = 18`, gap `4px` — all present.
+- **globals.css:** `.account-profile-card` and `.stack { min-width: 0 }` verified.
+- **SiteHeader:** `menuExpandedRef` and click-outside logic confirmed.
+- **Build:** `npm run build` completes successfully.
+
+## Errl Lore doc (2026-01-23)
+
+- Added `docs/Errl-Lore.md`: single Markdown lore document synthesizing content from `~/Downloads/Errl` (origin, character, design, symbolism, Errl World, projects, collaborators, tech). Fancy formatting (tables, horizontal rules, blockquotes). User can correct as needed; suitable as reference or copy-paste base for a forum lore post.
+- **Updated** `docs/Errl-Lore.md` with Errl 2 + Errl 3: paper-canon origin (Bend, dome, sheriff/Pat, Geoff’s Petri-dish ritual, York Signs sticker, badge meaning, James’s house, warehouse builds, glowing totem, 10 years, Errl Hunt, Errl Camp, The Happening, Clubhouse, Fireball pinball). Added ERRM name table, two truths, origin vignette; expanded Character, Design, Symbolism; Universe physics & lore themes; Errl Club Simulator; “loop of goo”; canon guardrails; collaborators. Subtitle credits Errl 2 / Errl 3 / “Between the Glow.”
+- **Plan execution:** (1) `Errl-Lore.md`: removed Emery/Errl doll; added Nomads **Chachie, Tim, Midori, Christian, Alex, Sam, Joel, Katie, Tadelle** (and others—the list grows). (2) Consistency check: dates, names, terms OK. (3) `docs/Errl-Lore-Narrative.md`: story-style “Between the Glow and the Gathering.” (4) `docs/Errl-Lore-Forum-Post.md`: forum-ready post for Lore & Memories. (5) `docs/Errl-Lore-Delete-And-Post-Prep.md`: what to delete (Errl, Errl 2, Errl 3 in Downloads), post prep notes, title options.
+- **Lore mode & header (plan):** Implemented full lore-mode + header updates. **Header:** base subtitle → “Pulled together by chance and light.”; lore stays “The drip that followed us home.” **Hero:** added `hero.title` (base + lore); lore `greetingWithUser` → “The drip that followed us home.”, `subline` → “Latest drips collected in:”. **Footer:** removed `loreAlternatives.footer` so footer always uses base tagline. **Time-based greetings:** updated `TIME_BASED_GREETINGS.lore` in variations.js (morning/afternoon/evening/lateNight) with canon-aligned options. **Actions:** lore → “Drop a Drip”, “Echo Back”, “Drip Approved”. **Easter eggs:** replaced with canon-based set (May 1 2015, ERRL, Geoff/Nomads, etc.). **Cards + search:** added `loreAlternatives.cards.loreMemories` and `loreAlternatives.search`, extended `getForumStrings` to merge them when `useLore`. Build verified.
+
 ## Notes
 
 - All changes maintain existing functionality

@@ -24,8 +24,10 @@ export function getForumStrings({ useLore = false } = {}) {
     header: { ...errlForumStrings.header, ...(lore.header || {}) },
     hero: { ...errlForumStrings.hero, ...(lore.hero || {}) },
     actions: { ...errlForumStrings.actions, ...(lore.actions || {}) },
-    footer: { ...errlForumStrings.footer, ...(lore.footer || {}) },
-    easterEggs: lore.easterEggs || baseEasterEggs
+    footer: errlForumStrings.footer, // Always use base footer (no lore override)
+    easterEggs: lore.easterEggs || baseEasterEggs,
+    cards: { ...errlForumStrings.cards, ...(lore.cards || {}) },
+    search: { ...errlForumStrings.search, ...(lore.search || {}) }
   };
 }
 

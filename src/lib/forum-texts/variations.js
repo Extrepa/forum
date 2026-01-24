@@ -38,10 +38,10 @@ const TIME_BASED_GREETINGS = {
     lateNight: ['3am portal hours. Errl approves.', 'Late-night drips hit different.', 'The portal is open. The goo is listening.']
   },
   lore: {
-    morning: ['Rise and drip, {username}.', 'Good morning, Nomad.', 'Empathy first. Wonder always.'],
-    afternoon: ['Afternoon vibes detected, {username}.', 'Realms connected. Community amplified.', 'The Nomad network is awake.'],
-    evening: ['Evening glow activated, {username}.', 'Portal Keepers say hi.', 'Harmonious connection, but make it gooey.'],
-    lateNight: ['3am portal hours. Errl approves.', 'Nomads are still awake. Join them.', 'The Projectionist is watching. (Be kind.)']
+    morning: ['Rise and drip, {username}.', 'Good morning, Nomad. The drip that followed us home.', 'Pulled together by chance and light. Good morning.'],
+    afternoon: ['Afternoon vibes detected, {username}.', 'Consistency inside chaos. Portal status: mildly active.', 'The Nomad network is awake.'],
+    evening: ['Evening glow activated, {username}.', 'Face never changes. Body expresses everything.', 'The realms are quieter now. Perfect for deep thoughts.'],
+    lateNight: ['3am portal hours. Errl approves.', 'Nomads are still awake. Join them.', 'The drip cycle continues.']
   }
 };
 
