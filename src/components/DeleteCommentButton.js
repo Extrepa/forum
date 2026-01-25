@@ -102,6 +102,31 @@ export default function DeleteCommentButton({
     }
   };
 
+  const iconSize = 14;
+  const baseStyle = {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: iconSize,
+    height: iconSize,
+    minWidth: iconSize,
+    minHeight: iconSize,
+    padding: 0,
+    margin: 0,
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 4,
+    color: 'var(--muted)',
+    cursor: isDeleting ? 'not-allowed' : 'pointer',
+    opacity: isDeleting ? 0.6 : 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: 'none',
+    transform: 'none',
+    transition: 'color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease',
+  };
+
   return (
     <>
       <button
@@ -109,33 +134,21 @@ export default function DeleteCommentButton({
         onClick={() => setShowModal(true)}
         title="Delete"
         disabled={isDeleting}
-        style={{
-          position: 'absolute',
-          top: 4,
-          right: 4,
-          padding: 4,
-          background: 'transparent',
-          border: 'none',
-          borderRadius: 4,
-          color: 'var(--muted)',
-          cursor: isDeleting ? 'not-allowed' : 'pointer',
-          opacity: isDeleting ? 0.6 : 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        style={baseStyle}
         onMouseEnter={(e) => {
           if (!isDeleting) {
             e.currentTarget.style.color = '#ff6b6b';
             e.currentTarget.style.background = 'rgba(255, 107, 107, 0.1)';
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.35)';
           }
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.color = 'var(--muted)';
           e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <TrashIcon size={14} />
+        <TrashIcon size={iconSize} />
       </button>
       <DeleteConfirmModal
         isOpen={showModal}
