@@ -104,25 +104,19 @@ export default function NotificationsMenu({
         </button>
       </div>
 
-      {/* Title above notifications box */}
-      <strong style={{ fontSize: '16px', marginBottom: '8px', display: 'block' }}>{title}</strong>
-
-      {/* Notifications list - scrollable */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1, paddingTop: 28, paddingRight: 28 }}>
-        {/* Refresh icon button in top right of notifications box */}
+      {/* Title and refresh button row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <strong style={{ fontSize: '14px' }}>{title}</strong>
         <button
           type="button"
           onClick={onRefresh}
           disabled={status === 'loading'}
           title="Refresh"
           style={{
-            position: 'absolute',
-            top: 6,
-            right: 6,
-            width: 16,
-            height: 16,
-            minWidth: 16,
-            minHeight: 16,
+            width: 12,
+            height: 12,
+            minWidth: 12,
+            minHeight: 12,
             padding: 0,
             margin: 0,
             background: 'transparent',
@@ -133,7 +127,6 @@ export default function NotificationsMenu({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 2,
             color: 'var(--muted)',
             boxShadow: 'none',
             transition: 'color 0.2s ease, box-shadow 0.2s ease'
@@ -150,8 +143,8 @@ export default function NotificationsMenu({
           }}
         >
           <svg
-            width="16"
-            height="16"
+            width="12"
+            height="12"
             viewBox="0 0 16 16"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -169,6 +162,10 @@ export default function NotificationsMenu({
             />
           </svg>
         </button>
+      </div>
+
+      {/* Notifications list - scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
