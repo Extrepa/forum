@@ -38,12 +38,15 @@ function destUrlFor(type, id) {
 }
 
 export default async function LobbyThreadPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   // #region agent log
   const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
-  log('lobby/[id]/page.js:40', 'Function entry', {threadId:params?.id,hasSearchParams:!!searchParams}, 'ALL');
+  log('lobby/[id]/page.js:40', 'Function entry', {threadId:id,hasSearchParams:!!searchParams}, 'ALL');
   // #endregion
   try {
-    if (!params?.id) {
+    if (!id) {
       return (
         <div className="card">
           <h2 className="section-title">Error</h2>
@@ -55,17 +58,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let db;
     try {
       // #region agent log
-      log('lobby/[id]/page.js:52', 'Before getDb()', {threadId:params?.id}, 'ALL');
+      log('lobby/[id]/page.js:52', 'Before getDb()', {threadId:id}, 'ALL');
       // #endregion
       db = await getDb();
       // #region agent log
-      log('lobby/[id]/page.js:54', 'After getDb()', {threadId:params?.id,hasDb:!!db}, 'ALL');
+      log('lobby/[id]/page.js:54', 'After getDb()', {threadId:id,hasDb:!!db}, 'ALL');
       // #endregion
     } catch (dbError) {
       // #region agent log
-      log('lobby/[id]/page.js:56', 'getDb() error', {threadId:params?.id,error:dbError?.message,errorStack:dbError?.stack}, 'ALL');
+      log('lobby/[id]/page.js:56', 'getDb() error', {threadId:id,error:dbError?.message,errorStack:dbError?.stack}, 'ALL');
       // #endregion
-      console.error('Error getting database connection:', dbError, { threadId: params.id });
+      console.error('Error getting database connection:', dbError, { threadId: id });
       return (
         <div className="card">
           <h2 className="section-title">Error</h2>
@@ -87,7 +90,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     let thread = null;
     try {
       // #region agent log
-      log('lobby/[id]/page.js:76', 'Before thread query', {threadId:params?.id}, 'A');
+      log('lobby/[id]/page.js:76', 'Before thread query', {threadId:id}, 'A');
       // #endregion
       thread = await db
         .prepare(
@@ -102,10 +105,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
            LEFT JOIN users ON users.id = forum_threads.author_user_id
            WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
         )
-        .bind(params.id)
+        .bind(id)
         .first();
       // #region agent log
-      log('lobby/[id]/page.js:88', 'After thread query', {threadId:params?.id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
+      log('lobby/[id]/page.js:88', 'After thread query', {threadId:id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
       // #endregion
       // Ensure defaults for moved columns
       if (thread) {
@@ -113,14 +116,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
         // #region agent log
-        log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:params?.id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
+        log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
         // #endregion
       }
     } catch (e) {
       // #region agent log
-      log('lobby/[id]/page.js:95', 'Thread query error', {threadId:params?.id,error:e?.message,errorStack:e?.stack}, 'A');
+      log('lobby/[id]/page.js:95', 'Thread query error', {threadId:id,error:e?.message,errorStack:e?.stack}, 'A');
       // #endregion
-      console.error('Error fetching thread:', e, { threadId: params.id });
+      console.error('Error fetching thread:', e, { threadId: id });
       // Fallback if post_likes table or moved columns don't exist
       try {
         thread = await db
@@ -135,7 +138,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
              LEFT JOIN users ON users.id = forum_threads.author_user_id
              WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
           )
-          .bind(params.id)
+          .bind(id)
           .first();
         if (thread) {
           thread.moved_to_id = thread.moved_to_id || null;
@@ -156,14 +159,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
              LEFT JOIN users ON users.id = forum_threads.author_user_id
              WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
             )
-            .bind(params.id)
+            .bind(id)
             .first();
           if (thread) {
             thread.moved_to_id = thread.moved_to_id || null;
             thread.moved_to_type = thread.moved_to_type || null;
           }
         } catch (e3) {
-          console.error('Error fetching thread (final fallback):', e3, { threadId: params.id });
+          console.error('Error fetching thread (final fallback):', e3, { threadId: id });
           thread = null;
         }
       }
@@ -190,15 +193,15 @@ export default async function LobbyThreadPage({ params, searchParams }) {
 
   if (thread.moved_to_id) {
     // #region agent log
-    log('lobby/[id]/page.js:145', 'Before redirect', {threadId:params?.id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id}, 'B');
+    log('lobby/[id]/page.js:145', 'Before redirect', {threadId:id,movedToType:thread.moved_to_type,movedToId:thread.moved_to_id}, 'B');
     // #endregion
     const to = destUrlFor(thread.moved_to_type, thread.moved_to_id);
     // #region agent log
-    log('lobby/[id]/page.js:147', 'After destUrlFor', {threadId:params?.id,destUrl:to}, 'B');
+    log('lobby/[id]/page.js:147', 'After destUrlFor', {threadId:id,destUrl:to}, 'B');
     // #endregion
     if (to) {
       // #region agent log
-      log('lobby/[id]/page.js:149', 'Calling redirect()', {threadId:params?.id,redirectTo:to}, 'B');
+      log('lobby/[id]/page.js:149', 'Calling redirect()', {threadId:id,redirectTo:to}, 'B');
       // #endregion
       redirect(to);
     }
@@ -208,7 +211,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   try {
     viewer = await getSessionUser();
   } catch (e) {
-    console.error('Error getting session user:', e, { threadId: params.id });
+    console.error('Error getting session user:', e, { threadId: id });
     // Continue without viewer - user will see limited functionality
   }
   if (!viewer) {
@@ -236,16 +239,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       .first();
     totalReplies = totalRepliesResult?.count || 0;
   } catch (e) {
-    console.error('Error counting replies:', e, { threadId: params.id });
+    console.error('Error counting replies:', e, { threadId: id });
     // Fallback if is_deleted column doesn't exist
     try {
       const totalRepliesResult = await db
         .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ?')
-        .bind(params.id)
+        .bind(id)
         .first();
       totalReplies = totalRepliesResult?.count || 0;
     } catch (e2) {
-      console.error('Error counting replies (fallback):', e2, { threadId: params.id });
+      console.error('Error counting replies (fallback):', e2, { threadId: id });
       totalReplies = 0;
     }
   }
@@ -255,7 +258,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let replies = [];
   try {
       // #region agent log
-      log('lobby/[id]/page.js:185', 'Before replies query', {threadId:params?.id,offset,limit:REPLIES_PER_PAGE}, 'C');
+      log('lobby/[id]/page.js:185', 'Before replies query', {threadId:id,offset,limit:REPLIES_PER_PAGE}, 'C');
       // #endregion
       const result = await db
         .prepare(
@@ -269,21 +272,21 @@ export default async function LobbyThreadPage({ params, searchParams }) {
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
-        .bind(params.id, REPLIES_PER_PAGE, offset)
+        .bind(id, REPLIES_PER_PAGE, offset)
         .all();
       // #region agent log
-      log('lobby/[id]/page.js:195', 'After replies query', {threadId:params?.id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
+      log('lobby/[id]/page.js:195', 'After replies query', {threadId:id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
       // #endregion
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
         // #region agent log
-        log('lobby/[id]/page.js:197', 'Replies filtered', {threadId:params?.id,replyCount:replies.length}, 'C');
+        log('lobby/[id]/page.js:197', 'Replies filtered', {threadId:id,replyCount:replies.length}, 'C');
         // #endregion
       } else {
         replies = [];
       }
   } catch (e) {
-    console.error('Error fetching replies:', e, { threadId: params.id, offset, limit: REPLIES_PER_PAGE });
+    console.error('Error fetching replies:', e, { threadId: id, offset, limit: REPLIES_PER_PAGE });
     // Fallback if is_deleted column doesn't exist
     try {
       const result = await db
@@ -298,7 +301,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
-        .bind(params.id, REPLIES_PER_PAGE, offset)
+        .bind(id, REPLIES_PER_PAGE, offset)
         .all();
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
@@ -306,7 +309,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         replies = [];
       }
     } catch (e2) {
-      console.error('Error fetching replies (fallback 1):', e2, { threadId: params.id });
+      console.error('Error fetching replies (fallback 1):', e2, { threadId: id });
       // Final fallback: try without JOIN if users table has issues
       try {
         const result = await db
@@ -318,7 +321,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
              ORDER BY forum_replies.created_at ASC
              LIMIT ? OFFSET ?`
           )
-          .bind(params.id, REPLIES_PER_PAGE, offset)
+          .bind(id, REPLIES_PER_PAGE, offset)
           .all();
         if (result && Array.isArray(result.results)) {
           replies = result.results.map(r => ({
@@ -329,7 +332,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           replies = [];
         }
       } catch (e3) {
-        console.error('Error fetching replies (fallback 2):', e3, { threadId: params.id });
+        console.error('Error fetching replies (fallback 2):', e3, { threadId: id });
         replies = [];
       }
     }
@@ -373,7 +376,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             }
           } catch (e2) {
             // Reply doesn't exist or was deleted - treat as never read
-            console.error('Error fetching last read reply:', e2, { replyId: readState.last_read_reply_id, threadId: params.id });
+            console.error('Error fetching last read reply:', e2, { replyId: readState.last_read_reply_id, threadId: id });
             lastReadReply = null;
           }
         }
@@ -409,7 +412,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 firstUnread = unreadResult2;
               }
             } catch (e2) {
-              console.error('Error finding first unread reply:', e2, { threadId: params.id, lastReadAt: lastReadReply.created_at });
+              console.error('Error finding first unread reply:', e2, { threadId: id, lastReadAt: lastReadReply.created_at });
             }
           }
           firstUnreadId = firstUnread?.id ? String(firstUnread.id) : null;
@@ -427,7 +430,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         }
       }
     } catch (e) {
-      console.error('Error in unread tracking:', e, { threadId: params.id, userId: viewer?.id });
+      console.error('Error in unread tracking:', e, { threadId: id, userId: viewer?.id });
       // Table might not exist yet
     }
   }
@@ -456,7 +459,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let usernameColorMap = new Map();
   try {
     // #region agent log
-    log('lobby/[id]/page.js:360', 'Before username color assignment', {threadId:params?.id,replyCount:replies?.length}, 'D');
+    log('lobby/[id]/page.js:360', 'Before username color assignment', {threadId:id,replyCount:replies?.length}, 'D');
     // #endregion
     const allUsernames = [
       thread?.author_name,
@@ -479,14 +482,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     if (allUsernames.length > 0) {
       usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
       // #region agent log
-      log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:params?.id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
+      log('lobby/[id]/page.js:367', 'After username color assignment', {threadId:id,usernameCount:allUsernames.length,mapSize:usernameColorMap.size}, 'D');
       // #endregion
     }
   } catch (e) {
     // #region agent log
-    log('lobby/[id]/page.js:369', 'Username color error', {threadId:params?.id,error:e?.message}, 'D');
+    log('lobby/[id]/page.js:369', 'Username color error', {threadId:id,error:e?.message}, 'D');
     // #endregion
-    console.error('Error assigning username colors:', e, { threadId: params.id });
+    console.error('Error assigning username colors:', e, { threadId: id });
     // Fallback: create empty map, will use default colors
     usernameColorMap = new Map();
   }
@@ -542,7 +545,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   }
 
   // #region agent log
-  log('lobby/[id]/page.js:390', 'Before render', {threadId:params?.id,hasThread:!!thread,replyCount:replies?.length}, 'E');
+  log('lobby/[id]/page.js:390', 'Before render', {threadId:id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
   
   // Ensure all values are serializable before rendering - convert to primitives
@@ -825,9 +828,9 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   } catch (error) {
     // #region agent log
     const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
-    log('lobby/[id]/page.js:575', 'Top-level catch error', {threadId:params?.id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name}, 'ALL');
+    log('lobby/[id]/page.js:575', 'Top-level catch error', {threadId:id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name}, 'ALL');
     // #endregion
-    console.error('Error loading lobby thread:', error, { threadId: params.id, errorMessage: error.message, errorStack: error.stack });
+    console.error('Error loading lobby thread:', error, { threadId: id, errorMessage: error.message, errorStack: error.stack });
     return (
       <div className="card">
         <h2 className="section-title">Error</h2>

@@ -37,8 +37,11 @@ function destUrlFor(type, id) {
 }
 
 export default async function ProjectDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   try {
-    if (!params?.id) {
+    if (!id) {
       return (
         <div className="card">
           <h2 className="section-title">Error</h2>
@@ -73,7 +76,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
   } catch (e) {
     // Rollout compatibility if moved columns aren't migrated yet.
@@ -92,7 +95,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
            JOIN users ON users.id = projects.author_user_id
            WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
         )
-        .bind(params.id)
+        .bind(id)
         .first();
       if (project) {
         project.moved_to_id = null;
@@ -116,7 +119,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
              JOIN users ON users.id = projects.author_user_id
              WHERE projects.id = ?`
           )
-          .bind(params.id)
+          .bind(id)
           .first();
         if (project) {
           project.moved_to_id = null;
@@ -160,11 +163,11 @@ export default async function ProjectDetailPage({ params, searchParams }) {
          WHERE project_replies.project_id = ? AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
          ORDER BY project_replies.created_at ASC`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
     replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
   } catch (e) {
-    console.error('Error fetching project replies:', e, { projectId: params.id });
+    console.error('Error fetching project replies:', e, { projectId: id });
     // Fallback if is_deleted column doesn't exist
     try {
       const out = await db
@@ -178,11 +181,11 @@ export default async function ProjectDetailPage({ params, searchParams }) {
            WHERE project_replies.project_id = ?
            ORDER BY project_replies.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
     } catch (e2) {
-      console.error('Error fetching project replies (fallback 1):', e2, { projectId: params.id });
+      console.error('Error fetching project replies (fallback 1):', e2, { projectId: id });
       // Final fallback: try without JOIN if users table has issues
       try {
         const out = await db
@@ -193,7 +196,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
              WHERE project_replies.project_id = ?
              ORDER BY project_replies.created_at ASC`
           )
-          .bind(params.id)
+          .bind(id)
           .all();
         replies = (out?.results || []).map(r => ({
           ...r,
@@ -201,7 +204,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           author_color_preference: null
         })).filter(r => r && r.id && r.body);
       } catch (e3) {
-        console.error('Error fetching project replies (fallback 2):', e3, { projectId: params.id });
+        console.error('Error fetching project replies (fallback 2):', e3, { projectId: id });
         replies = [];
         repliesEnabled = false;
       }
@@ -278,7 +281,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       : null;
 
   // Fully serialize all data before rendering
-  const safeProjectId = project?.id ? String(project.id) : '';
+  const safeProjectId = id ? String(id) : '';
   const safeProjectTitle = project?.title ? String(project.title) : 'Untitled';
   const safeProjectDescription = project?.description ? String(project.description) : '';
   const safeProjectStatus = project?.status ? String(project.status) : '';
@@ -503,7 +506,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     </div>
   );
   } catch (error) {
-    console.error('Error loading project page:', error, { projectId: params.id, errorMessage: error.message, errorStack: error.stack });
+    console.error('Error loading project page:', error, { projectId: id, errorMessage: error.message, errorStack: error.stack });
     return (
       <div className="card">
         <h2 className="section-title">Error</h2>

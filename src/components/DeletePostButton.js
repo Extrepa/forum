@@ -40,6 +40,8 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
           url = `/api/music/${postId}/delete`;
         } else if (postType === 'devlog') {
           url = `/api/devlog/${postId}/delete`;
+        } else if (postType === 'post') {
+          url = `/api/posts/${postId}/delete`;
         } else {
           alert('Delete not yet implemented for this post type');
           setIsDeleting(false);
@@ -70,6 +72,9 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
               router.push('/music');
             } else if (postType === 'devlog') {
               router.push('/devlog');
+            } else if (postType === 'post') {
+              // For posts, redirect to lore-memories (covers lore, memories, and other post types)
+              router.push('/lore-memories');
             } else {
               router.refresh();
             }

@@ -14,6 +14,9 @@ import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 export default async function ArtDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -38,7 +41,7 @@ export default async function ArtDetailPage({ params, searchParams }) {
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type = 'art'`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
 
     if (post && (!isSignedIn && post.is_private)) {
@@ -57,7 +60,7 @@ export default async function ArtDetailPage({ params, searchParams }) {
              AND post_comments.is_deleted = 0
            ORDER BY post_comments.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       comments = out?.results || [];
     }

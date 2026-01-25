@@ -37,6 +37,9 @@ function destUrlFor(type, id) {
 }
 
 export default async function EventDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -58,7 +61,7 @@ export default async function EventDetailPage({ params, searchParams }) {
          JOIN users ON users.id = events.author_user_id
          WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
   } catch (e) {
     // Fallback if post_likes table or moved columns don't exist
@@ -75,7 +78,7 @@ export default async function EventDetailPage({ params, searchParams }) {
            JOIN users ON users.id = events.author_user_id
            WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
         )
-        .bind(params.id)
+        .bind(id)
         .first();
       if (event) {
         event.moved_to_id = null;
@@ -97,7 +100,7 @@ export default async function EventDetailPage({ params, searchParams }) {
              JOIN users ON users.id = events.author_user_id
              WHERE events.id = ?`
           )
-          .bind(params.id)
+          .bind(id)
           .first();
         if (event) {
           event.moved_to_id = null;
@@ -138,7 +141,7 @@ export default async function EventDetailPage({ params, searchParams }) {
          WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
          ORDER BY event_comments.created_at ASC`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
     comments = result?.results || [];
   } catch (e) {
@@ -154,7 +157,7 @@ export default async function EventDetailPage({ params, searchParams }) {
            WHERE event_comments.event_id = ?
            ORDER BY event_comments.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       comments = result?.results || [];
     } catch (e2) {
@@ -183,7 +186,7 @@ export default async function EventDetailPage({ params, searchParams }) {
     try {
       const rsvp = await db
         .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
-        .bind(params.id, user.id)
+        .bind(id, user.id)
         .first();
       userAttending = !!rsvp;
     } catch (e) {
@@ -201,7 +204,7 @@ export default async function EventDetailPage({ params, searchParams }) {
            WHERE event_attendees.event_id = ?
            ORDER BY event_attendees.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       attendees = out?.results || [];
     } catch (e) {
@@ -275,7 +278,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? (
-              <form action={`/api/events/${event.id}/lock`} method="post" style={{ margin: 0 }}>
+              <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={event.is_locked ? '0' : '1'} />
                 <button
                   type="submit"
@@ -310,7 +313,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 />
                 {canDelete ? (
                   <DeletePostButton 
-                    postId={event.id} 
+                    postId={id} 
                     postType="event"
                   />
                 ) : null}
@@ -320,7 +323,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         }
       />
 
-      <ViewTracker contentType="events" contentId={event.id} />
+      <ViewTracker contentType="events" contentId={id} />
       
       <section className="card">
         <PostHeader
@@ -332,7 +335,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           likeButton={user ? (
             <LikeButton 
               postType="event" 
-              postId={event.id} 
+              postId={id} 
               initialLiked={userLiked}
               initialCount={Number(event.like_count || 0)}
             />
@@ -396,7 +399,7 @@ export default async function EventDetailPage({ params, searchParams }) {
             <h3 className="section-title">Edit Event</h3>
             {editNotice ? <div className="notice">{editNotice}</div> : null}
             <PostForm
-              action={`/api/events/${event.id}`}
+              action={`/api/events/${id}`}
               titleLabel="Event title"
               bodyLabel="Details (optional)"
               buttonLabel="Update Event"
@@ -414,7 +417,7 @@ export default async function EventDetailPage({ params, searchParams }) {
       ) : null}
 
       <EventCommentsSection
-        eventId={event.id}
+        eventId={id}
         initialAttending={userAttending}
         initialAttendees={attendees}
         comments={commentsWithHtml}

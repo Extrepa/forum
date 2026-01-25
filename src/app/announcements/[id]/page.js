@@ -33,6 +33,9 @@ function destUrlFor(type, id) {
 }
 
 export default async function AnnouncementDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -51,7 +54,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.id = ?`
     )
-    .bind(params.id)
+      .bind(id)
     .first();
 
   if (!update) {
@@ -80,7 +83,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
        WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
        ORDER BY timeline_comments.created_at ASC`
     )
-    .bind(params.id)
+      .bind(id)
     .all();
 
   // Check if current user has liked this update

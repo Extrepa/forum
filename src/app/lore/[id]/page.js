@@ -1,7 +1,11 @@
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import { isAdminUser } from '../../../lib/admin';
+import PageTopRow from '../../../components/PageTopRow';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
+import PostEditForm from '../../../components/PostEditForm';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -13,6 +17,9 @@ import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 export default async function LoreDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -27,7 +34,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
   try {
     post = await db
       .prepare(
-        `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+        `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
                 COALESCE(posts.views, 0) AS views,
                 users.username AS author_name,
@@ -37,7 +44,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ? AND posts.type = 'lore'`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
 
     if (post) {
@@ -52,7 +59,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
              AND post_comments.is_deleted = 0
            ORDER BY post_comments.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       comments = out?.results || [];
     }
@@ -114,7 +121,28 @@ export default async function LoreDetailPage({ params, searchParams }) {
     likeCount = post.like_count || 0;
   }
 
+  const isAdmin = isAdminUser(user);
+  const canEdit = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
+  const canDelete = canEdit;
+
   const error = searchParams?.error;
+  const editNotice =
+    error === 'claim'
+      ? 'Log in to post.'
+      : error === 'unauthorized'
+      ? 'Only the post author can edit this.'
+      : error === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : error === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : error === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : error === 'missing'
+      ? 'Title and body are required.'
+      : error === 'notfound'
+      ? 'This post does not exist.'
+      : null;
+
   const commentNotice =
     error === 'password'
       ? 'Set your password to continue posting.'
@@ -126,15 +154,33 @@ export default async function LoreDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/lore', label: 'Lore' },
-          { href: `/lore/${post.id}`, label: post.title || 'Untitled' },
+          { href: `/lore/${id}`, label: post.title || 'Untitled' },
         ]}
+        right={
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-post-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={id} 
+                    postType="post"
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        }
       />
 
-      <ViewTracker contentType="posts" contentId={post.id} />
+      <ViewTracker contentType="posts" contentId={id} />
       
       <section className="card">
         <PostHeader
@@ -146,7 +192,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
           likeButton={
             <LikeButton 
               postType="post" 
-              postId={post.id} 
+              postId={id} 
               initialLiked={userLiked}
               initialCount={Number(likeCount)}
             />
@@ -173,10 +219,32 @@ export default async function LoreDetailPage({ params, searchParams }) {
         )}
       </section>
 
+      {canEdit ? (
+        <div id="edit-post-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Post</h3>
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <PostEditForm
+              action={`/api/posts/${id}`}
+              initialData={{
+                title: String(post.title || ''),
+                body: String(post.body || ''),
+                is_private: post.is_private ? 1 : 0,
+                image_key: post.image_key ? String(post.image_key) : null
+              }}
+              titleLabel="Title"
+              bodyLabel="Body"
+              buttonLabel="Update Post"
+              showImage={true}
+            />
+          </section>
+        </div>
+      ) : null}
+
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <form action={`/api/posts/${post.id}/comments`} method="post">
+        <form action={`/api/posts/${id}/comments`} method="post">
           <label>
             <div className="muted">Say something</div>
             <textarea name="body" placeholder="Leave a comment" required />
@@ -206,7 +274,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
                     commentId={c.id}
                     commentAuthor={c.author_name}
                     commentBody={c.body}
-                    replyHref={`/lore/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
+                    replyHref={`/lore/${id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
                   />
                 </div>
               );

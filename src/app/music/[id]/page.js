@@ -37,6 +37,9 @@ function destUrlFor(type, id) {
 }
 
 export default async function MusicDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -61,7 +64,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
     // Set embed_style default (migration may not have run yet) - preserve existing value if present
     if (post) {
@@ -84,7 +87,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
            JOIN users ON users.id = music_posts.author_user_id
            WHERE music_posts.id = ? AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)`
         )
-        .bind(params.id)
+        .bind(id)
         .first();
       if (post) {
         post.moved_to_id = null;
@@ -109,7 +112,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
              JOIN users ON users.id = music_posts.author_user_id
              WHERE music_posts.id = ?`
           )
-          .bind(params.id)
+          .bind(id)
           .first();
         if (post) {
           post.moved_to_id = null;
@@ -151,7 +154,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
          WHERE music_comments.post_id = ? AND music_comments.is_deleted = 0
          ORDER BY music_comments.created_at ASC`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
     comments = result?.results || [];
   } catch (e) {
@@ -167,7 +170,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
            WHERE music_comments.post_id = ?
            ORDER BY music_comments.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       comments = result?.results || [];
     } catch (e2) {
@@ -218,7 +221,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     try {
       const likeCheck = await db
         .prepare('SELECT id FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
-        .bind('music_post', post.id, user.id)
+        .bind('music_post', id, user.id)
         .first();
       userLiked = !!likeCheck;
     } catch (e) {
@@ -232,12 +235,12 @@ export default async function MusicDetailPage({ params, searchParams }) {
         items={[
           { href: '/', label: 'Home' },
           { href: '/music', label: 'Music' },
-          { href: `/music/${post.id}`, label: post.title },
+          { href: `/music/${id}`, label: post.title },
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? (
-              <form action={`/api/music/${post.id}/lock`} method="post" style={{ margin: 0 }}>
+              <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={post.is_locked ? '0' : '1'} />
                 <button
                   type="submit"
@@ -272,7 +275,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 />
                 {canDelete ? (
                   <DeletePostButton 
-                    postId={post.id} 
+                    postId={id} 
                     postType="music_post"
                   />
                 ) : null}
@@ -281,7 +284,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </div>
         }
       />
-      <ViewTracker contentType="music" contentId={post.id} />
+      <ViewTracker contentType="music" contentId={id} />
       
       <section className="card">
         <PostHeader
@@ -361,7 +364,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             <h3 className="section-title" style={{ marginBottom: '12px' }}>Rate this</h3>
             {notice ? <div className="notice" style={{ marginBottom: '12px' }}>{notice}</div> : null}
             <form action="/api/music/ratings" method="post">
-              <input type="hidden" name="post_id" value={post.id} />
+              <input type="hidden" name="post_id" value={id} />
               <label>
                 <div className="muted">Your rating (1-5)</div>
                 <select name="rating" defaultValue="5">
@@ -403,7 +406,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     commentId={comment.id}
                     commentAuthor={comment.author_name}
                     commentBody={comment.body}
-                    replyHref={`/music/${post.id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
+                    replyHref={`/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
                   />
                 </div>
               );
@@ -418,7 +421,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             buttonLabel="Post comment"
             placeholder="Drop your thoughts into the goo..."
             labelText="What would you like to say?"
-            hiddenFields={{ post_id: post.id }}
+            hiddenFields={{ post_id: id }}
             notice={notice}
           />
         )}

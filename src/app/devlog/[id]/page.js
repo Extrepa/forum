@@ -64,6 +64,9 @@ function parseLinksList(raw) {
 }
 
 export default async function DevLogDetailPage({ params, searchParams }) {
+  // Next.js 15: params is a Promise, must await
+  const { id } = await params;
+  
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -89,7 +92,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
          JOIN users ON users.id = dev_logs.author_user_id
          WHERE dev_logs.id = ? AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
   } catch (e) {
     // Rollout compatibility if columns aren't migrated yet.
@@ -105,7 +108,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
            JOIN users ON users.id = dev_logs.author_user_id
            WHERE dev_logs.id = ? AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)`
         )
-        .bind(params.id)
+        .bind(id)
         .first();
       if (log) {
         log.is_locked = 0;
@@ -128,7 +131,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
              JOIN users ON users.id = dev_logs.author_user_id
              WHERE dev_logs.id = ?`
           )
-          .bind(params.id)
+          .bind(id)
           .first();
         if (log) {
           log.is_locked = 0;
@@ -185,7 +188,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
          WHERE dev_log_comments.log_id = ? AND dev_log_comments.is_deleted = 0
          ORDER BY dev_log_comments.created_at ASC`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
     comments = out?.results || [];
   } catch (e) {
@@ -201,7 +204,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
            WHERE dev_log_comments.log_id = ?
            ORDER BY dev_log_comments.created_at ASC`
         )
-        .bind(params.id)
+        .bind(id)
         .all();
       comments = out?.results || [];
     } catch (e2) {
@@ -262,7 +265,14 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   }
 
   const replyToId = String(searchParams?.replyTo || '').trim() || null;
-  const replyingTo = replyToId ? comments.find((c) => c.id === replyToId) : null;
+  // Validate replyToId exists in comments before using
+  const replyingTo = replyToId && comments.find((c) => c.id === replyToId) 
+    ? { 
+        id: comments.find((c) => c.id === replyToId).id,
+        author_name: String(comments.find((c) => c.id === replyToId).author_name || ''),
+        body: String(comments.find((c) => c.id === replyToId).body || '')
+      }
+    : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
   // Build preferences map and assign unique colors to all usernames on this page
@@ -290,12 +300,12 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         items={[
           { href: '/', label: 'Home' },
           { href: '/devlog', label: 'Development' },
-          { href: `/devlog/${log.id}`, label: log.title },
+          { href: `/devlog/${id}`, label: log.title },
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? (
-              <form action={`/api/devlog/${log.id}/lock`} method="post" style={{ margin: 0 }}>
+              <form action={`/api/devlog/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
                 <button
                   type="submit"
@@ -330,7 +340,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 />
                 {canDelete ? (
                   <DeletePostButton 
-                    postId={log.id} 
+                    postId={id} 
                     postType="devlog"
                   />
                 ) : null}
@@ -340,7 +350,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         }
       />
 
-      <ViewTracker contentType="devlog" contentId={log.id} />
+      <ViewTracker contentType="devlog" contentId={id} />
       
       <section className="card">
         <PostHeader
@@ -352,7 +362,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           likeButton={user ? (
             <LikeButton 
               postType="dev_log" 
-              postId={log.id} 
+              postId={id} 
               initialLiked={userLiked}
               initialCount={Number(log.like_count || 0)}
             />
@@ -408,7 +418,23 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           <section className="card">
             <h3 className="section-title">Edit Post</h3>
             {notice ? <div className="notice">{notice}</div> : null}
-            <DevLogForm logId={log.id} initialData={log} />
+            <DevLogForm 
+              logId={id} 
+              initialData={{
+                id: String(log.id || ''),
+                title: String(log.title || ''),
+                body: String(log.body || ''),
+                image_key: log.image_key ? String(log.image_key) : null,
+                github_url: log.github_url ? String(log.github_url) : null,
+                demo_url: log.demo_url ? String(log.demo_url) : null,
+                links: log.links ? String(log.links) : null,
+                views: Number(log.views || 0),
+                like_count: Number(log.like_count || 0),
+                author_color_preference: log.author_color_preference !== null && log.author_color_preference !== undefined 
+                  ? Number(log.author_color_preference) 
+                  : null
+              }} 
+            />
           </section>
         </div>
       ) : null}
@@ -433,7 +459,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? c.author_color_preference : null;
                 const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
 
-                const replyLink = `/devlog/${log.id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
+                const replyLink = `/devlog/${id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
                 return (
                   <div
                     key={c.id}
@@ -486,7 +512,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         </div>
         {canComment ? (
           <ReplyFormWrapper
-            action={`/api/devlog/${log.id}/comments`}
+            action={`/api/devlog/${id}/comments`}
             buttonLabel="Post reply"
             placeholder="Share your drip-certified thoughts..."
             labelText="What would you like to say?"
