@@ -55,6 +55,13 @@ export default function NotificationsMenu({
   if (!open) return null;
 
   return (
+    <>
+      <style>{`
+        @keyframes notifications-refresh-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     <div
       className="card notifications-popover notifications-popover-errl"
       style={{
@@ -73,43 +80,92 @@ export default function NotificationsMenu({
       role="menu"
       aria-label={title}
     >
-      {/* Header with title and action buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: '16px', flexWrap: 'wrap' }}>
-        <strong style={{ fontSize: '16px', overflowWrap: 'break-word', wordWrap: 'break-word', flex: '1 1 auto', minWidth: 0 }}>{title}</strong>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flexShrink: 0 }}>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              router.push('/account?tab=account');
-            }}
-            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-          >
-            Account
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              router.push('/account?tab=profile');
-            }}
-            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-          >
-            Profile
-          </button>
-          <button 
-            type="button" 
-            onClick={onRefresh} 
-            disabled={status === 'loading'}
-            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-          >
-            {status === 'loading' ? '...' : 'Refresh'}
-          </button>
-        </div>
+      {/* Header with action buttons */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            router.push('/account?tab=account');
+          }}
+          style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+        >
+          Account
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            router.push('/account?tab=profile');
+          }}
+          style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+        >
+          Profile
+        </button>
       </div>
+
+      {/* Title above notifications box */}
+      <strong style={{ fontSize: '16px', marginBottom: '8px', display: 'block' }}>{title}</strong>
 
       {/* Notifications list - scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+        {/* Refresh icon button in top right of notifications box */}
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={status === 'loading'}
+          title="Refresh"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '24px',
+            height: '24px',
+            padding: 0,
+            margin: '4px',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+            opacity: status === 'loading' ? 0.5 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+            color: 'var(--muted)',
+            transition: 'color 0.2s ease, background 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (status !== 'loading') {
+              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)';
+              e.currentTarget.style.color = 'var(--text)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--muted)';
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{
+              animation: status === 'loading' ? 'notifications-refresh-spin 1s linear infinite' : 'none',
+              transition: status === 'loading' ? 'none' : 'transform 0.2s ease'
+            }}
+          >
+            <path
+              d="M13.5 2.5L12.5 5.5L9.5 4.5M2.5 13.5L3.5 10.5L6.5 11.5M11.5 2.5C10.3 1.8 8.9 1.5 7.5 1.5C4.2 1.5 1.5 4.2 1.5 7.5C1.5 10.8 4.2 13.5 7.5 13.5C10.8 13.5 13.5 10.8 13.5 7.5C13.5 6.1 13.2 4.7 12.5 3.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
@@ -213,6 +269,7 @@ export default function NotificationsMenu({
         </button>
       </div>
     </div>
+    </>
   );
 }
 
