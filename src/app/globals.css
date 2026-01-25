@@ -1139,7 +1139,7 @@ button:hover {
 .list-item {
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: 14px;
-  padding: 10px 16px;
+  padding: 6px 14px 10px;
   background: rgba(4, 16, 23, 0.7);
   position: relative;
   isolation: isolate;

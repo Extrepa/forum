@@ -14,13 +14,16 @@ export default function CollapsibleCommentForm({
   
   if (!showForm) {
     return (
-      <button type="button" onClick={() => setShowForm(true)}>
-        {buttonLabel}
-      </button>
+      <div style={{ marginTop: '24px' }}>
+        <button type="button" onClick={() => setShowForm(true)}>
+          {buttonLabel}
+        </button>
+      </div>
     );
   }
   
   return (
+    <div style={{ marginTop: '24px' }}>
     <form action={action} method="post">
       {Object.entries(hiddenFields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
@@ -35,5 +38,6 @@ export default function CollapsibleCommentForm({
       </div>
       {children}
     </form>
+    </div>
   );
 }

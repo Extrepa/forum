@@ -103,15 +103,17 @@ export default function DeleteCommentButton({
   };
 
   const iconSize = 14;
+  const pad = 2;
+  const size = iconSize + pad * 2;
   const baseStyle = {
     position: 'absolute',
     top: 4,
     right: 4,
-    width: iconSize,
-    height: iconSize,
-    minWidth: iconSize,
-    minHeight: iconSize,
-    padding: 0,
+    width: size,
+    height: size,
+    minWidth: size,
+    minHeight: size,
+    padding: pad,
     margin: 0,
     background: 'transparent',
     border: 'none',
