@@ -109,10 +109,10 @@ export default function NotificationsMenu({
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           {currentUsername ? (
             <>
-              <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '6px' }}>
                 Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
               </div>
-              <div className="muted" style={{ fontSize: '14px', lineHeight: 1.4 }}>
+              <div style={{ fontSize: '14px', lineHeight: 1.4, color: 'var(--muted)', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none' }}>
                 {tagline}
               </div>
             </>
