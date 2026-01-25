@@ -14,6 +14,7 @@ import CommentFormWrapper from '../../../components/CommentFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
+import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,6 +149,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     const result = await db
       .prepare(
         `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+                music_comments.author_user_id,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference
          FROM music_comments
@@ -164,6 +166,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+                  music_comments.author_user_id,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference
            FROM music_comments
@@ -232,6 +235,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             body: String(c.body || ''),
             body_html: bodyHtml,
             author_name: String(c.author_name || 'Unknown'),
+            author_user_id: c.author_user_id != null ? String(c.author_user_id) : null,
             author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
           };
@@ -413,7 +417,15 @@ export default async function MusicDetailPage({ params, searchParams }) {
               const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
               return (
-                <div key={comment.id} className="list-item">
+                <div key={comment.id} className="list-item" style={{ position: 'relative' }}>
+                  <DeleteCommentButton
+                    commentId={comment.id}
+                    parentId={id}
+                    type="music"
+                    authorUserId={comment.author_user_id}
+                    currentUserId={user?.id}
+                    isAdmin={!!isAdmin}
+                  />
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
                   <div
                     className="list-meta"

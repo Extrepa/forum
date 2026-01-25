@@ -89,6 +89,184 @@ Fixed devlog crash after replies, added edit/delete functionality to Lore/Memori
 **Files Modified:**
 - `src/components/DeletePostButton.js`
 
+---
+
+## Delete Comment/Reply Controls (2026-01-25)
+
+### Summary
+Added per-reply/comment delete controls: trash icon in top-right of each reply/comment. Visible only to **author** or **admin**. Soft-delete via existing `is_deleted` columns.
+
+### New Component
+- **`DeleteCommentButton`** (`src/components/DeleteCommentButton.js`)
+  - Small trash icon (SVG), `position: absolute; top: 4; right: 4`
+  - Renders only when `currentUserId && (authorUserId === currentUserId || isAdmin)`
+  - Uses `DeleteConfirmModal`; on confirm, POSTs to type-specific delete API, then `router.refresh()`
+  - Props: `commentId`, `parentId`, `type`, `authorUserId`, `currentUserId`, `isAdmin`, `onDeleted` (optional)
+
+### New Delete API Routes
+- `POST /api/devlog/[id]/comments/[commentId]/delete` - soft-delete dev_log_comments
+- `POST /api/projects/[id]/replies/[replyId]/delete` - soft-delete project_replies (no updated_at)
+- `POST /api/posts/[id]/comments/[commentId]/delete` - soft-delete post_comments
+- `POST /api/music/comments/[commentId]/delete` - soft-delete music_comments
+- `POST /api/events/[id]/comments/[commentId]/delete` - soft-delete event_comments
+- `POST /api/timeline/[id]/comments/[commentId]/delete` - soft-delete timeline_comments
+
+All routes: auth check, ownership or admin, then `UPDATE ... SET is_deleted = 1`. Forum reply delete already existed; fixed Next.js 15 `params` await.
+
+### Pages/Sections Updated
+- Devlog, Lobby, Projects (ProjectRepliesSection), Lore, Memories, Lore-Memories, Art, Bugs, Rant, Nostalgia, Music, Events (EventCommentsSection), Announcements
+- Each adds `author_user_id` to comment/reply queries where missing, wraps list-item in `position: relative`, and renders `DeleteCommentButton` with appropriate `type` and `parentId`.
+
+### Verification Notes (2026-01-25)
+
+#### ✅ Component Implementation
+- **DeleteCommentButton** correctly implements:
+  - Trash icon (SVG) with proper accessibility (`role="img"`, `aria-label`)
+  - Conditional rendering: only shows when `currentUserId && (authorUserId === currentUserId || isAdmin)`
+  - Position: absolute top-right (top: 4px, right: 4px)
+  - Hover states: changes color to red (#ff6b6b) and adds background
+  - Uses `DeleteConfirmModal` with `itemType="reply"`
+  - Handles all 7 types: 'post', 'devlog', 'project', 'forum', 'music', 'event', 'timeline'
+  - Error handling: alerts on failure, refreshes on success
+
+#### ✅ API Routes - All Created and Verified
+1. **`/api/devlog/[id]/comments/[commentId]/delete`**
+   - ✅ Awaits params: `const { id, commentId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes with `updated_at`
+   - ✅ Import paths correct: `../../../../../../../lib/*`
+
+2. **`/api/projects/[id]/replies/[replyId]/delete`**
+   - ✅ Awaits params: `const { id, replyId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes (no updated_at - table doesn't have it)
+   - ✅ Import paths correct: `../../../../../../../lib/*`
+
+3. **`/api/posts/[id]/comments/[commentId]/delete`**
+   - ✅ Awaits params: `const { id, commentId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes (no updated_at - table doesn't have it)
+   - ✅ Import paths correct: `../../../../../../../lib/*`
+
+4. **`/api/music/comments/[commentId]/delete`**
+   - ✅ Awaits params: `const { commentId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes (no updated_at - table doesn't have it)
+   - ✅ Import paths correct: `../../../../../../lib/*` (one less level - no [id] in path)
+
+5. **`/api/events/[id]/comments/[commentId]/delete`**
+   - ✅ Awaits params: `const { id, commentId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes with `updated_at`
+   - ✅ Import paths correct: `../../../../../../../lib/*`
+
+6. **`/api/timeline/[id]/comments/[commentId]/delete`**
+   - ✅ Awaits params: `const { id, commentId } = await params;`
+   - ✅ Checks auth, ownership/admin, soft-deletes with `updated_at`
+   - ✅ Import paths correct: `../../../../../../../lib/*`
+
+7. **`/api/forum/[id]/replies/[replyId]/delete`** (pre-existing, fixed)
+   - ✅ Fixed to await params: `const { id, replyId } = await params;`
+   - ✅ Already had correct logic
+
+#### ✅ Pages with DeleteCommentButton - All Verified
+
+**Direct Page Implementations (11 pages):**
+1. ✅ **devlog/[id]/page.js**
+   - ✅ `author_user_id` in both SELECT queries (main + fallback)
+   - ✅ Serialized in `safeComments`: `author_user_id: c.author_user_id != null ? String(c.author_user_id) : null`
+   - ✅ `DeleteCommentButton` in `renderReply` with `type="devlog"`, `parentId={id}`
+   - ✅ `position: relative` on list-item
+
+2. ✅ **lobby/[id]/page.js** (forum threads)
+   - ✅ `author_user_id` already in replies query (forum_replies table)
+   - ✅ Serialized in `safeReplies`: `author_user_id: String(reply.author_user_id || '')`
+   - ✅ `DeleteCommentButton` in `renderReply` with `type="forum"`, `parentId={safeThreadId}`
+   - ✅ `position: relative` on list-item
+
+3. ✅ **lore/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={id}`
+   - ✅ `position: relative` on list-item
+
+4. ✅ **memories/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={id}`
+   - ✅ `position: relative` on list-item
+
+5. ✅ **lore-memories/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={id}`
+   - ✅ `position: relative` on list-item
+
+6. ✅ **art/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `isAdminUser` imported and used: `const isAdmin = isAdminUser(user);`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={post.id}`
+   - ✅ `position: relative` on list-item
+
+7. ✅ **bugs/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `isAdminUser` imported and used: `const isAdmin = isAdminUser(user);`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={post.id}`
+   - ✅ `position: relative` on list-item
+
+8. ✅ **rant/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `isAdminUser` imported and used: `const isAdmin = isAdminUser(user);`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={post.id}`
+   - ✅ `position: relative` on list-item
+
+9. ✅ **nostalgia/[id]/page.js**
+   - ✅ `author_user_id` in SELECT: `post_comments.author_user_id`
+   - ✅ `isAdminUser` imported and used: `const isAdmin = isAdminUser(user);`
+   - ✅ `DeleteCommentButton` with `type="post"`, `parentId={post.id}`
+   - ✅ `position: relative` on list-item
+
+10. ✅ **music/[id]/page.js**
+    - ✅ `author_user_id` in both SELECT queries (main + fallback)
+    - ✅ Serialized in `safeComments`: `author_user_id: c.author_user_id != null ? String(c.author_user_id) : null`
+    - ✅ `DeleteCommentButton` with `type="music"`, `parentId={id}`
+    - ✅ `position: relative` on list-item
+
+11. ✅ **announcements/[id]/page.js** (timeline)
+    - ✅ `author_user_id` in SELECT: `timeline_comments.author_user_id`
+    - ✅ `isAdminUser` imported and used: `const isAdmin = isAdminUser(user);`
+    - ✅ `DeleteCommentButton` with `type="timeline"`, `parentId={update.id}`
+    - ✅ `position: relative` on list-item
+    - ⚠️ **Note:** `author_user_id` used directly from query (not explicitly serialized), but should be fine since it's from SQL result
+
+**Component-Based Implementations:**
+12. ✅ **projects/[id]/page.js** → **ProjectRepliesSection.js**
+    - ✅ `author_user_id` in SELECT: `project_replies.author_user_id`
+    - ✅ Serialized in `safeReplies`: `author_user_id: String(r.author_user_id || '')`
+    - ✅ `isAdmin` prop passed to `ProjectRepliesSection`
+    - ✅ `ProjectRepliesSection` renders `DeleteCommentButton` with `type="project"`, `parentId={projectId}`
+    - ✅ `position: relative` on list-item
+
+13. ✅ **events/[id]/page.js** → **EventCommentsSection.js**
+    - ✅ `author_user_id` in both SELECT queries (main + fallback)
+    - ✅ Serialized in `commentsWithHtml`: `author_user_id: c.author_user_id != null ? String(c.author_user_id) : null`
+    - ✅ `isAdmin` prop passed to `EventCommentsSection`
+    - ✅ `EventCommentsSection` renders `DeleteCommentButton` with `type="event"`, `parentId={eventId}`
+    - ✅ `position: relative` on list-item
+
+#### ✅ Edge Cases Handled
+- ✅ **Null/undefined author_user_id**: Component checks `canDelete` before rendering, returns `null` if no match
+- ✅ **String comparison**: Uses `String(authorUserId) === String(currentUserId)` to handle type mismatches
+- ✅ **Missing user**: `currentUserId` can be null/undefined, component handles gracefully
+- ✅ **Admin override**: `isAdmin` flag allows admins to delete any comment
+- ✅ **Error handling**: API routes return proper status codes (401, 403, 404)
+- ✅ **Soft delete**: All routes use `is_deleted = 1` (no hard deletes)
+- ✅ **Updated_at**: Only set where table has the column (devlog, events, timeline, forum)
+
+#### ⚠️ Potential Issues / Notes
+1. **Announcements serialization**: `author_user_id` used directly from query result. Should work, but not explicitly serialized like other pages. Consider serializing for consistency.
+2. **Music delete URL**: Uses `/api/music/comments/[commentId]/delete` (no parentId in URL). This is correct per the route structure, but different from other types.
+3. **Project replies**: No `updated_at` column, so delete doesn't set it. This is correct per migration.
+4. **Post comments**: No `updated_at` column, so delete doesn't set it. This is correct per migration.
+
+#### ✅ Build Status
+- ✅ All files compile successfully
+- ✅ No linter errors
+- ✅ All import paths correct
+- ✅ All Next.js 15 `params` properly awaited
+
 ## Verification Checklist
 
 ### Params Fix
@@ -306,6 +484,7 @@ All critical fixes have been verified:
 
 ## Testing Recommendations
 
+### Previous Work
 1. Test devlog post that previously crashed - should load without errors
 2. Test adding replies to devlog posts - verify no serialization errors
 3. Test edit functionality on lore/memories posts:
@@ -317,10 +496,54 @@ All critical fixes have been verified:
    - Verify redirect to `/lore-memories` after delete
 5. Test edit form submission - verify updates persist and redirect correctly
 
+### Delete Comment/Reply Testing
+1. **Visibility Testing:**
+   - As comment author: trash icon should appear in top-right of own comments/replies
+   - As admin: trash icon should appear on ALL comments/replies
+   - As other user: trash icon should NOT appear on others' comments/replies
+   - As guest (not logged in): trash icon should NOT appear
+
+2. **Functionality Testing (for each page type):**
+   - **Devlog**: Delete own reply → should soft-delete, page refreshes, reply disappears
+   - **Lobby (Forum)**: Delete own reply → should soft-delete, page refreshes, reply disappears
+   - **Projects**: Delete own reply → should soft-delete, page refreshes, reply disappears
+   - **Lore/Memories/Art/Bugs/Rant/Nostalgia**: Delete own comment → should soft-delete, page refreshes, comment disappears
+   - **Music**: Delete own comment → should soft-delete, page refreshes, comment disappears
+   - **Events**: Delete own comment → should soft-delete, page refreshes, comment disappears
+   - **Announcements**: Delete own comment → should soft-delete, page refreshes, comment disappears
+
+3. **Admin Testing:**
+   - Admin should be able to delete any comment/reply on any page
+   - Verify admin can delete comments from other users
+
+4. **Error Cases:**
+   - Try to delete non-existent comment (should show error)
+   - Try to delete as non-author non-admin (should show 403 error)
+   - Try to delete while logged out (should show 401 error)
+
+5. **UI/UX Testing:**
+   - Trash icon should be visible but subtle (muted color)
+   - Hover should highlight icon (red color, light background)
+   - Click should open confirmation modal
+   - Cancel should close modal without deleting
+   - Confirm should delete and refresh page
+   - Icon should be disabled during deletion (opacity reduced)
+
 ## Files Created
+
+### Previous Work
 - `src/components/PostEditForm.js`
 - `src/app/api/devlog/[id]/delete/route.js`
 - `src/app/api/posts/[id]/delete/route.js`
+
+### Delete Comment/Reply Work
+- `src/components/DeleteCommentButton.js`
+- `src/app/api/devlog/[id]/comments/[commentId]/delete/route.js`
+- `src/app/api/projects/[id]/replies/[replyId]/delete/route.js`
+- `src/app/api/posts/[id]/comments/[commentId]/delete/route.js`
+- `src/app/api/music/comments/[commentId]/delete/route.js`
+- `src/app/api/events/[id]/comments/[commentId]/delete/route.js`
+- `src/app/api/timeline/[id]/comments/[commentId]/delete/route.js`
 
 ## Files Modified
 - `src/app/devlog/[id]/page.js`
@@ -337,3 +560,40 @@ All critical fixes have been verified:
 - `src/app/art/[id]/page.js`
 - `src/app/announcements/[id]/page.js`
 - `src/components/DeletePostButton.js`
+- `src/components/ProjectRepliesSection.js` (added `isAdmin` prop, `DeleteCommentButton`)
+- `src/components/EventCommentsSection.js` (added `isAdmin` prop, `DeleteCommentButton`)
+- `src/app/api/forum/[id]/replies/[replyId]/delete/route.js` (fixed Next.js 15 params await)
+
+---
+
+## Summary: Delete Comment/Reply Implementation
+
+### ✅ Complete Implementation
+All comment/reply types across all pages now have delete controls:
+- **13 pages** with direct DeleteCommentButton implementation
+- **2 client components** (ProjectRepliesSection, EventCommentsSection) updated
+- **7 delete API routes** created (1 pre-existing, fixed)
+- **100% coverage** - every comment/reply type has delete functionality
+
+### ✅ Security
+- All routes check authentication (401 if not logged in)
+- All routes verify ownership OR admin status (403 if unauthorized)
+- All routes verify comment/reply exists (404 if not found)
+- Soft-delete only (no permanent deletion)
+
+### ✅ User Experience
+- Small, unobtrusive trash icon in top-right corner
+- Only visible to author or admin
+- Confirmation modal prevents accidental deletion
+- Page refreshes after successful delete
+- Clear error messages on failure
+
+### ✅ Code Quality
+- Consistent implementation across all pages
+- Proper Next.js 15 params handling (all routes await params)
+- Proper data serialization (author_user_id as String)
+- Build passes with no errors
+- No linter errors
+
+### 🎯 Ready for Testing
+All functionality is implemented and ready for user testing. The delete controls should work consistently across all pages.

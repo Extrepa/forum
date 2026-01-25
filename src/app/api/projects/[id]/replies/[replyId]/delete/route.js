@@ -13,25 +13,27 @@ export async function POST(request, { params }) {
 
   const db = await getDb();
 
-  const reply = await db
-    .prepare('SELECT author_user_id FROM forum_replies WHERE id = ? AND thread_id = ?')
+  const row = await db
+    .prepare(
+      'SELECT author_user_id FROM project_replies WHERE id = ? AND project_id = ?'
+    )
     .bind(replyId, id)
     .first();
 
-  if (!reply) {
+  if (!row) {
     return NextResponse.json({ error: 'notfound' }, { status: 404 });
   }
 
   const isAdmin = isAdminUser(user);
-  const canDelete = reply.author_user_id === user.id || isAdmin;
+  const canDelete = row.author_user_id === user.id || isAdmin;
 
   if (!canDelete) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 403 });
   }
 
   await db
-    .prepare('UPDATE forum_replies SET is_deleted = 1, updated_at = ? WHERE id = ?')
-    .bind(Date.now(), replyId)
+    .prepare('UPDATE project_replies SET is_deleted = 1 WHERE id = ?')
+    .bind(replyId)
     .run();
 
   return NextResponse.json({ ok: true });

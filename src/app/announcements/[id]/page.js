@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
+import { isAdminUser } from '../../../lib/admin';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
@@ -10,6 +11,7 @@ import CommentFormWrapper from '../../../components/CommentFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
+import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +43,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     redirect('/');
   }
   const db = await getDb();
+  const isAdmin = isAdminUser(user);
   const update = await db
     .prepare(
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
@@ -76,6 +79,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   const { results: comments } = await db
     .prepare(
       `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
+              timeline_comments.author_user_id,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference
        FROM timeline_comments
@@ -183,7 +187,15 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               return (
-                <div key={c.id} className="list-item">
+                <div key={c.id} className="list-item" style={{ position: 'relative' }}>
+                  <DeleteCommentButton
+                    commentId={c.id}
+                    parentId={update.id}
+                    type="timeline"
+                    authorUserId={c.author_user_id}
+                    currentUserId={user?.id}
+                    isAdmin={!!isAdmin}
+                  />
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                   <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span>

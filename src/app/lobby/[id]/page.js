@@ -15,6 +15,7 @@ import { isAdminUser } from '../../../lib/admin';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
+import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -624,7 +625,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           key={r.id}
           className={`list-item${isChild ? ' reply-item--child' : ''}`}
           id={`reply-${r.id}`}
+          style={{ position: 'relative' }}
         >
+          <DeleteCommentButton
+            commentId={r.id}
+            parentId={safeThreadId}
+            type="forum"
+            authorUserId={r.author_user_id}
+            currentUserId={viewer?.id}
+            isAdmin={!!isAdmin}
+          />
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"

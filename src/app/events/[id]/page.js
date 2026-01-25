@@ -135,6 +135,7 @@ export default async function EventDetailPage({ params, searchParams }) {
     const result = await db
       .prepare(
         `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+                event_comments.author_user_id,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference
          FROM event_comments
@@ -151,6 +152,7 @@ export default async function EventDetailPage({ params, searchParams }) {
       const result = await db
         .prepare(
           `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+                  event_comments.author_user_id,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference
            FROM event_comments
@@ -227,6 +229,7 @@ export default async function EventDetailPage({ params, searchParams }) {
       body: String(c.body || ''),
       body_html: bodyHtml,
       author_name: String(c.author_name || 'Unknown'),
+      author_user_id: c.author_user_id != null ? String(c.author_user_id) : null,
       author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
       created_at: c.created_at != null ? Number(c.created_at) : 0,
     };
@@ -435,6 +438,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         initialAttendees={attendees}
         comments={commentsWithHtml}
         user={user}
+        isAdmin={isAdmin}
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
         isLocked={event.is_locked}

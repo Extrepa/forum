@@ -5,11 +5,13 @@ import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import ReplyButton from './ReplyButton';
 import ReplyFormWrapper from './ReplyFormWrapper';
+import DeleteCommentButton from './DeleteCommentButton';
 
-export default function ProjectRepliesSection({ 
-  projectId, 
-  replies, 
-  user, 
+export default function ProjectRepliesSection({
+  projectId,
+  replies,
+  user,
+  isAdmin = false,
   commentNotice,
   usernameColorMap = new Map(),
   isLocked = false,
@@ -78,7 +80,16 @@ export default function ProjectRepliesSection({
           key={r.id}
           className={`list-item${isChild ? ' reply-item--child' : ''}`}
           id={`reply-${r.id}`}
+          style={{ position: 'relative' }}
         >
+          <DeleteCommentButton
+            commentId={r.id}
+            parentId={projectId}
+            type="project"
+            authorUserId={r.author_user_id}
+            currentUserId={user?.id}
+            isAdmin={!!isAdmin}
+          />
           <div className="post-body" dangerouslySetInnerHTML={{ __html: r.body_html || r.body }} />
           <div
             className="list-meta"

@@ -499,6 +499,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         projectId={safeProjectId}
         replies={safeReplies}
         user={user}
+        isAdmin={isAdmin}
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
         isLocked={project.is_locked}

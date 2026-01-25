@@ -15,6 +15,7 @@ import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
+import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -183,6 +184,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     const out = await db
       .prepare(
         `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
+                dev_log_comments.author_user_id,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference
          FROM dev_log_comments
@@ -199,6 +201,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
+                  dev_log_comments.author_user_id,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference
            FROM dev_log_comments
@@ -284,6 +287,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
             body: String(c.body || ''),
             body_html: bodyHtml,
             author_name: String(c.author_name || 'Unknown'),
+            author_user_id: c.author_user_id != null ? String(c.author_user_id) : null,
             author_color_preference:
               c.author_color_preference != null && c.author_color_preference !== undefined
                 ? Number(c.author_color_preference)
@@ -488,7 +492,16 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     key={c.id}
                     className={`list-item${isChild ? ' reply-item--child' : ''}`}
                     id={`reply-${c.id}`}
+                    style={{ position: 'relative' }}
                   >
+                    <DeleteCommentButton
+                      commentId={c.id}
+                      parentId={id}
+                      type="devlog"
+                      authorUserId={c.author_user_id}
+                      currentUserId={user?.id}
+                      isAdmin={!!isAdmin}
+                    />
                     <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
                     <div
                       className="list-meta"

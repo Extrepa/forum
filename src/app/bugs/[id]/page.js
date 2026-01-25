@@ -1,5 +1,6 @@
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
+import { isAdminUser } from '../../../lib/admin';
 import { renderMarkdown } from '../../../lib/markdown';
 import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
@@ -9,6 +10,7 @@ import LikeButton from '../../../components/LikeButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
+import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import CollapsibleCommentForm from '../../../components/CollapsibleCommentForm';
 import { redirect } from 'next/navigation';
 
@@ -24,6 +26,7 @@ export default async function BugDetailPage({ params, searchParams }) {
   }
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
+  const isAdmin = isAdminUser(user);
 
   let post = null;
   let comments = [];
@@ -53,6 +56,7 @@ export default async function BugDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT post_comments.id, post_comments.body, post_comments.created_at,
+                  post_comments.author_user_id,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference
            FROM post_comments
@@ -197,7 +201,15 @@ export default async function BugDetailPage({ params, searchParams }) {
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               const replyLink = `/bugs/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               return (
-                <div key={c.id} className="list-item">
+                <div key={c.id} className="list-item" style={{ position: 'relative' }}>
+                  <DeleteCommentButton
+                    commentId={c.id}
+                    parentId={post.id}
+                    type="post"
+                    authorUserId={c.author_user_id}
+                    currentUserId={user?.id}
+                    isAdmin={!!isAdmin}
+                  />
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                   <div
                     className="list-meta"

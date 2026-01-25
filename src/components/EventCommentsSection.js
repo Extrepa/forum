@@ -4,13 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import ReplyButton from './ReplyButton';
+import DeleteCommentButton from './DeleteCommentButton';
 
-export default function EventCommentsSection({ 
-  eventId, 
-  initialAttending, 
-  initialAttendees, 
-  comments, 
-  user, 
+export default function EventCommentsSection({
+  eventId,
+  initialAttending,
+  initialAttendees,
+  comments,
+  user,
+  isAdmin = false,
   commentNotice,
   usernameColorMap = new Map(),
   isLocked = false
@@ -150,7 +152,15 @@ export default function EventCommentsSection({
             const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
             const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
             return (
-              <div key={c.id} className="list-item">
+              <div key={c.id} className="list-item" style={{ position: 'relative' }}>
+                <DeleteCommentButton
+                  commentId={c.id}
+                  parentId={eventId}
+                  type="event"
+                  authorUserId={c.author_user_id}
+                  currentUserId={user?.id}
+                  isAdmin={!!isAdmin}
+                />
                 <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
                 <div
                   className="list-meta"
