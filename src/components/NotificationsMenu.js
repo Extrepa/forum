@@ -266,22 +266,10 @@ export default function NotificationsMenu({
                     borderRadius: '8px',
                     border: isUnread ? '1px solid rgba(52, 225, 255, 0.4)' : '1px solid rgba(22, 58, 74, 0.4)',
                     background: isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)',
-                    transition: 'all 0.2s ease',
                     overflowWrap: 'break-word',
                     wordWrap: 'break-word',
-                    cursor: href === '#' ? 'default' : 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (href !== '#') {
-                      e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.15)' : 'rgba(4, 16, 23, 0.8)';
-                      e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.6)' : 'rgba(22, 58, 74, 0.6)';
-                      e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.2)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)';
-                    e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.4)' : 'rgba(22, 58, 74, 0.4)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    cursor: href === '#' ? 'default' : 'pointer',
+                    boxShadow: 'none'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
