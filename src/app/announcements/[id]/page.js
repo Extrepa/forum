@@ -175,12 +175,6 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <CommentFormWrapper
-          action={`/api/timeline/${update.id}/comments`}
-          buttonLabel="Post comment"
-          placeholder="Drop your thoughts into the goo..."
-          labelText="What would you like to say?"
-        />
         <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
@@ -209,6 +203,12 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             })
           )}
         </div>
+        <CommentFormWrapper
+          action={`/api/timeline/${update.id}/comments`}
+          buttonLabel="Post comment"
+          placeholder="Drop your thoughts into the goo..."
+          labelText="What would you like to say?"
+        />
       </section>
     </div>
   );

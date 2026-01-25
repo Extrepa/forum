@@ -9,6 +9,7 @@ import LikeButton from '../../../components/LikeButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
+import CollapsibleCommentForm from '../../../components/CollapsibleCommentForm';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -223,13 +224,12 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
           )}
         </div>
         {isSignedIn ? (
-          <form action={`/api/posts/${post.id}/comments`} method="post">
-            <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <button type="submit">Post comment</button>
-          </form>
+          <CollapsibleCommentForm
+            action={`/api/posts/${post.id}/comments`}
+            buttonLabel="Post comment"
+            placeholder="Leave a comment"
+            labelText="Say something"
+          />
         ) : (
           <p className="muted">Sign in to comment.</p>
         )}
