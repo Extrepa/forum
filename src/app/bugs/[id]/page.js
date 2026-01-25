@@ -1,13 +1,14 @@
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
+import { formatDateTime } from '../../../lib/dates';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ReplyButton from '../../../components/ReplyButton';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -205,23 +206,30 @@ export default async function BugDetailPage({ params, searchParams }) {
             comments.map((c) => {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
+              const replyLink = `/bugs/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               return (
-                <div key={c.id} className="reply-item">
-                  <div className="reply-meta" style={{ fontSize: '12px' }}>
-                    <Username 
-                      name={c.author_name} 
-                      colorIndex={colorIndex}
-                      preferredColorIndex={preferredColor}
+                <div key={c.id} className="list-item">
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                  <div
+                    className="list-meta"
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
+                  >
+                    <span>
+                      <Username 
+                        name={c.author_name} 
+                        colorIndex={colorIndex}
+                        preferredColorIndex={preferredColor}
+                      />
+                      {' · '}
+                      {c.created_at ? formatDateTime(c.created_at) : ''}
+                    </span>
+                    <ReplyButton
+                      replyId={c.id}
+                      replyAuthor={c.author_name}
+                      replyBody={c.body}
+                      replyHref={replyLink}
                     />
-                    <span className="muted"> · {new Date(c.created_at).toLocaleString()}</span>
                   </div>
-                  <div className="reply-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                  <CommentActions
-                    commentId={c.id}
-                    commentAuthor={c.author_name}
-                    commentBody={c.body}
-                    replyHref={`/bugs/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
-                  />
                 </div>
               );
             })
