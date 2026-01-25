@@ -2,6 +2,7 @@ import DevLogForm from '../../../components/DevLogForm';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
+import { formatDateTime } from '../../../lib/dates';
 import { isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
 import PageTopRow from '../../../components/PageTopRow';
@@ -13,7 +14,7 @@ import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ReplyButton from '../../../components/ReplyButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -491,20 +492,20 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
                     <div
                       className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
                     >
                       <span>
                         <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                         {' · '}
-                        {c.created_at ? new Date(c.created_at).toLocaleString() : ''}
+                        {c.created_at ? formatDateTime(c.created_at) : ''}
                       </span>
+                      <ReplyButton
+                        replyId={c.id}
+                        replyAuthor={c.author_name}
+                        replyBody={c.body}
+                        replyHref={replyLink}
+                      />
                     </div>
-                    <CommentActions
-                      commentId={c.id}
-                      commentAuthor={c.author_name}
-                      commentBody={c.body}
-                      replyHref={replyLink}
-                    />
                   </div>
                 );
               };
