@@ -40,6 +40,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
         `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
                 COALESCE(posts.views, 0) AS views,
+                COALESCE(posts.is_locked, 0) AS is_locked,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
@@ -128,6 +129,8 @@ export default async function LoreDetailPage({ params, searchParams }) {
   const isAdmin = isAdminUser(user);
   const canEdit = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
   const canDelete = canEdit;
+  const canToggleLock = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
+  const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
 
   const error = searchParams?.error;
   const editNotice =
@@ -152,6 +155,8 @@ export default async function LoreDetailPage({ params, searchParams }) {
       ? 'Set your password to continue posting.'
       : error === 'missing'
       ? 'Comment text is required.'
+      : error === 'locked'
+      ? 'Comments are locked on this post.'
       : error === 'notready'
       ? 'Comments are not enabled yet (database updates still applying).'
       : null;
@@ -166,6 +171,34 @@ export default async function LoreDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? (
+              <form action={`/api/posts/${id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '6px 10px',
+                    minWidth: '90px',
+                    minHeight: '44px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                  </span>
+                </button>
+              </form>
+            ) : null}
             {canEdit ? (
               <>
                 <EditPostButtonWithPanel 
@@ -205,6 +238,11 @@ export default async function LoreDetailPage({ params, searchParams }) {
         {post.is_private ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Members-only
+          </span>
+        ) : null}
+        {isLocked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
           </span>
         ) : null}
         {post.body ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
@@ -292,12 +330,18 @@ export default async function LoreDetailPage({ params, searchParams }) {
             })
           )}
         </div>
-        <CollapsibleCommentForm
-          action={`/api/posts/${id}/comments`}
-          buttonLabel="Post comment"
-          placeholder="Leave a comment"
-          labelText="Say something"
-        />
+        {isLocked ? (
+          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
+            Comments are locked for this post.
+          </div>
+        ) : (
+          <CollapsibleCommentForm
+            action={`/api/posts/${id}/comments`}
+            buttonLabel="Post comment"
+            placeholder="Leave a comment"
+            labelText="Say something"
+          />
+        )}
       </section>
     </div>
   );

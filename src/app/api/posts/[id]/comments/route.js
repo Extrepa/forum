@@ -63,7 +63,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   let post = null;
   try {
-    post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(id).first();
+    post = await db.prepare('SELECT type, is_private, is_locked FROM posts WHERE id = ?').bind(id).first();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
@@ -71,6 +71,13 @@ export async function POST(request, { params }) {
 
   if (!post) {
     redirectUrl.searchParams.set('error', 'notfound');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  // Check if post is locked (rollout-safe)
+  if (post.is_locked) {
+    redirectUrl.pathname = `/${post.type === 'about' ? 'about' : post.type}/${id}`;
+    redirectUrl.searchParams.set('error', 'locked');
     return NextResponse.redirect(redirectUrl, 303);
   }
 

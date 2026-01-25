@@ -38,6 +38,22 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  
+  // Check if timeline update is locked (rollout-safe)
+  try {
+    const update = await db
+      .prepare('SELECT is_locked FROM timeline_updates WHERE id = ?')
+      .bind(id)
+      .first();
+    if (update && update.is_locked) {
+      redirectUrl.pathname = `/announcements/${id}`;
+      redirectUrl.searchParams.set('error', 'locked');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+  } catch (e) {
+    // Column might not exist yet, continue
+  }
+
   const now = Date.now();
   await db
     .prepare(

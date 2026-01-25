@@ -49,7 +49,9 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
               timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
               timeline_updates.moved_to_type, timeline_updates.moved_to_id,
+              timeline_updates.author_user_id,
               COALESCE(timeline_updates.views, 0) AS views,
+              COALESCE(timeline_updates.is_locked, 0) AS is_locked,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
@@ -121,12 +123,17 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
+  const canToggleLock = !!user && !!user.password_hash && (user.id === update.author_user_id || isAdmin);
+  const isLocked = update.is_locked ? Boolean(update.is_locked) : false;
+
   const error = searchParams?.error;
   const commentNotice =
     error === 'claim'
       ? 'Log in to post.'
       : error === 'missing'
       ? 'Comment text is required.'
+      : error === 'locked'
+      ? 'Comments are locked on this update.'
       : null;
 
   return (
@@ -138,6 +145,37 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           { href: `/announcements/${update.id}`, label: update.title || 'Update' }
         ]}
       />
+
+      {isAdmin ? (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+          <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
+            <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+            <button
+              type="submit"
+              className="button"
+              style={{
+                fontSize: '12px',
+                padding: '6px 10px',
+                minWidth: '90px',
+                minHeight: '44px',
+                display: 'inline-flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: 1.2,
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+              </span>
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       <ViewTracker contentType="timeline" contentId={update.id} />
       
@@ -160,6 +198,11 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           updatedAt={update.updated_at}
         />
         {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        {isLocked ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Comments locked
+          </span>
+        ) : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(update.body) }} />
         {update.views !== undefined && update.views !== null && (
           <div style={{ 
@@ -215,12 +258,18 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             })
           )}
         </div>
-        <CommentFormWrapper
-          action={`/api/timeline/${update.id}/comments`}
-          buttonLabel="Post comment"
-          placeholder="Drop your thoughts into the goo..."
-          labelText="What would you like to say?"
-        />
+        {isLocked ? (
+          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
+            Comments are locked for this update.
+          </div>
+        ) : (
+          <CommentFormWrapper
+            action={`/api/timeline/${update.id}/comments`}
+            buttonLabel="Post comment"
+            placeholder="Drop your thoughts into the goo..."
+            labelText="What would you like to say?"
+          />
+        )}
       </section>
     </div>
   );
