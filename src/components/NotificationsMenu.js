@@ -17,6 +17,15 @@ function formatTimeAgo(timestamp) {
   return 'just now';
 }
 
+const ERL_TAGLINES = [
+  'The goo is listening.',
+  'Portal status: active.',
+  'Drip on.',
+  "Errl's got your back.",
+  'Pulled together by chance and light.',
+  'Fresh transmissions detected.'
+];
+
 export default function NotificationsMenu({
   open,
   onClose,
@@ -36,6 +45,12 @@ export default function NotificationsMenu({
     if (unreadCount > 0) return `Notifications (${unreadCount})`;
     return 'Notifications';
   }, [unreadCount]);
+
+  const tagline = useMemo(() => {
+    const d = new Date();
+    const seed = (d.getDate() + d.getMonth() * 31 + (currentUsername || '').length) % ERL_TAGLINES.length;
+    return ERL_TAGLINES[Math.abs(seed)] || ERL_TAGLINES[0];
+  }, [open, currentUsername]);
 
   // Fetch current user's username for profile link
   useEffect(() => {
@@ -81,28 +96,44 @@ export default function NotificationsMenu({
       role="menu"
       aria-label={title}
     >
-      {/* Header with action buttons */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            router.push('/account?tab=account');
-          }}
-          style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-        >
-          Account
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            router.push('/account?tab=profile');
-          }}
-          style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
-        >
-          Profile
-        </button>
+      {/* Header: user + tagline (left), Account/Profile (right) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+          {currentUsername ? (
+            <>
+              <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>
+                Hey, {currentUsername}
+              </div>
+              <div className="muted" style={{ fontSize: '11px', lineHeight: 1.3, fontStyle: 'italic' }}>
+                {tagline}
+              </div>
+            </>
+          ) : (
+            <div className="muted" style={{ fontSize: '12px' }}>Loading…</div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/account?tab=account');
+            }}
+            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+          >
+            Account
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/account?tab=profile');
+            }}
+            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+          >
+            Profile
+          </button>
+        </div>
       </div>
 
       {/* Title and refresh button row */}
