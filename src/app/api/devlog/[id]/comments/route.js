@@ -83,17 +83,67 @@ export async function POST(request, { params }) {
     }
   }
 
+  const now = Date.now();
   try {
     await db
       .prepare(
         'INSERT INTO dev_log_comments (id, log_id, author_user_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?, ?)'
       )
-      .bind(crypto.randomUUID(), id, user.id, body, Date.now(), effectiveReplyTo)
+      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
       .run();
   } catch (e) {
     // Migration not applied yet (reply_to_id column missing).
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  // Create in-app notifications for devlog author + participants (excluding the commenter).
+  try {
+    const log = await db
+      .prepare('SELECT author_user_id FROM dev_logs WHERE id = ?')
+      .bind(id)
+      .first();
+
+    const recipients = new Set();
+    if (log?.author_user_id) {
+      recipients.add(log.author_user_id);
+    }
+
+    const { results: participants } = await db
+      .prepare(
+        'SELECT DISTINCT author_user_id FROM dev_log_comments WHERE log_id = ? AND is_deleted = 0'
+      )
+      .bind(id)
+      .all();
+
+    for (const row of participants || []) {
+      if (row?.author_user_id) {
+        recipients.add(row.author_user_id);
+      }
+    }
+
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          `INSERT INTO notifications
+            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'comment',
+          'dev_log',
+          id,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
   }
 
   if (effectiveReplyTo) {

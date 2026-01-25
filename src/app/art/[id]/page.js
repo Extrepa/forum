@@ -27,8 +27,6 @@ export default async function ArtDetailPage({ params, searchParams }) {
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
   const isAdmin = isAdminUser(user);
-  const canToggleLock = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
-  const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
 
   let post = null;
   let comments = [];
@@ -95,6 +93,9 @@ export default async function ArtDetailPage({ params, searchParams }) {
       </section>
     );
   }
+
+  const canToggleLock = !!user && !!user.password_hash && (String(user.id) === String(post.author_user_id) || isAdmin);
+  const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
 
   // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [

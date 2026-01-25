@@ -87,14 +87,64 @@ export async function POST(request, { params }) {
   // Member-only/private posts are visible to signed-in users, so no extra check here.
   // Lore/Memories section read-visibility is enforced in the page layer.
 
+  const now = Date.now();
   try {
     await db
       .prepare('INSERT INTO post_comments (id, post_id, author_user_id, body, reply_to_id, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), id, user.id, body, replyToId, Date.now())
+      .bind(crypto.randomUUID(), id, user.id, body, replyToId, now)
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  // Create in-app notifications for post author + participants (excluding the commenter).
+  try {
+    const postAuthor = await db
+      .prepare('SELECT author_user_id FROM posts WHERE id = ?')
+      .bind(id)
+      .first();
+
+    const recipients = new Set();
+    if (postAuthor?.author_user_id) {
+      recipients.add(postAuthor.author_user_id);
+    }
+
+    const { results: participants } = await db
+      .prepare(
+        'SELECT DISTINCT author_user_id FROM post_comments WHERE post_id = ? AND is_deleted = 0'
+      )
+      .bind(id)
+      .all();
+
+    for (const row of participants || []) {
+      if (row?.author_user_id) {
+        recipients.add(row.author_user_id);
+      }
+    }
+
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          `INSERT INTO notifications
+            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'comment',
+          'post',
+          id,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
   }
 
   return NextResponse.redirect(redirectUrl, 303);

@@ -597,3 +597,247 @@ All comment/reply types across all pages now have delete controls:
 
 ### 🎯 Ready for Testing
 All functionality is implemented and ready for user testing. The delete controls should work consistently across all pages.
+
+---
+
+## Notification System Fixes (2026-01-25 - Evening)
+
+### Issue Reported
+User tested with dummy account replying to admin account's post, but admin did not receive a notification.
+
+### Root Cause
+Three comment/reply API routes were missing notification logic:
+1. `/api/posts/[id]/comments` - Handles comments on posts (lore, memories, art, nostalgia, bugs, rant, lore-memories)
+2. `/api/projects/[id]/replies` - Handles project replies
+3. `/api/devlog/[id]/comments` - Handles devlog comments
+
+### Fixes Applied
+
+#### 1. `/api/posts/[id]/comments/route.js`
+**Added notification logic after comment insertion:**
+- ✅ Fetches post author: `SELECT author_user_id FROM posts WHERE id = ?`
+- ✅ Collects all participants: `SELECT DISTINCT author_user_id FROM post_comments WHERE post_id = ? AND is_deleted = 0`
+- ✅ Creates Set of recipients (post author + all participants)
+- ✅ Excludes commenter from notifications: `recipients.delete(user.id)`
+- ✅ Inserts notifications for each recipient:
+  - `type: 'comment'`
+  - `target_type: 'post'`
+  - `target_id: id` (post ID)
+- ✅ Wrapped in try/catch to handle missing notifications table gracefully
+
+**Files Modified:**
+- `src/app/api/posts/[id]/comments/route.js`
+
+#### 2. `/api/projects/[id]/replies/route.js`
+**Added notification logic after reply insertion:**
+- ✅ Fetches project author: `SELECT author_user_id FROM projects WHERE id = ?`
+- ✅ Collects all participants: `SELECT DISTINCT author_user_id FROM project_replies WHERE project_id = ? AND is_deleted = 0`
+- ✅ Creates Set of recipients (project author + all participants)
+- ✅ Excludes replier from notifications: `recipients.delete(user.id)`
+- ✅ Inserts notifications for each recipient:
+  - `type: 'reply'`
+  - `target_type: 'project'`
+  - `target_id: id` (project ID)
+- ✅ Wrapped in try/catch to handle missing notifications table gracefully
+
+**Files Modified:**
+- `src/app/api/projects/[id]/replies/route.js`
+
+#### 3. `/api/devlog/[id]/comments/route.js`
+**Added notification logic after comment insertion:**
+- ✅ Fetches devlog author: `SELECT author_user_id FROM dev_logs WHERE id = ?`
+- ✅ Collects all participants: `SELECT DISTINCT author_user_id FROM dev_log_comments WHERE log_id = ? AND is_deleted = 0`
+- ✅ Creates Set of recipients (devlog author + all participants)
+- ✅ Excludes commenter from notifications: `recipients.delete(user.id)`
+- ✅ Inserts notifications for each recipient:
+  - `type: 'comment'`
+  - `target_type: 'dev_log'`
+  - `target_id: id` (devlog ID)
+- ✅ Wrapped in try/catch to handle missing notifications table gracefully
+
+**Files Modified:**
+- `src/app/api/devlog/[id]/comments/route.js`
+
+### Notification Coverage - Complete
+
+**Routes WITH notifications (verified):**
+- ✅ `/api/forum/[id]/replies` - Forum thread replies (pre-existing)
+- ✅ `/api/music/comments` - Music post comments (pre-existing)
+- ✅ `/api/events/[id]/comments` - Event comments (pre-existing)
+- ✅ `/api/timeline/[id]/comments` - Timeline/announcement comments (pre-existing)
+- ✅ `/api/posts/[id]/comments` - Post comments (NEW - added)
+- ✅ `/api/projects/[id]/replies` - Project replies (NEW - added)
+- ✅ `/api/devlog/[id]/comments` - Devlog comments (NEW - added)
+
+**100% Coverage:** All comment/reply types now send notifications to:
+- Post/thread/project author
+- All participants (users who have previously commented/replied)
+- Excludes the commenter/replier themselves
+
+### Notification Pattern (Consistent Across All Routes)
+
+```javascript
+// 1. Fetch parent entity author
+const parent = await db
+  .prepare('SELECT author_user_id FROM [table] WHERE id = ?')
+  .bind(id)
+  .first();
+
+// 2. Collect recipients
+const recipients = new Set();
+if (parent?.author_user_id) {
+  recipients.add(parent.author_user_id);
+}
+
+// 3. Get all participants
+const { results: participants } = await db
+  .prepare('SELECT DISTINCT author_user_id FROM [comments_table] WHERE [parent_id] = ? AND is_deleted = 0')
+  .bind(id)
+  .all();
+
+for (const row of participants || []) {
+  if (row?.author_user_id) {
+    recipients.add(row.author_user_id);
+  }
+}
+
+// 4. Exclude commenter
+recipients.delete(user.id);
+
+// 5. Create notifications
+for (const recipientUserId of recipients) {
+  await db
+    .prepare(
+      `INSERT INTO notifications
+        (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      recipientUserId,
+      user.id,
+      'comment' or 'reply',
+      'post' or 'project' or 'dev_log' etc,
+      id,
+      now
+    )
+    .run();
+}
+```
+
+### Bug Fix: Art Page Variable Order
+
+**Issue Found:**
+- `src/app/art/[id]/page.js` lines 30-31 were using `post` variable before it was defined
+- Variables `canToggleLock` and `isLocked` referenced `post.author_user_id` and `post.is_locked` before `post` was fetched from database
+
+**Fix Applied:**
+- ✅ Removed premature variable declarations (lines 30-31)
+- ✅ Added `canToggleLock` and `isLocked` calculations after post is fetched and confirmed to exist (after line 95)
+- ✅ Used proper string comparison: `String(user.id) === String(post.author_user_id)`
+
+**Files Modified:**
+- `src/app/art/[id]/page.js`
+
+### Consistency Verification
+
+#### Delete Buttons
+- ✅ **11 pages** with direct `DeleteCommentButton` implementation:
+  - devlog, lobby, lore, memories, lore-memories, art, bugs, rant, nostalgia, music, announcements
+- ✅ **2 client components** with `DeleteCommentButton`:
+  - `ProjectRepliesSection.js` (used by projects page)
+  - `EventCommentsSection.js` (used by events page)
+- ✅ All SQL queries include `author_user_id` for authorization checks
+- ✅ All pages serialize `author_user_id` as String for comparison
+- ✅ All pages use `position: relative` on list-item for absolute positioning
+
+#### Lock Buttons
+- ✅ **13 pages** have lock/unlock buttons:
+  - lore, memories, lore-memories, art, bugs, rant, nostalgia, music, events, projects, devlog, lobby, announcements
+- ✅ All pages check `is_locked` before allowing comments
+- ✅ All pages display "Comments locked" status when locked
+- ✅ All comment forms conditionally render based on `isLocked`
+- ✅ All SQL queries include `COALESCE(posts.is_locked, 0) AS is_locked` or equivalent
+
+#### SQL Queries
+- ✅ All post pages include `author_user_id` in SELECT queries
+- ✅ All comment/reply queries include `author_user_id` for delete button authorization
+- ✅ All pages use `COALESCE` for `is_locked` to handle missing columns gracefully
+- ✅ All pages properly serialize BigInt values (views, like_count, etc.) to Number
+
+#### API Routes
+- ✅ All comment/reply POST routes check for locked status before allowing new comments
+- ✅ All delete routes await Next.js 15 params correctly
+- ✅ All delete routes verify ownership or admin status
+- ✅ All notification routes follow consistent pattern
+
+### Build Verification
+- ✅ `npm run build` completed successfully with no errors
+- ✅ All TypeScript/linting checks pass
+- ✅ No runtime errors detected
+
+### Testing Recommendations
+
+#### Notification Testing
+1. **Post Comment Notifications:**
+   - Create a post as User A (lore, memories, art, etc.)
+   - Comment as User B → User A should receive notification
+   - Comment as User C → Both User A and User B should receive notifications
+   - Comment as User A → No notifications (author commenting on own post)
+
+2. **Project Reply Notifications:**
+   - Create a project as User A
+   - Reply as User B → User A should receive notification
+   - Reply as User C → Both User A and User B should receive notifications
+
+3. **Devlog Comment Notifications:**
+   - Create a devlog as User A
+   - Comment as User B → User A should receive notification
+   - Comment as User C → Both User A and User B should receive notifications
+
+4. **Cross-Type Verification:**
+   - Verify notifications appear in notification bell/menu
+   - Verify notification links navigate to correct post/thread/project
+   - Verify notification type and target_type are correct
+
+#### Consistency Testing
+1. **Delete Buttons:**
+   - Verify trash icon appears on all comment/reply types
+   - Verify only author and admin can see delete buttons
+   - Verify delete works on all page types
+
+2. **Lock Buttons:**
+   - Verify lock/unlock buttons appear on all pages (for authors/admins)
+   - Verify locked posts prevent new comments
+   - Verify "Comments locked" message displays correctly
+
+3. **UI Consistency:**
+   - Verify spacing and padding consistent across all pages
+   - Verify comment forms appear in same position (after comments list)
+   - Verify collapsible forms work consistently
+
+### Summary
+
+**Notifications:**
+- ✅ Fixed 3 missing notification implementations
+- ✅ 100% coverage across all comment/reply types
+- ✅ Consistent pattern across all routes
+- ✅ Proper error handling (try/catch for missing table)
+
+**Consistency:**
+- ✅ All pages have delete buttons
+- ✅ All pages have lock buttons
+- ✅ All SQL queries include necessary fields
+- ✅ All API routes follow consistent patterns
+- ✅ Fixed bug in art page (variable order)
+
+**Build Status:**
+- ✅ Build passes with no errors
+- ✅ All code compiles successfully
+- ✅ Ready for testing
+
+### Files Modified (Notification Fixes)
+- `src/app/api/posts/[id]/comments/route.js` (added notifications)
+- `src/app/api/projects/[id]/replies/route.js` (added notifications)
+- `src/app/api/devlog/[id]/comments/route.js` (added notifications)
+- `src/app/art/[id]/page.js` (fixed variable order bug)
