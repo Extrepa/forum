@@ -194,8 +194,10 @@ Fixed devlog crash after replies, added edit/delete functionality to Lore/Memori
 
 4. **Data Passed to Client Components:**
    - ✅ `Username` receives coerced `preferredColorIndex` (Number or null)
-   - ✅ `CommentActions` receives serialized strings (`commentId`, `commentAuthor`, `commentBody`)
+   - ✅ `CommentActions` receives serialized strings (`commentId`, `commentAuthor`, `commentBody`) **only** — do **not** pass `onQuote` or `onReply` (functions are not serializable; Server → Client).
    - ✅ `ReplyFormWrapper` receives minimal `replyingTo` object (only strings)
+
+5. **Server Components render error (production):** Caused by passing `onQuote` callback from devlog Server Component to `CommentActions` Client Component. **Fix:** Removed `onQuote` prop; Quote button uses CommentActions fallback (console.log). Reply still works via `replyHref`.
 
 ### ✅ Verified: Events Page (`/events/[id]`)
 1. **Params & SearchParams:**

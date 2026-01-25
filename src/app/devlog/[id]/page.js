@@ -504,10 +504,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                       commentAuthor={c.author_name}
                       commentBody={c.body}
                       replyHref={replyLink}
-                      onQuote={(quoteData) => {
-                        const quoteText = quoteMarkdown(quoteData);
-                        if (typeof window !== 'undefined') console.log('Quote:', quoteText);
-                      }}
                     />
                   </div>
                 );
