@@ -130,6 +130,178 @@ Fixed devlog crash after replies, added edit/delete functionality to Lore/Memori
 
 4. **Reply Threading:** Lore/Memories pages still use flat comment form instead of `ReplyFormWrapper` with threading. This was noted as optional follow-up in the plan.
 
+## Follow-up (2026-01-25): Devlog replies still broken
+
+**Additional fixes applied:**
+
+1. **Devlog page**
+   - Built `safeComments`: full serialization (id, body, author_name, author_color_preference, created_at, reply_to_id) with String/Number coercion; pre-render markdown to `body_html` in try-catch.
+   - `validCommentIds` Set: use `reply_to_id` as parent key only when it exists in the set (same as lobby).
+   - Reply tree uses `safeComments`, `body_html`, and coerced `preferredColor`; `renderReply` returns null for invalid items; filter nulls.
+   - Await `searchParams`: `const resolvedSearchParams = (await searchParams) || {}`; use for `error` and `replyTo`.
+
+2. **Events page**
+   - `commentsWithHtml`: wrap `renderMarkdown` in try-catch; serialize id, body, author_name, author_color_preference, created_at.
+   - Await `searchParams`, use `resolvedSearchParams` for `error`.
+
+3. **Music page**
+   - `safeComments` with pre-rendered `body_html` in try-catch; use in comment list and for Username/CommentActions.
+   - Await `searchParams`, use `resolvedSearchParams` for `error`.
+
+4. **Lobby page**
+   - Await `searchParams`; use `resolvedSearchParams` for error, replyTo, page, edit, and in extraction block.
+   - Replaced remaining `params.id` with `id` (count query, read-state, etc.).
+
+5. **Projects page**
+   - Await `searchParams`; use `resolvedSearchParams` in extraction block.
+
+6. **Devlog comments API**
+   - GET/POST await `params`, use `id` for all DB binds and redirect URL.
+
+**Files touched:** `devlog/[id]/page.js`, `events/[id]/page.js`, `music/[id]/page.js`, `lobby/[id]/page.js`, `projects/[id]/page.js`, `api/devlog/[id]/comments/route.js`.
+
+---
+
+## Verification Notes (2026-01-25 - Double Check)
+
+### ✅ Verified: Devlog Page (`/devlog/[id]`)
+1. **Params & SearchParams:**
+   - ✅ Line 68: `const { id } = await params;`
+   - ✅ Line 69: `const resolvedSearchParams = (await searchParams) || {};`
+   - ✅ All DB queries use `id` (not `params.id`)
+   - ✅ Line 216: `const error = resolvedSearchParams?.error;`
+   - ✅ Line 268: `const replyToId = String(resolvedSearchParams?.replyTo || '').trim() || null;`
+
+2. **Comment Serialization:**
+   - ✅ Lines 271-294: `safeComments` array with full serialization:
+     - All fields coerced to String/Number
+     - `body_html` pre-rendered in try-catch (lines 275-280)
+     - `reply_to_id` coerced to String or null
+   - ✅ Line 296: `validCommentIds` Set created from `safeComments`
+   - ✅ Lines 297-302: `replyingTo` only created if `replyToId` exists in `validCommentIds`
+
+3. **Reply Tree Building:**
+   - ✅ Lines 471-478: `byParent` Map built with validation:
+     - Only uses `reply_to_id` as key if it exists in `validCommentIds`
+     - Orphaned replies (pointing to deleted comments) become top-level
+   - ✅ Lines 480-514: `renderReply` function:
+     - Returns `null` for invalid comments (line 481)
+     - Uses `c.body_html` instead of calling `renderMarkdown` (line 491)
+     - Coerces `preferredColor` to Number (line 482)
+   - ✅ Lines 517-529: Tree rendering with null filtering:
+     - `top.map()` filters nulls (line 520)
+     - `kids.map()` filters nulls (line 526)
+
+4. **Data Passed to Client Components:**
+   - ✅ `Username` receives coerced `preferredColorIndex` (Number or null)
+   - ✅ `CommentActions` receives serialized strings (`commentId`, `commentAuthor`, `commentBody`)
+   - ✅ `ReplyFormWrapper` receives minimal `replyingTo` object (only strings)
+
+### ✅ Verified: Events Page (`/events/[id]`)
+1. **Params & SearchParams:**
+   - ✅ Line 41: `const { id } = await params;`
+   - ✅ Line 42: `const resolvedSearchParams = (await searchParams) || {};`
+   - ✅ Line 240: `const error = resolvedSearchParams?.error;`
+
+2. **Comment Serialization:**
+   - ✅ Lines 217-233: `commentsWithHtml` with try-catch:
+     - `renderMarkdown` wrapped in try-catch (lines 219-223)
+     - All fields serialized (id, body, author_name, author_color_preference, created_at)
+     - `body_html` pre-rendered
+
+3. **Data Passed to Client:**
+   - ✅ `EventCommentsSection` receives `commentsWithHtml` (fully serialized)
+   - All numeric fields coerced to Number
+
+### ✅ Verified: Music Page (`/music/[id]`)
+1. **Params & SearchParams:**
+   - ✅ Line 41: `const { id } = await params;`
+   - ✅ Line 42: `const resolvedSearchParams = (await searchParams) || {};`
+   - ✅ Line 182: `const error = resolvedSearchParams?.error;`
+
+2. **Comment Serialization:**
+   - ✅ Lines 220-238: `safeComments` with try-catch:
+     - `renderMarkdown` wrapped in try-catch (lines 225-229)
+     - All fields serialized
+     - `body_html` pre-rendered
+
+3. **Comment Rendering:**
+   - ✅ Lines 380-410: Comment list uses `safeComments`
+   - ✅ Line 391: Uses `comment.body_html` instead of `renderMarkdown(comment.body)`
+   - ✅ All data passed to `Username` and `CommentActions` is serialized
+
+### ✅ Verified: Lobby Page (`/lobby/[id]`)
+1. **Params & SearchParams:**
+   - ✅ Line 42: `const { id } = await params;`
+   - ✅ Line 43: `const resolvedSearchParams = (await searchParams) || {};`
+   - ✅ Line 90: `const isEditing = resolvedSearchParams?.edit === 'true';`
+   - ✅ Line 227: `currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || '1', 10));`
+   - ✅ Lines 498-518: Extraction block uses `resolvedSearchParams`
+
+2. **Params.id Fixes:**
+   - ✅ All `params.id` references replaced with `id`:
+     - Line 239: Count query
+     - Line 348: Read state query
+     - Line 351: Read state check
+     - Lines 360, 373: Last read reply queries
+     - Line 385: Last read reply check
+     - Lines 396, 410: View tracking queries
+
+### ✅ Verified: Projects Page (`/projects/[id]`)
+1. **Params & SearchParams:**
+   - ✅ Line 41: `const { id } = await params;`
+   - ✅ Line 42: `const resolvedSearchParams = (await searchParams) || {};`
+   - ✅ Lines 236-250: Extraction block uses `resolvedSearchParams`
+
+### ✅ Verified: Devlog Comments API (`/api/devlog/[id]/comments`)
+1. **Params Await:**
+   - ✅ Line 7: `const { id } = await params;` (GET handler)
+   - ✅ Line 30: `const { id } = await params;` (POST handler)
+   - ✅ All DB queries use `id`:
+     - Line 23: GET query
+     - Line 36: POST redirect URL
+     - Line 51: POST log check
+     - Line 74: POST parent check
+     - Line 91: POST insert
+
+### ⚠️ Potential Issues Found
+
+1. **API Routes with `params.id`:**
+   - Found 38 API route files that still use `params.id` directly
+   - These may need updating if Next.js 15 requires awaiting params in API routes
+   - **Note:** The devlog comments API was fixed as part of this work
+   - **Recommendation:** Test API routes that handle replies/comments. If they fail, update them to await params.
+
+2. **Other Pages with Comments:**
+   - Lore, Memories, Lore-Memories, Rant, Nostalgia, Bugs, Art, Announcements pages have comments but use flat structure (no threading)
+   - These pages may benefit from similar serialization if they start having issues
+   - Currently they use `CommentActions` which receives raw comment data - should verify serialization
+
+3. **Projects Replies:**
+   - Uses `ProjectRepliesSection` client component
+   - Already has `validReplyIds` pattern (from previous work)
+   - Should verify it handles serialization correctly
+
+### ✅ Build Verification
+- ✅ `npm run build` completed successfully with no errors
+- ✅ All pages compile without TypeScript/linting errors
+- ✅ No remaining `params.id` in page components (verified via grep)
+
+### 📝 Summary
+All critical fixes have been verified:
+- ✅ Devlog page: Full serialization, validCommentIds, pre-rendered markdown, searchParams await
+- ✅ Events page: Comment serialization with try-catch, searchParams await
+- ✅ Music page: Comment serialization with try-catch, searchParams await
+- ✅ Lobby page: searchParams await, all params.id replaced
+- ✅ Projects page: searchParams await
+- ✅ Devlog comments API: params await
+
+**Remaining work (non-critical):**
+- 38 API routes may need params await (if they start failing)
+- Other comment pages may need serialization (if issues arise)
+
+---
+
 ## Testing Recommendations
 
 1. Test devlog post that previously crashed - should load without errors

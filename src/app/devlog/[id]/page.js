@@ -64,9 +64,10 @@ function parseLinksList(raw) {
 }
 
 export default async function DevLogDetailPage({ params, searchParams }) {
-  // Next.js 15: params is a Promise, must await
+  // Next.js 15: params and searchParams are Promises, must await
   const { id } = await params;
-  
+  const resolvedSearchParams = (await searchParams) || {};
+
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -212,7 +213,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     }
   }
 
-  const error = searchParams?.error;
+  const error = resolvedSearchParams?.error;
   const notice =
     error === 'unauthorized'
       ? 'Only admins can post in Development.'
@@ -264,34 +265,54 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     }
   }
 
-  const replyToId = String(searchParams?.replyTo || '').trim() || null;
-  // Validate replyToId exists in comments before using
-  const replyingTo = replyToId && comments.find((c) => c.id === replyToId) 
-    ? { 
-        id: comments.find((c) => c.id === replyToId).id,
-        author_name: String(comments.find((c) => c.id === replyToId).author_name || ''),
-        body: String(comments.find((c) => c.id === replyToId).body || '')
-      }
+  const replyToId = String(resolvedSearchParams?.replyTo || '').trim() || null;
+
+  // Serialize comments for client components and reply tree (avoid BigInt, ensure stable types)
+  const safeComments = Array.isArray(comments)
+    ? comments
+        .filter((c) => c && c.id && c.body != null)
+        .map((c) => {
+          let bodyHtml = '';
+          try {
+            bodyHtml = renderMarkdown(String(c.body || ''));
+          } catch (e) {
+            bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
+          }
+          return {
+            id: String(c.id || ''),
+            body: String(c.body || ''),
+            body_html: bodyHtml,
+            author_name: String(c.author_name || 'Unknown'),
+            author_color_preference:
+              c.author_color_preference != null && c.author_color_preference !== undefined
+                ? Number(c.author_color_preference)
+                : null,
+            created_at: c.created_at != null ? Number(c.created_at) : 0,
+            reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
+          };
+        })
+    : [];
+
+  const validCommentIds = new Set(safeComments.map((c) => c.id).filter(Boolean));
+  const replyingTo = replyToId && validCommentIds.has(replyToId)
+    ? (() => {
+        const c = safeComments.find((x) => x.id === replyToId);
+        return c ? { id: c.id, author_name: c.author_name, body: c.body } : null;
+      })()
     : null;
   const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
   // Build preferences map and assign unique colors to all usernames on this page
-  const allUsernames = [
-    log.author_name,
-    ...comments.map(c => c.author_name)
-  ].filter(Boolean);
-  
-  // Build map of username -> preferred color index
+  const allUsernames = [log.author_name, ...safeComments.map((c) => c.author_name)].filter(Boolean);
   const preferredColors = new Map();
-  if (log.author_name && log.author_color_preference !== null && log.author_color_preference !== undefined) {
-    preferredColors.set(log.author_name, log.author_color_preference);
+  if (log.author_name && log.author_color_preference != null && log.author_color_preference !== undefined) {
+    preferredColors.set(log.author_name, Number(log.author_color_preference));
   }
-  comments.forEach(c => {
-    if (c.author_name && c.author_color_preference !== null && c.author_color_preference !== undefined) {
+  safeComments.forEach((c) => {
+    if (c.author_name && c.author_color_preference != null) {
       preferredColors.set(c.author_name, c.author_color_preference);
     }
   });
-  
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
   return (
@@ -443,22 +464,23 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         <div className="list">
-          {comments.length === 0 ? (
+          {safeComments.length === 0 ? (
             <p className="muted">No replies yet.</p>
           ) : (
             (() => {
               const byParent = new Map();
-              for (const c of comments) {
-                const key = c.reply_to_id || null;
+              for (const c of safeComments) {
+                if (!c || !c.id) continue;
+                const key = c.reply_to_id && validCommentIds.has(c.reply_to_id) ? c.reply_to_id : null;
                 const arr = byParent.get(key) || [];
                 arr.push(c);
                 byParent.set(key, arr);
               }
 
               const renderReply = (c, { isChild }) => {
-                const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? c.author_color_preference : null;
+                if (!c || !c.id || c.body == null) return null;
+                const preferredColor = c.author_color_preference != null ? Number(c.author_color_preference) : null;
                 const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
-
                 const replyLink = `/devlog/${id}?replyTo=${encodeURIComponent(c.id)}#reply-form`;
                 return (
                   <div
@@ -466,7 +488,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     className={`list-item${isChild ? ' reply-item--child' : ''}`}
                     id={`reply-${c.id}`}
                   >
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
                     <div
                       className="list-meta"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px' }}
@@ -474,7 +496,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                       <span>
                         <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                         {' · '}
-                        {new Date(c.created_at).toLocaleString()}
+                        {c.created_at ? new Date(c.created_at).toLocaleString() : ''}
                       </span>
                     </div>
                     <CommentActions
@@ -483,10 +505,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                       commentBody={c.body}
                       replyHref={replyLink}
                       onQuote={(quoteData) => {
-                        // Could scroll to form and populate with quote
                         const quoteText = quoteMarkdown(quoteData);
-                        // For now, just log - could be enhanced to populate form
-                        console.log('Quote:', quoteText);
+                        if (typeof window !== 'undefined') console.log('Quote:', quoteText);
                       }}
                     />
                   </div>
@@ -496,17 +516,19 @@ export default async function DevLogDetailPage({ params, searchParams }) {
               const top = byParent.get(null) || [];
               return top.map((c) => {
                 const kids = byParent.get(c.id) || [];
+                const rendered = renderReply(c, { isChild: false });
+                if (!rendered) return null;
                 return (
                   <div key={`thread-${c.id}`} className="stack" style={{ gap: 10 }}>
-                    {renderReply(c, { isChild: false })}
+                    {rendered}
                     {kids.length ? (
                       <div className="reply-children">
-                        {kids.map((child) => renderReply(child, { isChild: true }))}
+                        {kids.map((child) => renderReply(child, { isChild: true })).filter(Boolean)}
                       </div>
                     ) : null}
                   </div>
                 );
-              });
+              }).filter(Boolean);
             })()
           )}
         </div>

@@ -37,9 +37,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function MusicDetailPage({ params, searchParams }) {
-  // Next.js 15: params is a Promise, must await
+  // Next.js 15: params and searchParams are Promises, must await
   const { id } = await params;
-  
+  const resolvedSearchParams = (await searchParams) || {};
+
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -178,7 +179,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
     }
   }
 
-  const error = searchParams?.error;
+  const error = resolvedSearchParams?.error;
   const notice =
     error === 'claim'
       ? 'Log in to post.'
@@ -214,6 +215,28 @@ export default async function MusicDetailPage({ params, searchParams }) {
   });
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
+
+  // Serialize comments for client-safe rendering (avoid BigInt, pre-render markdown)
+  const safeComments = Array.isArray(comments)
+    ? comments
+        .filter((c) => c && c.id && c.body != null)
+        .map((c) => {
+          let bodyHtml = '';
+          try {
+            bodyHtml = renderMarkdown(String(c.body || ''));
+          } catch (e) {
+            bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
+          }
+          return {
+            id: String(c.id || ''),
+            body: String(c.body || ''),
+            body_html: bodyHtml,
+            author_name: String(c.author_name || 'Unknown'),
+            author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
+            created_at: c.created_at != null ? Number(c.created_at) : 0,
+          };
+        })
+    : [];
   
   // Check if current user has liked this post
   let userLiked = false;
@@ -383,15 +406,15 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </div>
         </div>
         <div className="list">
-          {comments.length === 0 ? (
+          {safeComments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
-            comments.map((comment) => {
-              const preferredColor = comment.author_color_preference !== null && comment.author_color_preference !== undefined ? Number(comment.author_color_preference) : null;
+            safeComments.map((comment) => {
+              const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
               return (
                 <div key={comment.id} className="list-item">
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(comment.body) }} />
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
                   <div
                     className="list-meta"
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
@@ -399,7 +422,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     <span>
                       <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                       {' · '}
-                      {new Date(comment.created_at).toLocaleString()}
+                      {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
                     </span>
                   </div>
                   <CommentActions

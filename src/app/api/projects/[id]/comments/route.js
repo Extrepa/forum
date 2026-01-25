@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const db = await getDb();
   const { results } = await db
     .prepare(
@@ -13,7 +14,7 @@ export async function GET(request, { params }) {
        WHERE project_comments.project_id = ? AND project_comments.is_deleted = 0
        ORDER BY project_comments.created_at ASC`
     )
-    .bind(params.id)
+    .bind(id)
     .all();
 
   return NextResponse.json(results);
@@ -41,7 +42,7 @@ export async function POST(request, { params }) {
   try {
     const project = await db
       .prepare('SELECT is_locked FROM projects WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
     if (project && project.is_locked) {
       redirectUrl.searchParams.set('error', 'locked');
@@ -63,7 +64,7 @@ export async function POST(request, { params }) {
   try {
     const project = await db
       .prepare('SELECT author_user_id FROM projects WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
 
     const recipients = new Set();
@@ -75,7 +76,7 @@ export async function POST(request, { params }) {
       .prepare(
         'SELECT DISTINCT author_user_id FROM project_comments WHERE project_id = ? AND is_deleted = 0'
       )
-      .bind(params.id)
+      .bind(id)
       .all();
 
     for (const row of participants || []) {

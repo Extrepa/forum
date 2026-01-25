@@ -4,12 +4,13 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { sendForumReplyOutbound } from '../../../../../lib/outboundNotifications';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
   const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
   const replyToId = replyToIdRaw ? replyToIdRaw : null;
-  const redirectUrl = new URL(`/lobby/${params.id}`, request.url);
+  const redirectUrl = new URL(`/lobby/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -24,7 +25,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   const threadLock = await db
     .prepare('SELECT is_locked FROM forum_threads WHERE id = ?')
-    .bind(params.id)
+    .bind(id)
     .first();
 
   if (!threadLock) {
@@ -47,7 +48,7 @@ export async function POST(request, { params }) {
            FROM forum_replies
            WHERE id = ? AND thread_id = ? AND is_deleted = 0`
         )
-        .bind(replyToId, params.id)
+        .bind(replyToId, id)
         .first();
       if (!parent) {
         effectiveReplyTo = null;
@@ -68,7 +69,7 @@ export async function POST(request, { params }) {
         `INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at, reply_to_id)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .bind(crypto.randomUUID(), params.id, user.id, body, now, effectiveReplyTo)
+      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
       .run();
   } catch (e) {
     // Migration not applied yet - try without reply_to_id
@@ -77,7 +78,7 @@ export async function POST(request, { params }) {
         .prepare(
           'INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
         )
-        .bind(crypto.randomUUID(), params.id, user.id, body, now)
+        .bind(crypto.randomUUID(), id, user.id, body, now)
         .run();
     } catch (e2) {
       redirectUrl.searchParams.set('error', 'notready');
@@ -88,7 +89,7 @@ export async function POST(request, { params }) {
   // Create in-app notifications for thread author + participants (excluding the replier).
   const thread = await db
     .prepare('SELECT author_user_id, title FROM forum_threads WHERE id = ?')
-    .bind(params.id)
+    .bind(id)
     .first();
 
   const recipients = new Set();
@@ -100,7 +101,7 @@ export async function POST(request, { params }) {
     .prepare(
       'SELECT DISTINCT author_user_id FROM forum_replies WHERE thread_id = ? AND is_deleted = 0'
     )
-    .bind(params.id)
+    .bind(id)
     .all();
 
   for (const row of participants || []) {
@@ -124,7 +125,7 @@ export async function POST(request, { params }) {
         user.id,
         'reply',
         'forum_thread',
-        params.id,
+        id,
         now
       )
       .run();
@@ -152,7 +153,7 @@ export async function POST(request, { params }) {
             recipient,
             actorUsername,
             threadTitle,
-            threadId: params.id,
+            threadId: id,
             replyBody
           })
         )
@@ -169,7 +170,7 @@ export async function POST(request, { params }) {
     const db2 = await getDb();
     const totalRepliesResult = await db2
       .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND is_deleted = 0')
-      .bind(params.id)
+      .bind(id)
       .first();
     const totalReplies = totalRepliesResult?.count || 0;
     const REPLIES_PER_PAGE = 20;

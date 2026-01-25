@@ -37,9 +37,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function ProjectDetailPage({ params, searchParams }) {
-  // Next.js 15: params is a Promise, must await
+  // Next.js 15: params and searchParams are Promises, must await
   const { id } = await params;
-  
+  const resolvedSearchParams = (await searchParams) || {};
+
   try {
     if (!id) {
       return (
@@ -233,16 +234,16 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     }
   }
 
-  // Safely extract searchParams
+  // Safely extract searchParams (already awaited above)
   let errorParam = null;
   let replyToId = null;
   try {
-    if (searchParams && typeof searchParams === 'object') {
-      if ('error' in searchParams) {
-        errorParam = String(searchParams.error || '');
+    if (resolvedSearchParams && typeof resolvedSearchParams === 'object') {
+      if ('error' in resolvedSearchParams) {
+        errorParam = String(resolvedSearchParams.error || '');
       }
-      if ('replyTo' in searchParams) {
-        const replyTo = String(searchParams.replyTo || '').trim();
+      if ('replyTo' in resolvedSearchParams) {
+        const replyTo = String(resolvedSearchParams.replyTo || '').trim();
         replyToId = replyTo || null;
       }
     }

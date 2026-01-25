@@ -37,9 +37,10 @@ function destUrlFor(type, id) {
 }
 
 export default async function EventDetailPage({ params, searchParams }) {
-  // Next.js 15: params is a Promise, must await
+  // Next.js 15: params and searchParams are Promises, must await
   const { id } = await params;
-  
+  const resolvedSearchParams = (await searchParams) || {};
+
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
@@ -212,12 +213,24 @@ export default async function EventDetailPage({ params, searchParams }) {
     }
   }
 
-  // Pre-render markdown for comments
-  const commentsWithHtml = comments.map(c => ({
-    ...c,
-    body_html: renderMarkdown(c.body),
-    author_color_preference: c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null
-  }));
+  // Pre-render markdown for comments (try-catch to avoid crashes on malformed content)
+  const commentsWithHtml = comments.map(c => {
+    let bodyHtml = '';
+    try {
+      bodyHtml = renderMarkdown(String(c.body || ''));
+    } catch (e) {
+      bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
+    }
+    return {
+      ...c,
+      id: String(c.id || ''),
+      body: String(c.body || ''),
+      body_html: bodyHtml,
+      author_name: String(c.author_name || 'Unknown'),
+      author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
+      created_at: c.created_at != null ? Number(c.created_at) : 0,
+    };
+  });
 
   // Assign unique colors to all usernames on this page
   const allUsernames = [
@@ -237,7 +250,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
-  const error = searchParams?.error;
+  const error = resolvedSearchParams?.error;
   const commentNotice =
     error === 'claim'
       ? 'Log in to post.'

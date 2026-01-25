@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const db = await getDb();
   const { results } = await db
     .prepare(
@@ -13,17 +14,18 @@ export async function GET(request, { params }) {
        WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
        ORDER BY timeline_comments.created_at ASC`
     )
-    .bind(params.id)
+    .bind(id)
     .all();
 
   return NextResponse.json(results);
 }
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
-  const redirectUrl = new URL(`/timeline/${params.id}`, request.url);
+  const redirectUrl = new URL(`/timeline/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -48,7 +50,7 @@ export async function POST(request, { params }) {
   try {
     const update = await db
       .prepare('SELECT author_user_id FROM timeline_updates WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
 
     const recipients = new Set();
@@ -60,7 +62,7 @@ export async function POST(request, { params }) {
       .prepare(
         'SELECT DISTINCT author_user_id FROM timeline_comments WHERE update_id = ? AND is_deleted = 0'
       )
-      .bind(params.id)
+      .bind(id)
       .all();
 
     for (const row of participants || []) {

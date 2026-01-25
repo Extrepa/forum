@@ -4,8 +4,9 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
-  const redirectUrl = new URL(`/projects/${params.id}`, request.url);
+  const redirectUrl = new URL(`/projects/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -23,7 +24,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   const project = await db
     .prepare('SELECT author_user_id FROM projects WHERE id = ?')
-    .bind(params.id)
+      .bind(id)
     .first();
 
   if (!project) {

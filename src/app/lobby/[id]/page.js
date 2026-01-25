@@ -38,12 +38,13 @@ function destUrlFor(type, id) {
 }
 
 export default async function LobbyThreadPage({ params, searchParams }) {
-  // Next.js 15: params is a Promise, must await
+  // Next.js 15: params and searchParams are Promises, must await
   const { id } = await params;
-  
+  const resolvedSearchParams = (await searchParams) || {};
+
   // #region agent log
   const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
-  log('lobby/[id]/page.js:40', 'Function entry', {threadId:id,hasSearchParams:!!searchParams}, 'ALL');
+  log('lobby/[id]/page.js:40', 'Function entry', {threadId:id,hasSearchParams:!!resolvedSearchParams}, 'ALL');
   // #endregion
   try {
     if (!id) {
@@ -86,7 +87,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       );
     }
     
-    const isEditing = searchParams?.edit === 'true';
+    const isEditing = resolvedSearchParams?.edit === 'true';
     let thread = null;
     try {
       // #region agent log
@@ -223,10 +224,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   let currentPage = 1;
   let offset = 0;
   try {
-    currentPage = Math.max(1, parseInt(searchParams?.page || '1', 10));
+    currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || '1', 10));
     offset = (currentPage - 1) * REPLIES_PER_PAGE;
   } catch (e) {
-    console.error('Error parsing pagination:', e, { searchParams });
+    console.error('Error parsing pagination:', e, { searchParams: resolvedSearchParams });
     // Use defaults
   }
 
@@ -235,7 +236,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   try {
     const totalRepliesResult = await db
       .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE thread_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
-      .bind(params.id)
+      .bind(id)
       .first();
     totalReplies = totalRepliesResult?.count || 0;
   } catch (e) {
@@ -344,10 +345,10 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     try {
       const readState = await db
         .prepare('SELECT last_read_reply_id FROM forum_thread_reads WHERE user_id = ? AND thread_id = ?')
-        .bind(viewer.id, params.id)
+        .bind(viewer.id, id)
         .first();
 
-      if (readState?.last_read_reply_id && params.id) {
+      if (readState?.last_read_reply_id && id) {
         // First, verify the reply exists and get its timestamp safely
         let lastReadReply = null;
         try {
@@ -356,7 +357,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               `SELECT created_at FROM forum_replies 
                WHERE id = ? AND thread_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)`
             )
-            .bind(String(readState.last_read_reply_id), String(params.id))
+            .bind(String(readState.last_read_reply_id), String(id))
             .first();
           if (replyCheck && replyCheck.created_at) {
             lastReadReply = replyCheck;
@@ -369,7 +370,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 `SELECT created_at FROM forum_replies 
                  WHERE id = ? AND thread_id = ?`
               )
-              .bind(String(readState.last_read_reply_id), String(params.id))
+              .bind(String(readState.last_read_reply_id), String(id))
               .first();
             if (replyCheck2 && replyCheck2.created_at) {
               lastReadReply = replyCheck2;
@@ -381,7 +382,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           }
         }
 
-        if (lastReadReply?.created_at && params.id) {
+        if (lastReadReply?.created_at && id) {
           // Find first reply after the last read one
           let firstUnread = null;
           try {
@@ -392,7 +393,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                  AND created_at > ?
                  ORDER BY created_at ASC LIMIT 1`
               )
-              .bind(String(params.id), Number(lastReadReply.created_at))
+              .bind(String(id), Number(lastReadReply.created_at))
               .first();
             if (unreadResult && unreadResult.id) {
               firstUnread = unreadResult;
@@ -406,7 +407,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                    WHERE thread_id = ? AND created_at > ?
                    ORDER BY created_at ASC LIMIT 1`
                 )
-                .bind(String(params.id), Number(lastReadReply.created_at))
+                .bind(String(id), Number(lastReadReply.created_at))
                 .first();
               if (unreadResult2 && unreadResult2.id) {
                 firstUnread = unreadResult2;
@@ -494,16 +495,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     usernameColorMap = new Map();
   }
 
-  // Safely extract searchParams
+  // Safely extract searchParams (already awaited above)
   let errorParam = null;
   let replyToId = null;
   try {
-    if (searchParams && typeof searchParams === 'object') {
-      if ('error' in searchParams) {
-        errorParam = String(searchParams.error || '');
+    if (resolvedSearchParams && typeof resolvedSearchParams === 'object') {
+      if ('error' in resolvedSearchParams) {
+        errorParam = String(resolvedSearchParams.error || '');
       }
-      if ('replyTo' in searchParams) {
-        const replyTo = String(searchParams.replyTo || '').trim();
+      if ('replyTo' in resolvedSearchParams) {
+        const replyTo = String(resolvedSearchParams.replyTo || '').trim();
         replyToId = replyTo || null;
       }
     }

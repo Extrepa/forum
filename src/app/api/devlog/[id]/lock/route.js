@@ -3,8 +3,9 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUserWithRole, isAdminUser } from '../../../../../lib/admin';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUserWithRole();
-  const redirectUrl = new URL(`/devlog/${params.id}`, request.url);
+  const redirectUrl = new URL(`/devlog/${id}`, request.url);
 
   if (!user || !isAdminUser(user)) {
     redirectUrl.searchParams.set('error', 'unauthorized');
@@ -17,7 +18,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   await db
     .prepare('UPDATE dev_logs SET is_locked = ?, updated_at = ? WHERE id = ?')
-    .bind(locked, Date.now(), params.id)
+    .bind(locked, Date.now(), id)
     .run();
 
   return NextResponse.redirect(redirectUrl, 303);

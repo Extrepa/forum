@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const db = await getDb();
   const { results } = await db
     .prepare(
@@ -14,18 +15,19 @@ export async function GET(request, { params }) {
        WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
        ORDER BY event_comments.created_at ASC`
     )
-    .bind(params.id)
+    .bind(id)
     .all();
 
   return NextResponse.json(results);
 }
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
   const attending = formData.get('attending') === 'on' || formData.get('attending') === 'true';
-  const redirectUrl = new URL(`/events/${params.id}`, request.url);
+  const redirectUrl = new URL(`/events/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -43,7 +45,7 @@ export async function POST(request, { params }) {
   try {
     const event = await db
       .prepare('SELECT is_locked FROM events WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
     if (event && event.is_locked) {
       redirectUrl.searchParams.set('error', 'locked');
@@ -66,7 +68,7 @@ export async function POST(request, { params }) {
   try {
     const event = await db
       .prepare('SELECT author_user_id FROM events WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
 
     const recipients = new Set();
@@ -78,7 +80,7 @@ export async function POST(request, { params }) {
       .prepare(
         'SELECT DISTINCT author_user_id FROM event_comments WHERE event_id = ? AND is_deleted = 0'
       )
-      .bind(params.id)
+      .bind(id)
       .all();
 
     for (const row of participants || []) {

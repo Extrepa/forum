@@ -3,8 +3,9 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
-  const redirectUrl = new URL(`/lobby/${params.id}`, request.url);
+  const redirectUrl = new URL(`/lobby/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -17,7 +18,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   const thread = await db
     .prepare('SELECT author_user_id FROM forum_threads WHERE id = ?')
-    .bind(params.id)
+      .bind(id)
     .first();
 
   if (!thread) {

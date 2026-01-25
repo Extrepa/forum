@@ -3,13 +3,14 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
   const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
   const replyToId = replyToIdRaw ? replyToIdRaw : null;
 
-  const redirectUrl = new URL(`/projects/${params.id}`, request.url);
+  const redirectUrl = new URL(`/projects/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -26,7 +27,7 @@ export async function POST(request, { params }) {
   try {
     const project = await db
       .prepare('SELECT is_locked FROM projects WHERE id = ?')
-      .bind(params.id)
+      .bind(id)
       .first();
     if (project && project.is_locked) {
       redirectUrl.searchParams.set('error', 'locked');

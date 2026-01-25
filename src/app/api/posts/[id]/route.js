@@ -18,6 +18,7 @@ function pagePathForType(type) {
 }
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const includePrivate = !!user;
   const db = await getDb();
@@ -32,7 +33,7 @@ export async function GET(request, { params }) {
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.id = ?`
       )
-      .bind(params.id)
+      .bind(id)
       .first();
 
     if (!row) {
@@ -51,6 +52,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const redirectUrl = new URL('/', request.url);
 
@@ -62,7 +64,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   let existing = null;
   try {
-    existing = await db.prepare('SELECT id, type, author_user_id, image_key FROM posts WHERE id = ?').bind(params.id).first();
+    existing = await db.prepare('SELECT id, type, author_user_id, image_key FROM posts WHERE id = ?').bind(id).first();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
@@ -136,7 +138,7 @@ export async function POST(request, { params }) {
   try {
     await db
       .prepare('UPDATE posts SET title = ?, body = ?, image_key = ?, is_private = ?, updated_at = ? WHERE id = ?')
-      .bind(finalTitle, body || null, imageKey, isPrivate, Date.now(), params.id)
+      .bind(finalTitle, body || null, imageKey, isPrivate, Date.now(), id)
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');

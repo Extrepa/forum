@@ -3,12 +3,13 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const includePrivate = !!user;
   const db = await getDb();
 
   try {
-    const post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(params.id).first();
+    const post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(id).first();
     if (!post) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
@@ -31,7 +32,7 @@ export async function GET(request, { params }) {
          ORDER BY post_comments.created_at ASC
          LIMIT 300`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
 
     return NextResponse.json(out?.results || []);
@@ -41,6 +42,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const redirectUrl = new URL(request.headers.get('referer') || '/', request.url);
 
@@ -61,7 +63,7 @@ export async function POST(request, { params }) {
   const db = await getDb();
   let post = null;
   try {
-    post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(params.id).first();
+    post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(id).first();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
@@ -73,7 +75,7 @@ export async function POST(request, { params }) {
   }
 
   // Redirect back to the correct section detail page.
-  redirectUrl.pathname = `/${post.type === 'about' ? 'about' : post.type}/${params.id}`;
+  redirectUrl.pathname = `/${post.type === 'about' ? 'about' : post.type}/${id}`;
 
   // Member-only/private posts are visible to signed-in users, so no extra check here.
   // Lore/Memories section read-visibility is enforced in the page layer.
@@ -81,7 +83,7 @@ export async function POST(request, { params }) {
   try {
     await db
       .prepare('INSERT INTO post_comments (id, post_id, author_user_id, body, reply_to_id, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), params.id, user.id, body, replyToId, Date.now())
+      .bind(crypto.randomUUID(), id, user.id, body, replyToId, Date.now())
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
