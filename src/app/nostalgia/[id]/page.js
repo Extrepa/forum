@@ -186,19 +186,7 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
       <section className="card">
         <h3 className="section-title">Comments</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        {isSignedIn ? (
-          <form action={`/api/posts/${post.id}/comments`} method="post">
-            <label>
-              <div className="muted">Say something</div>
-              <textarea name="body" placeholder="Leave a comment" required />
-            </label>
-            <button type="submit">Post comment</button>
-          </form>
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
-
-        <div className="stack" style={{ marginTop: 16 }}>
+        <div className="list">
           {comments.length === 0 ? (
             <p className="muted">No comments yet.</p>
           ) : (
@@ -234,6 +222,17 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
             })
           )}
         </div>
+        {isSignedIn ? (
+          <form action={`/api/posts/${post.id}/comments`} method="post">
+            <label>
+              <div className="muted">Say something</div>
+              <textarea name="body" placeholder="Leave a comment" required />
+            </label>
+            <button type="submit">Post comment</button>
+          </form>
+        ) : (
+          <p className="muted">Sign in to comment.</p>
+        )}
       </section>
     </div>
   );
