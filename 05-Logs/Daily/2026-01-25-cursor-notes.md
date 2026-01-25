@@ -841,3 +841,87 @@ for (const recipientUserId of recipients) {
 - `src/app/api/projects/[id]/replies/route.js` (added notifications)
 - `src/app/api/devlog/[id]/comments/route.js` (added notifications)
 - `src/app/art/[id]/page.js` (fixed variable order bug)
+
+---
+
+## Notification Display & Click Fix (2026-01-25)
+
+### Issue
+User received notifications but they showed as generic "Notification" with no details, and clicking did nothing.
+
+### Root Cause
+1. **Blank label**: `NotificationsMenu` only handled `reply+forum_thread`, `comment+timeline_update`, `comment+event`, `comment+project`, `comment+music_post`. New notification types (`comment+post`, `comment+dev_log`, `reply+project`) fell through to default `label = 'Notification'` and `href = '#'`.
+2. **No navigation**: Click handler returns early when `href === '#'`, so unhandled types did nothing.
+
+### Fixes Applied
+
+#### 1. Post comments: store section as `target_type`
+- **`/api/posts/[id]/comments`**: When creating notifications, use `target_type: (post.type === 'about' ? 'about' : post.type)` (e.g. `lore`, `memories`, `art`, `bugs`, `rant`, `nostalgia`, `about`) instead of `'post'`, so the menu can build `/{section}/{id}` URLs.
+
+#### 2. NotificationsMenu: handle all notification types
+- **`reply` + `project`**: `href = /projects/[id]`, `label = "{actor} replied to a project"` (project replies use `type: 'reply'`).
+- **`comment` + `dev_log`**: `href = /devlog/[id]`, `label = "{actor} commented on a dev log"`.
+- **`comment` + post sections**: `target_type` in `['lore','memories','art','bugs','rant','nostalgia','about']` → `href = /{target_type}/{target_id}`, `label = "{actor} commented on a post"`.
+- **`comment` + `timeline_update`**: Switched link from `/timeline/[id]` to `/announcements/[id]`, label to "commented on an announcement".
+- Introduced `const actor = n.actor_username || 'Someone'` and use it in all labels.
+
+#### 3. Click behavior
+- Call `onClose()` before `onMarkRead` + navigation so the popover closes when a notification is clicked.
+- Handled types now have valid `href`, so we no longer return early and navigation works.
+
+### Files Modified
+- `src/app/api/posts/[id]/comments/route.js` (store section as `target_type`)
+- `src/components/NotificationsMenu.js` (new handlers, timeline→announcements, `onClose` on click)
+
+### Note
+Existing notifications with `target_type === 'post'` (created before this change) remain unhandled and will still show "Notification" with no link. New post-comment notifications use section-specific `target_type` and work correctly.
+
+---
+
+## Double-Check and Consistency (2026-01-25)
+
+### API params consistency (`params.id` → `id`)
+
+All comment/reply routes now `await params`, use `const { id } = await params`, and use `id` (not `params.id`) in DB binds and redirects.
+
+**Fixed:**
+- **`/api/events/[id]/comments`**: Replaced `params.id` with `id` in INSERT, notification bind, and RSVP block (GET/POST both already had `await params`).
+- **`/api/projects/[id]/comments`**: POST now has `const { id } = await params`; replaced all `params.id` in redirect, lock check, INSERT, and notification bind. (GET already correct.)
+- **`/api/projects/[id]/replies`**: Replaced `params.id` with `id` in parent lookup `.bind(replyToId, id)` and INSERT bind.
+- **`/api/timeline/[id]/comments`**: Replaced `params.id` with `id` in INSERT and notification bind.
+
+### NotificationsMenu
+
+- **Post sections**: Added `'lore-memories'` to the section list so `comment` + `lore-memories` links to `/lore-memories/[id]` when used (e.g. lock redirect). Sections: `lore`, `memories`, `lore-memories`, `art`, `bugs`, `rant`, `nostalgia`, `about`.
+
+### Notification type ⇄ menu coverage
+
+| API route | type | target_type | Menu handler |
+|-----------|------|-------------|--------------|
+| forum replies | reply | forum_thread | ✓ lobby |
+| project replies | reply | project | ✓ projects |
+| project comments | comment | project | ✓ projects |
+| timeline comments | comment | timeline_update | ✓ announcements |
+| events comments | comment | event | ✓ events |
+| music comments | comment | music_post | ✓ music |
+| devlog comments | comment | dev_log | ✓ devlog |
+| post comments | comment | lore/memories/art/... | ✓ section |
+
+### Page consistency (delete / lock / comments)
+
+- **Delete**: 11 pages use `DeleteCommentButton` directly; events use `EventCommentsSection`, projects use `ProjectRepliesSection` (both include delete). All pass `author_user_id` and `isAdmin` where needed.
+- **Lock**: 13 pages use `isLocked` / lock UI (including events, projects, devlog, lobby, announcements, post sections).
+- **Comments**: Collapsible or wrapper forms, comments-above-form layout, and `Comments locked` handling are aligned across pages.
+
+### Build
+
+- `npm run build` succeeds.
+- No linter issues on modified API routes.
+
+### Files modified (this pass)
+
+- `src/app/api/events/[id]/comments/route.js`
+- `src/app/api/projects/[id]/comments/route.js`
+- `src/app/api/projects/[id]/replies/route.js`
+- `src/app/api/timeline/[id]/comments/route.js`
+- `src/components/NotificationsMenu.js` (add `lore-memories` to sections)

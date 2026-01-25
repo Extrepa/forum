@@ -47,7 +47,7 @@ export async function POST(request, { params }) {
            FROM project_replies
            WHERE id = ? AND project_id = ? AND is_deleted = 0`
         )
-        .bind(replyToId, params.id)
+        .bind(replyToId, id)
         .first();
       if (!parent) {
         effectiveReplyTo = null;
@@ -70,7 +70,7 @@ export async function POST(request, { params }) {
         `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .bind(crypto.randomUUID(), params.id, user.id, body, now, effectiveReplyTo)
+      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
       .run();
   } catch (e) {
     // Migration not applied yet.

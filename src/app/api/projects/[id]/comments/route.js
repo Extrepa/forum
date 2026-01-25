@@ -21,10 +21,11 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
-  const redirectUrl = new URL(`/projects/${params.id}`, request.url);
+  const redirectUrl = new URL(`/projects/${id}`, request.url);
 
   if (!user || !user.password_hash) {
     redirectUrl.searchParams.set('error', 'claim');
@@ -57,7 +58,7 @@ export async function POST(request, { params }) {
     .prepare(
       'INSERT INTO project_comments (id, project_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, body, now)
+    .bind(crypto.randomUUID(), id, user.id, body, now)
     .run();
 
   // Create in-app notifications for project author + participants (excluding the commenter).
@@ -100,7 +101,7 @@ export async function POST(request, { params }) {
           user.id,
           'comment',
           'project',
-          params.id,
+          id,
           now
         )
         .run();

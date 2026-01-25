@@ -119,6 +119,7 @@ export default function NotificationsMenu({
               let href = '#';
               let label = 'Notification';
               
+              const actor = n.actor_username || 'Someone';
               if (n.type === 'welcome' && n.target_type === 'account') {
                 href = '/account';
                 label = 'Welcome! Click here to navigate to your account and check your notifications. Clicking the Errl logo in the header also opens this menu.';
@@ -127,19 +128,28 @@ export default function NotificationsMenu({
                 label = 'Test notification - system check';
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
-                label = `${n.actor_username || 'Someone'} replied to a thread`;
+                label = `${actor} replied to a thread`;
+              } else if (n.type === 'reply' && n.target_type === 'project') {
+                href = `/projects/${n.target_id}`;
+                label = `${actor} replied to a project`;
               } else if (n.type === 'comment' && n.target_type === 'timeline_update') {
-                href = `/timeline/${n.target_id}`;
-                label = `${n.actor_username || 'Someone'} commented on a timeline update`;
+                href = `/announcements/${n.target_id}`;
+                label = `${actor} commented on an announcement`;
               } else if (n.type === 'comment' && n.target_type === 'event') {
                 href = `/events/${n.target_id}`;
-                label = `${n.actor_username || 'Someone'} commented on an event`;
+                label = `${actor} commented on an event`;
               } else if (n.type === 'comment' && n.target_type === 'project') {
                 href = `/projects/${n.target_id}`;
-                label = `${n.actor_username || 'Someone'} commented on a project`;
+                label = `${actor} commented on a project`;
               } else if (n.type === 'comment' && n.target_type === 'music_post') {
                 href = `/music/${n.target_id}`;
-                label = `${n.actor_username || 'Someone'} commented on a music post`;
+                label = `${actor} commented on a music post`;
+              } else if (n.type === 'comment' && n.target_type === 'dev_log') {
+                href = `/devlog/${n.target_id}`;
+                label = `${actor} commented on a dev log`;
+              } else if (n.type === 'comment' && ['lore', 'memories', 'lore-memories', 'art', 'bugs', 'rant', 'nostalgia', 'about'].includes(n.target_type)) {
+                href = `/${n.target_type}/${n.target_id}`;
+                label = `${actor} commented on a post`;
               }
               
               return (
@@ -149,6 +159,7 @@ export default function NotificationsMenu({
                   onClick={async (e) => {
                     e.preventDefault(); // Always prevent default, even for '#'
                     if (href === '#') return;
+                    onClose();
                     await onMarkRead(n.id);
                     window.location.href = href;
                   }}

@@ -127,6 +127,7 @@ export async function POST(request, { params }) {
 
     recipients.delete(user.id);
 
+    const targetType = post.type === 'about' ? 'about' : post.type;
     for (const recipientUserId of recipients) {
       await db
         .prepare(
@@ -139,7 +140,7 @@ export async function POST(request, { params }) {
           recipientUserId,
           user.id,
           'comment',
-          'post',
+          targetType,
           id,
           now
         )

@@ -61,7 +61,7 @@ export async function POST(request, { params }) {
     .prepare(
       'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, body, now)
+    .bind(crypto.randomUUID(), id, user.id, body, now)
     .run();
 
   // Create in-app notifications for event author + participants (excluding the commenter).
@@ -104,7 +104,7 @@ export async function POST(request, { params }) {
           user.id,
           'comment',
           'event',
-          params.id,
+          id,
           now
         )
         .run();
@@ -119,14 +119,14 @@ export async function POST(request, { params }) {
       // Check if already RSVP'd
       const existing = await db
         .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
-        .bind(params.id, user.id)
+        .bind(id, user.id)
         .first();
 
       if (!existing) {
         // Add RSVP
         await db
           .prepare('INSERT INTO event_attendees (id, event_id, user_id, created_at) VALUES (?, ?, ?, ?)')
-          .bind(crypto.randomUUID(), params.id, user.id, Date.now())
+          .bind(crypto.randomUUID(), id, user.id, Date.now())
           .run();
       }
     } catch (e) {

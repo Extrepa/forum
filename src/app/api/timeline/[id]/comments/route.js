@@ -59,7 +59,7 @@ export async function POST(request, { params }) {
     .prepare(
       'INSERT INTO timeline_comments (id, update_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, body, now)
+    .bind(crypto.randomUUID(), id, user.id, body, now)
     .run();
 
   // Create in-app notifications for timeline update author + participants (excluding the commenter).
@@ -102,7 +102,7 @@ export async function POST(request, { params }) {
           user.id,
           'comment',
           'timeline_update',
-          params.id,
+          id,
           now
         )
         .run();
