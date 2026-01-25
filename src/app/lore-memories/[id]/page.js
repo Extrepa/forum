@@ -13,6 +13,7 @@ import LikeButton from '../../../components/LikeButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
+import CollapsibleCommentForm from '../../../components/CollapsibleCommentForm';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -280,13 +281,12 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
             })
           )}
         </div>
-        <form action={`/api/posts/${id}/comments`} method="post">
-          <label>
-            <div className="muted">Say something</div>
-            <textarea name="body" placeholder="Leave a comment" required />
-          </label>
-          <button type="submit">Post comment</button>
-        </form>
+        <CollapsibleCommentForm
+          action={`/api/posts/${id}/comments`}
+          buttonLabel="Post comment"
+          placeholder="Leave a comment"
+          labelText="Say something"
+        />
       </section>
     </div>
   );

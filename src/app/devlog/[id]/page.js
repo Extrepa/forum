@@ -530,15 +530,17 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           )}
         </div>
         {canComment ? (
-          <ReplyFormWrapper
-            action={`/api/devlog/${id}/comments`}
-            buttonLabel="Post reply"
-            placeholder="Share your drip-certified thoughts..."
-            labelText="What would you like to say?"
-            hiddenFields={{ reply_to_id: replyToId || '' }}
-            replyingTo={replyingTo}
-            replyPrefill={replyPrefill}
-          />
+          <div style={{ marginTop: '24px' }}>
+            <ReplyFormWrapper
+              action={`/api/devlog/${id}/comments`}
+              buttonLabel="Post reply"
+              placeholder="Share your drip-certified thoughts..."
+              labelText="What would you like to say?"
+              hiddenFields={{ reply_to_id: replyToId || '' }}
+              replyingTo={replyingTo}
+              replyPrefill={replyPrefill}
+            />
+          </div>
         ) : (
           <p className="muted">
             {log.is_locked
