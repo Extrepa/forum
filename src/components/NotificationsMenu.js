@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 function formatTimeAgo(timestamp) {
   const now = Date.now();
@@ -40,7 +41,13 @@ export default function NotificationsMenu({
 }) {
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState(null);
+  const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const hasItems = items && items.length > 0;
+  
+  const usernameColorIndex = useMemo(() => {
+    if (!currentUsername) return null;
+    return getUsernameColorIndex(currentUsername, { preferredColorIndex });
+  }, [currentUsername, preferredColorIndex]);
   const title = useMemo(() => {
     if (unreadCount > 0) return `Notifications (${unreadCount})`;
     return 'Notifications';
@@ -52,7 +59,7 @@ export default function NotificationsMenu({
     return ERL_TAGLINES[Math.abs(seed)] || ERL_TAGLINES[0];
   }, [open, currentUsername]);
 
-  // Fetch current user's username for profile link
+  // Fetch current user's username and color preference
   useEffect(() => {
     if (open) {
       fetch('/api/auth/me')
@@ -60,6 +67,7 @@ export default function NotificationsMenu({
         .then(data => {
           if (data?.user?.username) {
             setCurrentUsername(data.user.username);
+            setPreferredColorIndex(data.user.preferredUsernameColorIndex ?? null);
           }
         })
         .catch(() => {
@@ -101,10 +109,10 @@ export default function NotificationsMenu({
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           {currentUsername ? (
             <>
-              <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>
-                Hey, {currentUsername}
+              <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
               </div>
-              <div className="muted" style={{ fontSize: '11px', lineHeight: 1.3, fontStyle: 'italic' }}>
+              <div className="muted" style={{ fontSize: '14px', lineHeight: 1.4 }}>
                 {tagline}
               </div>
             </>
