@@ -108,7 +108,7 @@ export default function NotificationsMenu({
       <strong style={{ fontSize: '16px', marginBottom: '8px', display: 'block' }}>{title}</strong>
 
       {/* Notifications list - scrollable */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1, paddingTop: 28, paddingRight: 28 }}>
         {/* Refresh icon button in top right of notifications box */}
         <button
           type="button"
@@ -117,15 +117,17 @@ export default function NotificationsMenu({
           title="Refresh"
           style={{
             position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '24px',
-            height: '24px',
+            top: 6,
+            right: 6,
+            width: 16,
+            height: 16,
+            minWidth: 16,
+            minHeight: 16,
             padding: 0,
-            margin: '4px',
+            margin: 0,
             background: 'transparent',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 4,
             cursor: status === 'loading' ? 'not-allowed' : 'pointer',
             opacity: status === 'loading' ? 0.5 : 1,
             display: 'flex',
@@ -133,17 +135,18 @@ export default function NotificationsMenu({
             justifyContent: 'center',
             zIndex: 2,
             color: 'var(--muted)',
-            transition: 'color 0.2s ease, background 0.2s ease'
+            boxShadow: 'none',
+            transition: 'color 0.2s ease, box-shadow 0.2s ease'
           }}
           onMouseEnter={(e) => {
             if (status !== 'loading') {
-              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)';
               e.currentTarget.style.color = 'var(--text)';
+              e.currentTarget.style.boxShadow = '0 0 8px rgba(52, 225, 255, 0.35)';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
             e.currentTarget.style.color = 'var(--muted)';
+            e.currentTarget.style.boxShadow = 'none';
           }}
         >
           <svg
