@@ -26,6 +26,7 @@ export default function NotificationsMenu({
   onRefresh,
   onMarkRead,
   onMarkAllRead,
+  onClearAll,
   anchor = 'right',
 }) {
   const router = useRouter();
@@ -228,18 +229,25 @@ export default function NotificationsMenu({
                     background: isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)',
                     transition: 'all 0.2s ease',
                     overflowWrap: 'break-word',
-                    wordWrap: 'break-word'
+                    wordWrap: 'break-word',
+                    cursor: href === '#' ? 'default' : 'pointer'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.1)' : 'rgba(4, 16, 23, 0.7)';
+                    if (href !== '#') {
+                      e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.15)' : 'rgba(4, 16, 23, 0.8)';
+                      e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.6)' : 'rgba(22, 58, 74, 0.6)';
+                      e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.2)';
+                    }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)';
+                    e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.4)' : 'rgba(22, 58, 74, 0.4)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
                     <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
-                    <span className="muted" style={{ whiteSpace: 'nowrap', fontSize: '12px', flexShrink: 0 }}>
+                    <span className="muted" style={{ whiteSpace: 'nowrap', fontSize: '12px', flexShrink: 0, color: 'var(--muted)', fontWeight: 'normal' }}>
                       {formatTimeAgo(n.created_at)}
                     </span>
                   </div>
@@ -250,16 +258,26 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      {/* Footer with mark all read and close */}
+      {/* Footer with mark all read, clear, and close */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <button 
-          type="button" 
-          onClick={onMarkAllRead} 
-          disabled={unreadCount === 0}
-          style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1 }}
-        >
-          Mark all read
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button 
+            type="button" 
+            onClick={onMarkAllRead} 
+            disabled={unreadCount === 0}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1 }}
+          >
+            Mark all read
+          </button>
+          <button 
+            type="button" 
+            onClick={onClearAll}
+            disabled={!hasItems}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1 }}
+          >
+            Clear
+          </button>
+        </div>
         <button 
           type="button" 
           onClick={onClose}

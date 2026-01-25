@@ -78,6 +78,22 @@ export default function NotificationsBell() {
     }
   };
 
+  const clearAll = async () => {
+    try {
+      const res = await fetch('/api/notifications/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const payload = await res.json();
+      if (res.ok) {
+        setUnreadCount(0);
+        setItems([]);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <button
@@ -106,6 +122,7 @@ export default function NotificationsBell() {
         onRefresh={refresh}
         onMarkRead={markRead}
         onMarkAllRead={markAllRead}
+        onClearAll={clearAll}
         anchor="right"
       />
     </div>

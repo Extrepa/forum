@@ -77,6 +77,22 @@ export default function NotificationsLogoTrigger() {
     }
   };
 
+  const clearAll = async () => {
+    try {
+      const res = await fetch('/api/notifications/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const payload = await res.json();
+      if (res.ok) {
+        setUnreadCount(0);
+        setItems([]);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
   return (
     <div className="notifications-logo-trigger" style={{ position: 'relative', overflow: 'visible' }}>
       <ForumLogo
@@ -101,6 +117,7 @@ export default function NotificationsLogoTrigger() {
         onRefresh={refresh}
         onMarkRead={markRead}
         onMarkAllRead={markAllRead}
+        onClearAll={clearAll}
         anchor="right"
       />
     </div>
