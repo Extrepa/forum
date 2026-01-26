@@ -326,6 +326,88 @@ npm run deploy
 - `src/app/api/timeline/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
 - `src/app/api/forum/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
 
+---
+
+## Session Summary - January 25, 2026 (Evening Session)
+
+### Overview
+This session focused on fixing timezone consistency across the portal and resolving a critical bug in author view count protection.
+
+### Issues Fixed
+
+#### 1. Feed Page Greeting Messages Not Working
+**Problem:** Feed page greeting messages above the "Feed" title were not displaying correctly. The `HomeWelcome` component was not receiving server-computed greeting props, causing it to fail or display incorrectly.
+
+**Root Cause:** The feed page was using `HomeWelcome` but wasn't computing the greeting on the server like the home page does. It was only passing `user` and `context="feed"` props, but `HomeWelcome` requires `greetingParts` and `fallbackText` props that are computed server-side.
+
+**Solution:**
+- Added server-side greeting computation to `src/app/feed/page.js` (same pattern as home page)
+- Imported `getForumStrings`, `getTimeBasedGreetingTemplate`, and `renderTemplateParts`
+- Computed greeting using PST/PDT timezone (lines 38-45)
+- Updated `HomeWelcome` call to pass `greetingParts` and `fallbackText` props (line 397)
+
+**Result:** Feed page now displays greeting messages correctly using PST/PDT timezone, matching the home page behavior.
+
+#### 2. Author View Count Protection Bug
+**Problem:** Authors could increment their own view counts because the ID comparison was failing due to type mismatches.
+
+**Root Cause:** 
+- D1 database can return `BigInt` for integer IDs
+- `user.id` from session may be a string or number
+- Strict equality (`===`) fails when comparing `BigInt` to string/number
+- This caused the author check to always fail, allowing authors to increment their own views
+
+**Solution:**
+- Applied `String()` coercion to both values before comparison
+- Followed the precedent established by `DeleteCommentButton` component (line 55: `String(authorUserId) === String(currentUserId)`)
+- Fixed all 7 view endpoints:
+  1. `src/app/api/devlog/[id]/view/route.js`
+  2. `src/app/api/posts/[id]/view/route.js`
+  3. `src/app/api/music/[id]/view/route.js`
+  4. `src/app/api/events/[id]/view/route.js`
+  5. `src/app/api/projects/[id]/view/route.js`
+  6. `src/app/api/timeline/[id]/view/route.js`
+  7. `src/app/api/forum/[id]/view/route.js`
+
+**Result:** Authors are now correctly prevented from incrementing their own view counts, regardless of ID type (BigInt, string, or number).
+
+### Technical Details
+
+**Timezone Handling:**
+- Both home and feed pages now compute greetings on the server using PST/PDT timezone
+- Uses `getTimeBasedGreetingTemplate` with `Intl.DateTimeFormat` and `timeZone: 'America/Los_Angeles'`
+- Ensures consistent greeting display regardless of server location
+
+**Type Safety:**
+- ID comparisons now use `String()` coercion for reliability
+- Prevents silent failures when comparing different numeric types
+- Follows established codebase patterns for consistency
+
+### Commits Made
+1. `bc4fae5` - Fix: Feed page greeting messages - compute on server with PST/PDT
+2. `423cfb4` - Fix: Author view count protection - use String() coercion for ID comparison
+
+### Files Modified
+- `src/app/feed/page.js` - Added server-side greeting computation
+- `src/app/api/devlog/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/posts/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/music/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/events/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/projects/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/timeline/[id]/view/route.js` - Fixed ID comparison
+- `src/app/api/forum/[id]/view/route.js` - Fixed ID comparison
+- `05-Logs/Daily/2026-01-25-cursor-notes.md` - Updated documentation
+
+### Testing & Verification
+- ✅ Build successful after all changes
+- ✅ All 7 view endpoints verified to use String() coercion
+- ✅ No remaining strict equality comparisons in view routes
+- ✅ Feed page greeting messages working correctly
+- ✅ Home page greeting messages still working correctly
+
+### Status
+All fixes are complete, tested, and committed. Ready for deployment.
+
 ## Final Verification Summary
 
 ### All Fixes Applied ✅
