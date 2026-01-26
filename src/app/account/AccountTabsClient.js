@@ -246,8 +246,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         );
       case 'soundcloud':
         return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-            <path d="M13.5 0c-1.5 0-2.5 1-2.5 2.5v8c0 1.5 1 2.5 2.5 2.5s2.5-1 2.5-2.5S15 0 13.5 0zM1 9.5C.5 9.5 0 10 0 10.5v3c0 .5.5 1 1 1s1-.5 1-1v-3c0-.5-.5-1-1-1zm2-2C2.5 7.5 2 8 2 8.5v5c0 .5.5 1 1 1s1-.5 1-1v-5c0-.5-.5-1-1-1zm2-2C4.5 5.5 4 6 4 6.5v7c0 .5.5 1 1 1s1-.5 1-1v-7c0-.5-.5-1-1-1zm2-1C6.5 4.5 6 5 6 5.5v8c0 .5.5 1 1 1s1-.5 1-1v-8c0-.5-.5-1-1-1zm2-1C8.5 3.5 8 4 8 4.5v9c0 .5.5 1 1 1s1-.5 1-1v-9c0-.5-.5-1-1-1z"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ display: 'block' }}>
+            <path d="M1.175 13.5c-.65 0-1.175.525-1.175 1.175v4.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-4.65c0-.65-.525-1.175-1.175-1.175zm3-3c-.65 0-1.175.525-1.175 1.175v7.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-7.65c0-.65-.525-1.175-1.175-1.175zm3-3c-.65 0-1.175.525-1.175 1.175v10.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-10.65c0-.65-.525-1.175-1.175-1.175zm3-1.5c-.65 0-1.175.525-1.175 1.175v12.15c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-12.15c0-.65-.525-1.175-1.175-1.175zm3-1.5c-.65 0-1.175.525-1.175 1.175v13.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-13.65c0-.65-.525-1.175-1.175-1.175zm9-3c-1.5 0-2.5 1-2.5 2.5v8c0 1.5 1 2.5 2.5 2.5s2.5-1 2.5-2.5-1-2.5-2.5-2.5z" fill="#FF6B00" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 107, 0, 0.6))' }}/>
           </svg>
         );
       default:
@@ -460,12 +460,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
                   {/* Social Links Display - only show when NOT editing */}
                   {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '12px', alignItems: 'flex-start' }}>
                       {stats.profileLinks.map((link) => {
                         if (typeof link !== 'object' || !link.platform || !link.url) return null;
                         const platformData = socialPlatforms.find(p => p.value === link.platform);
                         if (!platformData) return null;
                         const username = extractUsername(link.platform, link.url);
+                        const isSoundCloud = link.platform === 'soundcloud';
                         return (
                           <a
                             key={link.platform}
@@ -473,28 +474,43 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
                               gap: '8px',
                               padding: '4px 8px',
                               borderRadius: '6px',
-                              border: '1px solid rgba(52, 225, 255, 0.3)',
-                              background: 'rgba(52, 225, 255, 0.05)',
+                              border: isSoundCloud 
+                                ? '1px solid rgba(255, 107, 0, 0.3)' 
+                                : '1px solid rgba(52, 225, 255, 0.3)',
+                              background: isSoundCloud 
+                                ? 'rgba(255, 107, 0, 0.05)' 
+                                : 'rgba(52, 225, 255, 0.05)',
                               color: 'var(--accent)',
                               textDecoration: 'none',
                               fontSize: '13px',
                               transition: 'all 0.2s ease',
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              width: 'fit-content'
                             }}
                             title={platformData.label}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
-                              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.6)';
-                              e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.4)';
+                              e.currentTarget.style.background = isSoundCloud 
+                                ? 'rgba(255, 107, 0, 0.15)' 
+                                : 'rgba(52, 225, 255, 0.15)';
+                              e.currentTarget.style.borderColor = isSoundCloud 
+                                ? 'rgba(255, 107, 0, 0.6)' 
+                                : 'rgba(52, 225, 255, 0.6)';
+                              e.currentTarget.style.boxShadow = isSoundCloud 
+                                ? '0 0 12px rgba(255, 107, 0, 0.4)' 
+                                : '0 0 12px rgba(52, 225, 255, 0.4)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.05)';
-                              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
+                              e.currentTarget.style.background = isSoundCloud 
+                                ? 'rgba(255, 107, 0, 0.05)' 
+                                : 'rgba(52, 225, 255, 0.05)';
+                              e.currentTarget.style.borderColor = isSoundCloud 
+                                ? 'rgba(255, 107, 0, 0.3)' 
+                                : 'rgba(52, 225, 255, 0.3)';
                               e.currentTarget.style.boxShadow = 'none';
                             }}
                           >
@@ -502,7 +518,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               {getPlatformIcon(link.platform)}
                             </span>
                             {username && (
-                              <span style={{ color: 'var(--ink)', fontSize: '13px' }}>{username}</span>
+                              <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
                             )}
                           </a>
                         );
