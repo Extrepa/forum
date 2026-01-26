@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
@@ -108,10 +109,28 @@ export default async function ProfilePage({ params }) {
     }
   }
 
-  const platformIcons = {
-    github: '💻',
-    youtube: '▶️',
-    soundcloud: '🎵',
+  // Get platform icon component
+  const getPlatformIcon = (platform) => {
+    const iconMap = {
+      github: '/icons/social/github.png',
+      youtube: '/icons/social/youtube.png',
+      soundcloud: '/icons/social/soundcloud.png',
+      discord: '/icons/social/discord.png',
+      chatgpt: '/icons/social/chatgpt.png',
+    };
+    
+    const iconPath = iconMap[platform];
+    if (!iconPath) return '🔗';
+    
+    return (
+      <Image
+        src={iconPath}
+        alt={platform}
+        width={16}
+        height={16}
+        style={{ display: 'block', flexShrink: 0 }}
+      />
+    );
   };
 
   return (
@@ -138,7 +157,7 @@ export default async function ProfilePage({ params }) {
               <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 {profileLinks.map((link, idx) => {
                   const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
-                  const icon = linkObj.platform ? (platformIcons[linkObj.platform] || '🔗') : '🔗';
+                  const icon = linkObj.platform ? getPlatformIcon(linkObj.platform) : '🔗';
                   return (
                     <a
                       key={idx}

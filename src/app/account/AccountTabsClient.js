@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
@@ -17,8 +18,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [colorStatus, setColorStatus] = useState({ type: 'idle', message: null });
   const [socialLinks, setSocialLinks] = useState(() => {
     const links = initialStats?.profileLinks || [];
-    // Initialize with empty entries for each platform (only 3 platforms)
-    const platforms = ['github', 'youtube', 'soundcloud'];
+    // Initialize with empty entries for each platform (5 platforms)
+    const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
     const linkMap = {};
     links.forEach(link => {
       if (typeof link === 'object' && link.platform && link.url) {
@@ -46,7 +47,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             setStats(data);
             // Update social links if they changed
             if (data.profileLinks) {
-              const platforms = ['github', 'youtube', 'soundcloud'];
+              const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
               const linkMap = {};
               data.profileLinks.forEach(link => {
                 if (typeof link === 'object' && link.platform && link.url) {
@@ -165,7 +166,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setIsEditingUsername(false);
     // Reset social links to original values
     const links = initialStats?.profileLinks || [];
-    const platforms = ['github', 'youtube', 'soundcloud'];
+    const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
     const linkMap = {};
     links.forEach(link => {
       if (typeof link === 'object' && link.platform && link.url) {
@@ -194,6 +195,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { value: 'github', label: 'GitHub', icon: '💻' },
     { value: 'youtube', label: 'YouTube', icon: '▶️' },
     { value: 'soundcloud', label: 'SoundCloud', icon: '🎵' },
+    { value: 'discord', label: 'Discord', icon: '💬' },
+    { value: 'chatgpt', label: 'ChatGPT', icon: '🤖' },
   ];
 
   // Extract username from platform URLs
@@ -222,6 +225,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           return pathname.slice(9);
         }
         return null;
+      } else if (platform === 'discord') {
+        // Discord: https://discord.com/users/userid or https://discord.gg/invitecode
+        // For user profiles, extract username from URL if possible
+        if (pathname.startsWith('/users/')) {
+          return pathname.slice(7);
+        } else if (pathname.startsWith('/gg/')) {
+          return pathname.slice(4);
+        }
+        // For invite links, return the invite code
+        return null;
+      } else if (platform === 'chatgpt') {
+        // ChatGPT: https://chat.openai.com/g/g-xxx or https://chatgpt.com/share/xxx
+        // Extract share ID or conversation ID
+        if (pathname.startsWith('/g/g-')) {
+          return pathname.slice(5);
+        } else if (pathname.startsWith('/share/')) {
+          return pathname.slice(7);
+        }
+        return null;
       }
       return null;
     } catch (e) {
@@ -231,29 +253,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
   // Get platform icon component
   const getPlatformIcon = (platform) => {
-    switch (platform) {
-      case 'github':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-          </svg>
-        );
-      case 'youtube':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
-            <path d="M15.32 4.06c-.434.772-1.05 1.388-1.82 1.82C12.28 6.34 8 6.34 8 6.34s-4.28 0-5.5.54c-.77-.432-1.386-1.048-1.82-1.82C.14 4.84 0 5.4 0 6v4c0 .6.14 1.16.68 1.94.434.772 1.05 1.388 1.82 1.82 1.22.54 5.5.54 5.5.54s4.28 0 5.5-.54c.77-.432 1.386-1.048 1.82-1.82.54-.78.68-1.34.68-1.94V6c0-.6-.14-1.16-.68-1.94zM6.4 9.02V6.98L10.16 8l-3.76 1.02z"/>
-          </svg>
-        );
-      case 'soundcloud':
-        return (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', width: '16px', height: '16px', flexShrink: 0 }}>
-            {/* Cloud shape only - simplified SoundCloud cloud */}
-            <path d="M19.36 9.04c-.24-.03-.5-.05-.76-.05-2.5 0-4.5 2-4.5 4.5h-8c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.69.31-.89 1.15-1.56 2.15-1.56 1.23 0 2.23 1 2.23 2.23 0 .29-.06.56-.16.81.48.16.92.42 1.3.76.19-.21.31-.48.31-.78 0-.69-.56-1.25-1.25-1.25-.13 0-.25.02-.36.05zm.14 1.46c-.17 0-.33.03-.48.08-.03-.05-.07-.1-.11-.15-.19-.2-.45-.33-.74-.33-.13 0-.25.03-.36.08-.22-.45-.7-.75-1.21-.75-.69 0-1.25.56-1.25 1.25 0 .3.11.57.31.78-.38.34-.82.6-1.3.76.1-.25.16-.52.16-.81 0-1.23-1-2.23-2.23-2.23-1 0-1.84.67-2.15 1.56-.83-.44-1.79-.69-2.8-.69-3.31 0-6 2.69-6 6h12.5c0-1.38 1.12-2.5 2.5-2.5.17 0 .33.03.48.08.03.05.07.1.11.15.19.2.45.33.74.33.13 0 .25-.03.36-.08.22.45.7.75 1.21.75.69 0 1.25-.56 1.25-1.25 0-.3-.11-.57-.31-.78z" fill="#FF6B00" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 107, 0, 0.6))' }}/>
-          </svg>
-        );
-      default:
-        return '🔗';
-    }
+    const iconMap = {
+      github: '/icons/social/github.png',
+      youtube: '/icons/social/youtube.png',
+      soundcloud: '/icons/social/soundcloud.png',
+      discord: '/icons/social/discord.png',
+      chatgpt: '/icons/social/chatgpt.png',
+    };
+    
+    const iconPath = iconMap[platform];
+    if (!iconPath) return '🔗';
+    
+    return (
+      <Image
+        src={iconPath}
+        alt={platform}
+        width={16}
+        height={16}
+        style={{ display: 'block', flexShrink: 0 }}
+      />
+    );
   };
 
   const handleSocialLinkChange = (index, field, value) => {
