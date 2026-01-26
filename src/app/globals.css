@@ -2595,16 +2595,33 @@ header::before {
   /* Notifications popover - ensure it fits on mobile */
   .notifications-popover,
   .notifications-popover-errl {
-    /* Override inline width and positioning to fit viewport */
+    /* Override inline width to fit viewport */
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
     min-width: 0 !important;
-    /* Position from both sides to constrain width */
-    left: 8px !important;
-    right: 8px !important;
+    /* Keep right alignment to logo */
+    right: 0 !important;
+    left: auto !important;
     box-sizing: border-box !important;
-    transform: none !important;
     margin: 0 !important;
+  }
+  
+  /* Ensure the parent container allows proper positioning */
+  .notifications-logo-trigger {
+    position: relative !important;
+    overflow: visible !important;
+  }
+  
+  /* On small screens, shift popover left if it would overflow */
+  /* Calculate: if popover width (100vw - 16px) would extend past viewport when right-aligned */
+  /* Shift left by the overflow amount to keep it in view */
+  @media (max-width: 640px) {
+    .notifications-popover,
+    .notifications-popover-errl {
+      /* Shift left to prevent overflow while keeping right alignment to logo */
+      /* The amount to shift: max(0, popover_width - available_space_from_right) */
+      transform: translateX(calc(-1 * max(0px, calc(100vw - 16px - 100%)))) !important;
+    }
   }
   
   /* Ensure content inside notifications popover doesn't overflow */

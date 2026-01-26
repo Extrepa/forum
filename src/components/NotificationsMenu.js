@@ -148,7 +148,9 @@ export default function NotificationsMenu({
         maxHeight: 'min(80vh, 600px)',
         display: 'flex',
         flexDirection: 'column',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        // Ensure it doesn't overflow viewport - will be overridden by CSS on mobile
+        transform: anchor === 'right' ? 'translateX(0)' : 'none'
       }}
       role="menu"
       aria-label={title}
