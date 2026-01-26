@@ -23,19 +23,22 @@ export default function DevLogClient({ logs, notice }) {
 
     const latestPostId = logs[0].id;
     let initialScrollY = window.scrollY || window.pageYOffset;
-    let hasScrolled = false;
+    let hasScrolledDown = false;
+    let maxScrollY = initialScrollY;
 
     const checkScroll = () => {
       if (viewTracked) return;
 
-      // Track if user has scrolled at all
       const currentScrollY = window.scrollY || window.pageYOffset;
-      if (Math.abs(currentScrollY - initialScrollY) > 10) {
-        hasScrolled = true;
+      
+      // Track if user has scrolled DOWN (not just any scroll)
+      if (currentScrollY > maxScrollY) {
+        hasScrolledDown = true;
+        maxScrollY = currentScrollY;
       }
 
-      // Only count as view if user has scrolled AND reached the bottom
-      if (!hasScrolled) return;
+      // Only count as view if user has scrolled down AND reached the bottom of the post
+      if (!hasScrolledDown) return;
 
       // Find the post body element within the latest post (the actual content div)
       const latestPostWrapper = latestPostRef.current;
@@ -45,16 +48,17 @@ export default function DevLogClient({ logs, notice }) {
 
       // Get the bounding box of the post body element (the actual content)
       const rect = postBodyElement.getBoundingClientRect();
-      const elementBottom = rect.bottom;
-      const windowHeight = window.innerHeight;
+      
+      // Calculate the absolute position of the bottom of the post body on the page
+      // rect.bottom is relative to viewport top, so we add scrollY to get absolute position
+      const elementBottomAbsolute = currentScrollY + rect.bottom;
+      
+      // Check if the user has scrolled enough that the bottom of the post body is visible
+      // The bottom is visible when the viewport bottom has reached or passed the element bottom
+      const viewportBottom = currentScrollY + window.innerHeight;
+      const isBottomVisible = viewportBottom >= elementBottomAbsolute - 50; // 50px threshold
 
-      // Check if the bottom of the post body has been scrolled into view
-      // We consider it "read" if the bottom of the post body is at or above the bottom of the viewport
-      // This means the user has scrolled to see the entire post content
-      // Using a 50px threshold to account for edge cases
-      const isAtBottom = elementBottom <= windowHeight + 50;
-
-      if (isAtBottom) {
+      if (isBottomVisible) {
         // Track the view
         fetch(`/api/devlog/${latestPostId}/view`, {
           method: 'POST',
