@@ -5,18 +5,7 @@ import { useState, useEffect } from 'react';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
-
-function formatDateTime(timestamp) {
-  if (!timestamp) return 'Unknown';
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
+import { formatDateTime } from '../../lib/dates';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
