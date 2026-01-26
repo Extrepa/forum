@@ -354,10 +354,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     } catch (error) {
       // ignore
     }
-    setStatus({ type: 'idle', message: null });
-    await refreshMe();
-    // Refresh server components to update header with logged out state
-    router.refresh();
+    // Redirect to forum.errl.wtf (sign-in screen)
+    window.location.href = 'https://forum.errl.wtf';
   };
 
   const submitSetEmail = async (event) => {
