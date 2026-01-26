@@ -285,6 +285,13 @@ npm run deploy
 **Files Modified:**
 - `src/app/page.js` - Lines 996-1104: Enhanced error handling for `recentPostsCount` and `recentRepliesCount` queries
 
+## Fix: Timezone handling for greetings
+**Issue:** Greetings showing wrong time (e.g., "4am stillness" when it's 8pm PST) - server was using UTC/local time instead of PST/PDT
+**Fix:** Convert date to PST/PDT timezone using `Intl.DateTimeFormat` before extracting hour
+**Files Modified:**
+- `src/lib/forum-texts/variations.js` - Lines 141-145: Use PST/PDT timezone for `getTimeBasedGreetingTemplate`
+- `src/lib/forum-texts/variations.js` - Lines 21-27: Use PST/PDT timezone for `getTimeOfDay`
+
 ## Final Verification Summary
 
 ### All Fixes Applied ✅
@@ -293,10 +300,12 @@ npm run deploy
 3. **formatTimeAgo Validation** - Handles invalid/future timestamps gracefully
 4. **Hydration Error #418** - All time-based content uses `suppressHydrationWarning` or server-side computation
 5. **Performance** - `updateUserLastSeen` is non-blocking
+6. **Timezone Handling** - Greetings now use PST/PDT timezone correctly
 
 ### Files Modified (Summary)
 - `src/app/page.js` - Recent activity queries, formatTimeAgo validation, server-side time computation
 - `src/lib/dates.js` - formatTimeAgo validation
+- `src/lib/forum-texts/variations.js` - PST/PDT timezone conversion for greetings
 - `src/components/GenericPostForm.js` - Dynamic art image requirement
 - `src/app/layout.js` - Non-blocking user tracking
 - `src/components/*` - 10 components with `suppressHydrationWarning` for time displays

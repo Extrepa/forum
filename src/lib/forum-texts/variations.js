@@ -19,7 +19,13 @@ export function pick(items, seed) {
 }
 
 export function getTimeOfDay(date = new Date()) {
-  const hour = date.getHours();
+  // Convert to PST/PDT timezone for consistent time-of-day detection
+  const pstFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: 'numeric',
+    hour12: false
+  });
+  const hour = parseInt(pstFormatter.format(date), 10);
   if (hour < 12) return 'morning';
   if (hour < 17) return 'afternoon';
   if (hour < 22) return 'evening';
@@ -139,7 +145,14 @@ const HOURLY_GREETINGS = {
 };
 
 export function getTimeBasedGreetingTemplate({ useLore = false, date = new Date(), context = 'home' } = {}) {
-  const hour = date.getHours(); // 0-23
+  // Convert to PST/PDT timezone for consistent greetings
+  // Use Intl.DateTimeFormat to get the hour in PST/PDT
+  const pstFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: 'numeric',
+    hour12: false
+  });
+  const hour = parseInt(pstFormatter.format(date), 10); // 0-23 in PST/PDT
   const contextSet = HOURLY_GREETINGS[context] || HOURLY_GREETINGS.home;
   const messages = useLore ? contextSet.lore : contextSet.standard;
   const template = messages[hour] || messages[12]; // Default to noon if somehow invalid
