@@ -720,6 +720,21 @@ main {
   margin-top: 12px;
 }
 
+.color-picker-btn {
+  position: relative;
+}
+
+.color-picker-btn:hover {
+  box-shadow: 0 0 16px rgba(52, 225, 255, 0.8) !important;
+  transform: scale(1.1);
+}
+
+.username-edit-btn:hover {
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.6) !important;
+  border-color: rgba(52, 225, 255, 0.6) !important;
+  transform: scale(1.1);
+}
+
 @media (max-width: 640px) {
   .account-columns {
     grid-template-columns: 1fr;

@@ -292,15 +292,45 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Right Column: Username, Color, and Social Links */}
             <div className="account-col">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-                {/* Username row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  <strong>Username:</strong>
+                {/* Username and Color Picker Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                  {/* Username Display/Input */}
                   {!isEditingUsername ? (
-                    <div style={{ flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: 0 }}>
                       <Username
                         name={user.username}
                         colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
                       />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingUsername(true);
+                          setNewUsername(user.username);
+                          setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                          setUsernameStatus({ type: 'idle', message: null });
+                          setColorStatus({ type: 'idle', message: null });
+                        }}
+                        className="username-edit-btn"
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--accent)',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
+                        }}
+                        title="Edit username"
+                      >
+                        ✏️
+                      </button>
                     </div>
                   ) : (
                     <input
@@ -323,48 +353,56 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       autoFocus
                     />
                   )}
-                </div>
-
-                {/* Username color label and picker */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  <strong>Username color:</strong>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', flex: '0 0 auto' }}>
+                  
+                  {/* Color Picker Buttons */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flex: '0 0 auto' }}>
                   {colorOptions.map((option) => {
                     const isSelected = selectedColorIndex === option.index;
                     const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                    const size = 18;
+                    const size = 20;
                     return (
                       <button
                         key={option.index ?? 'auto'}
                         type="button"
                         onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
                         disabled={disabled}
+                        className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
                         style={{
                           flex: '0 0 auto',
-                          width: option.index === null ? 'auto' : size,
+                          width: size,
                           height: size,
-                          minWidth: option.index === null ? 'auto' : size,
-                          aspectRatio: option.index === null ? 'auto' : '1',
-                          borderRadius: option.index === null ? '3px' : '50%',
+                          borderRadius: option.index === null ? '4px' : '50%',
                           border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                           background: option.index === null
                             ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
                             : option.color,
                           cursor: disabled ? 'default' : 'pointer',
-                          opacity: disabled ? 0.7 : 1,
+                          opacity: disabled ? 0.5 : 1,
                           transition: 'all 0.2s ease',
-                          padding: option.index === null ? '0 6px' : 0,
+                          padding: 0,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: option.index === null ? '9px' : '0',
-                          color: 'var(--ink)',
-                          fontWeight: 'bold',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
+                          boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none'
                         }}
                         title={option.name}
+                        onMouseEnter={(e) => {
+                          if (isEditingUsername && !disabled) {
+                            e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (isEditingUsername && !disabled) {
+                            e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }
+                        }}
                       >
-                        {option.index === null ? 'Auto' : ''}
+                        {option.index === null && (
+                          <span style={{ fontSize: '10px', color: 'var(--ink)', fontWeight: 'bold' }}>A</span>
+                        )}
                       </button>
                     );
                   })}
@@ -420,78 +458,48 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 )}
 
-                {/* Edit / Save / Cancel row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
-                  {!isEditingUsername ? (
+                {/* Save / Cancel row - only show when editing */}
+                {isEditingUsername && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
                     <button
                       type="button"
-                      onClick={() => {
-                        setIsEditingUsername(true);
-                        setNewUsername(user.username);
-                        setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                        setUsernameStatus({ type: 'idle', message: null });
-                        setColorStatus({ type: 'idle', message: null });
-                      }}
+                      onClick={handleSave}
+                      disabled={usernameStatus.type === 'loading'}
                       style={{
                         fontSize: '12px',
                         padding: '6px 12px',
-                        height: '32px',
-                        width: '100%',
-                        background: 'rgba(52, 225, 255, 0.1)',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        flex: '1 1 auto',
+                        background: 'var(--accent)',
+                        border: 'none',
                         borderRadius: '6px',
-                        color: 'var(--accent)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        color: 'var(--bg)',
+                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                        opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      Edit
+                      {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
                     </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={usernameStatus.type === 'loading'}
-                        style={{
-                          fontSize: '12px',
-                          padding: '6px 12px',
-                          flex: '1 1 auto',
-                          background: 'var(--accent)',
-                          border: 'none',
-                          borderRadius: '6px',
-                          color: 'var(--bg)',
-                          cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                          opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancel}
-                        disabled={usernameStatus.type === 'loading'}
-                        style={{
-                          fontSize: '12px',
-                          padding: '6px 12px',
-                          flex: '1 1 auto',
-                          background: 'transparent',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          borderRadius: '6px',
-                          color: 'var(--muted)',
-                          cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      disabled={usernameStatus.type === 'loading'}
+                      style={{
+                        fontSize: '12px',
+                        padding: '6px 12px',
+                        flex: '1 1 auto',
+                        background: 'transparent',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        borderRadius: '6px',
+                        color: 'var(--muted)',
+                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
 
                 {usernameStatus.message && (
                   <div style={{
