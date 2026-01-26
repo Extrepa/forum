@@ -1069,3 +1069,28 @@ Add a tiny trash icon in the bottom right corner below the "minutes ago" text fo
 - The confirmation modal prevents accidental deletions
 - The API endpoint returns the updated unread count, which could be used for optimistic updates in the future
 - All existing notification functionality (mark read, mark all read, clear all) remains unchanged
+
+### Update: Removed Individual Delete Confirmation, Added Clear All Confirmation (2026-01-25)
+
+**User Request:** Individual notification deletion should not require confirmation modal, but "Clear All" should require confirmation.
+
+**Changes Made:**
+- ✅ Removed `showDeleteModal` state (replaced with `showClearAllModal`)
+- ✅ Individual delete button now directly calls `handleDeleteNotification()` without opening modal
+- ✅ Removed individual delete confirmation modal JSX
+- ✅ Added confirmation modal for "Clear All" button
+  - "Clear" button now opens `DeleteConfirmModal` with `itemType="all notifications"`
+  - Modal's `onConfirm` calls `onClearAll()` after closing modal
+- ✅ Individual deletions are now instant (no confirmation)
+- ✅ "Clear All" requires user confirmation before proceeding
+
+**Files Modified:**
+- `src/components/NotificationsMenu.js`
+  - Changed state from `showDeleteModal` to `showClearAllModal`
+  - Updated trash icon button `onClick` to directly call `handleDeleteNotification`
+  - Removed individual delete modal
+  - Added "Clear All" confirmation modal
+  - Updated "Clear" button to open modal instead of directly calling `onClearAll`
+
+**Build Status:**
+- ✅ Build passes with no errors

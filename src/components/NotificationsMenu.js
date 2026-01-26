@@ -66,7 +66,7 @@ export default function NotificationsMenu({
   const [currentUsername, setCurrentUsername] = useState(null);
   const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showClearAllModal, setShowClearAllModal] = useState(false);
   const hasItems = items && items.length > 0;
   
   const usernameColorIndex = useMemo(() => {
@@ -121,7 +121,6 @@ export default function NotificationsMenu({
       alert('Failed to delete notification');
     } finally {
       setDeletingNotificationId(null);
-      setShowDeleteModal(false);
     }
   };
 
@@ -345,8 +344,7 @@ export default function NotificationsMenu({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setDeletingNotificationId(n.id);
-                          setShowDeleteModal(true);
+                          handleDeleteNotification(n.id);
                         }}
                         disabled={deletingNotificationId === n.id}
                         title="Delete notification"
@@ -391,16 +389,18 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      {/* Delete confirmation modal */}
-      {showDeleteModal && deletingNotificationId && (
+      {/* Clear All confirmation modal */}
+      {showClearAllModal && (
         <DeleteConfirmModal
           isOpen={true}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDeletingNotificationId(null);
+          onClose={() => setShowClearAllModal(false)}
+          onConfirm={async () => {
+            setShowClearAllModal(false);
+            if (onClearAll) {
+              await onClearAll();
+            }
           }}
-          onConfirm={() => handleDeleteNotification(deletingNotificationId)}
-          itemType="notification"
+          itemType="all notifications"
         />
       )}
 
@@ -417,7 +417,7 @@ export default function NotificationsMenu({
           </button>
           <button 
             type="button" 
-            onClick={onClearAll}
+            onClick={() => setShowClearAllModal(true)}
             disabled={!hasItems}
             style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1 }}
           >
