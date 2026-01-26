@@ -2485,27 +2485,50 @@ header::before {
     min-width: 0 !important;
   }
 
+  /* Ensure the form container div uses full width */
+  .auth-form-container > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+  
+  /* Ensure forms use full width */
+  .auth-form-container form {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    gap: 12px !important;
+  }
+  
   /* Ensure inputs use full width and handle overflow */
   .auth-form-container input {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    min-width: 0 !important;
   }
   
   /* Ensure labels don't constrain input width */
   .auth-form-container label {
     width: 100% !important;
+    max-width: 100% !important;
     display: block !important;
+    min-width: 0 !important;
   }
   
   /* Ensure label inner divs don't constrain width */
   .auth-form-container label > div {
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
   
   /* Ensure relative wrapper divs use full width */
   .auth-form-container label > div[style*="position: relative"] {
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   /* Ensure buttons are full width */
@@ -2513,12 +2536,7 @@ header::before {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-  }
-  
-  /* Ensure forms use full width */
-  .auth-form-container form {
-    width: 100% !important;
-    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   /* Fix placeholder overflow */

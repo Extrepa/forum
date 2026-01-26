@@ -660,14 +660,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             </p>
           </div>
         </div>
-        <div style={{ flex: '1', minWidth: 0 }}>
+        <div style={{ flex: '1', minWidth: 0, width: '100%', maxWidth: '100%' }}>
           {mode === 'login' ? (
             <>
               <h3 className="section-title" style={{ marginBottom: '20px' }}>Sign in</h3>
               <form onSubmit={submitLogin}>
                 <label>
                   <div className="muted">Email or username</div>
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
                       name="identifier"
                       value={loginIdentifier}
@@ -750,7 +750,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               <form onSubmit={submitSignup}>
                 <label>
                   <div className="muted">Email</div>
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
                       name="email"
                       value={signupEmail}
@@ -789,7 +789,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </label>
                 <label>
                   <div className="muted">Username (lowercase, 3 to 20 chars)</div>
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
                       name="username"
                       value={signupUsername}
