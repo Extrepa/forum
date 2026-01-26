@@ -496,3 +496,88 @@ All changes are complete, tested, and ready to deploy.
 - `src/components/ProjectRepliesSection.js`
 - `src/app/api/projects/[id]/replies/route.js`
 - `src/app/projects/[id]/page.js`
+
+---
+
+## Complete Workflow Summary - 2026-01-25
+
+### Feature Request
+User requested image upload functionality for replies to project ideas in the project section, matching the capability that exists for project posts.
+
+### Implementation Process
+
+1. **Initial Implementation**
+   - Created database migration `0040_project_replies_image_key.sql` to add `image_key` column
+   - Updated `CollapsibleReplyForm` component with conditional `allowImageUpload` prop
+   - Modified API route to handle image uploads (validation, permissions, R2 bucket storage)
+   - Updated project detail page queries to fetch and serialize `image_key`
+   - Added image display in `ProjectRepliesSection` component
+
+2. **Spacing Refinement**
+   - User feedback: Padding between comment box and image upload field was too large
+   - Multiple iterations to reduce spacing:
+     - First attempt: Reduced `marginTop` from `12px` to `8px`
+     - Second attempt: Moved margin to label element, set to `4px`
+     - Final solution: Applied negative margin (`-8px`) to image upload label, set textarea `marginBottom: 0`
+   - Result: Minimized spacing between form elements
+
+3. **Testing & Deployment**
+   - Created feature branch: `feat/project-replies-image-upload`
+   - Applied migration locally: `npx wrangler d1 migrations apply errl_forum_db --local`
+   - Verified builds: Both Next.js and Cloudflare worker builds successful
+   - Deployed preview: `./deploy.sh --preview`
+   - Preview URL: https://errl-portal-forum.extrepatho.workers.dev
+   - User testing: Confirmed feature working correctly
+
+4. **Merge to Main**
+   - Merged feature branch into `main` (fast-forward merge, no conflicts)
+   - Pushed to remote repository
+   - All changes now in production branch
+
+### Technical Details
+
+**Migration Safety:**
+- Feature is rollout-safe with fallback queries
+- Works even if migration hasn't been applied to remote database yet
+- API route handles both cases (with/without `image_key` column)
+
+**Component Architecture:**
+- `allowImageUpload` prop added to `CollapsibleReplyForm` for conditional image upload UI
+- Only enabled for project replies (not other reply forms)
+- Maintains consistency with existing image upload patterns in project posts/updates
+
+**Image Handling:**
+- Uses existing upload infrastructure (`buildImageKey`, `canUploadImages`, `getUploadsBucket`)
+- Images stored in R2 bucket with `projects/` prefix
+- Displayed via `/api/media/${imageKey}` endpoint
+- Same validation and permission checks as project posts
+
+### Git History
+- Initial commit: `ebb0804` - "Add image upload support to project replies"
+- Spacing adjustments: Multiple commits with "Update forum application"
+- Documentation: `1bf419d` - "docs: Add notes for project replies image upload feature"
+- Final merge: Fast-forward merge to `main`
+
+### Deployment Status
+- ✅ Local migration applied
+- ✅ Preview deployment successful
+- ✅ Merged to main
+- ⚠️ Remote migration pending (needs: `npx wrangler d1 migrations apply errl_forum_db --remote`)
+
+### User Feedback & Iterations
+1. Initial request: Add image uploads to project replies
+2. First feedback: Reduce padding between comment box and image upload field
+3. Second feedback: Still too much space
+4. Final solution: Negative margin approach successfully minimized spacing
+5. Confirmation: Feature working as expected
+
+### Lessons Learned
+- Spacing adjustments required multiple iterations to achieve desired result
+- Negative margins can be effective for tight form layouts
+- Rollout-safe migrations allow gradual deployment without breaking existing functionality
+- Conditional props (`allowImageUpload`) provide clean way to enable features selectively
+
+### Next Steps (Future)
+- Apply migration to remote database for full production functionality
+- Monitor usage and gather feedback on image upload feature
+- Consider extending image uploads to other reply types if requested
