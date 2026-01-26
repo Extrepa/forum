@@ -497,7 +497,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   </div>
 
-                  {/* Edit Button - positioned between username and colors on desktop, below everything on mobile */}
+                  {/* Edit Button - positioned between username and colors */}
                   {!isEditingUsername && (
                     <button
                       type="button"
@@ -767,37 +767,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 )}
 
-                {/* Edit Button - appears below all content on mobile when columns wrap */}
-                {!isEditingUsername && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditingUsername(true);
-                      setNewUsername(user.username);
-                      setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                      setUsernameStatus({ type: 'idle', message: null });
-                      setColorStatus({ type: 'idle', message: null });
-                    }}
-                    className="username-edit-btn-mobile"
-                    style={{
-                      display: 'none',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
-                      color: 'var(--accent)',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      transition: 'all 0.2s ease',
-                      fontWeight: '500',
-                      alignSelf: 'flex-start',
-                      marginTop: '4px'
-                    }}
-                    title="Edit username and color"
-                  >
-                    edit
-                  </button>
-                )}
               </div>
             </div>
 
