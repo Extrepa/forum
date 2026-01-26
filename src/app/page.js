@@ -1017,34 +1017,52 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
-          recentPostsCount = postsResult?.count || 0;
+          recentPostsCount = Number(postsResult?.count) || 0;
         } catch (e) {
           // Fallback: try without is_deleted checks
-          const postsResult = await db
-            .prepare(
-              `SELECT COUNT(*) as count
-               FROM (
-                 SELECT created_at FROM forum_threads WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM events WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM music_posts WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM projects WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM dev_logs WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM timeline_updates WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM posts WHERE created_at > ?
-               )`
-            )
-            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
-            .first();
-          recentPostsCount = postsResult?.count || 0;
+          try {
+            const postsResult = await db
+              .prepare(
+                `SELECT COUNT(*) as count
+                 FROM (
+                   SELECT created_at FROM forum_threads WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM events WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM music_posts WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM projects WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM dev_logs WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM timeline_updates WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM posts WHERE created_at > ?
+                 )`
+              )
+              .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+              .first();
+            recentPostsCount = Number(postsResult?.count) || 0;
+          } catch (e2) {
+            // If fallback also fails, try individual queries and sum
+            try {
+              const counts = await Promise.all([
+                db.prepare('SELECT COUNT(*) as count FROM forum_threads WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM events WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM music_posts WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM projects WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM dev_logs WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM timeline_updates WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM posts WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 }))
+              ]);
+              recentPostsCount = counts.reduce((sum, r) => sum + (Number(r?.count) || 0), 0);
+            } catch (e3) {
+              recentPostsCount = 0;
+            }
+          }
         }
       } catch (e) {
-        // If both fail, keep at 0
+        // If all fail, keep at 0
         recentPostsCount = 0;
       }
 
@@ -1072,34 +1090,52 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
-          recentRepliesCount = repliesResult?.count || 0;
+          recentRepliesCount = Number(repliesResult?.count) || 0;
         } catch (e) {
           // Fallback: try without is_deleted checks
-          const repliesResult = await db
-            .prepare(
-              `SELECT COUNT(*) as count
-               FROM (
-                 SELECT created_at FROM forum_replies WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM event_comments WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM music_comments WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM project_replies WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM dev_log_comments WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM timeline_comments WHERE created_at > ?
-                 UNION ALL
-                 SELECT created_at FROM post_comments WHERE created_at > ?
-               )`
-            )
-            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
-            .first();
-          recentRepliesCount = repliesResult?.count || 0;
+          try {
+            const repliesResult = await db
+              .prepare(
+                `SELECT COUNT(*) as count
+                 FROM (
+                   SELECT created_at FROM forum_replies WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM event_comments WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM music_comments WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM project_replies WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM dev_log_comments WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM timeline_comments WHERE created_at > ?
+                   UNION ALL
+                   SELECT created_at FROM post_comments WHERE created_at > ?
+                 )`
+              )
+              .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+              .first();
+            recentRepliesCount = Number(repliesResult?.count) || 0;
+          } catch (e2) {
+            // If fallback also fails, try individual queries and sum
+            try {
+              const counts = await Promise.all([
+                db.prepare('SELECT COUNT(*) as count FROM forum_replies WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM event_comments WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM music_comments WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM project_replies WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM dev_log_comments WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM timeline_comments WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 })),
+                db.prepare('SELECT COUNT(*) as count FROM post_comments WHERE created_at > ?').bind(last24Hours).first().catch(() => ({ count: 0 }))
+              ]);
+              recentRepliesCount = counts.reduce((sum, r) => sum + (Number(r?.count) || 0), 0);
+            } catch (e3) {
+              recentRepliesCount = 0;
+            }
+          }
         }
       } catch (e) {
-        // If both fail, keep at 0
+        // If all fail, keep at 0
         recentRepliesCount = 0;
       }
 

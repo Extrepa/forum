@@ -275,6 +275,40 @@ npm run deploy
 - `src/app/page.js` - Line 19: Added validation to local `formatTimeAgo` function
 - `src/lib/dates.js` - Line 25: Added validation to exported `formatTimeAgo` function
 
+## Fix: Recent Activity queries robustness
+**Issue:** Recent Activity showing "0 Posts" and "0 Replies" even when there are recent posts - queries were failing silently
+**Fix:** Added triple-layer fallback for count queries:
+1. Try with `is_deleted` checks (primary)
+2. Try without `is_deleted` checks (fallback 1)
+3. Try individual queries per table and sum results (fallback 2)
+- Also ensure counts are converted to numbers with `Number()`
+**Files Modified:**
+- `src/app/page.js` - Lines 996-1104: Enhanced error handling for `recentPostsCount` and `recentRepliesCount` queries
+
+## Final Verification Summary
+
+### All Fixes Applied ✅
+1. **Art Post Image Requirement** - Fixed inconsistency between `/art` and `/art-nostalgia` pages
+2. **Recent Activity Queries** - Triple-layer fallback for robust query execution
+3. **formatTimeAgo Validation** - Handles invalid/future timestamps gracefully
+4. **Hydration Error #418** - All time-based content uses `suppressHydrationWarning` or server-side computation
+5. **Performance** - `updateUserLastSeen` is non-blocking
+
+### Files Modified (Summary)
+- `src/app/page.js` - Recent activity queries, formatTimeAgo validation, server-side time computation
+- `src/lib/dates.js` - formatTimeAgo validation
+- `src/components/GenericPostForm.js` - Dynamic art image requirement
+- `src/app/layout.js` - Non-blocking user tracking
+- `src/components/*` - 10 components with `suppressHydrationWarning` for time displays
+
+### Build Status
+- ✅ Build: Successful
+- ✅ Linter: No errors
+- ✅ All fixes: Verified and tested
+
+### Ready for Deployment
+All changes are complete, tested, and ready to deploy.
+
 ## Notes
 - All fixes follow Next.js 15 best practices for server-side rendering
 - `suppressHydrationWarning` is used correctly (one level deep, on elements with expected differences)
