@@ -730,6 +730,19 @@ main {
   transform: scale(1.1);
 }
 
+.username-edit-btn {
+  padding: 0 6px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+  border-color: rgba(52, 225, 255, 0.35) !important;
+}
+
+.username-edit-btn:not(:hover) {
+  box-shadow: none !important;
+}
+
 .username-edit-btn:hover {
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.6) !important;
   border-color: rgba(52, 225, 255, 0.6) !important;

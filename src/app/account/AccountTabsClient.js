@@ -381,7 +381,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-columns" style={{ marginBottom: '24px' }}>
             {/* Left Column: Username, Color, and Social Links */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Profile</h2>
+              <h2 className="section-title" style={{ marginBottom: '8px' }}>
+                <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--accent-2)', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
+              </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
@@ -510,7 +512,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         right: '24px',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        padding: '4px 8px',
                         borderRadius: '4px',
                         border: '1px solid rgba(52, 225, 255, 0.3)',
                         background: 'rgba(2, 7, 10, 0.6)',
@@ -519,7 +520,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         fontSize: '12px',
                         transition: 'all 0.2s ease',
                         fontWeight: '500',
-                        zIndex: 1
+                        zIndex: 1,
+                        padding: 0,
+                        height: 'auto',
+                        lineHeight: '1.2'
                       }}
                       title="Edit username and color"
                     >
@@ -768,7 +772,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {/* Right Column: Stats */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', textAlign: 'right', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Stats</h2>
+              <h2 className="section-title" style={{ marginBottom: '8px', textAlign: 'right' }}>
+                <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--accent-2)', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
+              </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                 {(() => {
                   // RPG-style rarity color function

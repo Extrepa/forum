@@ -463,7 +463,9 @@ export default async function ProfilePage({ params }) {
 
           {/* Right Column: Stats */}
           <div className="account-col">
-            <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', textAlign: 'right', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Stats</h2>
+            <h2 className="section-title" style={{ marginBottom: '8px', textAlign: 'right' }}>
+              <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--accent-2)', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
+            </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               {(() => {
                 // RPG-style rarity color function
