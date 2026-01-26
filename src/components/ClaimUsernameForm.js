@@ -428,9 +428,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         <div className="account-columns">
           <div className="account-col">
             <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
-              <div className="muted" style={{ marginBottom: 8 }}>
+              <h3 className="section-title" style={{ marginBottom: '16px', borderBottom: 'none' }}>
                 Email
-              </div>
+              </h3>
               {me.email && !editingEmail ? (
                 <div className="stack" style={{ gap: 10 }}>
                   <input name="email" value={me.email} disabled />
@@ -477,6 +477,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             </form>
 
             <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
+              <h3 className="section-title" style={{ marginBottom: '16px', borderBottom: 'none' }}>
+                Password
+              </h3>
               {me.hasPassword ? (
                 <label>
                   <div className="muted">Old password</div>
@@ -508,9 +511,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
 
             {canConfigureNotifications ? (
               <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
-                <div className="muted" style={{ marginBottom: 8 }}>
+                <h3 className="section-title" style={{ marginBottom: '16px', borderBottom: 'none' }}>
                   Phone Number
-                </div>
+                </h3>
                 <label>
                   <div className="muted">Phone number (required for SMS)</div>
                   <input
