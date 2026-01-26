@@ -632,20 +632,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               border: '1px solid rgba(52, 225, 255, 0.3)',
                               background: 'rgba(2, 7, 10, 0.6)',
                               color: 'var(--ink)',
-                              fontSize: '13px',
+                              fontSize: '11px',
                               width: '100px',
                               cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                               opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
                               justifyContent: 'space-between'
                             }}
                           >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flex: 1 }}>
                               {getPlatformIcon(link.platform)}
-                              <span style={{ fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {socialPlatforms.find(p => p.value === link.platform)?.label || link.platform}
                               </span>
                             </span>
-                            <span style={{ fontSize: '10px', opacity: 0.7 }}>▼</span>
+                            <span style={{ fontSize: '9px', opacity: 0.7, flexShrink: 0 }}>▼</span>
                           </button>
                           {openDropdowns[index] && (
                             <div
@@ -681,7 +681,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                     border: 'none',
                                     background: link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent',
                                     color: 'var(--ink)',
-                                    fontSize: '13px',
+                                    fontSize: '11px',
                                     cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
                                     textAlign: 'left',
                                     transition: 'background 0.2s ease'
