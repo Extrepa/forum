@@ -1200,3 +1200,93 @@ Implemented the ability to delete individual notifications with a small trash ic
 - ✅ Clean, intuitive UI
 - ✅ Proper security measures
 - ✅ Ready for production use
+
+---
+
+## Feed Page Activity Info + Thinner Card Style (2026-01-25)
+
+### User Request
+Update feed page threads to:
+1. Show more activity information (like home-page Explore Sections cards)
+2. Keep the thinner card style used on lobby, development, and other pages
+
+### What We Did
+
+#### 1. Data Layer (SQL)
+- **Announcements** (`timeline_updates`): Added `views`, `reply_count` (from `timeline_comments`), `like_count` (`post_type = 'timeline_update'`), `last_activity_at`.
+- **Threads** (lobby / `forum_threads`): Added `views`, `reply_count` (from `forum_replies`), `like_count` (`post_type = 'forum_thread'`), `last_activity_at`.
+- **Events**: Added `views`, `comment_count` (`event_comments`), `like_count` (`post_type = 'event'`), `last_activity_at`.
+- **Music**: Added `views`, `comment_count` (`music_comments`), `like_count` (`post_type = 'music_post'`), `last_activity_at`.
+- **Projects**: Added `views`, `reply_count` (`project_replies`), `like_count` (`post_type = 'project'`), `last_activity_at`.
+- **Posts** (art/bugs/rant/nostalgia/lore/memories): Added `views`, `comment_count` (`post_comments`), `like_count` (`post_type = 'post'`), `last_activity_at`.
+- **DevLogs**: Added `views`, `comment_count` (`dev_log_comments`), `like_count` (`post_type = 'dev_log'`), `last_activity_at`.
+
+All use `COALESCE(...)` and primary/fallback queries via `safeAll` (e.g. with/without `moved_to_id`). Table names aligned with codebase: `timeline_comments` (not `timeline_replies`), `project_replies`, `post_comments`.
+
+#### 2. Item Mapping
+- Each feed item now includes: `views`, `replies` (or `comment_count` → `replies`), `likes`, `lastActivity`.
+- Events keep `meta` for `starts_at`; posts keep `meta` for "Members-only" when `is_private`.
+
+#### 3. UI (Thinner Card Style)
+- Replaced custom "posted by" + type layout with **`PostMetaBar`** (same as lobby, devlog, etc.).
+- Kept **`list-item`** class for thinner card style; no extra body/preview.
+- **PostMetaBar** shows: title by author, views · replies · likes, created date, "Last activity: &lt;date&gt;".
+- Non-Lobby items show type in parentheses next to title, e.g. `Title (Event)`.
+- Event `meta` (e.g. "Starts ...") and "Members-only" rendered below PostMetaBar when present.
+
+#### 4. Imports / Cleanup
+- Removed `Username` and `formatTimeAgo` from feed page (handled by PostMetaBar).
+- Added `PostMetaBar` import; kept `Breadcrumbs`, `getUsernameColorIndex`, `assignUniqueColorsForPage` for author colors.
+
+### Double-Check & Fixes
+
+1. **`post_type` for posts (art/bugs/rant/etc.)**
+   - **Bug:** Feed used `post_type = posts.type` (e.g. `'art'`, `'bugs'`). Everywhere else (art, lore, rant, etc.) uses `post_type = 'post'` for `post_likes`.
+   - **Fix:** Changed posts like_count query to `post_type = 'post'` (both primary and fallback).
+
+2. **Timeline comments**
+   - Confirmed we use `timeline_comments` (not `timeline_replies`). Matches `announcements` page and API.
+
+3. **Views**
+   - `timeline_updates`, `forum_threads`, etc. have `views` per migration `0031_add_view_counts.sql`. We use `COALESCE(..., 0) AS views`.
+
+4. **Project replies**
+   - We use `project_replies` (projects page uses this as primary; `project_comments` is fallback). Feed uses `project_replies` only.
+
+### Files Modified
+- `src/app/feed/page.js` only.
+
+### Build & Lint
+- `npm run build` succeeds.
+- No linter errors on `src/app/feed/page.js`.
+
+### Summary
+- Feed cards now use **PostMetaBar** (views, replies, likes, created, last activity) and keep the **thinner `list-item`** style.
+- All activity fields are wired from the correct tables and `post_type` values; posts use `post_type = 'post'` for likes.
+
+---
+
+## Feed: 15 Items, Event Calendar + Attendees (2026-01-25)
+
+### Changes
+1. **Feed limit:** `.slice(0, 5)` → `.slice(0, 15)` so Latest shows up to 15 items.
+2. **Events SQL:** Added `attendee_count` and `attendee_names`:
+   - `(SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count`
+   - `(SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ... WHERE event_id = events.id) AS attendee_names`
+   - Both in primary and fallback event queries.
+3. **Event item mapping:** `startsAt`, `attendeeCount`, `attendeeNames` (split from `GROUP_CONCAT`).
+4. **`allUsernames`:** Now includes event `attendeeNames` so attendees get unique colors via `assignUniqueColorsForPage`.
+5. **Event UI (below PostMetaBar):**
+   - Inline calendar SVG (accent color), then "Starts {date} {time}".
+   - If upcoming: append `({formatRelativeEventDate})` e.g. "(In 12 days)".
+   - If `attendeeCount > 0`: "• X attending: UserA, UserB, ..." with `Username` components using page color map.
+
+### Imports
+- `formatEventDate`, `formatEventTime`, `isEventUpcoming`, `formatRelativeEventDate` from `../../lib/dates`.
+- `Username` from `../../components/Username`.
+
+### Files Modified
+- `src/app/feed/page.js` only.
+
+### Build / Lint
+- Build OK; no linter errors.

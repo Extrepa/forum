@@ -4,9 +4,10 @@ import Breadcrumbs from '../../components/Breadcrumbs';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
+import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate } from '../../lib/dates';
+import Username from '../../components/Username';
 
 export const dynamic = 'force-dynamic';
-
 
 async function safeAll(db, primarySql, primaryBinds, fallbackSql, fallbackBinds) {
   try {
@@ -96,7 +97,9 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id), 0) AS like_count,
-              COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at,
+              (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
+              (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
        FROM events
        JOIN users ON users.id = events.author_user_id
        WHERE events.moved_to_id IS NULL
@@ -109,7 +112,9 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id), 0) AS like_count,
-              COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at,
+              (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
+              (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
        FROM events
        JOIN users ON users.id = events.author_user_id
        ORDER BY events.created_at DESC
@@ -296,7 +301,9 @@ export default async function FeedPage() {
       replies: row.comment_count || 0,
       likes: row.like_count || 0,
       lastActivity: row.last_activity_at || row.created_at,
-      meta: row.starts_at ? `Starts ${new Date(row.starts_at).toLocaleString()}` : null
+      startsAt: row.starts_at,
+      attendeeCount: row.attendee_count || 0,
+      attendeeNames: row.attendee_names ? String(row.attendee_names).split(',') : []
     })),
     ...music.map((row) => ({
       type: 'Music',
@@ -350,10 +357,15 @@ export default async function FeedPage() {
   ]
     .filter((x) => !!x.createdAt)
     .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 5);
+    .slice(0, 15);
 
   // Build preferences map and assign unique colors
-  const allUsernames = items.map(i => i.author).filter(Boolean);
+  const allUsernames = items.flatMap(i => {
+    const names = [i.author];
+    if (i.attendeeNames) names.push(...i.attendeeNames);
+    return names;
+  }).filter(Boolean);
+  
   const preferredColors = new Map();
   items.forEach(item => {
     if (item.author && item.authorColorPreference !== null && item.authorColorPreference !== undefined) {
@@ -411,7 +423,47 @@ export default async function FeedPage() {
                     titleHref={item.href}
                     showTitleLink={false}
                   />
-                  {item.meta ? (
+                  {item.type === 'Event' ? (
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      <span style={{ color: 'var(--muted)' }}>
+                        Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
+                        {isEventUpcoming(item.startsAt) ? (
+                          <span className="muted" style={{ marginLeft: '4px' }}>
+                            ({formatRelativeEventDate(item.startsAt)})
+                          </span>
+                        ) : null}
+                      </span>
+                      {item.attendeeCount > 0 && (
+                        <span style={{ marginLeft: '8px', color: 'var(--muted)' }}>
+                          • {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
+                            <span key={name}>
+                              {i > 0 ? ', ' : ''}
+                              <Username 
+                                name={name}
+                                colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
+                              />
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                  ) : item.meta ? (
                     <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
                       {item.meta}
                     </span>
@@ -425,4 +477,3 @@ export default async function FeedPage() {
     </div>
   );
 }
-
