@@ -375,20 +375,6 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const colorOptions = [
-    { index: null, name: 'Auto (Default)', color: '#34E1FF' },
-    { index: 0, name: 'Cyan', color: '#34E1FF' },
-    { index: 1, name: 'Pink', color: '#FF34F5' },
-    { index: 2, name: 'Yellow', color: '#FFFF00' },
-    { index: 3, name: 'Green', color: '#00FF41' },
-    { index: 4, name: 'Orange', color: '#FF6B00' },
-    { index: 5, name: 'Purple', color: '#B026FF' },
-    { index: 6, name: 'Light Blue', color: '#00D9FF' },
-    { index: 7, name: 'Lime', color: '#CCFF00' },
-  ];
-
-  const selectedColorIndex = profileUser.preferred_username_color_index ?? null;
-  const selectedColor = colorOptions.find(opt => opt.index === selectedColorIndex) || colorOptions[0];
 
   return (
     <div className="stack">
@@ -426,39 +412,6 @@ export default async function ProfilePage({ params }) {
                   name={profileUser.username}
                   colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
                 />
-              </div>
-
-              {/* Color Display - only show selected color */}
-              <div>
-                <strong>Username color:</strong>{' '}
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  {(() => {
-                    const selectedOption = colorOptions.find(opt => opt.index === selectedColorIndex) || colorOptions[0];
-                    const size = 18;
-                    return (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: `${size}px`,
-                          height: `${size}px`,
-                          borderRadius: '50%',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: selectedOption.index === null
-                            ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                            : selectedOption.color,
-                          boxSizing: 'border-box',
-                        }}
-                        title={selectedOption.name}
-                      >
-                        {selectedOption.index === null && (
-                          <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1 }}>A</span>
-                        )}
-                      </span>
-                    );
-                  })()}
-                </span>
               </div>
 
               {/* Social Links Display */}
