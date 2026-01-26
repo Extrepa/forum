@@ -75,13 +75,19 @@ export default function HomeStats({ stats, recentPosts = [] }) {
           style={{
             padding: '16px',
             border: '1px solid rgba(52, 225, 255, 0.2)',
-            background: 'rgba(4, 16, 23, 0.6)'
+            background: 'rgba(4, 16, 23, 0.6)',
+            position: 'relative'
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
-            Recent Activity
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600' }}>
+              Recent Activity
+            </div>
+            <div className="muted" style={{ fontSize: '11px' }}>
+              Last 24 hours
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div style={{ flex: '1' }}>
               <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.recentPostsCount || 0}
@@ -103,9 +109,6 @@ export default function HomeStats({ stats, recentPosts = [] }) {
                 Replies
               </div>
             </div>
-          </div>
-          <div className="muted" style={{ fontSize: '11px', marginBottom: '8px' }}>
-            Last 24 hours
           </div>
           {recentPosts && recentPosts.length > 0 && (
             <div style={{ 

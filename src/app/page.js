@@ -1103,10 +1103,52 @@ export default async function HomePage({ searchParams }) {
              WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
                AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
                AND dev_log_comments.created_at > ?
+             UNION ALL
+             SELECT 'timeline_post' as activity_type, timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'announcements' as section
+             FROM timeline_updates
+             WHERE timeline_updates.created_at > ?
+             UNION ALL
+             SELECT 'timeline_comment' as activity_type, timeline_comments.id, NULL as title, timeline_comments.created_at, timeline_comments.author_user_id, timeline_updates.id as parent_id, timeline_updates.title as parent_title, timeline_users.username as parent_author, 'announcements' as section
+             FROM timeline_comments
+             JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+             JOIN users AS timeline_users ON timeline_users.id = timeline_updates.author_user_id
+             WHERE (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)
+               AND timeline_comments.created_at > ?
+             UNION ALL
+             SELECT 'post_post' as activity_type, posts.id, posts.title, posts.created_at, posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 
+                    CASE 
+                      WHEN posts.type = 'art' THEN 'art'
+                      WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                      WHEN posts.type = 'bugs' THEN 'bugs'
+                      WHEN posts.type = 'rant' THEN 'rant'
+                      WHEN posts.type = 'lore' THEN 'lore'
+                      WHEN posts.type = 'memories' THEN 'memories'
+                      ELSE 'posts'
+                    END as section
+             FROM posts
+             WHERE (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+               AND posts.created_at > ?
+             UNION ALL
+             SELECT 'post_comment' as activity_type, post_comments.id, NULL as title, post_comments.created_at, post_comments.author_user_id, posts.id as parent_id, posts.title as parent_title, post_users.username as parent_author,
+                    CASE 
+                      WHEN posts.type = 'art' THEN 'art'
+                      WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                      WHEN posts.type = 'bugs' THEN 'bugs'
+                      WHEN posts.type = 'rant' THEN 'rant'
+                      WHEN posts.type = 'lore' THEN 'lore'
+                      WHEN posts.type = 'memories' THEN 'memories'
+                      ELSE 'posts'
+                    END as section
+             FROM post_comments
+             JOIN posts ON posts.id = post_comments.post_id
+             JOIN users AS post_users ON post_users.id = posts.author_user_id
+             WHERE (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+               AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+               AND post_comments.created_at > ?
              ORDER BY created_at DESC
              LIMIT 15`
           )
-          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
           .all();
 
         if (recentActivityResult?.results) {
