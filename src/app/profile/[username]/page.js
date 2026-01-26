@@ -395,12 +395,11 @@ export default async function ProfilePage({ params }) {
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
       <section className="card">
-        <h2 className="section-title" style={{ marginBottom: '16px' }}>Profile</h2>
-        
         {/* Two Column Layout */}
         <div className="account-columns" style={{ marginBottom: '24px' }}>
           {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
+            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px' }}>Profile</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Username Row - same line */}
               <div>
@@ -464,7 +463,7 @@ export default async function ProfilePage({ params }) {
 
           {/* Right Column: Stats */}
           <div className="account-col">
-            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '16px', textAlign: 'right' }}>Stats</h2>
+            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px', textAlign: 'right' }}>Stats</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               {(() => {
                 // RPG-style rarity color function
