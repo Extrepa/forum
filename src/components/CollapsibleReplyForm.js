@@ -10,7 +10,8 @@ export default function CollapsibleReplyForm({
   hiddenFields = {},
   replyingTo = null,
   replyPrefill = '',
-  onCancel
+  onCancel,
+  allowImageUpload = false
 }) {
   const [showForm, setShowForm] = useState(false);
   const [currentReplyingTo, setCurrentReplyingTo] = useState(replyingTo);
@@ -83,7 +84,7 @@ export default function CollapsibleReplyForm({
   };
   
   return (
-    <form action={action} method="post">
+    <form action={action} method="post" encType={allowImageUpload ? "multipart/form-data" : undefined}>
       {Object.entries(hiddenFields).map(([name, value]) => {
         // Use ref for reply_to_id so we can update it dynamically
         if (name === 'reply_to_id') {
@@ -113,6 +114,12 @@ export default function CollapsibleReplyForm({
           defaultValue={currentPrefill}
         />
       </label>
+      {allowImageUpload && (
+        <label>
+          <div className="muted" style={{ marginTop: '12px', marginBottom: '8px' }}>Image (optional)</div>
+          <input name="image" type="file" accept="image/*" />
+        </label>
+      )}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <button type="submit">{buttonLabel}</button>
         <button type="button" onClick={handleCancel}>

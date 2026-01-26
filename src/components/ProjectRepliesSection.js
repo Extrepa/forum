@@ -92,6 +92,15 @@ export default function ProjectRepliesSection({
             isAdmin={!!isAdmin}
           />
           <div className="post-body" dangerouslySetInnerHTML={{ __html: r.body_html || r.body }} />
+          {r.image_key && (
+            <div style={{ marginTop: '12px' }}>
+              <img
+                src={`/api/media/${r.image_key}`}
+                alt="Reply attachment"
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }}
+              />
+            </div>
+          )}
           <div
             className="list-meta"
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px', fontSize: '12px' }}
@@ -158,6 +167,7 @@ export default function ProjectRepliesSection({
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}
               replyPrefill={replyPrefill}
+              allowImageUpload={true}
             />
           </div>
         ) : (

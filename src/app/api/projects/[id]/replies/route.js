@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
+import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../../lib/uploads';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -19,6 +21,30 @@ export async function POST(request, { params }) {
   if (!body) {
     redirectUrl.searchParams.set('error', 'missing');
     return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  // Handle image upload
+  const formImage = formData.get('image');
+  const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
+
+  if (!validation.ok) {
+    redirectUrl.searchParams.set('error', validation.reason);
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  let imageKey = null;
+  if (imageFile && imageFile.size > 0) {
+    const { env } = await getCloudflareContext({ async: true });
+    if (!canUploadImages(user, env)) {
+      redirectUrl.searchParams.set('error', 'upload');
+      return NextResponse.redirect(redirectUrl, 303);
+    }
+    const bucket = await getUploadsBucket();
+    imageKey = buildImageKey('projects', imageFile.name || 'image');
+    await bucket.put(imageKey, await imageFile.arrayBuffer(), {
+      httpMetadata: { contentType: imageFile.type }
+    });
   }
 
   const db = await getDb();
@@ -65,13 +91,25 @@ export async function POST(request, { params }) {
   // Safe: API routes are server-only, Date.now() does not cause hydration mismatches
   const now = Date.now();
   try {
-    await db
-      .prepare(
-        `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      )
-      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
-      .run();
+    // Try with image_key first (if migration is applied)
+    try {
+      await db
+        .prepare(
+          `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id, image_key)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo, imageKey)
+        .run();
+    } catch (e) {
+      // Fallback if image_key column doesn't exist yet
+      await db
+        .prepare(
+          `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        )
+        .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
+        .run();
+    }
   } catch (e) {
     // Migration not applied yet.
     redirectUrl.searchParams.set('error', 'notready');

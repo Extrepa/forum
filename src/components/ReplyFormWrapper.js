@@ -9,7 +9,8 @@ export default function ReplyFormWrapper({
   labelText = 'What would you like to say?',
   hiddenFields = {},
   replyingTo = null,
-  replyPrefill = ''
+  replyPrefill = '',
+  allowImageUpload = false
 }) {
   return (
     <CollapsibleReplyForm
@@ -20,6 +21,7 @@ export default function ReplyFormWrapper({
       hiddenFields={hiddenFields}
       replyingTo={replyingTo}
       replyPrefill={replyPrefill}
+      allowImageUpload={allowImageUpload}
     />
   );
 }

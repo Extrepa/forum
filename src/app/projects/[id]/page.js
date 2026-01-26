@@ -156,7 +156,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     const out = await db
       .prepare(
         `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
-                project_replies.author_user_id,
+                project_replies.author_user_id, project_replies.image_key,
                 COALESCE(users.username, 'Deleted User') AS author_name,
                 users.preferred_username_color_index AS author_color_preference
          FROM project_replies
@@ -174,7 +174,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       const out = await db
         .prepare(
           `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
-                  project_replies.author_user_id,
+                  project_replies.author_user_id, project_replies.image_key,
                   COALESCE(users.username, 'Deleted User') AS author_name,
                   users.preferred_username_color_index AS author_color_preference
            FROM project_replies
@@ -192,7 +192,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         const out = await db
           .prepare(
             `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
-                    project_replies.author_user_id
+                    project_replies.author_user_id, project_replies.image_key
              FROM project_replies
              WHERE project_replies.project_id = ?
              ORDER BY project_replies.created_at ASC`
@@ -314,7 +314,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             created_at: r.created_at ? Number(r.created_at) : 0,
             reply_to_id: r.reply_to_id ? String(r.reply_to_id) : null,
             author_user_id: String(r.author_user_id || ''),
-            author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null
+            author_color_preference: r.author_color_preference !== null && r.author_color_preference !== undefined ? Number(r.author_color_preference) : null,
+            image_key: r.image_key ? String(r.image_key) : null
           };
         })
     : [];
