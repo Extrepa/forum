@@ -1894,8 +1894,8 @@ footer {
 }
 
 .scroll-to-top-face {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   filter: drop-shadow(0 0 8px rgba(52, 225, 255, 0.6));
   transition: filter 0.3s ease;
   position: relative;
@@ -1935,7 +1935,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-25px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-21px);
   white-space: nowrap;
 }
 
@@ -1957,14 +1957,14 @@ footer {
   }
 
   .scroll-to-top-face {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
   }
 
   .scroll-to-top-letter {
     font-size: 7px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-21px);
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-18px);
   }
 }
 
