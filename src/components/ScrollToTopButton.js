@@ -46,9 +46,9 @@ export default function ScrollToTopButton() {
       wordIndex,
       isSpace: false
     }));
-    // Add equal spacing after each word (3 spaces for visual separation)
+    // Add equal spacing after each word (2 spaces for visual separation)
     // This ensures even spacing between RETURN-TO, TO-TOP, and TOP-RETURN (wrap-around)
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       wordLetters.push({
         letter: ' ',
         letterIndex: letterIndex++,

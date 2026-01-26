@@ -1896,7 +1896,9 @@ footer {
 .scroll-to-top-face {
   width: 30px;
   height: 30px;
-  filter: drop-shadow(0 0 8px rgba(52, 225, 255, 0.6));
+  filter:
+    drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
+    drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
   transition: filter 0.3s ease;
   position: relative;
   z-index: 2;
