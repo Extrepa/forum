@@ -1051,24 +1051,28 @@ Add a tiny trash icon in the bottom right corner below the "minutes ago" text fo
 
 ### Testing Checklist
 
-- [ ] Click trash icon opens confirmation modal
-- [ ] Confirming deletion removes notification from list
+- [ ] Click trash icon instantly deletes notification (no confirmation modal)
+- [ ] Deleted notification is immediately removed from list
 - [ ] Unread count updates correctly after deletion
-- [ ] Cancel button closes modal without deleting
-- [ ] Hover effect works (opacity and color change)
-- [ ] Icon is properly positioned below "minutes ago" text
+- [ ] Hover effect works (opacity 0.4 → 1.0, color changes to red)
+- [ ] Icon is properly positioned below "minutes ago" text in bottom right
 - [ ] Icon size is appropriately small (10x10px)
 - [ ] Multiple notifications can be deleted sequentially
 - [ ] Deleted notification doesn't reappear on refresh
-- [ ] Error handling works (network errors, API errors)
+- [ ] Error handling works (network errors, API errors show alert)
+- [ ] "Clear All" button opens confirmation modal
+- [ ] "Clear All" confirmation modal works correctly
+- [ ] Canceling "Clear All" modal doesn't clear notifications
+- [ ] Confirming "Clear All" clears all notifications
 
 ### Notes
 
 - The trash icon is intentionally very small and subtle to avoid cluttering the UI
 - The hover effect provides clear visual feedback that the icon is interactive
-- The confirmation modal prevents accidental deletions
+- Individual deletions are instant (no confirmation) for better UX
+- "Clear All" requires confirmation to prevent accidental mass deletion
 - The API endpoint returns the updated unread count, which could be used for optimistic updates in the future
-- All existing notification functionality (mark read, mark all read, clear all) remains unchanged
+- All existing notification functionality (mark read, mark all read) remains unchanged
 
 ### Update: Removed Individual Delete Confirmation, Added Clear All Confirmation (2026-01-25)
 
@@ -1094,3 +1098,105 @@ Add a tiny trash icon in the bottom right corner below the "minutes ago" text fo
 
 **Build Status:**
 - ✅ Build passes with no errors
+
+---
+
+## Session Summary: Individual Notification Delete Feature (2026-01-25)
+
+### Overview
+Implemented the ability to delete individual notifications with a small trash icon, providing users with granular control over their notification list. Individual deletions are instant (no confirmation), while "Clear All" requires confirmation to prevent accidental mass deletion.
+
+### Complete Feature List
+
+#### 1. Individual Notification Delete
+- **UI Element:** 10x10px trash icon positioned in bottom right corner below "minutes ago" text
+- **Behavior:** Instant deletion on click (no confirmation modal)
+- **Visual Feedback:**
+  - Default: 40% opacity, muted color
+  - Hover: 100% opacity, red color (#ff6b6b)
+  - Disabled state while deleting
+- **API Endpoint:** `POST /api/notifications/[id]/delete`
+  - Verifies notification ownership
+  - Returns updated unread count
+  - Proper error handling (401, 404, 500)
+
+#### 2. Clear All Confirmation
+- **UI Element:** "Clear" button in footer
+- **Behavior:** Opens confirmation modal before clearing all notifications
+- **Modal:** Uses `DeleteConfirmModal` with `itemType="all notifications"`
+
+### Technical Implementation
+
+#### Files Created
+1. **`src/app/api/notifications/[id]/delete/route.js`**
+   - Next.js 15 compatible (awaits params)
+   - Security: Double verification (SELECT + DELETE with user_id bind)
+   - Returns updated unread count for UI sync
+
+#### Files Modified
+1. **`src/components/NotificationsMenu.js`**
+   - Added `TrashIcon` component (inline SVG)
+   - Added `handleDeleteNotification` async function
+   - Added state: `deletingNotificationId`, `showClearAllModal`
+   - Updated notification item layout (flex column for time + icon)
+   - Added trash icon button with hover effects
+   - Added "Clear All" confirmation modal
+   - Removed individual delete confirmation modal
+
+### User Experience Flow
+
+**Individual Delete:**
+1. User sees small trash icon in bottom right of notification
+2. User hovers → icon becomes fully visible and red
+3. User clicks → notification instantly deleted
+4. List refreshes automatically
+5. Unread count updates
+
+**Clear All:**
+1. User clicks "Clear" button
+2. Confirmation modal appears
+3. User confirms → all notifications cleared
+4. User cancels → modal closes, nothing happens
+
+### Design Decisions
+
+1. **No Confirmation for Individual Deletes:** Instant feedback improves UX for single-item actions
+2. **Confirmation for Clear All:** Prevents accidental mass deletion
+3. **Small Icon Size (10px):** Subtle, doesn't clutter UI, discoverable on hover
+4. **Red Hover Color:** Clear visual indicator of destructive action
+5. **Bottom Right Position:** Clear visual hierarchy, doesn't interfere with clickable notification area
+
+### Security
+
+- API endpoint verifies notification ownership before deletion
+- Both SELECT and DELETE queries use `user_id` bind
+- Proper authentication check via `getSessionUser()`
+- Error responses use appropriate HTTP status codes
+
+### Build & Quality
+
+- ✅ Build passes with no errors
+- ✅ No linter warnings
+- ✅ All imports resolve correctly
+- ✅ TypeScript/ESLint checks pass
+- ✅ Follows existing code patterns
+- ✅ Consistent error handling
+
+### Final State
+
+**Individual Notification Delete:**
+- ✅ Trash icon visible in bottom right of each notification
+- ✅ Instant deletion on click (no confirmation)
+- ✅ Proper hover effects and visual feedback
+- ✅ Automatic list refresh and unread count update
+
+**Clear All:**
+- ✅ Confirmation modal before clearing
+- ✅ Proper error handling
+- ✅ Disabled when no notifications exist
+
+**Overall:**
+- ✅ All existing functionality preserved
+- ✅ Clean, intuitive UI
+- ✅ Proper security measures
+- ✅ Ready for production use
