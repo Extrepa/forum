@@ -377,10 +377,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h2 className="section-title" style={{ borderBottom: 'none', margin: 0 }}>Profile</h2>
-            <h2 className="section-title" style={{ borderBottom: 'none', margin: 0 }}>Stats</h2>
-          </div>
+          <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '16px' }}>Profile</h2>
           
           {/* Two Column Layout */}
           <div className="account-columns" style={{ marginBottom: '24px' }}>
@@ -772,6 +769,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {/* Right Column: Stats */}
             <div className="account-col">
+              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '16px', textAlign: 'right' }}>Stats</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                 {(() => {
                   // RPG-style rarity color function
