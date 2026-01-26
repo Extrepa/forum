@@ -936,31 +936,27 @@ export default async function HomePage({ searchParams }) {
         (sectionData.bugsRant?.count || 0) +
         (sectionData.devlog?.count || 0);
 
-      // Active users (users who posted in last 30 days)
+      // Total users (all users who have signed up)
+      let totalUsersResult = null;
+      try {
+        totalUsersResult = await db
+          .prepare('SELECT COUNT(*) as count FROM users')
+          .first();
+      } catch (e) {
+        // Table might not exist yet
+      }
+
+      // Currently active users (users with valid session tokens)
       let activeUsersResult = null;
       try {
         activeUsersResult = await db
-          .prepare(
-            `SELECT COUNT(DISTINCT author_user_id) as count
-             FROM (
-               SELECT author_user_id FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION
-               SELECT author_user_id FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION
-               SELECT author_user_id FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION
-               SELECT author_user_id FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION
-               SELECT author_user_id FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-             )`
-          )
-          .bind(Date.now() - 30 * 24 * 60 * 60 * 1000, Date.now() - 30 * 24 * 60 * 60 * 1000, Date.now() - 30 * 24 * 60 * 60 * 1000, Date.now() - 30 * 24 * 60 * 60 * 1000, Date.now() - 30 * 24 * 60 * 60 * 1000)
+          .prepare('SELECT COUNT(DISTINCT session_token) as count FROM users WHERE session_token IS NOT NULL AND session_token != ""')
           .first();
       } catch (e) {
-        // Tables might not exist yet
+        // Table might not exist yet
       }
       
-      // Recent activity (last 24 hours)
+      // Recent activity count (last 24 hours)
       let recentActivityResult = null;
       try {
         recentActivityResult = await db
@@ -986,17 +982,20 @@ export default async function HomePage({ searchParams }) {
 
       stats = {
         totalPosts,
+        totalUsers: totalUsersResult?.count || 0,
         activeUsers: activeUsersResult?.count || 0,
         recentActivity: recentActivityResult?.count || 0
       };
 
-      // Get recent activity from all sections (posts AND replies/comments)
+      // Get recent activity from all sections (posts AND replies/comments) - last 24 hours only
+      const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
       try {
         const recentActivityResult = await db
           .prepare(
             `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
              FROM forum_threads
              WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+               AND forum_threads.created_at > ?
              UNION ALL
              SELECT 'forum_reply' as activity_type, forum_replies.id, NULL as title, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id as parent_id, forum_threads.title as parent_title, thread_users.username as parent_author, 'forum' as section
              FROM forum_replies
@@ -1004,10 +1003,12 @@ export default async function HomePage({ searchParams }) {
              JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
              WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
                AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+               AND forum_replies.created_at > ?
              UNION ALL
              SELECT 'event_post' as activity_type, events.id, events.title, events.created_at, events.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'event' as section
              FROM events
              WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
+               AND events.created_at > ?
              UNION ALL
              SELECT 'event_comment' as activity_type, event_comments.id, NULL as title, event_comments.created_at, event_comments.author_user_id, events.id as parent_id, events.title as parent_title, event_users.username as parent_author, 'event' as section
              FROM event_comments
@@ -1015,10 +1016,12 @@ export default async function HomePage({ searchParams }) {
              JOIN users AS event_users ON event_users.id = events.author_user_id
              WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
                AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+               AND event_comments.created_at > ?
              UNION ALL
              SELECT 'music_post' as activity_type, music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'music' as section
              FROM music_posts
              WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+               AND music_posts.created_at > ?
              UNION ALL
              SELECT 'music_comment' as activity_type, music_comments.id, NULL as title, music_comments.created_at, music_comments.author_user_id, music_posts.id as parent_id, music_posts.title as parent_title, music_users.username as parent_author, 'music' as section
              FROM music_comments
@@ -1026,10 +1029,12 @@ export default async function HomePage({ searchParams }) {
              JOIN users AS music_users ON music_users.id = music_posts.author_user_id
              WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
                AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+               AND music_comments.created_at > ?
              UNION ALL
              SELECT 'project_post' as activity_type, projects.id, projects.title, projects.created_at, projects.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'project' as section
              FROM projects
              WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+               AND projects.created_at > ?
              UNION ALL
              SELECT 'project_reply' as activity_type, project_replies.id, NULL as title, project_replies.created_at, project_replies.author_user_id, projects.id as parent_id, projects.title as parent_title, project_users.username as parent_author, 'project' as section
              FROM project_replies
@@ -1037,10 +1042,12 @@ export default async function HomePage({ searchParams }) {
              JOIN users AS project_users ON project_users.id = projects.author_user_id
              WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
                AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+               AND project_replies.created_at > ?
              UNION ALL
              SELECT 'devlog_post' as activity_type, dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'devlog' as section
              FROM dev_logs
              WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+               AND dev_logs.created_at > ?
              UNION ALL
              SELECT 'devlog_comment' as activity_type, dev_log_comments.id, NULL as title, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id as parent_id, dev_logs.title as parent_title, devlog_users.username as parent_author, 'devlog' as section
              FROM dev_log_comments
@@ -1048,9 +1055,11 @@ export default async function HomePage({ searchParams }) {
              JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id
              WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
                AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+               AND dev_log_comments.created_at > ?
              ORDER BY created_at DESC
              LIMIT 15`
           )
+          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
           .all();
 
         if (recentActivityResult?.results) {
@@ -1089,6 +1098,7 @@ export default async function HomePage({ searchParams }) {
       // Fallback if queries fail
       stats = {
         totalPosts: 0,
+        totalUsers: 0,
         activeUsers: 0,
         recentActivity: 0
       };
@@ -1263,7 +1273,7 @@ export default async function HomePage({ searchParams }) {
       {hasUsername && (
         <>
           <HomeWelcome user={user} />
-          <HomeStats stats={stats} />
+          <HomeStats stats={stats} recentPosts={recentPosts} />
           <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} preferredColors={preferredColors} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>

@@ -1586,3 +1586,92 @@ The home page now displays a different Errl-themed greeting message for each hou
 
 **Documentation:**
 - Created `05-Logs/Development/2026-01-25-scroll-view-tracking.md` with full implementation details
+
+---
+
+## Additional Improvements (2026-01-25 - Continued)
+
+### Scroll-to-Bottom View Tracking Extended
+
+**Added to Lore and Memories:**
+- ✅ `src/app/lore/LoreClient.js` - Added scroll tracking for latest Lore post
+- ✅ `src/app/memories/MemoriesClient.js` - Added scroll tracking for latest Memories post
+- Uses same logic as Development posts
+- Calls `/api/posts/[id]/view` endpoint
+- Only tracks latest post (index 0)
+- Requires scrolling before counting
+
+### Author View Count Protection
+
+**Problem:** Authors could inflate their own view counts.
+
+**Solution:** Added author checks to all 7 view API endpoints:
+- ✅ `src/app/api/devlog/[id]/view/route.js`
+- ✅ `src/app/api/posts/[id]/view/route.js`
+- ✅ `src/app/api/music/[id]/view/route.js`
+- ✅ `src/app/api/events/[id]/view/route.js`
+- ✅ `src/app/api/projects/[id]/view/route.js`
+- ✅ `src/app/api/timeline/[id]/view/route.js`
+- ✅ `src/app/api/forum/[id]/view/route.js`
+
+**Implementation:**
+- Gets current user via `getSessionUser()`
+- Queries post to get `author_user_id`
+- Compares with `user.id`
+- Returns early if author (skips increment)
+- Otherwise increments normally
+
+### Username Color Fixes
+
+**Music Detail Page:**
+- ✅ Fixed fallback queries missing `author_color_preference`
+- Added to first fallback query (line 83)
+- Added to second fallback query (line 109)
+- Now all query paths include color preference
+
+**Devlog Detail Page:**
+- ✅ Fixed final fallback query missing `author_color_preference` (line 131)
+
+### Music Post UI Improvements
+
+**Rating Section:**
+- ✅ Moved to separate card between post and comments
+- ✅ Horizontal layout: "Rate this" title + dropdown + submit button in one row
+- ✅ Compact submit button (60px max width, text wraps)
+- ✅ Added funny rating labels:
+  - 1 - I didn't have time to listen
+  - 2 - I'm not really my style
+  - 3 - I vibe with it
+  - 4 - I love it
+  - 5 - This is my new personality
+
+**Comments Section:**
+- ✅ Moved to separate card below rating
+- ✅ Full width for better readability
+- ✅ Expandable comment form (already implemented)
+
+### View Count System Documentation
+
+**Created:** `docs/VIEW-COUNT-SYSTEM.md`
+- Comprehensive documentation of view count system
+- Explains per-post tracking
+- Documents all API endpoints
+- Describes scroll tracking vs detail page tracking
+- Notes about author protection
+
+### View Count Resets
+
+**Applied Migrations:**
+- ✅ `0037_reset_all_view_counts.sql` - First reset (local + remote)
+- ✅ `0038_reset_all_view_counts_again.sql` - Second reset (local + remote)
+
+**Files Modified:**
+- `src/app/lore/LoreClient.js` - Added scroll tracking
+- `src/app/memories/MemoriesClient.js` - Added scroll tracking
+- `src/app/music/[id]/page.js` - Fixed username colors, improved UI
+- `src/app/devlog/[id]/page.js` - Fixed username colors
+- All 7 view API endpoints - Added author checks + Next.js 15 fixes
+- `docs/VIEW-COUNT-SYSTEM.md` - New documentation
+
+**Full Documentation:**
+- Created `05-Logs/Daily/2026-01-25-view-tracking-and-ui-improvements.md` with comprehensive session notes
