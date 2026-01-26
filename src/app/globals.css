@@ -1798,10 +1798,9 @@ footer {
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  border: 2px solid rgba(52, 225, 255, 0.4);
+  border: none;
   background: rgba(2, 7, 10, 0.85);
   backdrop-filter: blur(8px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(52, 225, 255, 0.3);
   cursor: pointer;
   display: none;
   align-items: center;
@@ -1814,6 +1813,47 @@ footer {
   pointer-events: none;
 }
 
+/* Rainbow snaking border effect */
+.scroll-to-top-button::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    rgba(52, 225, 255, 0.9),
+    rgba(255, 52, 245, 0.9),
+    rgba(245, 255, 183, 0.9),
+    rgba(0, 245, 160, 0.9),
+    rgba(52, 225, 255, 0.9)
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: neonChase 5.5s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glow effect */
+.scroll-to-top-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 0 24px rgba(52, 225, 255, 0.18),
+    0 0 32px rgba(255, 52, 245, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .scroll-to-top-content {
   position: relative;
   width: 100%;
@@ -1821,6 +1861,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .scroll-to-top-button.scroll-to-top-visible {
@@ -1831,10 +1872,21 @@ footer {
 }
 
 .scroll-to-top-button:hover {
-  border-color: rgba(52, 225, 255, 0.8);
   background: rgba(13, 51, 68, 0.9);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(52, 225, 255, 0.5);
   transform: translateY(-2px) scale(1.05);
+}
+
+.scroll-to-top-button:hover::before {
+  opacity: 1;
+}
+
+.scroll-to-top-button:hover::after {
+  box-shadow:
+    0 0 32px rgba(52, 225, 255, 0.35),
+    0 0 40px rgba(255, 52, 245, 0.25),
+    0 0 48px rgba(245, 255, 183, 0.18),
+    0 6px 24px rgba(0, 0, 0, 0.5);
+  opacity: 1;
 }
 
 .scroll-to-top-button:active {
@@ -1870,6 +1922,7 @@ footer {
   top: 0;
   left: 0;
   animation: rotate-text 8s linear infinite;
+  z-index: 1;
 }
 
 .scroll-to-top-letter {
@@ -1882,7 +1935,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-24px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-30px);
   white-space: nowrap;
 }
 
@@ -1911,7 +1964,7 @@ footer {
   .scroll-to-top-letter {
     font-size: 7px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-20px);
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-24px);
   }
 }
 

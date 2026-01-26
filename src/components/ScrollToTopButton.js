@@ -37,6 +37,7 @@ export default function ScrollToTopButton() {
   ];
   
   // Flatten words into letters with word indices
+  // Add equal spacing between all words (including wrap-around)
   let letterIndex = 0;
   const lettersWithWordInfo = words.flatMap((word, wordIndex) => {
     const wordLetters = word.split('').map((letter, letterInWord) => ({
@@ -45,8 +46,9 @@ export default function ScrollToTopButton() {
       wordIndex,
       isSpace: false
     }));
-    // Add space after each word except the last
-    if (wordIndex < words.length - 1) {
+    // Add equal spacing after each word (3 spaces for visual separation)
+    // This ensures even spacing between RETURN-TO, TO-TOP, and TOP-RETURN (wrap-around)
+    for (let i = 0; i < 3; i++) {
       wordLetters.push({
         letter: ' ',
         letterIndex: letterIndex++,
@@ -139,7 +141,7 @@ export default function ScrollToTopButton() {
               '--is-space': isSpace ? 1 : 0
             }}
           >
-            {isSpace ? '\u00A0\u00A0' : letter}
+            {isSpace ? '\u00A0' : letter}
           </span>
         ))}
       </div>
