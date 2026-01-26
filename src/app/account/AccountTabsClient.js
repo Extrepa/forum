@@ -399,6 +399,55 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   </div>
 
+                  {/* Social Links Display - only show when NOT editing */}
+                  {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                      {stats.profileLinks.map((link) => {
+                        if (typeof link !== 'object' || !link.platform || !link.url) return null;
+                        const platformData = socialPlatforms.find(p => p.value === link.platform);
+                        if (!platformData) return null;
+                        return (
+                          <a
+                            key={link.platform}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              border: '1px solid rgba(52, 225, 255, 0.3)',
+                              background: 'rgba(52, 225, 255, 0.05)',
+                              color: 'var(--accent)',
+                              textDecoration: 'none',
+                              fontSize: '14px',
+                              transition: 'all 0.2s ease',
+                              cursor: 'pointer'
+                            }}
+                            title={platformData.label}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
+                              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.6)';
+                              e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.4)';
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(52, 225, 255, 0.05)';
+                              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
+                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                          >
+                            {platformData.icon}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {/* Edit Button - positioned between username and colors */}
                   {!isEditingUsername && (
                     <button
