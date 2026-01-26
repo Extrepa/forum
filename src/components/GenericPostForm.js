@@ -17,6 +17,7 @@ function wrapSelection(textarea, before, after = '') {
 export default function GenericPostForm({
   action,
   type,
+  allowedTypes,
   titleLabel = 'Title',
   titlePlaceholder = 'Title',
   bodyLabel = 'Body',
@@ -31,19 +32,101 @@ export default function GenericPostForm({
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState(type || (allowedTypes && allowedTypes.length > 0 ? allowedTypes[0] : ''));
 
   const apply = (before, after) => {
     if (!bodyRef.current) return;
     wrapSelection(bodyRef.current, before, after);
   };
 
+  // Type label mapping for display
+  const typeLabels = {
+    'lore': 'Lore',
+    'memories': 'Memory',
+    'bugs': 'Bug',
+    'rant': 'Rant',
+    'art': 'Art',
+    'nostalgia': 'Nostalgia'
+  };
+
+  // Type-specific configurations for dynamic labels and placeholders
+  const typeConfigs = {
+    'lore': {
+      titlePlaceholder: 'The story, the legend...',
+      bodyLabel: 'Lore',
+      bodyPlaceholder: 'Write the lore... Share the story that followed us home.',
+      buttonLabel: 'Post Lore'
+    },
+    'memories': {
+      titlePlaceholder: 'A moment in time...',
+      bodyLabel: 'Memory',
+      bodyPlaceholder: 'Share the memory... What moment do you want to preserve?',
+      buttonLabel: 'Post Memory'
+    },
+    'bugs': {
+      titlePlaceholder: 'Short summary',
+      bodyLabel: 'Bug Details',
+      bodyPlaceholder: 'What happened? What did you expect? Steps to reproduce? Screenshots/links?',
+      buttonLabel: 'Report Bug'
+    },
+    'rant': {
+      titlePlaceholder: 'What\'s on your mind?',
+      bodyLabel: 'Rant',
+      bodyPlaceholder: 'Let it out... What\'s got you fired up?',
+      buttonLabel: 'Post Rant'
+    },
+    'art': {
+      titlePlaceholder: 'Untitled',
+      bodyLabel: 'Caption (optional)',
+      bodyPlaceholder: 'Add a caption (optional)',
+      buttonLabel: 'Post Art'
+    },
+    'nostalgia': {
+      titlePlaceholder: 'A blast from the past...',
+      bodyLabel: 'Caption (optional)',
+      bodyPlaceholder: 'What does this remind you of? Share the nostalgia...',
+      buttonLabel: 'Post Nostalgia'
+    }
+  };
+
+  // Get dynamic values based on selected type, fallback to props
+  const currentConfig = typeConfigs[selectedType] || {};
+  const dynamicTitlePlaceholder = allowedTypes && allowedTypes.length > 1 
+    ? (currentConfig.titlePlaceholder || titlePlaceholder)
+    : titlePlaceholder;
+  const dynamicBodyLabel = allowedTypes && allowedTypes.length > 1
+    ? (currentConfig.bodyLabel || bodyLabel)
+    : bodyLabel;
+  const dynamicBodyPlaceholder = allowedTypes && allowedTypes.length > 1
+    ? (currentConfig.bodyPlaceholder || bodyPlaceholder)
+    : bodyPlaceholder;
+  const dynamicButtonLabel = allowedTypes && allowedTypes.length > 1
+    ? (currentConfig.buttonLabel || buttonLabel)
+    : buttonLabel;
+
   return (
     <form action={action} method="post" encType="multipart/form-data">
-      <input type="hidden" name="type" value={type} />
+      {allowedTypes && allowedTypes.length > 1 ? (
+        <label>
+          <div className="muted">Post type</div>
+          <select 
+            name="type" 
+            value={selectedType} 
+            onChange={(e) => setSelectedType(e.target.value)}
+            required
+          >
+            {allowedTypes.map(t => (
+              <option key={t} value={t}>{typeLabels[t] || t}</option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <input type="hidden" name="type" value={type || selectedType} />
+      )}
 
       <label>
         <div className="muted">{titleLabel}</div>
-        <input name="title" placeholder={titlePlaceholder} required={titleRequired} />
+        <input name="title" placeholder={dynamicTitlePlaceholder} required={titleRequired} />
       </label>
 
       {showPrivateToggle ? (
@@ -61,7 +144,7 @@ export default function GenericPostForm({
       ) : null}
 
       <label className="text-field">
-        <div className="muted">{bodyLabel}</div>
+        <div className="muted">{dynamicBodyLabel}</div>
         <div className="formatting-toolbar">
           <button type="button" title="Bold" onClick={() => apply('**', '**')}>B</button>
           <button type="button" title="Italic" onClick={() => apply('*', '*')}>I</button>
@@ -94,13 +177,13 @@ export default function GenericPostForm({
         <textarea
           ref={bodyRef}
           name="body"
-          placeholder={bodyPlaceholder}
+          placeholder={dynamicBodyPlaceholder}
           required={bodyRequired}
           style={{ minHeight: 180 }}
         />
       </label>
 
-      <button type="submit">{buttonLabel}</button>
+      <button type="submit">{dynamicButtonLabel}</button>
     </form>
   );
 }

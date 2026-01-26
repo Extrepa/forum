@@ -106,7 +106,7 @@ export default async function LoreMemoriesPage({ searchParams }) {
           <NewPostModalButton label="New Post" title="New Lore or Memory Post" disabled={!canCreate} variant="wide">
             <GenericPostForm
               action="/api/posts"
-              type="lore"
+              allowedTypes={['lore', 'memories']}
               titleLabel="Title (optional)"
               titlePlaceholder="Optional title"
               bodyLabel="Lore or Memory"
@@ -115,8 +115,7 @@ export default async function LoreMemoriesPage({ searchParams }) {
               showImage={false}
               titleRequired={false}
               bodyRequired={true}
-              showPrivateToggle={true}
-              defaultPrivate={false}
+              showPrivateToggle={false}
             />
           </NewPostModalButton>
         }

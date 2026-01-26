@@ -78,7 +78,7 @@ export default async function ArtNostalgiaPage({ searchParams }) {
           <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
             <GenericPostForm
               action="/api/posts"
-              type="art"
+              allowedTypes={['art', 'nostalgia']}
               titleLabel="Title (optional)"
               titlePlaceholder="Untitled"
               bodyLabel="Caption (optional)"
@@ -88,6 +88,7 @@ export default async function ArtNostalgiaPage({ searchParams }) {
               requireImage={true}
               titleRequired={false}
               bodyRequired={false}
+              showPrivateToggle={false}
             />
           </NewPostModalButton>
         }

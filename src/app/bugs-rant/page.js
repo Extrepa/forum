@@ -77,7 +77,7 @@ export default async function BugsRantPage({ searchParams }) {
           <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
             <GenericPostForm
               action="/api/posts"
-              type="bugs"
+              allowedTypes={['bugs', 'rant']}
               titleLabel="Title (optional)"
               titlePlaceholder="Short summary"
               bodyLabel="Details"
@@ -87,6 +87,7 @@ export default async function BugsRantPage({ searchParams }) {
               requireImage={false}
               titleRequired={false}
               bodyRequired={true}
+              showPrivateToggle={false}
             />
           </NewPostModalButton>
         }
