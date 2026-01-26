@@ -30,6 +30,31 @@ export function formatDateTime(timestamp) {
 }
 
 /**
+ * Format a timestamp to a date-only string (no time)
+ */
+export function formatDate(timestamp) {
+  // Handle null, undefined, or falsy values
+  if (!timestamp) {
+    return 'Unknown';
+  }
+  
+  const date = new Date(timestamp);
+  
+  // Check if date is invalid
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
+  
+  // Format date only (no time)
+  return date.toLocaleDateString('en-US', {
+    month: 'numeric',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'America/Los_Angeles' // PST/PDT timezone
+  });
+}
+
+/**
  * Format a timestamp to a relative time string (e.g., "2 hours ago")
  */
 export function formatTimeAgo(timestamp) {

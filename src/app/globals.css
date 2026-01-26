@@ -743,8 +743,30 @@ main {
   
   /* Make edit button smaller on mobile */
   .username-edit-btn {
-    padding: 2px 6px !important;
-    font-size: 10px !important;
+    padding: 2px 4px !important;
+    font-size: 9px !important;
+    min-width: auto !important;
+    width: auto !important;
+  }
+  
+  /* Hide time on mobile, show date only */
+  .date-with-time-desktop {
+    display: none;
+  }
+  
+  .date-only-mobile {
+    display: inline;
+  }
+}
+
+/* Show full date with time on desktop */
+@media (min-width: 641px) {
+  .date-with-time-desktop {
+    display: inline;
+  }
+  
+  .date-only-mobile {
+    display: none;
   }
 }
 

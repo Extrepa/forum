@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
-import { formatDateTime } from '../../../lib/dates';
+import { formatDateTime, formatDate } from '../../../lib/dates';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
@@ -399,7 +399,7 @@ export default async function ProfilePage({ params }) {
         <div className="account-columns" style={{ marginBottom: '24px' }}>
           {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
-            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px' }}>Profile</h2>
+            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px' }}>Profile</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Username Row - same line */}
               <div>
@@ -463,7 +463,7 @@ export default async function ProfilePage({ params }) {
 
           {/* Right Column: Stats */}
           <div className="account-col">
-            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px', textAlign: 'right' }}>Stats</h2>
+            <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px', textAlign: 'right' }}>Stats</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               {(() => {
                 // RPG-style rarity color function
@@ -476,11 +476,14 @@ export default async function ProfilePage({ params }) {
                 };
 
                 return (
-                  <>
-                    <div>
-                      <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
-                      <span style={{ color: 'var(--accent)' }}>{formatDateTime(profileUser.created_at)}</span>
-                    </div>
+                    <>
+                      <div>
+                        <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
+                        <span style={{ color: 'var(--accent)' }}>
+                          <span className="date-only-mobile">{formatDate(profileUser.created_at)}</span>
+                          <span className="date-with-time-desktop">{formatDateTime(profileUser.created_at)}</span>
+                        </span>
+                      </div>
                     <div>
                       <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
                       <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>

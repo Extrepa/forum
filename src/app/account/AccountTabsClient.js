@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
-import { formatDateTime } from '../../lib/dates';
+import { formatDateTime, formatDate } from '../../lib/dates';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -381,7 +381,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-columns" style={{ marginBottom: '24px' }}>
             {/* Left Column: Username, Color, and Social Links */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px' }}>Profile</h2>
+              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px' }}>Profile</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
@@ -768,7 +768,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {/* Right Column: Stats */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '12px', textAlign: 'right' }}>Stats</h2>
+              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px', textAlign: 'right' }}>Stats</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                 {(() => {
                   // RPG-style rarity color function
@@ -784,7 +784,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <>
                       <div>
                         <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
-                        <span style={{ color: 'var(--accent)' }}>{formatDateTime(stats.joinDate)}</span>
+                        <span style={{ color: 'var(--accent)' }}>
+                          <span className="date-only-mobile">{formatDate(stats.joinDate)}</span>
+                          <span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
+                        </span>
                       </div>
                       <div>
                         <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
