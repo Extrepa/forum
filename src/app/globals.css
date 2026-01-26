@@ -1967,10 +1967,20 @@ footer {
 
 @keyframes rotate-text-counter {
   from {
-    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(calc(-1 * var(--text-radius, 19px))) rotate(0deg);
+    /* Position letter around circle */
+    /* Counter-rotate to make letter tangent to circle at its position */
+    /* This creates smooth transition: upright at top, tangent at sides, readable along outline */
+    transform: 
+      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
+      translateY(calc(-1 * var(--text-radius, 19px))) 
+      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 0deg));
   }
   to {
-    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(calc(-1 * var(--text-radius, 19px))) rotate(360deg);
+    /* As container rotates counterclockwise, maintain tangent orientation */
+    transform: 
+      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
+      translateY(calc(-1 * var(--text-radius, 19px))) 
+      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 360deg));
   }
 }
 
