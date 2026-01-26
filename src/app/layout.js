@@ -22,6 +22,9 @@ export default async function RootLayout({ children }) {
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
   const easterEgg = getEasterEgg({ useLore });
+  
+  // Split tagline into phrases for responsive wrapping
+  const taglinePhrases = strings.footer.tagline.split('. ').filter(p => p.length > 0);
 
   // Update user's last_seen timestamp to track active browsing
   // Fire and forget - don't await to avoid blocking page rendering
@@ -42,17 +45,53 @@ export default async function RootLayout({ children }) {
             <NotificationTutorial isSignedIn={isSignedIn} />
             <main>{children}</main>
             <footer>
-              <div className="footer-line">
-                <a className="footer-brand" href="https://errl.wtf">
-                  Errl Portal / Errl Forum
-                </a>
-                <span className="footer-sep">•</span>
-                <span>Created by Extrepa</span>
-                <span className="footer-sep">•</span>
-                <span>Errl since 2015</span>
+              <div className="footer-grid">
+                {/* Left: Portal link */}
+                <div className="footer-column footer-column-left">
+                  <a className="footer-portal-link" href="https://errl.wtf">
+                    <span aria-hidden="true">↩</span>
+                    <span>Return to the Errl Portal</span>
+                  </a>
+                </div>
+
+                {/* Center: Signature */}
+                <div className="footer-column footer-column-center">
+                  <div className="footer-signature">
+                    Forum crafted by <span className="footer-signature-name">Chriss (Extrepa)</span>
+                  </div>
+                  <div className="footer-date">
+                    Forum opened: <time dateTime="2026-01-01">January 2026</time>
+                  </div>
+                </div>
+
+                {/* Right: Trademark */}
+                <div className="footer-column footer-column-right">
+                  <div className="footer-trademark">
+                    <span className="footer-trademark-name">Errl</span>
+                    <span className="footer-trademark-expansion">
+                      (Effervescent Remnant of Radical Luminosity/Liminality)
+                    </span>
+                  </div>
+                  <div className="footer-copyright">
+                    © <time dateTime="2015-05-01">2015</time> • ™ All rights reserved.
+                  </div>
+                </div>
               </div>
-              <div className="footer-tagline" title={easterEgg || undefined}>
-                {strings.footer.tagline}
+
+              {/* Tagline bar */}
+              <div className="footer-tagline-bar" title={easterEgg || undefined}>
+                <p className="footer-tagline">
+                  {taglinePhrases.map((phrase, index) => (
+                    <span key={index}>
+                      <span className="footer-tagline-phrase">
+                        {phrase}{phrase.endsWith('.') ? '' : '.'}
+                      </span>
+                      {index < taglinePhrases.length - 1 && (
+                        <span className="footer-tagline-separator">•</span>
+                      )}
+                    </span>
+                  ))}
+                </p>
               </div>
             </footer>
           </div>
