@@ -975,51 +975,103 @@ export default async function HomePage({ searchParams }) {
       let recentRepliesCount = 0;
       try {
         // Count posts (new threads, events, music posts, projects, dev logs, timeline updates, posts table entries)
-        const postsResult = await db
-          .prepare(
-            `SELECT COUNT(*) as count
-             FROM (
-               SELECT created_at FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM timeline_updates WHERE created_at > ?
-               UNION ALL
-               SELECT created_at FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-             )`
-          )
-          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
-          .first();
+        let postsResult = null;
+        try {
+          postsResult = await db
+            .prepare(
+              `SELECT COUNT(*) as count
+               FROM (
+                 SELECT created_at FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM timeline_updates WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               )`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .first();
+        } catch (e) {
+          // Fallback: try without is_deleted checks
+          postsResult = await db
+            .prepare(
+              `SELECT COUNT(*) as count
+               FROM (
+                 SELECT created_at FROM forum_threads WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM events WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM music_posts WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM projects WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM dev_logs WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM timeline_updates WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM posts WHERE created_at > ?
+               )`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .first();
+        }
         recentPostsCount = postsResult?.count || 0;
 
         // Count replies/comments (forum replies, event comments, music comments, project replies, dev log comments, timeline comments, post comments)
-        const repliesResult = await db
-          .prepare(
-            `SELECT COUNT(*) as count
-             FROM (
-               SELECT created_at FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-             )`
-          )
-          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
-          .first();
+        let repliesResult = null;
+        try {
+          repliesResult = await db
+            .prepare(
+              `SELECT COUNT(*) as count
+               FROM (
+                 SELECT created_at FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+                 UNION ALL
+                 SELECT created_at FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               )`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .first();
+        } catch (e) {
+          // Fallback: try without is_deleted checks
+          repliesResult = await db
+            .prepare(
+              `SELECT COUNT(*) as count
+               FROM (
+                 SELECT created_at FROM forum_replies WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM event_comments WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM music_comments WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM project_replies WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM dev_log_comments WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM timeline_comments WHERE created_at > ?
+                 UNION ALL
+                 SELECT created_at FROM post_comments WHERE created_at > ?
+               )`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .first();
+        }
         recentRepliesCount = repliesResult?.count || 0;
       } catch (e) {
         // Tables might not exist yet
@@ -1037,119 +1089,219 @@ export default async function HomePage({ searchParams }) {
       // Get recent activity from all sections (posts AND replies/comments) - last 24 hours only
       // Reuse last24Hours from above
       try {
-        const recentActivityResult = await db
-          .prepare(
-            `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
-             FROM forum_threads
-             WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
-               AND forum_threads.created_at > ?
-             UNION ALL
-             SELECT 'forum_reply' as activity_type, forum_replies.id, NULL as title, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id as parent_id, forum_threads.title as parent_title, thread_users.username as parent_author, 'forum' as section
-             FROM forum_replies
-             JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
-             JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
-             WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
-               AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
-               AND forum_replies.created_at > ?
-             UNION ALL
-             SELECT 'event_post' as activity_type, events.id, events.title, events.created_at, events.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'event' as section
-             FROM events
-             WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
-               AND events.created_at > ?
-             UNION ALL
-             SELECT 'event_comment' as activity_type, event_comments.id, NULL as title, event_comments.created_at, event_comments.author_user_id, events.id as parent_id, events.title as parent_title, event_users.username as parent_author, 'event' as section
-             FROM event_comments
-             JOIN events ON events.id = event_comments.event_id
-             JOIN users AS event_users ON event_users.id = events.author_user_id
-             WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
-               AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
-               AND event_comments.created_at > ?
-             UNION ALL
-             SELECT 'music_post' as activity_type, music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'music' as section
-             FROM music_posts
-             WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
-               AND music_posts.created_at > ?
-             UNION ALL
-             SELECT 'music_comment' as activity_type, music_comments.id, NULL as title, music_comments.created_at, music_comments.author_user_id, music_posts.id as parent_id, music_posts.title as parent_title, music_users.username as parent_author, 'music' as section
-             FROM music_comments
-             JOIN music_posts ON music_posts.id = music_comments.post_id
-             JOIN users AS music_users ON music_users.id = music_posts.author_user_id
-             WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
-               AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
-               AND music_comments.created_at > ?
-             UNION ALL
-             SELECT 'project_post' as activity_type, projects.id, projects.title, projects.created_at, projects.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'project' as section
-             FROM projects
-             WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
-               AND projects.created_at > ?
-             UNION ALL
-             SELECT 'project_reply' as activity_type, project_replies.id, NULL as title, project_replies.created_at, project_replies.author_user_id, projects.id as parent_id, projects.title as parent_title, project_users.username as parent_author, 'project' as section
-             FROM project_replies
-             JOIN projects ON projects.id = project_replies.project_id
-             JOIN users AS project_users ON project_users.id = projects.author_user_id
-             WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
-               AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
-               AND project_replies.created_at > ?
-             UNION ALL
-             SELECT 'devlog_post' as activity_type, dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'devlog' as section
-             FROM dev_logs
-             WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
-               AND dev_logs.created_at > ?
-             UNION ALL
-             SELECT 'devlog_comment' as activity_type, dev_log_comments.id, NULL as title, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id as parent_id, dev_logs.title as parent_title, devlog_users.username as parent_author, 'devlog' as section
-             FROM dev_log_comments
-             JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
-             JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id
-             WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
-               AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
-               AND dev_log_comments.created_at > ?
-             UNION ALL
-             SELECT 'timeline_post' as activity_type, timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'announcements' as section
-             FROM timeline_updates
-             WHERE timeline_updates.created_at > ?
-             UNION ALL
-             SELECT 'timeline_comment' as activity_type, timeline_comments.id, NULL as title, timeline_comments.created_at, timeline_comments.author_user_id, timeline_updates.id as parent_id, timeline_updates.title as parent_title, timeline_users.username as parent_author, 'announcements' as section
-             FROM timeline_comments
-             JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
-             JOIN users AS timeline_users ON timeline_users.id = timeline_updates.author_user_id
-             WHERE (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)
-               AND timeline_comments.created_at > ?
-             UNION ALL
-             SELECT 'post_post' as activity_type, posts.id, posts.title, posts.created_at, posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 
-                    CASE 
-                      WHEN posts.type = 'art' THEN 'art'
-                      WHEN posts.type = 'nostalgia' THEN 'nostalgia'
-                      WHEN posts.type = 'bugs' THEN 'bugs'
-                      WHEN posts.type = 'rant' THEN 'rant'
-                      WHEN posts.type = 'lore' THEN 'lore'
-                      WHEN posts.type = 'memories' THEN 'memories'
-                      ELSE 'posts'
-                    END as section
-             FROM posts
-             WHERE (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-               AND posts.created_at > ?
-             UNION ALL
-             SELECT 'post_comment' as activity_type, post_comments.id, NULL as title, post_comments.created_at, post_comments.author_user_id, posts.id as parent_id, posts.title as parent_title, post_users.username as parent_author,
-                    CASE 
-                      WHEN posts.type = 'art' THEN 'art'
-                      WHEN posts.type = 'nostalgia' THEN 'nostalgia'
-                      WHEN posts.type = 'bugs' THEN 'bugs'
-                      WHEN posts.type = 'rant' THEN 'rant'
-                      WHEN posts.type = 'lore' THEN 'lore'
-                      WHEN posts.type = 'memories' THEN 'memories'
-                      ELSE 'posts'
-                    END as section
-             FROM post_comments
-             JOIN posts ON posts.id = post_comments.post_id
-             JOIN users AS post_users ON post_users.id = posts.author_user_id
-             WHERE (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
-               AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-               AND post_comments.created_at > ?
-             ORDER BY created_at DESC
-             LIMIT 15`
-          )
-          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
-          .all();
+        // Try with is_deleted checks first
+        let recentActivityResult = null;
+        try {
+          recentActivityResult = await db
+            .prepare(
+              `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
+               FROM forum_threads
+               WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+                 AND forum_threads.created_at > ?
+               UNION ALL
+               SELECT 'forum_reply' as activity_type, forum_replies.id, NULL as title, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id as parent_id, forum_threads.title as parent_title, thread_users.username as parent_author, 'forum' as section
+               FROM forum_replies
+               JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+               JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+               WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
+                 AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+                 AND forum_replies.created_at > ?
+               UNION ALL
+               SELECT 'event_post' as activity_type, events.id, events.title, events.created_at, events.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'event' as section
+               FROM events
+               WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
+                 AND events.created_at > ?
+               UNION ALL
+               SELECT 'event_comment' as activity_type, event_comments.id, NULL as title, event_comments.created_at, event_comments.author_user_id, events.id as parent_id, events.title as parent_title, event_users.username as parent_author, 'event' as section
+               FROM event_comments
+               JOIN events ON events.id = event_comments.event_id
+               JOIN users AS event_users ON event_users.id = events.author_user_id
+               WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
+                 AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+                 AND event_comments.created_at > ?
+               UNION ALL
+               SELECT 'music_post' as activity_type, music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'music' as section
+               FROM music_posts
+               WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+                 AND music_posts.created_at > ?
+               UNION ALL
+               SELECT 'music_comment' as activity_type, music_comments.id, NULL as title, music_comments.created_at, music_comments.author_user_id, music_posts.id as parent_id, music_posts.title as parent_title, music_users.username as parent_author, 'music' as section
+               FROM music_comments
+               JOIN music_posts ON music_posts.id = music_comments.post_id
+               JOIN users AS music_users ON music_users.id = music_posts.author_user_id
+               WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
+                 AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+                 AND music_comments.created_at > ?
+               UNION ALL
+               SELECT 'project_post' as activity_type, projects.id, projects.title, projects.created_at, projects.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'project' as section
+               FROM projects
+               WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+                 AND projects.created_at > ?
+               UNION ALL
+               SELECT 'project_reply' as activity_type, project_replies.id, NULL as title, project_replies.created_at, project_replies.author_user_id, projects.id as parent_id, projects.title as parent_title, project_users.username as parent_author, 'project' as section
+               FROM project_replies
+               JOIN projects ON projects.id = project_replies.project_id
+               JOIN users AS project_users ON project_users.id = projects.author_user_id
+               WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
+                 AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+                 AND project_replies.created_at > ?
+               UNION ALL
+               SELECT 'devlog_post' as activity_type, dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'devlog' as section
+               FROM dev_logs
+               WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+                 AND dev_logs.created_at > ?
+               UNION ALL
+               SELECT 'devlog_comment' as activity_type, dev_log_comments.id, NULL as title, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id as parent_id, dev_logs.title as parent_title, devlog_users.username as parent_author, 'devlog' as section
+               FROM dev_log_comments
+               JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+               JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id
+               WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
+                 AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+                 AND dev_log_comments.created_at > ?
+               UNION ALL
+               SELECT 'timeline_post' as activity_type, timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'announcements' as section
+               FROM timeline_updates
+               WHERE timeline_updates.created_at > ?
+               UNION ALL
+               SELECT 'timeline_comment' as activity_type, timeline_comments.id, NULL as title, timeline_comments.created_at, timeline_comments.author_user_id, timeline_updates.id as parent_id, timeline_updates.title as parent_title, timeline_users.username as parent_author, 'announcements' as section
+               FROM timeline_comments
+               JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+               JOIN users AS timeline_users ON timeline_users.id = timeline_updates.author_user_id
+               WHERE (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)
+                 AND timeline_comments.created_at > ?
+               UNION ALL
+               SELECT 'post_post' as activity_type, posts.id, posts.title, posts.created_at, posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 
+                      CASE 
+                        WHEN posts.type = 'art' THEN 'art'
+                        WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                        WHEN posts.type = 'bugs' THEN 'bugs'
+                        WHEN posts.type = 'rant' THEN 'rant'
+                        WHEN posts.type = 'lore' THEN 'lore'
+                        WHEN posts.type = 'memories' THEN 'memories'
+                        ELSE 'posts'
+                      END as section
+               FROM posts
+               WHERE (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+                 AND posts.created_at > ?
+               UNION ALL
+               SELECT 'post_comment' as activity_type, post_comments.id, NULL as title, post_comments.created_at, post_comments.author_user_id, posts.id as parent_id, posts.title as parent_title, post_users.username as parent_author,
+                      CASE 
+                        WHEN posts.type = 'art' THEN 'art'
+                        WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                        WHEN posts.type = 'bugs' THEN 'bugs'
+                        WHEN posts.type = 'rant' THEN 'rant'
+                        WHEN posts.type = 'lore' THEN 'lore'
+                        WHEN posts.type = 'memories' THEN 'memories'
+                        ELSE 'posts'
+                      END as section
+               FROM post_comments
+               JOIN posts ON posts.id = post_comments.post_id
+               JOIN users AS post_users ON post_users.id = posts.author_user_id
+               WHERE (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+                 AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+                 AND post_comments.created_at > ?
+               ORDER BY created_at DESC
+               LIMIT 15`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .all();
+        } catch (e) {
+          // Fallback: try without is_deleted checks for tables that might not have the column
+          recentActivityResult = await db
+            .prepare(
+              `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
+               FROM forum_threads
+               WHERE forum_threads.created_at > ?
+               UNION ALL
+               SELECT 'forum_reply' as activity_type, forum_replies.id, NULL as title, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id as parent_id, forum_threads.title as parent_title, thread_users.username as parent_author, 'forum' as section
+               FROM forum_replies
+               JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+               JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+               WHERE forum_replies.created_at > ?
+               UNION ALL
+               SELECT 'event_post' as activity_type, events.id, events.title, events.created_at, events.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'event' as section
+               FROM events
+               WHERE events.created_at > ?
+               UNION ALL
+               SELECT 'event_comment' as activity_type, event_comments.id, NULL as title, event_comments.created_at, event_comments.author_user_id, events.id as parent_id, events.title as parent_title, event_users.username as parent_author, 'event' as section
+               FROM event_comments
+               JOIN events ON events.id = event_comments.event_id
+               JOIN users AS event_users ON event_users.id = events.author_user_id
+               WHERE event_comments.created_at > ?
+               UNION ALL
+               SELECT 'music_post' as activity_type, music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'music' as section
+               FROM music_posts
+               WHERE music_posts.created_at > ?
+               UNION ALL
+               SELECT 'music_comment' as activity_type, music_comments.id, NULL as title, music_comments.created_at, music_comments.author_user_id, music_posts.id as parent_id, music_posts.title as parent_title, music_users.username as parent_author, 'music' as section
+               FROM music_comments
+               JOIN music_posts ON music_posts.id = music_comments.post_id
+               JOIN users AS music_users ON music_users.id = music_posts.author_user_id
+               WHERE music_comments.created_at > ?
+               UNION ALL
+               SELECT 'project_post' as activity_type, projects.id, projects.title, projects.created_at, projects.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'project' as section
+               FROM projects
+               WHERE projects.created_at > ?
+               UNION ALL
+               SELECT 'project_reply' as activity_type, project_replies.id, NULL as title, project_replies.created_at, project_replies.author_user_id, projects.id as parent_id, projects.title as parent_title, project_users.username as parent_author, 'project' as section
+               FROM project_replies
+               JOIN projects ON projects.id = project_replies.project_id
+               JOIN users AS project_users ON project_users.id = projects.author_user_id
+               WHERE project_replies.created_at > ?
+               UNION ALL
+               SELECT 'devlog_post' as activity_type, dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'devlog' as section
+               FROM dev_logs
+               WHERE dev_logs.created_at > ?
+               UNION ALL
+               SELECT 'devlog_comment' as activity_type, dev_log_comments.id, NULL as title, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id as parent_id, dev_logs.title as parent_title, devlog_users.username as parent_author, 'devlog' as section
+               FROM dev_log_comments
+               JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+               JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id
+               WHERE dev_log_comments.created_at > ?
+               UNION ALL
+               SELECT 'timeline_post' as activity_type, timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'announcements' as section
+               FROM timeline_updates
+               WHERE timeline_updates.created_at > ?
+               UNION ALL
+               SELECT 'timeline_comment' as activity_type, timeline_comments.id, NULL as title, timeline_comments.created_at, timeline_comments.author_user_id, timeline_updates.id as parent_id, timeline_updates.title as parent_title, timeline_users.username as parent_author, 'announcements' as section
+               FROM timeline_comments
+               JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+               JOIN users AS timeline_users ON timeline_users.id = timeline_updates.author_user_id
+               WHERE timeline_comments.created_at > ?
+               UNION ALL
+               SELECT 'post_post' as activity_type, posts.id, posts.title, posts.created_at, posts.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 
+                      CASE 
+                        WHEN posts.type = 'art' THEN 'art'
+                        WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                        WHEN posts.type = 'bugs' THEN 'bugs'
+                        WHEN posts.type = 'rant' THEN 'rant'
+                        WHEN posts.type = 'lore' THEN 'lore'
+                        WHEN posts.type = 'memories' THEN 'memories'
+                        ELSE 'posts'
+                      END as section
+               FROM posts
+               WHERE posts.created_at > ?
+               UNION ALL
+               SELECT 'post_comment' as activity_type, post_comments.id, NULL as title, post_comments.created_at, post_comments.author_user_id, posts.id as parent_id, posts.title as parent_title, post_users.username as parent_author,
+                      CASE 
+                        WHEN posts.type = 'art' THEN 'art'
+                        WHEN posts.type = 'nostalgia' THEN 'nostalgia'
+                        WHEN posts.type = 'bugs' THEN 'bugs'
+                        WHEN posts.type = 'rant' THEN 'rant'
+                        WHEN posts.type = 'lore' THEN 'lore'
+                        WHEN posts.type = 'memories' THEN 'memories'
+                        ELSE 'posts'
+                      END as section
+               FROM post_comments
+               JOIN posts ON posts.id = post_comments.post_id
+               JOIN users AS post_users ON post_users.id = posts.author_user_id
+               WHERE post_comments.created_at > ?
+               ORDER BY created_at DESC
+               LIMIT 15`
+            )
+            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .all();
+        }
 
         if (recentActivityResult?.results) {
           for (const activity of recentActivityResult.results) {
