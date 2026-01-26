@@ -358,7 +358,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   {colorOptions.map((option) => {
                     const isSelected = selectedColorIndex === option.index;
                     const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                    const size = 20;
+                    const size = 18;
                     return (
                       <button
                         key={option.index ?? 'auto'}
@@ -368,8 +368,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
                         style={{
                           flex: '0 0 auto',
-                          width: size,
-                          height: size,
+                          width: `${size}px`,
+                          height: `${size}px`,
+                          minWidth: `${size}px`,
+                          maxWidth: `${size}px`,
+                          minHeight: `${size}px`,
+                          maxHeight: `${size}px`,
                           borderRadius: '50%',
                           border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                           background: option.index === null
@@ -379,11 +383,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           opacity: disabled ? 0.5 : 1,
                           transition: 'all 0.2s ease',
                           padding: 0,
-                          display: 'flex',
+                          margin: 0,
+                          display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           boxSizing: 'border-box',
-                          boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none'
+                          boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
+                          lineHeight: 1,
+                          verticalAlign: 'middle'
                         }}
                         title={option.name}
                         onMouseEnter={(e) => {
@@ -400,7 +407,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         }}
                       >
                         {option.index === null && (
-                          <span style={{ fontSize: '9px', color: 'var(--ink)', fontWeight: 'bold' }}>A</span>
+                          <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
                         )}
                       </button>
                     );
