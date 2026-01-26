@@ -17,8 +17,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [colorStatus, setColorStatus] = useState({ type: 'idle', message: null });
   const [socialLinks, setSocialLinks] = useState(() => {
     const links = initialStats?.profileLinks || [];
-    // Initialize with empty entries for each platform
-    const platforms = ['github', 'facebook', 'youtube', 'soundcloud'];
+    // Initialize with empty entries for each platform (only 3 platforms)
+    const platforms = ['github', 'youtube', 'soundcloud'];
     const linkMap = {};
     links.forEach(link => {
       if (typeof link === 'object' && link.platform && link.url) {
@@ -30,7 +30,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       url: linkMap[platform] || ''
     }));
   });
-  const [socialLinksStatus, setSocialLinksStatus] = useState({ type: 'idle', message: null });
 
   const handleTabChange = (tab) => {
     router.push(`/account?tab=${tab}`, { scroll: false });
@@ -47,7 +46,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             setStats(data);
             // Update social links if they changed
             if (data.profileLinks) {
-              const platforms = ['github', 'facebook', 'youtube', 'soundcloud'];
+              const platforms = ['github', 'youtube', 'soundcloud'];
               const linkMap = {};
               data.profileLinks.forEach(link => {
                 if (typeof link === 'object' && link.platform && link.url) {
@@ -94,8 +93,24 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
     const usernameChanged = trimmed !== (user?.username || '');
     const colorChanged = selectedColorIndex !== (user?.preferred_username_color_index ?? null);
+    
+    // Check if social links changed
+    const currentLinks = initialStats?.profileLinks || [];
+    const linksToSave = socialLinks
+      .filter(link => link.url.trim())
+      .map(link => ({ platform: link.platform, url: link.url.trim() }));
+    
+    // Normalize current links to same format
+    const normalizedCurrentLinks = Array.isArray(currentLinks) 
+      ? currentLinks
+          .filter(link => typeof link === 'object' && link.platform && link.url)
+          .map(link => ({ platform: link.platform, url: link.url.trim() }))
+      : [];
+    
+    const linksChanged = JSON.stringify(linksToSave.sort((a, b) => a.platform.localeCompare(b.platform))) !== 
+                         JSON.stringify(normalizedCurrentLinks.sort((a, b) => a.platform.localeCompare(b.platform)));
 
-    if (!usernameChanged && !colorChanged) {
+    if (!usernameChanged && !colorChanged && !linksChanged) {
       handleCancel();
       return;
     }
@@ -121,6 +136,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           return;
         }
       }
+      if (linksChanged) {
+        const fd = new FormData();
+        fd.append('links', JSON.stringify(linksToSave));
+        const res = await fetch('/api/account/social-links', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          setUsernameStatus({ type: 'error', message: data.error || 'Failed to update social links' });
+          return;
+        }
+      }
       setUsernameStatus({ type: 'success', message: 'Profile updated!' });
       setIsEditingUsername(false);
       setTimeout(() => {
@@ -138,6 +163,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
     setIsEditingUsername(false);
+    // Reset social links to original values
+    const links = initialStats?.profileLinks || [];
+    const platforms = ['github', 'youtube', 'soundcloud'];
+    const linkMap = {};
+    links.forEach(link => {
+      if (typeof link === 'object' && link.platform && link.url) {
+        linkMap[link.platform] = link.url;
+      }
+    });
+    setSocialLinks(platforms.map(platform => ({
+      platform,
+      url: linkMap[platform] || ''
+    })));
   };
 
   const colorOptions = [
@@ -154,49 +192,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
   const socialPlatforms = [
     { value: 'github', label: 'GitHub', icon: '💻' },
-    { value: 'facebook', label: 'Facebook', icon: '👤' },
     { value: 'youtube', label: 'YouTube', icon: '▶️' },
     { value: 'soundcloud', label: 'SoundCloud', icon: '🎵' },
   ];
-
-  const getPlatformIcon = (platform) => {
-    const platformData = socialPlatforms.find(p => p.value === platform);
-    return platformData?.icon || '🔗';
-  };
 
   const handleSocialLinkChange = (index, field, value) => {
     const updated = [...socialLinks];
     updated[index] = { ...updated[index], [field]: value };
     setSocialLinks(updated);
-  };
-
-  const handleSaveSocialLinks = async () => {
-    setSocialLinksStatus({ type: 'loading', message: 'Saving...' });
-    
-    try {
-      const linksToSave = socialLinks
-        .filter(link => link.url.trim())
-        .map(link => ({ platform: link.platform, url: link.url.trim() }));
-      
-      const fd = new FormData();
-      fd.append('links', JSON.stringify(linksToSave));
-      
-      const res = await fetch('/api/account/social-links', { method: 'POST', body: fd });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        setSocialLinksStatus({ type: 'error', message: data.error || 'Failed to update social links' });
-        return;
-      }
-      
-      setSocialLinksStatus({ type: 'success', message: 'Social links updated!' });
-      setTimeout(() => {
-        setSocialLinksStatus({ type: 'idle', message: null });
-        router.refresh();
-      }, 1000);
-    } catch (err) {
-      setSocialLinksStatus({ type: 'error', message: 'Network error. Please try again.' });
-    }
   };
 
   const tabBase = {
@@ -368,80 +371,54 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 </div>
 
-                {/* Social Media Links */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                  <strong>Social Links:</strong>
-                  {socialLinks.map((link, index) => (
-                    <div key={link.platform} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <select
-                        value={link.platform}
-                        onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
-                        disabled={socialLinksStatus.type === 'loading'}
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: 'rgba(2, 7, 10, 0.6)',
-                          color: 'var(--ink)',
-                          fontSize: '14px',
-                          minWidth: '120px',
-                          flex: '0 0 auto'
-                        }}
-                      >
-                        {socialPlatforms.map(platform => (
-                          <option key={platform.value} value={platform.value}>
-                            {platform.icon} {platform.label}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="url"
-                        value={link.url}
-                        onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
-                        placeholder="https://..."
-                        disabled={socialLinksStatus.type === 'loading'}
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: 'rgba(2, 7, 10, 0.6)',
-                          color: 'var(--ink)',
-                          fontSize: '14px',
-                          flex: '1 1 auto',
-                          minWidth: '150px'
-                        }}
-                      />
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleSaveSocialLinks}
-                    disabled={socialLinksStatus.type === 'loading'}
-                    style={{
-                      fontSize: '12px',
-                      padding: '6px 12px',
-                      height: '32px',
-                      background: 'rgba(52, 225, 255, 0.1)',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      borderRadius: '6px',
-                      color: 'var(--accent)',
-                      cursor: socialLinksStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      opacity: socialLinksStatus.type === 'loading' ? 0.6 : 1,
-                      whiteSpace: 'nowrap',
-                      alignSelf: 'flex-start'
-                    }}
-                  >
-                    {socialLinksStatus.type === 'loading' ? 'Saving…' : 'Save Links'}
-                  </button>
-                  {socialLinksStatus.message && (
-                    <div style={{
-                      fontSize: '12px',
-                      color: socialLinksStatus.type === 'error' ? '#ff6b6b' : socialLinksStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
-                    }}>
-                      {socialLinksStatus.message}
-                    </div>
-                  )}
-                </div>
+                {/* Social Media Links - only show when editing */}
+                {isEditingUsername && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                    <strong style={{ fontSize: '14px' }}>Social Links:</strong>
+                    {socialLinks.map((link, index) => (
+                      <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <select
+                          value={link.platform}
+                          onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
+                          disabled={usernameStatus.type === 'loading'}
+                          style={{
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(52, 225, 255, 0.3)',
+                            background: 'rgba(2, 7, 10, 0.6)',
+                            color: 'var(--ink)',
+                            fontSize: '13px',
+                            width: '100px',
+                            flexShrink: 0
+                          }}
+                        >
+                          {socialPlatforms.map(platform => (
+                            <option key={platform.value} value={platform.value}>
+                              {platform.icon} {platform.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="url"
+                          value={link.url}
+                          onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
+                          placeholder="https://..."
+                          disabled={usernameStatus.type === 'loading'}
+                          style={{
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(52, 225, 255, 0.3)',
+                            background: 'rgba(2, 7, 10, 0.6)',
+                            color: 'var(--ink)',
+                            fontSize: '13px',
+                            flex: '1 1 auto',
+                            minWidth: 0
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Edit / Save / Cancel row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>

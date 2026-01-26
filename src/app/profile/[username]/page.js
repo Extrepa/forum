@@ -110,7 +110,6 @@ export default async function ProfilePage({ params }) {
 
   const platformIcons = {
     github: '💻',
-    facebook: '👤',
     youtube: '▶️',
     soundcloud: '🎵',
   };
