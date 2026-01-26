@@ -1937,13 +1937,13 @@ footer {
   filter:
     drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
     drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
-  transition: filter 0.3s ease;
   position: relative;
   z-index: 2;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-face {
   animation: scrollToTopColorCycle 3s linear infinite;
+  transition: none;
 }
 
 .scroll-to-top-path {
@@ -1967,10 +1967,10 @@ footer {
 
 @keyframes rotate-text-counter {
   from {
-    transform: rotate(0deg);
+    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px) rotate(0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px) rotate(360deg);
   }
 }
 
@@ -1984,7 +1984,6 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px);
   animation: rotate-text-counter 8s linear infinite;
   white-space: nowrap;
 }
