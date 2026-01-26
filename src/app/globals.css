@@ -622,9 +622,9 @@ nav a.active {
 }
 
 main {
-  margin-top: 12px;
+  margin-top: 18px;
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 
 .card {
@@ -703,7 +703,7 @@ main {
 
 .stack {
   display: grid;
-  gap: 16px;
+  gap: 20px;
   min-width: 0;
 }
 
@@ -1728,7 +1728,7 @@ header::before {
   }
 
   header.header--detail + main {
-    margin-top: 16px;
+    margin-top: 18px;
   }
 
   .brand {
@@ -2164,7 +2164,7 @@ header::before {
   flex-wrap: wrap;
   font-size: 14px;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .page-top-row {
@@ -2357,7 +2357,7 @@ header::before {
 
   .breadcrumbs {
     font-size: 13px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
   }
 
   .header-right-controls {
