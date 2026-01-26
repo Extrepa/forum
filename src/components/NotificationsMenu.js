@@ -142,12 +142,13 @@ export default function NotificationsMenu({
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
         width: 380,
-        maxWidth: '90vw',
+        maxWidth: 'min(90vw, calc(100vw - 16px))',
         zIndex: 1100,
         padding: '20px',
         maxHeight: 'min(80vh, 600px)',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxSizing: 'border-box'
       }}
       role="menu"
       aria-label={title}

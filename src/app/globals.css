@@ -2592,4 +2592,46 @@ header::before {
     padding-bottom: 20px !important;
   }
 
+  /* Notifications popover - ensure it fits on mobile */
+  .notifications-popover,
+  .notifications-popover-errl {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    right: 8px !important;
+    left: auto !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure content inside notifications popover doesn't overflow */
+  .notifications-popover *,
+  .notifications-popover-errl * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Ensure buttons in notifications popover fit */
+  .notifications-popover button,
+  .notifications-popover-errl button {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Ensure footer buttons don't overflow */
+  .notifications-popover > div:last-child,
+  .notifications-popover-errl > div:last-child {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .notifications-popover > div:last-child button,
+  .notifications-popover-errl > div:last-child button {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    padding: 5px 8px !important;
+  }
+
 }
