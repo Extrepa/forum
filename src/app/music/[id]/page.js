@@ -241,6 +241,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             author_user_id: c.author_user_id != null ? String(c.author_user_id) : null,
             author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
+            formattedDate: c.created_at ? formatDateTime(c.created_at) : '',
           };
         })
     : [];
@@ -436,7 +437,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     <span>
                       <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                       {' · '}
-                      {comment.created_at ? <span suppressHydrationWarning>{formatDateTime(comment.created_at)}</span> : ''}
+                      <span suppressHydrationWarning>{comment.formattedDate || ''}</span>
                     </span>
                   </div>
                   <CommentActions
