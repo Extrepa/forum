@@ -973,11 +973,11 @@ export default async function HomePage({ searchParams }) {
       const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
       let recentPostsCount = 0;
       let recentRepliesCount = 0;
+      
+      // Count posts - try with is_deleted first, fallback without it
       try {
-        // Count posts (new threads, events, music posts, projects, dev logs, timeline updates, posts table entries)
-        let postsResult = null;
         try {
-          postsResult = await db
+          const postsResult = await db
             .prepare(
               `SELECT COUNT(*) as count
                FROM (
@@ -998,9 +998,10 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
+          recentPostsCount = postsResult?.count || 0;
         } catch (e) {
           // Fallback: try without is_deleted checks
-          postsResult = await db
+          const postsResult = await db
             .prepare(
               `SELECT COUNT(*) as count
                FROM (
@@ -1021,13 +1022,17 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
+          recentPostsCount = postsResult?.count || 0;
         }
-        recentPostsCount = postsResult?.count || 0;
+      } catch (e) {
+        // If both fail, keep at 0
+        recentPostsCount = 0;
+      }
 
-        // Count replies/comments (forum replies, event comments, music comments, project replies, dev log comments, timeline comments, post comments)
-        let repliesResult = null;
+      // Count replies/comments - try with is_deleted first, fallback without it
+      try {
         try {
-          repliesResult = await db
+          const repliesResult = await db
             .prepare(
               `SELECT COUNT(*) as count
                FROM (
@@ -1048,9 +1053,10 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
+          recentRepliesCount = repliesResult?.count || 0;
         } catch (e) {
           // Fallback: try without is_deleted checks
-          repliesResult = await db
+          const repliesResult = await db
             .prepare(
               `SELECT COUNT(*) as count
                FROM (
@@ -1071,10 +1077,11 @@ export default async function HomePage({ searchParams }) {
             )
             .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
             .first();
+          recentRepliesCount = repliesResult?.count || 0;
         }
-        recentRepliesCount = repliesResult?.count || 0;
       } catch (e) {
-        // Tables might not exist yet
+        // If both fail, keep at 0
+        recentRepliesCount = 0;
       }
 
       stats = {
@@ -1087,12 +1094,13 @@ export default async function HomePage({ searchParams }) {
       };
 
       // Get recent activity from all sections (posts AND replies/comments) - last 24 hours only
-      // Reuse last24Hours from above
+      // Reuse last24Hours from above - ensure it's still in scope
+      const last24HoursForActivity = Date.now() - 24 * 60 * 60 * 1000;
+      
+      // Try with is_deleted checks first, fallback without them
+      let recentActivityResult = null;
       try {
-        // Try with is_deleted checks first
-        let recentActivityResult = null;
-        try {
-          recentActivityResult = await db
+        recentActivityResult = await db
             .prepare(
               `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
                FROM forum_threads
@@ -1203,10 +1211,11 @@ export default async function HomePage({ searchParams }) {
                ORDER BY created_at DESC
                LIMIT 15`
             )
-            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .bind(last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity)
             .all();
-        } catch (e) {
-          // Fallback: try without is_deleted checks for tables that might not have the column
+      } catch (e) {
+        // Fallback: try without is_deleted checks for tables that might not have the column
+        try {
           recentActivityResult = await db
             .prepare(
               `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section
@@ -1299,41 +1308,41 @@ export default async function HomePage({ searchParams }) {
                ORDER BY created_at DESC
                LIMIT 15`
             )
-            .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+            .bind(last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity, last24HoursForActivity)
             .all();
+        } catch (e2) {
+          // Both queries failed, recentActivityResult stays null
         }
+      }
 
-        if (recentActivityResult?.results) {
-          for (const activity of recentActivityResult.results) {
-            try {
-              const authorResult = await db
-                .prepare('SELECT username, preferred_username_color_index FROM users WHERE id = ?')
-                .bind(activity.author_user_id)
-                .first();
-              
-              recentPosts.push({
-                id: activity.id,
-                title: activity.title || activity.parent_title || 'Untitled',
-                author_name: authorResult?.username || 'Unknown',
-                author_color_preference: authorResult?.preferred_username_color_index !== null && authorResult?.preferred_username_color_index !== undefined ? Number(authorResult.preferred_username_color_index) : null,
-                created_at: activity.created_at,
-                section: activity.section,
-                activity_type: activity.activity_type,
-                parent_title: activity.parent_title,
-                parent_author: activity.parent_author,
-                href: activity.activity_type.includes('_post') 
-                  ? `/${activity.section}/${activity.id}`
-                  : activity.activity_type.includes('forum_reply')
-                  ? `/lobby/${activity.parent_id || activity.id}?reply=${activity.id}`
-                  : `/${activity.section}/${activity.parent_id || activity.id}`
-              });
-            } catch (e) {
-              // Skip if user lookup fails
-            }
+      if (recentActivityResult?.results && recentActivityResult.results.length > 0) {
+        for (const activity of recentActivityResult.results) {
+          try {
+            const authorResult = await db
+              .prepare('SELECT username, preferred_username_color_index FROM users WHERE id = ?')
+              .bind(activity.author_user_id)
+              .first();
+            
+            recentPosts.push({
+              id: activity.id,
+              title: activity.title || activity.parent_title || 'Untitled',
+              author_name: authorResult?.username || 'Unknown',
+              author_color_preference: authorResult?.preferred_username_color_index !== null && authorResult?.preferred_username_color_index !== undefined ? Number(authorResult.preferred_username_color_index) : null,
+              created_at: activity.created_at,
+              section: activity.section,
+              activity_type: activity.activity_type,
+              parent_title: activity.parent_title,
+              parent_author: activity.parent_author,
+              href: activity.activity_type.includes('_post') 
+                ? `/${activity.section}/${activity.id}`
+                : activity.activity_type.includes('forum_reply')
+                ? `/lobby/${activity.parent_id || activity.id}?reply=${activity.id}`
+                : `/${activity.section}/${activity.parent_id || activity.id}`
+            });
+          } catch (e) {
+            // Skip if user lookup fails
           }
         }
-      } catch (e) {
-        // Tables might not exist yet
       }
     } catch (e) {
       // Fallback if queries fail
