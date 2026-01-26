@@ -1094,8 +1094,8 @@ export default async function HomePage({ searchParams }) {
       };
 
       // Get recent activity from all sections (posts AND replies/comments) - last 24 hours only
-      // Reuse last24Hours from above - ensure it's still in scope
-      const last24HoursForActivity = Date.now() - 24 * 60 * 60 * 1000;
+      // Use the same timestamp as the count queries
+      const last24HoursForActivity = last24Hours;
       
       // Try with is_deleted checks first, fallback without them
       let recentActivityResult = null;

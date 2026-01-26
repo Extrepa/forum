@@ -1871,3 +1871,43 @@ FROM (
 2. Apply migration 0039 if not already applied
 3. Test with actual dev log post
 4. Monitor for any issues
+
+---
+
+## React Hydration Error Fix - 2026-01-25 (Evening)
+
+### Issue
+React error #418 - hydration mismatch in HomeStats component when rendering `formatTimeAgo(post.created_at)`.
+
+### Root Cause
+The `formatTimeAgo` function calculates relative time (e.g., "1 hour ago") based on `Date.now()`, which differs between server render and client hydration, causing a text content mismatch.
+
+### Fix Applied
+**File:** `src/components/HomeStats.js`
+
+1. Added `useState` and `useEffect` to track component mount state
+2. Only render `formatTimeAgo` after component has mounted on client
+3. Show "just now" as placeholder during initial server render
+
+**Code Changes:**
+```javascript
+const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+// In render:
+{post.title || 'Untitled'} · {mounted ? formatTimeAgo(post.created_at) : 'just now'}
+```
+
+### Status
+✅ **Fixed** - Build successful, no hydration errors
+
+### Note on Recent Activity Still Showing 0
+The queries are correct and should work. If Recent Activity still shows 0 after deployment:
+1. Verify migration 0028 (soft delete) has been applied to `dev_logs` table
+2. Check that `dev_logs.created_at` values are in milliseconds (not seconds)
+3. Verify the dev log post was created within the last 24 hours
+4. Check browser console for any JavaScript errors
+5. Verify the queries are executing (may need to add temporary logging)
