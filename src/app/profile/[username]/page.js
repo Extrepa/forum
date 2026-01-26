@@ -469,19 +469,24 @@ export default async function ProfilePage({ params }) {
           <div className="account-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               <div>
-                {formatDateTime(profileUser.created_at)} portal entry date
+                <span style={{ color: 'var(--accent)' }}>{formatDateTime(profileUser.created_at)}</span>
+                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>portal entry date</span>
               </div>
               <div>
-                {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
+                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.threadCount}</span>
+                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
               </div>
               <div>
-                {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
+                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.replyCount}</span>
+                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
               </div>
               <div>
-                {stats.threadCount + stats.replyCount} Total posts
+                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
+                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
               </div>
               <div>
-                {stats.profileViews || 0} {stats.profileViews === 1 ? 'view' : 'views'}
+                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.profileViews || 0}</span>
+                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.profileViews === 1 ? 'profile visit' : 'profile visits'}</span>
               </div>
             </div>
           </div>
