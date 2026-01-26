@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Username from './Username';
 
 /**
@@ -27,6 +28,12 @@ export default function PostMetaBar({
   titleHref,
   showTitleLink = true
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formatCount = (count) => {
     if (count === 0) return null;
     return count;
@@ -84,11 +91,11 @@ export default function PostMetaBar({
         gap: '8px'
       }}>
         <span className="muted">
-          {createdAt ? new Date(createdAt).toLocaleString() : ''}
+          {mounted && createdAt ? new Date(createdAt).toLocaleString() : (createdAt ? 'Loading...' : '')}
         </span>
         {lastActivity && (
           <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-            Last activity: {new Date(lastActivity).toLocaleString()}
+            Last activity: {mounted ? new Date(lastActivity).toLocaleString() : 'Loading...'}
           </span>
         )}
       </div>

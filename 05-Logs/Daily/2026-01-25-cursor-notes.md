@@ -1885,9 +1885,11 @@ The `formatTimeAgo` function calculates relative time (e.g., "1 hour ago") based
 ### Fix Applied
 
 **Files Modified:**
-1. `src/components/HomeStats.js`
-2. `src/components/HomeRecentFeed.js`
-3. `src/components/NotificationsMenu.js` (added `suppressHydrationWarning`)
+1. `src/components/HomeStats.js` - Added mounted state check for `formatTimeAgo`
+2. `src/components/HomeRecentFeed.js` - Added mounted state check for `formatTimeAgo`
+3. `src/components/NotificationsMenu.js` - Added `suppressHydrationWarning` prop
+4. `src/components/PostMetaBar.js` - Added mounted state check for `toLocaleString()` dates
+5. `src/components/HomeWelcome.js` - Added mounted state check for time-based greeting
 
 **Solution:**
 1. Added `useState` and `useEffect` to track component mount state
