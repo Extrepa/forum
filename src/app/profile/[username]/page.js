@@ -468,26 +468,41 @@ export default async function ProfilePage({ params }) {
           {/* Right Column: Stats */}
           <div className="account-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
-              <div>
-                <span style={{ color: 'var(--accent)' }}>{formatDateTime(profileUser.created_at)}</span>
-                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>portal entry date</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.threadCount}</span>
-                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.replyCount}</span>
-                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
-                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{stats.profileViews || 0}</span>
-                <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.profileViews === 1 ? 'profile visit' : 'profile visits'}</span>
-              </div>
+              {(() => {
+                // RPG-style rarity color function
+                const getRarityColor = (value) => {
+                  if (value === 0) return 'var(--muted)';
+                  if (value < 10) return 'var(--accent)'; // Common - cyan
+                  if (value < 100) return '#00f5a0'; // Uncommon - green
+                  if (value < 1000) return '#5b8def'; // Rare - blue
+                  return '#b794f6'; // Epic - purple
+                };
+
+                return (
+                  <>
+                    <div>
+                      <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
+                      <span style={{ color: 'var(--accent)' }}>{formatDateTime(profileUser.created_at)}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
