@@ -142,7 +142,7 @@ export default function NotificationsMenu({
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
         width: 380,
-        maxWidth: 'min(90vw, calc(100vw - 16px))',
+        maxWidth: 'min(380px, calc(100vw - 16px))',
         zIndex: 1100,
         padding: '20px',
         maxHeight: 'min(80vh, 600px)',
@@ -406,13 +406,13 @@ export default function NotificationsMenu({
       )}
 
       {/* Footer with mark all read, clear, and close */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
           <button 
             type="button" 
             onClick={onMarkAllRead} 
             disabled={unreadCount === 0}
-            style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1 }}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             Mark all read
           </button>
@@ -420,7 +420,7 @@ export default function NotificationsMenu({
             type="button" 
             onClick={() => setShowClearAllModal(true)}
             disabled={!hasItems}
-            style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1 }}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             Clear
           </button>
@@ -428,7 +428,7 @@ export default function NotificationsMenu({
         <button 
           type="button" 
           onClick={onClose}
-          style={{ fontSize: '12px', padding: '6px 10px' }}
+          style={{ fontSize: '12px', padding: '6px 10px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           Close
         </button>
