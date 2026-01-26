@@ -230,6 +230,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             comments.map((c) => {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
+              const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
                 <div key={c.id} className="list-item" style={{ position: 'relative' }}>
                   <DeleteCommentButton
@@ -245,7 +246,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
                     <span>
                     <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                     {' · '}
-                    <span suppressHydrationWarning>{formatDateTime(c.created_at)}</span>
+                    <span suppressHydrationWarning>{formattedDate}</span>
                     </span>
                   </div>
                   <CommentActions
