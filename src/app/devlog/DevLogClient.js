@@ -23,9 +23,20 @@ export default function DevLogClient({ logs, notice }) {
 
     const latestPostId = logs[0].id;
     const latestPostElement = latestPostRef.current;
+    let initialScrollY = window.scrollY || window.pageYOffset;
+    let hasScrolled = false;
 
     const checkScroll = () => {
       if (viewTracked) return;
+
+      // Track if user has scrolled at all
+      const currentScrollY = window.scrollY || window.pageYOffset;
+      if (Math.abs(currentScrollY - initialScrollY) > 10) {
+        hasScrolled = true;
+      }
+
+      // Only count as view if user has scrolled AND reached the bottom
+      if (!hasScrolled) return;
 
       // Get the bounding box of the latest post element
       const rect = latestPostElement.getBoundingClientRect();
@@ -35,8 +46,8 @@ export default function DevLogClient({ logs, notice }) {
       // Check if the bottom of the post has been scrolled into view
       // We consider it "read" if the bottom of the element is at or above the bottom of the viewport
       // This means the user has scrolled to see the entire post
-      // Using a 100px threshold to account for edge cases and ensure the user has actually scrolled
-      const isAtBottom = elementBottom <= windowHeight + 100;
+      // Using a 50px threshold to account for edge cases
+      const isAtBottom = elementBottom <= windowHeight + 50;
 
       if (isAtBottom) {
         // Track the view
@@ -51,16 +62,11 @@ export default function DevLogClient({ logs, notice }) {
       }
     };
 
-    // Check on initial load (in case post is already fully visible)
-    // Use a small delay to ensure DOM is fully rendered
-    const initialCheck = setTimeout(checkScroll, 100);
-
     // Check on scroll and resize
     window.addEventListener('scroll', checkScroll, { passive: true });
     window.addEventListener('resize', checkScroll, { passive: true });
 
     return () => {
-      clearTimeout(initialCheck);
       window.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
     };
