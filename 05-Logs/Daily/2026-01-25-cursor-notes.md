@@ -1305,3 +1305,109 @@ All use `COALESCE(...)` and primary/fallback queries via `safeAll` (e.g. with/wi
 
 ### Files Modified
 - `src/app/feed/page.js`
+
+---
+
+## PostMetaBar: Last Activity Bottom-Right (2026-01-25)
+
+### Change
+- **Bottom row "Last activity" span:** Added `marginLeft: 'auto'` and `whiteSpace: 'nowrap'` so "Last activity: …" stays in the bottom-right.
+- When the bottom row wraps (e.g. narrow viewport), the "Last activity" block remains right-aligned on its own line.
+- Applies everywhere PostMetaBar is used (feed, lobby, devlog, events, etc.).
+
+### Files Modified
+- `src/components/PostMetaBar.js`
+
+---
+
+## Feed & Events: Last Activity Bottom-Right for Event Cards (2026-01-25)
+
+### Request
+- "Last activity" should always be in the **bottom-right** of event cards when viewing the list (before clicking into an event).
+- Applies to: **Feed** (event items) and **Events** page (Latest + More).
+
+### Approach
+- **Do not** show "Last activity" inside PostMetaBar for event cards. Move it into the **event/calendar row** (calendar SVG, "Starts …", "✓ Attending" / "X attending: …") and right-align it there.
+
+### Feed (`src/app/feed/page.js`)
+1. **PostMetaBar:** Pass `lastActivity={item.type === 'Event' ? undefined : item.lastActivity}` so events omit it.
+2. **Event block layout:**
+   - Outer `div`: `display: 'flex'`, `flexWrap: 'wrap'`, `alignItems: 'center'`, `gap: '6px'`.
+   - Left group (`flex: '1 1 auto'`, `minWidth: 0`): calendar SVG, "Starts …" (+ relative date if upcoming), "• X attending: …" when present.
+   - Right: **"Last activity: …"** span with `marginLeft: 'auto'`, `whiteSpace: 'nowrap'`, `fontSize: '12px'`.
+3. "Last activity" renders only when `item.lastActivity` exists.
+
+### Events page (`src/app/events/EventsClient.js`)
+1. **PostMetaBar:** `lastActivity={undefined}` for all events (list is events-only).
+2. **Calendar row layout:** Same pattern as feed:
+   - Outer flex with `flexWrap: 'wrap'`, left group (calendar, date/time, "✓ Attending"), right-aligned **"Last activity: …"** with `marginLeft: 'auto'`, `whiteSpace: 'nowrap'`.
+3. Uses `row.last_activity_at || row.created_at` for the timestamp. Condensed vs non-condensed font sizes unchanged.
+
+### Files Modified
+- `src/app/feed/page.js`
+- `src/app/events/EventsClient.js`
+
+### Summary
+- Feed event items and Events listing cards now show "Last activity" in the **bottom-right** of each event card (in the calendar row), matching the requested layout.
+
+---
+
+## Session Summary: Feed & Events UI Polish (2026-01-25)
+
+### What we did
+
+| Change | Where | Details |
+|--------|-------|---------|
+| **Padding fix** | Feed | Type span: `marginRight: 0` (override `.list-item h3 span`), `marginLeft: '4px'`. Removes weird gap between `(Type)` and "by username". |
+| **Lobby section label** | Feed | Always show `({item.type})` for all types, including Lobby. Lobby posts now display `(Lobby)`. |
+| **Last activity bottom-right (global)** | PostMetaBar | "Last activity" span: `marginLeft: 'auto'`, `whiteSpace: 'nowrap'`. Stays bottom-right when row wraps. |
+| **Last activity bottom-right (event cards)** | Feed, Events | For event cards only: omit "Last activity" from PostMetaBar; move it into the calendar row, right-aligned (`marginLeft: 'auto'`). Same layout on Feed and Events listing (Latest + More). |
+
+### Files touched
+- `src/app/feed/page.js` — padding, Lobby label, event Last-activity layout
+- `src/components/PostMetaBar.js` — Last activity span styling
+- `src/app/events/EventsClient.js` — event Last-activity layout (Latest + More)
+
+### Build / lint
+- Build OK; no linter errors.
+
+---
+
+## Home Page Hourly Greeting Messages (2026-01-25)
+
+### User Request
+Update the home page greeting messages to have a different Errl-themed message for every hour (24 unique messages).
+
+### Implementation
+
+#### Changes Made
+- **Replaced time-of-day based greetings with hourly greetings:**
+  - Previously: Messages were grouped by time of day (morning, afternoon, evening, lateNight) with 3-4 options per group, selected randomly based on date seed
+  - Now: 24 unique messages, one for each hour (0-23), selected directly based on current hour
+
+#### Message Structure
+- **Standard mode:** 24 Errl-themed messages covering all hours
+- **Lore mode:** 24 lore-themed messages with Nomad references and Errl history
+- Each message includes `{username}` placeholder for personalization
+- Messages reference portal, goo, drip, and Errl-specific themes
+
+#### Technical Details
+- **Function:** `getTimeBasedGreetingTemplate()` in `src/lib/forum-texts/variations.js`
+- **Selection:** Uses `date.getHours()` (0-23) to directly index into message array
+- **Fallback:** Defaults to noon message (index 12) if hour is somehow invalid
+- **Backwards compatibility:** Still returns `timeOfDay` for any code that might depend on it
+
+### Files Modified
+- `src/lib/forum-texts/variations.js`
+  - Replaced `TIME_BASED_GREETINGS` object with `HOURLY_GREETINGS` array
+  - Updated `getTimeBasedGreetingTemplate()` to use hour-based selection
+  - Added 24 unique messages for standard mode
+  - Added 24 unique messages for lore mode
+
+### Build Status
+- ✅ Build passes with no errors
+- ✅ No linter errors
+- ✅ All messages properly formatted with `{username}` placeholder
+
+### Summary
+The home page now displays a different Errl-themed greeting message for each hour of the day, providing 24 unique messages that change throughout the day. Messages are themed appropriately for the time (e.g., "Midnight portal hours" at 0:00, "Noon portal peak" at 12:00) and include both standard and lore variants.

@@ -26,31 +26,67 @@ export function getTimeOfDay(date = new Date()) {
   return 'lateNight';
 }
 
-const TIME_BASED_GREETINGS = {
-  standard: {
-    morning: ['Rise and drip, {username}.', 'Good morning, portal traveler.', 'The goo is fresh. The portal is warm.'],
-    afternoon: ['Afternoon vibes detected, {username}.', 'Portal status: mildly active.', 'The drip cycle continues.'],
-    evening: [
-      'Evening glow activated, {username}.',
-      'Portal winding down… or heating up?',
-      'The realms are quieter now. Perfect for deep thoughts.'
-    ],
-    lateNight: ['3am portal hours. Errl approves.', 'Late-night drips hit different.', 'The portal is open. The goo is listening.']
-  },
-  lore: {
-    morning: ['Rise and drip, {username}.', 'Good morning, Nomad. The drip that followed us home.', 'Pulled together by chance and light. Good morning.'],
-    afternoon: ['Afternoon vibes detected, {username}.', 'Consistency inside chaos. Portal status: mildly active.', 'The Nomad network is awake.'],
-    evening: ['Evening glow activated, {username}.', 'Face never changes. Body expresses everything.', 'The realms are quieter now. Perfect for deep thoughts.'],
-    lateNight: ['3am portal hours. Errl approves.', 'Nomads are still awake. Join them.', 'The drip cycle continues.']
-  }
+// 24 unique messages for each hour (0-23)
+const HOURLY_GREETINGS = {
+  standard: [
+    'Midnight portal hours. The goo never sleeps, {username}.', // 0
+    '1am vibes. Errl is watching. The drip continues.', // 1
+    '2am portal energy. Late-night thoughts welcome here, {username}.', // 2
+    '3am portal hours. Errl approves, {username}.', // 3
+    '4am stillness. The portal breathes with you, {username}.', // 4
+    '5am pre-dawn glow. Fresh drips incoming, {username}.', // 5
+    '6am portal awakening. Rise and drip, {username}.', // 6
+    '7am morning goo. The portal is fresh, {username}.', // 7
+    '8am portal breakfast. Good morning, {username}.', // 8
+    '9am drip cycle begins. Portal status: active, {username}.', // 9
+    '10am portal vibes. The goo is warm, {username}.', // 10
+    '11am mid-morning drip. Portal traveler, {username}.', // 11
+    'Noon portal peak. Maximum drip detected, {username}.', // 12
+    '1pm afternoon vibes. Portal status: mildly active, {username}.', // 13
+    '2pm portal energy. The drip cycle continues, {username}.', // 14
+    '3pm portal flow. Consistency inside chaos, {username}.', // 15
+    '4pm portal glow. Afternoon drips hit different, {username}.', // 16
+    '5pm portal transition. Evening approaches, {username}.', // 17
+    '6pm portal evening. The realms are quieter now, {username}.', // 18
+    '7pm evening glow activated, {username}.', // 19
+    '8pm portal winding down… or heating up, {username}?', // 20
+    '9pm portal hours. Perfect for deep thoughts, {username}.', // 21
+    '10pm portal night. The goo is listening, {username}.', // 22
+    '11pm late-night drips. The portal is open, {username}.' // 23
+  ],
+  lore: [
+    'Midnight portal hours. Errl was born May 1, 2015. The drip continues, {username}.', // 0
+    '1am Nomad hours. The drip that followed us home, {username}.', // 1
+    '2am portal energy. Pulled together by chance and light, {username}.', // 2
+    '3am portal hours. Errl approves, Nomad {username}.', // 3
+    '4am stillness. Face never changes. Body expresses everything, {username}.', // 4
+    '5am pre-dawn glow. From Mayday Heyday to the Portal, {username}.', // 5
+    '6am portal awakening. Rise and drip, Nomad {username}.', // 6
+    '7am morning goo. Good morning, {username}. The Nomad network is awake.', // 7
+    '8am portal breakfast. Consistency inside chaos. Good morning, {username}.', // 8
+    '9am drip cycle begins. The Nomads made it real, {username}.', // 9
+    '10am portal vibes. Geoff found Errl in the projector goo, {username}.', // 10
+    '11am mid-morning drip. The world melts; the vibe holds, {username}.', // 11
+    'Noon portal peak. Effervescent Remnant of Radical Liminality, {username}.', // 12
+    '1pm afternoon vibes. Portal status: mildly active, Nomad {username}.', // 13
+    '2pm portal energy. The Nomad network is awake, {username}.', // 14
+    '3pm portal flow. Consistency inside chaos, {username}.', // 15
+    '4pm portal glow. The drip cycle continues, {username}.', // 16
+    '5pm portal transition. Evening approaches, Nomad {username}.', // 17
+    '6pm portal evening. The realms are quieter now, {username}.', // 18
+    '7pm evening glow activated, {username}. Face never changes.', // 19
+    '8pm portal winding down… or heating up, {username}?', // 20
+    '9pm portal hours. Perfect for deep thoughts, Nomad {username}.', // 21
+    '10pm portal night. Nomads are still awake. Join them, {username}.', // 22
+    '11pm late-night drips. The portal is open. The goo is listening, {username}.' // 23
+  ]
 };
 
 export function getTimeBasedGreetingTemplate({ useLore = false, date = new Date() } = {}) {
-  const timeOfDay = getTimeOfDay(date);
-  const set = useLore ? TIME_BASED_GREETINGS.lore : TIME_BASED_GREETINGS.standard;
-  const options = set[timeOfDay] || set.afternoon;
-  const seed = date.getDate() + date.getMonth() * 31 + date.getFullYear() * 366 + (useLore ? 7 : 0);
-  const template = pick(options, seed) || 'Welcome back, {username}.';
+  const hour = date.getHours(); // 0-23
+  const messages = useLore ? HOURLY_GREETINGS.lore : HOURLY_GREETINGS.standard;
+  const template = messages[hour] || messages[12]; // Default to noon if somehow invalid
+  const timeOfDay = getTimeOfDay(date); // Keep for backwards compatibility
   return { template, timeOfDay };
 }
 

@@ -622,7 +622,7 @@ nav a.active {
 }
 
 main {
-  margin-top: 28px;
+  margin-top: 12px;
   display: grid;
   gap: 24px;
 }
