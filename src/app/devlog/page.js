@@ -106,8 +106,12 @@ export default async function DevLogPage({ searchParams }) {
     });
   }
 
-  const logs = results.map((row) => {
+  const logs = results.map((row, index) => {
     const text = String(row.body || '').trim();
+    // Show full content for the latest post (index 0), preview for others
+    if (index === 0) {
+      return { ...row, is_locked: row.is_locked || 0, bodyHtml: renderMarkdown(text) };
+    }
     const lines = text.split('\n');
     const previewLines = lines.slice(0, 16).join('\n').trim();
     const preview =
