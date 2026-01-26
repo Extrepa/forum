@@ -511,7 +511,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       className="username-edit-btn"
                       style={{
                         position: 'absolute',
-                        right: '12px',
+                        right: '24px',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         padding: '4px 8px',
