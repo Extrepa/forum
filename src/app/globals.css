@@ -2244,6 +2244,10 @@ header::before {
   margin-bottom: 20px;
 }
 
+.stack .breadcrumbs {
+  margin-bottom: 0;
+}
+
 .page-top-row {
   display: flex;
   align-items: center;
