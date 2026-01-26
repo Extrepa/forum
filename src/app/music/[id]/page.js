@@ -397,7 +397,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
               <input type="hidden" name="post_id" value={id} />
               <label>
                 <div className="muted">Your rating (1-5)</div>
-                <select name="rating" defaultValue="5">
+                <select name="rating" defaultValue="5" style={{ width: '100%', minWidth: '200px' }}>
                   <option value="1">1 - I didn't have time to listen</option>
                   <option value="2">2 - I'm not really my style</option>
                   <option value="3">3 - I vibe with it</option>
