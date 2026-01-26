@@ -47,13 +47,13 @@ export default function PostHeader({
             {createdAt && (
               <>
                 {' · '}
-                {new Date(createdAt).toLocaleString()}
+                <span suppressHydrationWarning>{new Date(createdAt).toLocaleString()}</span>
               </>
             )}
             {showUpdatedAt && updatedAt && updatedAt !== createdAt && (
               <>
                 {' · Updated '}
-                {new Date(updatedAt).toLocaleString()}
+                <span suppressHydrationWarning>{new Date(updatedAt).toLocaleString()}</span>
               </>
             )}
           </div>

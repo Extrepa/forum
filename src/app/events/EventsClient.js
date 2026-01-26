@@ -129,7 +129,7 @@ export default function EventsClient({ events, notice }) {
                         ) : null}
                       </div>
                       {(row.last_activity_at || row.created_at) ? (
-                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }}>
+                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }} suppressHydrationWarning>
                           Last activity: {new Date(row.last_activity_at || row.created_at).toLocaleString()}
                         </span>
                       ) : null}

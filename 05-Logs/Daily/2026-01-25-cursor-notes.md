@@ -220,8 +220,48 @@ npm run deploy
    - Other pages/components not on home page
    - Run development build for detailed error: `NODE_ENV=development npm run build`
 
+## Additional Fixes for Post Display Pages
+
+### Issue: `toLocaleString()` in Post Components
+**Problem:** Multiple components use `new Date().toLocaleString()` which can produce different output on server vs client due to timezone/locale differences.
+
+**Components Fixed:**
+1. ✅ `PostHeader.js` - Added `suppressHydrationWarning` to createdAt and updatedAt spans
+2. ✅ `ProjectRepliesSection.js` - Added `suppressHydrationWarning` to created_at span
+3. ✅ `EventCommentsSection.js` - Added `suppressHydrationWarning` to created_at span
+4. ✅ `PostMetaBar.js` - Already had `suppressHydrationWarning` (verified)
+5. ✅ `NotificationsMenu.js` - Already had `suppressHydrationWarning` (verified)
+
+**Files Modified:**
+- `src/components/PostHeader.js` - Lines 50, 56: Added `suppressHydrationWarning` to date spans
+- `src/components/ProjectRepliesSection.js` - Line 101: Added `suppressHydrationWarning` to date span
+- `src/components/EventCommentsSection.js` - Line 172: Added `suppressHydrationWarning` to date span
+
+## Additional Fix: Art Post Image Requirement Inconsistency
+
+### Issue: Inconsistent `requireImage` for Art Posts
+**Problem:** Art posts had different image requirements depending on entry point:
+- `/art` page: `requireImage={true}` (images required)
+- `/art-nostalgia` page: `requireImage={false}` (images optional when art type selected)
+
+**Fix:**
+- Updated `GenericPostForm.js` to dynamically require images when `selectedType === 'art'`
+- Now art posts always require images, regardless of entry point
+- Server-side API already enforces this (line 101-104 in `src/app/api/posts/route.js`)
+
+**File Modified:**
+- `src/components/GenericPostForm.js` - Line 141-142: Dynamic `requireImage` based on `selectedType`
+
+## Additional Hydration Fixes: More Post Display Components
+**Files Modified:**
+1. `src/app/events/EventsClient.js` - Line 130: Added `suppressHydrationWarning` to "Last activity" date display
+2. `src/app/feed/page.js` - Line 471: Added `suppressHydrationWarning` to "Last activity" date display
+3. `src/app/forum/ForumClient.js` - Removed unused `formatTimeAgo` function (not causing issues but cleaned up)
+
 ## Notes
 - All fixes follow Next.js 15 best practices for server-side rendering
 - `suppressHydrationWarning` is used correctly (one level deep, on elements with expected differences)
-- Server-side computation ensures consistent HTML between server and client
+- Server-side computation ensures consistent HTML between server and client for time-based content
+- `toLocaleString()` differences are expected and handled with `suppressHydrationWarning`
 - No performance impact - computations happen once on server, not on every client render
+- Art posts now consistently require images across all entry points

@@ -98,7 +98,7 @@ export default function ProjectRepliesSection({
             <span>
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
-              {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
+              {r.created_at ? <span suppressHydrationWarning>{new Date(r.created_at).toLocaleString()}</span> : ''}
             </span>
             <ReplyButton
               replyId={r.id}

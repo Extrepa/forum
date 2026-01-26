@@ -468,7 +468,7 @@ export default async function FeedPage() {
                         )}
                       </div>
                       {item.lastActivity ? (
-                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '12px' }}>
+                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '12px' }} suppressHydrationWarning>
                           Last activity: {new Date(item.lastActivity).toLocaleString()}
                         </span>
                       ) : null}

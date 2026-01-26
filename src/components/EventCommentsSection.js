@@ -169,7 +169,7 @@ export default function EventCommentsSection({
                   <span>
                     <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                     {' · '}
-                    {new Date(c.created_at).toLocaleString()}
+                    <span suppressHydrationWarning>{new Date(c.created_at).toLocaleString()}</span>
                   </span>
                   <ReplyButton
                     replyId={c.id}

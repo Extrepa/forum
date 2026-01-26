@@ -138,8 +138,8 @@ export default function GenericPostForm({
 
       {showImage ? (
         <label>
-          <div className="muted">Image {requireImage ? '(required)' : '(optional)'}</div>
-          <input name="image" type="file" accept="image/*" required={requireImage} />
+          <div className="muted">Image {selectedType === 'art' ? '(required)' : requireImage ? '(required)' : '(optional)'}</div>
+          <input name="image" type="file" accept="image/*" required={selectedType === 'art' || requireImage} />
         </label>
       ) : null}
 
