@@ -1373,6 +1373,108 @@ All use `COALESCE(...)` and primary/fallback queries via `safeAll` (e.g. with/wi
 
 ---
 
+## Home Page & Feed Page Updates (2026-01-25 - Evening)
+
+### Summary
+Updated home page greeting messages to be hourly, fixed spacing consistency, added portal message to feed page, and made development posts scrollable.
+
+### 1. Home Page Hourly Greeting Messages
+**User Request:** Make sure there's a different Errl-themed message for every hour (24 unique messages).
+
+**Implementation:**
+- **File Modified:** `src/lib/forum-texts/variations.js`
+- Replaced time-of-day based greetings (morning/afternoon/evening/lateNight) with hourly greetings
+- Created 24 unique messages for each hour (0-23) in both standard and lore modes
+- Messages selected directly based on `date.getHours()` instead of random selection from time-of-day groups
+- Each message includes `{username}` placeholder for personalization
+- Messages reference portal, goo, drip, and Errl-specific themes
+
+**Examples:**
+- Midnight: "Midnight portal hours. The goo never sleeps, {username}."
+- Noon: "Noon portal peak. Maximum drip detected, {username}."
+- 3am: "3am portal hours. Errl approves, {username}."
+
+### 2. Spacing Consistency Fixes
+**User Request:** Fix padding between header and greeting card, then make padding consistent between all cards, breadcrumbs, and everything.
+
+**Changes Made:**
+- **File Modified:** `src/app/globals.css`
+- Increased `main` margin-top from `12px` to `18px` (slightly increased as requested)
+- Standardized all gaps to `20px`:
+  - `main` gap: `24px` → `20px`
+  - `.stack` gap: `16px` → `20px` (now matches main)
+- Standardized breadcrumbs spacing:
+  - `.breadcrumbs` margin-bottom: `16px` → `20px` (matches gap)
+  - Responsive breakpoint: `12px` → `20px` (consistent across screen sizes)
+- Updated header detail spacing: `header.header--detail + main` margin-top: `16px` → `18px`
+
+**Result:** All spacing is now consistent at 20px between cards/sections, with 18px for top margin of main content.
+
+### 3. Feed Page Portal Message
+**User Request:** Copy the portal message from home page to feed page, place it just below the breadcrumbs.
+
+**Implementation:**
+- **Files Modified:**
+  - `src/app/feed/page.js` - Added HomeWelcome component import and usage
+  - `src/components/Breadcrumbs.js` - Added support for style prop
+- Added `HomeWelcome` component to feed page below breadcrumbs
+- Removed unnecessary padding by setting breadcrumbs `marginBottom: 0` on feed page
+- Portal message displays the same hourly greeting as home page
+
+### 4. Feed-Specific Greeting Messages
+**User Request:** Update the 25 messages (24 hourly messages) on the feed to be feed-themed and different from homepage.
+
+**Implementation:**
+- **Files Modified:**
+  - `src/lib/forum-texts/variations.js` - Added feed-specific message sets
+  - `src/components/HomeWelcome.js` - Added context prop support
+  - `src/app/feed/page.js` - Pass context="feed" to HomeWelcome
+- Created 24 unique feed-themed messages for each hour in both standard and lore modes
+- Feed messages use "feed", "activity stream", "latest updates" terminology
+- Home messages remain portal/goo/drip themed
+- Updated `getTimeBasedGreetingTemplate()` to accept `context` parameter ('home' or 'feed')
+- Updated `HomeWelcome` component to accept and pass `context` prop
+
+**Examples:**
+- Feed: "5pm feed transition. Evening activity approaches, {username}."
+- Home: "5pm portal transition. Evening approaches, {username}."
+
+### 5. Development Page Scrollable Latest Post
+**User Request:** Make the latest post content on the development page scrollable.
+
+**Implementation:**
+- **Files Modified:**
+  - `src/app/devlog/DevLogClient.js` - Added scrollable class to latest post body
+  - `src/app/devlog/page.js` - Show full content for latest post instead of truncated preview
+  - `src/app/globals.css` - Added `.post-body-scrollable` styles
+- Added `post-body-scrollable` class to the latest post's body content (when `condensed: false`)
+- Created CSS with:
+  - `max-height: 400px` - Limits post body height before scrolling
+  - Custom scrollbar styling matching Errl theme (teal/cyan colors)
+  - Cross-browser support (WebKit and Firefox)
+- Updated server-side code to show full content for latest post (index 0) instead of 16-line preview
+- Other posts in "More" section still show truncated previews
+
+**Result:** Latest development post now shows full content in a scrollable area (max 400px height), allowing users to read the entire post without clicking into the detail page.
+
+### Files Modified Summary
+- `src/lib/forum-texts/variations.js` - Hourly greetings (home + feed variants)
+- `src/app/globals.css` - Spacing consistency, scrollable styles
+- `src/app/feed/page.js` - Added HomeWelcome component
+- `src/components/HomeWelcome.js` - Added context prop support
+- `src/components/Breadcrumbs.js` - Added style prop support
+- `src/app/devlog/DevLogClient.js` - Added scrollable class to latest post
+- `src/app/devlog/page.js` - Show full content for latest post
+
+### Build Status
+- ✅ All changes compile successfully
+- ✅ No linter errors
+- ✅ Consistent spacing across all pages
+- ✅ Feed and home pages have distinct hourly messages
+- ✅ Development page latest post is scrollable with full content
+
+---
+
 ## Home Page Hourly Greeting Messages (2026-01-25)
 
 ### User Request
@@ -1411,3 +1513,11 @@ Update the home page greeting messages to have a different Errl-themed message f
 
 ### Summary
 The home page now displays a different Errl-themed greeting message for each hour of the day, providing 24 unique messages that change throughout the day. Messages are themed appropriately for the time (e.g., "Midnight portal hours" at 0:00, "Noon portal peak" at 12:00) and include both standard and lore variants.
+
+---
+
+## Development Update #4 Draft (2026-01-25)
+
+- **Created:** `05-Logs/Development/2026-01-25-development-post-04.md`
+- **Scope:** Notifications (full coverage, individual delete, Clear All confirmation), announcements (image upload, admin-only), dual-page forms (type dropdown, no members-only), feed/home (hourly greetings, portal message on feed, 15 items, PostMetaBar, event attendees, last-activity layout), dev latest post scrollable, username colors system-wide, edit/delete/lock (Lore/Memories, DeleteCommentButton), Next.js 15 params/serialization fixes, art page variable-order bug, API params consistency.
+- **Known issues / if problems:** Old `target_type === 'post'` notifications show "Notification" with no link; `IMAGE_UPLOAD_ALLOWLIST` for announcement images; `posts.is_deleted` may be missing; lock for posts deferred; ~38 API routes may need `await params`; optional threading/quote on Lore/Memories/devlog.
