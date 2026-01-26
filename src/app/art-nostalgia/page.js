@@ -85,7 +85,7 @@ export default async function ArtNostalgiaPage({ searchParams }) {
               bodyPlaceholder="Add a caption (optional)"
               buttonLabel="Post"
               showImage={true}
-              requireImage={true}
+              requireImage={false}
               titleRequired={false}
               bodyRequired={false}
               showPrivateToggle={false}

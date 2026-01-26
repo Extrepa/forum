@@ -112,7 +112,8 @@ export default async function LoreMemoriesPage({ searchParams }) {
               bodyLabel="Lore or Memory"
               bodyPlaceholder="Write the lore or share the memory..."
               buttonLabel="Post"
-              showImage={false}
+              showImage={true}
+              requireImage={false}
               titleRequired={false}
               bodyRequired={true}
               showPrivateToggle={false}
