@@ -48,41 +48,233 @@ export default async function ProfilePage({ params }) {
   // Get stats for this user
   let stats = null;
   try {
-    const threadCount = await db
-      .prepare('SELECT COUNT(*) as count FROM forum_threads WHERE author_user_id = ?')
+    // Count all post types
+    const forumThreads = await db
+      .prepare('SELECT COUNT(*) as count FROM forum_threads WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
       .bind(profileUser.id)
       .first();
     
-    const replyCount = await db
-      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE author_user_id = ? AND is_deleted = 0')
+    const devLogs = await db
+      .prepare('SELECT COUNT(*) as count FROM dev_logs WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
+      .bind(profileUser.id)
+      .first();
+    
+    const musicPosts = await db
+      .prepare('SELECT COUNT(*) as count FROM music_posts WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
+      .bind(profileUser.id)
+      .first();
+    
+    const projects = await db
+      .prepare('SELECT COUNT(*) as count FROM projects WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
+      .bind(profileUser.id)
+      .first();
+    
+    const timelineUpdates = await db
+      .prepare('SELECT COUNT(*) as count FROM timeline_updates WHERE author_user_id = ?')
+      .bind(profileUser.id)
+      .first();
+    
+    const events = await db
+      .prepare('SELECT COUNT(*) as count FROM events WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
       .bind(profileUser.id)
       .first();
 
-    const recentThreads = await db
+    const threadCount = (forumThreads?.count || 0) + 
+                        (devLogs?.count || 0) + 
+                        (musicPosts?.count || 0) + 
+                        (projects?.count || 0) + 
+                        (timelineUpdates?.count || 0) + 
+                        (events?.count || 0);
+    
+    // Count all reply types
+    const forumReplies = await db
+      .prepare('SELECT COUNT(*) as count FROM forum_replies WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+    
+    const devLogComments = await db
+      .prepare('SELECT COUNT(*) as count FROM dev_log_comments WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+    
+    const musicComments = await db
+      .prepare('SELECT COUNT(*) as count FROM music_comments WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+    
+    const projectReplies = await db
+      .prepare('SELECT COUNT(*) as count FROM project_replies WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+    
+    const timelineComments = await db
+      .prepare('SELECT COUNT(*) as count FROM timeline_comments WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+    
+    const eventComments = await db
+      .prepare('SELECT COUNT(*) as count FROM event_comments WHERE author_user_id = ? AND is_deleted = 0')
+      .bind(profileUser.id)
+      .first();
+
+    const replyCount = (forumReplies?.count || 0) + 
+                       (devLogComments?.count || 0) + 
+                       (musicComments?.count || 0) + 
+                       (projectReplies?.count || 0) + 
+                       (timelineComments?.count || 0) + 
+                       (eventComments?.count || 0);
+
+    // Get recent posts from all types
+    const recentForumThreads = await db
       .prepare(
-        `SELECT id, title, created_at FROM forum_threads 
-         WHERE author_user_id = ? 
-         ORDER BY created_at DESC LIMIT 5`
+        `SELECT id, title, created_at, 'forum_thread' as post_type FROM forum_threads 
+         WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY created_at DESC LIMIT 10`
       )
       .bind(profileUser.id)
       .all();
 
-    const recentReplies = await db
+    const recentDevLogs = await db
       .prepare(
-        `SELECT forum_replies.id, forum_replies.created_at, forum_threads.id as thread_id, forum_threads.title as thread_title
+        `SELECT id, title, created_at, 'dev_log' as post_type FROM dev_logs 
+         WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentMusicPosts = await db
+      .prepare(
+        `SELECT id, title, created_at, 'music_post' as post_type FROM music_posts 
+         WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentProjects = await db
+      .prepare(
+        `SELECT id, title, created_at, 'project' as post_type FROM projects 
+         WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentTimelineUpdates = await db
+      .prepare(
+        `SELECT id, title, created_at, 'timeline_update' as post_type FROM timeline_updates 
+         WHERE author_user_id = ?
+         ORDER BY created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentEvents = await db
+      .prepare(
+        `SELECT id, title, created_at, 'event' as post_type FROM events 
+         WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    // Get recent replies/comments from all types
+    const recentForumReplies = await db
+      .prepare(
+        `SELECT forum_replies.id, forum_replies.created_at, forum_threads.id as thread_id, forum_threads.title as thread_title, 'forum_reply' as reply_type
          FROM forum_replies
          JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
          WHERE forum_replies.author_user_id = ? AND forum_replies.is_deleted = 0
-         ORDER BY forum_replies.created_at DESC LIMIT 5`
+         ORDER BY forum_replies.created_at DESC LIMIT 10`
       )
       .bind(profileUser.id)
       .all();
 
+    const recentDevLogComments = await db
+      .prepare(
+        `SELECT dev_log_comments.id, dev_log_comments.created_at, dev_logs.id as thread_id, dev_logs.title as thread_title, 'dev_log_comment' as reply_type
+         FROM dev_log_comments
+         JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+         WHERE dev_log_comments.author_user_id = ? AND dev_log_comments.is_deleted = 0
+         ORDER BY dev_log_comments.created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentMusicComments = await db
+      .prepare(
+        `SELECT music_comments.id, music_comments.created_at, music_posts.id as thread_id, music_posts.title as thread_title, 'music_comment' as reply_type
+         FROM music_comments
+         JOIN music_posts ON music_posts.id = music_comments.post_id
+         WHERE music_comments.author_user_id = ? AND music_comments.is_deleted = 0
+         ORDER BY music_comments.created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentProjectReplies = await db
+      .prepare(
+        `SELECT project_replies.id, project_replies.created_at, projects.id as thread_id, projects.title as thread_title, 'project_reply' as reply_type
+         FROM project_replies
+         JOIN projects ON projects.id = project_replies.project_id
+         WHERE project_replies.author_user_id = ? AND project_replies.is_deleted = 0
+         ORDER BY project_replies.created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentTimelineComments = await db
+      .prepare(
+        `SELECT timeline_comments.id, timeline_comments.created_at, timeline_updates.id as thread_id, timeline_updates.title as thread_title, 'timeline_comment' as reply_type
+         FROM timeline_comments
+         JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+         WHERE timeline_comments.author_user_id = ? AND timeline_comments.is_deleted = 0
+         ORDER BY timeline_comments.created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    const recentEventComments = await db
+      .prepare(
+        `SELECT event_comments.id, event_comments.created_at, events.id as thread_id, events.title as thread_title, 'event_comment' as reply_type
+         FROM event_comments
+         JOIN events ON events.id = event_comments.event_id
+         WHERE event_comments.author_user_id = ? AND event_comments.is_deleted = 0
+         ORDER BY event_comments.created_at DESC LIMIT 10`
+      )
+      .bind(profileUser.id)
+      .all();
+
+    // Merge and sort recent activity
+    const allPosts = [
+      ...(recentForumThreads?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentDevLogs?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentMusicPosts?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentProjects?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentTimelineUpdates?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentEvents?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type }))
+    ];
+
+    const allReplies = [
+      ...(recentForumReplies?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentDevLogComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentMusicComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentProjectReplies?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentTimelineComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentEventComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type }))
+    ];
+
+    const allActivity = [...allPosts, ...allReplies]
+      .sort((a, b) => b.created_at - a.created_at)
+      .slice(0, 10);
+
     stats = {
-      threadCount: threadCount?.count || 0,
-      replyCount: replyCount?.count || 0,
-      recentThreads: recentThreads?.results || [],
-      recentReplies: recentReplies?.results || [],
+      threadCount,
+      replyCount,
+      recentThreads: allPosts.slice(0, 10),
+      recentReplies: allReplies.slice(0, 10),
+      recentActivity: allActivity,
     };
   } catch (e) {
     stats = {
@@ -90,6 +282,7 @@ export default async function ProfilePage({ params }) {
       replyCount: 0,
       recentThreads: [],
       recentReplies: [],
+      recentActivity: [],
     };
   }
 
@@ -340,41 +533,58 @@ export default async function ProfilePage({ params }) {
           </div>
         )}
 
-        {(stats.recentThreads.length > 0 || stats.recentReplies.length > 0) && (
+        {stats.recentActivity && stats.recentActivity.length > 0 ? (
           <div style={{ marginTop: '24px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
             <div className="list">
-              {stats.recentThreads.map(thread => (
-                <a
-                  key={thread.id}
-                  href={`/lobby/${thread.id}`}
-                  className="list-item"
-                  style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                >
-                  <div style={{ marginBottom: '4px' }}>
-                    <strong>{thread.title}</strong>
-                  </div>
-                  <div className="list-meta" style={{ fontSize: '12px' }}>
-                    <span suppressHydrationWarning>{formatDateTime(thread.created_at)}</span>
-                  </div>
-                </a>
-              ))}
-              {stats.recentReplies.map(reply => (
-                <a
-                  key={reply.id}
-                  href={`/lobby/${reply.thread_id}`}
-                  className="list-item"
-                  style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                >
-                  <div style={{ marginBottom: '4px' }}>
-                    Replied to <strong>{reply.thread_title}</strong>
-                  </div>
-                  <div className="list-meta" style={{ fontSize: '12px' }}>
-                    <span suppressHydrationWarning>{formatDateTime(reply.created_at)}</span>
-                  </div>
-                </a>
-              ))}
+              {stats.recentActivity.map((item) => {
+                // Determine URL based on post/reply type
+                let href = '#';
+                if (item.type === 'thread') {
+                  const postType = item.postType || item.post_type;
+                  if (postType === 'forum_thread') href = `/lobby/${item.id}`;
+                  else if (postType === 'dev_log') href = `/devlog/${item.id}`;
+                  else if (postType === 'music_post') href = `/music/${item.id}`;
+                  else if (postType === 'project') href = `/projects/${item.id}`;
+                  else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
+                  else if (postType === 'event') href = `/events/${item.id}`;
+                } else {
+                  const replyType = item.replyType || item.reply_type;
+                  const threadId = item.thread_id;
+                  if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
+                  else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
+                  else if (replyType === 'music_comment') href = `/music/${threadId}`;
+                  else if (replyType === 'project_reply') href = `/projects/${threadId}`;
+                  else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
+                  else if (replyType === 'event_comment') href = `/events/${threadId}`;
+                }
+                
+                return (
+                  <a
+                    key={`${item.type}-${item.id}`}
+                    href={href}
+                    className="list-item"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                  >
+                    <div style={{ marginBottom: '4px' }}>
+                      {item.type === 'thread' ? (
+                        <strong>{item.title}</strong>
+                      ) : (
+                        <>Replied to <strong>{item.thread_title}</strong></>
+                      )}
+                    </div>
+                    <div className="list-meta" style={{ fontSize: '12px' }}>
+                      <span suppressHydrationWarning>{formatDateTime(item.created_at)}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
+          </div>
+        ) : (
+          <div style={{ marginTop: '24px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
+            <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
           </div>
         )}
       </section>
