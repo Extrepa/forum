@@ -112,10 +112,11 @@ export default function CollapsibleReplyForm({
           placeholder={currentReplyingTo ? 'Write your reply…' : placeholder} 
           required
           defaultValue={currentPrefill}
+          style={{ marginBottom: '0' }}
         />
       </label>
       {allowImageUpload && (
-        <label style={{ marginTop: '0px', display: 'block' }}>
+        <label style={{ marginTop: '-8px', display: 'block' }}>
           <div className="muted" style={{ marginTop: '8px', marginBottom: '8px' }}>Image (optional)</div>
           <input name="image" type="file" accept="image/*" />
         </label>
