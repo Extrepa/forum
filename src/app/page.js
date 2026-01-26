@@ -946,24 +946,27 @@ export default async function HomePage({ searchParams }) {
         // Table might not exist yet
       }
 
-      // Currently active users (users who have been active in the last 15 minutes)
+      // Currently active users (users who have been active in the last 5 minutes)
       let activeUsersResult = null;
       try {
-        const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
-        // Try with last_seen column first
+        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+        // Try with last_seen column first - check if column exists by attempting query
         try {
+          // First, check if the column exists by trying to query it
+          await db.prepare('SELECT last_seen FROM users LIMIT 1').first();
+          // Column exists, use it to count active users
           activeUsersResult = await db
             .prepare('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?')
-            .bind(fifteenMinutesAgo)
+            .bind(fiveMinutesAgo)
             .first();
         } catch (e) {
-          // Fallback: if last_seen column doesn't exist yet, use session_token as proxy
-          activeUsersResult = await db
-            .prepare('SELECT COUNT(DISTINCT session_token) as count FROM users WHERE session_token IS NOT NULL AND session_token != ""')
-            .first();
+          // Column doesn't exist yet - return 0 instead of counting all session tokens
+          // This prevents showing inflated numbers before migration is applied
+          activeUsersResult = { count: 0 };
         }
       } catch (e) {
         // Table might not exist yet
+        activeUsersResult = { count: 0 };
       }
       
       // Recent activity count (last 24 hours)
