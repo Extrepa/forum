@@ -1125,6 +1125,33 @@ button:hover {
   gap: 12px;
 }
 
+.list-scrollable {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 225, 255, 0.3) rgba(4, 16, 23, 0.3);
+}
+
+.list-scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list-scrollable::-webkit-scrollbar-track {
+  background: rgba(4, 16, 23, 0.3);
+  border-radius: 4px;
+}
+
+.list-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(52, 225, 255, 0.3);
+  border-radius: 4px;
+}
+
+.list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 225, 255, 0.5);
+}
+
 .list-divider {
   height: 1px;
   background: rgba(52, 225, 255, 0.22);

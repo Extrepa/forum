@@ -26,7 +26,7 @@ export default function DevLogClient({ logs, notice }) {
       <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list-scrollable">
           {logs.length === 0 ? (
             <p className="muted">No Development posts yet.</p>
           ) : (
