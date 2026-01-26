@@ -627,12 +627,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </div>
               </div>
             </section>
-
-            <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px' }}>
-              Sign out
-            </button>
           </div>
         </div>
+
+        <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px' }}>
+          Sign out
+        </button>
 
         {status.type !== 'idle' ? <div className="notice">{status.message}</div> : null}
       </Wrapper>
