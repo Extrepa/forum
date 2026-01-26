@@ -67,13 +67,15 @@ export default async function RootLayout({ children }) {
                 {/* Right: Trademark & Copyright */}
                 <div className="footer-column footer-column-right">
                   <div className="footer-trademark-copyright">
-                    <span className="footer-trademark-name">Errl</span>
-                    <span className="footer-trademark-expansion">
-                      (Effervescent Remnant of Radical Luminosity/Liminality)
-                    </span>
-                    <span className="footer-copyright-inline">
-                      • © <time dateTime="2015-05-01">2015</time> All rights reserved.
-                    </span>
+                    <div className="footer-trademark-line">
+                      <span className="footer-trademark-name">Errl</span>
+                      <span className="footer-trademark-expansion">
+                        (Effervescent Remnant of Radical Luminosity/Liminality)
+                      </span>
+                    </div>
+                    <div className="footer-copyright-line">
+                      © <time dateTime="2015-05-01">2015</time> All rights reserved.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -83,7 +85,7 @@ export default async function RootLayout({ children }) {
                 <p className="footer-tagline">
                   {taglinePhrases.map((phrase, index) => (
                     <span key={index}>
-                      <span className="footer-tagline-phrase">
+                      <span className={`footer-tagline-phrase footer-tagline-phrase-${index}`}>
                         {phrase}{phrase.endsWith('.') ? '' : '.'}
                       </span>
                       {index < taglinePhrases.length - 1 && (

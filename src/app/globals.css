@@ -1715,6 +1715,10 @@ footer {
   line-height: 1.4;
 }
 
+.footer-trademark-line {
+  display: block;
+}
+
 .footer-trademark-name {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
@@ -1725,9 +1729,9 @@ footer {
   margin-left: 0.25rem;
 }
 
-.footer-copyright-inline {
-  display: inline;
-  margin-left: 0.25rem;
+.footer-copyright-line {
+  display: block;
+  margin-top: 0.25rem;
 }
 
 /* Tagline bar */
@@ -1754,6 +1758,22 @@ footer {
   display: block;
 }
 
+/* Different colors for each tagline phrase */
+.footer-tagline-phrase-0 {
+  color: var(--errl-accent);
+  text-shadow: 0 0 10px rgba(52, 225, 255, 0.4);
+}
+
+.footer-tagline-phrase-1 {
+  color: var(--errl-accent-2);
+  text-shadow: 0 0 10px rgba(255, 52, 245, 0.4);
+}
+
+.footer-tagline-phrase-2 {
+  color: var(--errl-accent-3);
+  text-shadow: 0 0 10px rgba(245, 255, 183, 0.4);
+}
+
 .footer-tagline-separator {
   display: none;
   margin: 0 8px;
@@ -1768,10 +1788,6 @@ footer {
   .footer-tagline-separator {
     display: inline;
   }
-}
-
-.footer-tagline-phrase:last-child {
-  color: rgba(255, 255, 255, 0.95);
 }
 
 header::before,
