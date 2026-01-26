@@ -22,7 +22,6 @@ export default function DevLogClient({ logs, notice }) {
     if (!latestPostRef.current || viewTracked || logs.length === 0) return;
 
     const latestPostId = logs[0].id;
-    const latestPostElement = latestPostRef.current;
     let initialScrollY = window.scrollY || window.pageYOffset;
     let hasScrolled = false;
 
@@ -38,14 +37,20 @@ export default function DevLogClient({ logs, notice }) {
       // Only count as view if user has scrolled AND reached the bottom
       if (!hasScrolled) return;
 
-      // Get the bounding box of the latest post element
-      const rect = latestPostElement.getBoundingClientRect();
+      // Find the post body element within the latest post (the actual content div)
+      const latestPostWrapper = latestPostRef.current;
+      const postBodyElement = latestPostWrapper?.querySelector('.post-body.post-body-scrollable');
+      
+      if (!postBodyElement) return;
+
+      // Get the bounding box of the post body element (the actual content)
+      const rect = postBodyElement.getBoundingClientRect();
       const elementBottom = rect.bottom;
       const windowHeight = window.innerHeight;
 
-      // Check if the bottom of the post has been scrolled into view
-      // We consider it "read" if the bottom of the element is at or above the bottom of the viewport
-      // This means the user has scrolled to see the entire post
+      // Check if the bottom of the post body has been scrolled into view
+      // We consider it "read" if the bottom of the post body is at or above the bottom of the viewport
+      // This means the user has scrolled to see the entire post content
       // Using a 50px threshold to account for edge cases
       const isAtBottom = elementBottom <= windowHeight + 50;
 
