@@ -1795,8 +1795,8 @@ footer {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: none;
   background: rgba(2, 7, 10, 0.85);
@@ -1894,8 +1894,8 @@ footer {
 }
 
 .scroll-to-top-face {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   filter: drop-shadow(0 0 8px rgba(52, 225, 255, 0.6));
   transition: filter 0.3s ease;
   position: relative;
@@ -1927,7 +1927,7 @@ footer {
 
 .scroll-to-top-letter {
   position: absolute;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 600;
   color: var(--word-color, var(--errl-accent));
   text-shadow: 0 0 4px currentColor;
@@ -1935,7 +1935,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-30px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-17px);
   white-space: nowrap;
 }
 
@@ -1952,19 +1952,19 @@ footer {
   .scroll-to-top-button {
     bottom: 20px;
     right: 20px;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
 
   .scroll-to-top-face {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .scroll-to-top-letter {
-    font-size: 7px;
+    font-size: 6px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-24px);
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-15px);
   }
 }
 
