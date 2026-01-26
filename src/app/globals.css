@@ -2336,25 +2336,6 @@ header::before {
 
 /* Mobile adjustments */
 @media (max-width: 640px) {
-  /* Remove horizontal padding on mobile to use full viewport */
-  .site {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-  
-  /* Add minimal padding back to main content area */
-  main {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-  
-  /* Auth form card should break out of main padding to use full width */
-  .auth-form-card {
-    margin-left: -8px !important;
-    margin-right: -8px !important;
-    width: calc(100% + 16px) !important;
-    max-width: calc(100% + 16px) !important;
-  }
 
   .forum-logo-nav {
     flex: 1 1 auto;
@@ -2509,13 +2490,35 @@ header::before {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+  }
+  
+  /* Ensure labels don't constrain input width */
+  .auth-form-container label {
+    width: 100% !important;
+    display: block !important;
+  }
+  
+  /* Ensure label inner divs don't constrain width */
+  .auth-form-container label > div {
+    width: 100% !important;
+  }
+  
+  /* Ensure relative wrapper divs use full width */
+  .auth-form-container label > div[style*="position: relative"] {
+    width: 100% !important;
   }
 
   /* Ensure buttons are full width */
   .auth-form-container button {
     width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure forms use full width */
+  .auth-form-container form {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Fix placeholder overflow */

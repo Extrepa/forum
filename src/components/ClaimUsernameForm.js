@@ -637,9 +637,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   }
 
   const Wrapper = noCardWrapper ? 'div' : 'div';
-  const wrapperProps = noCardWrapper ? {} : { className: 'card auth-form-card' };
+  const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
-    <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '16px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', marginLeft: 0, marginRight: 0 }}>
+    <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
       <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ flex: '0 0 25%', minWidth: '200px', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
           <div style={{ position: 'sticky', top: '20px' }}>
@@ -713,6 +713,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(event) => setLoginPassword(event.target.value)}
                     placeholder="Password"
                     required
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </label>
                 <button type="submit" disabled={status.type === 'loading'} style={{ width: '100%' }}>
@@ -834,6 +835,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(event) => setSignupPassword(event.target.value)}
                     placeholder="Password"
                     required
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </label>
                 <div style={{ marginTop: '12px', marginBottom: '8px' }}>
