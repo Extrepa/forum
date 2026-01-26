@@ -394,14 +394,14 @@ export default async function FeedPage() {
             items.map((item) => {
               const authorPreferredColor = item.authorColorPreference;
               const authorColorIndex = usernameColorMap.get(item.author) ?? getUsernameColorIndex(item.author, { preferredColorIndex: authorPreferredColor });
-              const titleWithType = item.type !== 'Lobby' ? (
+              const titleWithType = (
                 <>
                   {item.title}
-                  <span className="muted" style={{ fontSize: '12px', marginLeft: '8px', fontWeight: 'normal' }}>
+                  <span className="muted" style={{ fontSize: '12px', marginLeft: '4px', marginRight: 0, fontWeight: 'normal' }}>
                     ({item.type})
                   </span>
                 </>
-              ) : item.title;
+              );
               
               return (
                 <a

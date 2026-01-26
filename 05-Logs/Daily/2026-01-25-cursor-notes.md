@@ -1290,3 +1290,18 @@ All use `COALESCE(...)` and primary/fallback queries via `safeAll` (e.g. with/wi
 
 ### Build / Lint
 - Build OK; no linter errors.
+
+---
+
+## Feed: Padding Fix + Lobby Section Label (2026-01-25)
+
+### Issues
+1. **Padding:** Weird gap between section tag `(Lore)` / `(Event)` and "by username". Caused by `.list-item h3 span { margin-right: 6px }` on the type span plus PostMetaBar’s `marginLeft: 6px` on "by" → ~12px total.
+2. **Lobby:** Lobby posts did not show `(Lobby)`; we skipped the type for `item.type === 'Lobby'`.
+
+### Fixes
+1. **Type span:** `marginLeft: '8px'` → `'4px'`, added `marginRight: 0` to override `.list-item h3 span` and remove the extra 6px before "by".
+2. **Lobby:** Always render `({item.type})` for all types, including Lobby, so lobby posts show `(Lobby)`.
+
+### Files Modified
+- `src/app/feed/page.js`
