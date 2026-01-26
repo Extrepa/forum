@@ -1795,8 +1795,8 @@ footer {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: none;
   background: rgba(2, 7, 10, 0.85);
@@ -1927,7 +1927,7 @@ footer {
 
 .scroll-to-top-letter {
   position: absolute;
-  font-size: 7px;
+  font-size: 7.5px;
   font-weight: 600;
   color: var(--word-color, var(--errl-accent));
   text-shadow: 0 0 4px currentColor;
@@ -1935,7 +1935,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-17px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-16px);
   white-space: nowrap;
 }
 
@@ -1952,8 +1952,8 @@ footer {
   .scroll-to-top-button {
     bottom: 20px;
     right: 20px;
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 
   .scroll-to-top-face {
@@ -1962,9 +1962,9 @@ footer {
   }
 
   .scroll-to-top-letter {
-    font-size: 6px;
+    font-size: 6.5px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-15px);
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-14px);
   }
 }
 
