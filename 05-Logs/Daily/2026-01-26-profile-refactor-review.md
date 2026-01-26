@@ -115,16 +115,48 @@ Refactored the profile section of the account page into a two-column layout with
 - [ ] Color picker works with hover effects
 - [ ] Social links save correctly
 - [ ] Social links display with icons and usernames
-- [ ] SoundCloud icon displays correctly (needs SVG fix)
+- [ ] SoundCloud icon displays correctly (simplified SVG with cloud + waveform)
 - [ ] Links are clickable and open in new tab
 - [ ] Profile page shows social links correctly
 
-## Next Steps
+## Final Status
 
-1. **Fix SoundCloud SVG** - Replace waveform bars with cloud-only logo
-2. **Test on mobile** - Verify edit button positioning when columns wrap
-3. **Test social links** - Verify username extraction for all platforms
-4. **Visual testing** - Check orange theming for SoundCloud links
+### SoundCloud SVG
+**Note:** The SoundCloud logo includes waveform bars as part of the brand identity. The current implementation shows simplified waveform bars above a cloud base, matching the SoundCloud visual style. If further simplification is needed, the waveform bars can be removed to show only the cloud shape.
+
+### Mobile Edit Button
+**Implementation:** Uses CSS media query to hide desktop button and show mobile button below all content when viewport < 640px. Both buttons share the same onClick handler for consistency.
+
+## Code Structure
+
+**Component Hierarchy:**
+```
+AccountTabsClient
+├── Account Tab (ClaimUsernameForm)
+└── Profile Tab
+    ├── Two Column Layout (.account-columns)
+    │   ├── Left Column (.account-col)
+    │   │   └── Stats (Joined, Posts, Replies, Total)
+    │   └── Right Column (.account-col)
+    │       ├── Username Section (with label when editing)
+    │       ├── Color Picker Section (with label when editing)
+    │       ├── Desktop Edit Button (absolute positioned)
+    │       ├── Social Links Display (when not editing)
+    │       ├── Social Links Inputs (when editing)
+    │       ├── Mobile Edit Button (hidden on desktop)
+    │       └── Save/Cancel Buttons (when editing)
+    └── Recent Activity Section
+```
+
+## Known Considerations
+
+1. **SoundCloud SVG:** Current implementation includes waveform bars which are part of SoundCloud's brand identity. If a cloud-only version is preferred, the waveform path can be removed.
+
+2. **Mobile Breakpoint:** Edit button switch happens at 640px. This matches the column stacking breakpoint for consistency.
+
+3. **Social Links Storage:** Links are stored as JSON array in `profile_links` column. Backward compatible with comma-separated format.
+
+4. **Username Extraction:** Handles various URL formats but may not extract username from all possible URL structures. Edge cases should be tested.
 
 ## Code Quality Notes
 
