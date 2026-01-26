@@ -1965,6 +1965,15 @@ footer {
   z-index: 1;
 }
 
+@keyframes rotate-text-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .scroll-to-top-letter {
   position: absolute;
   font-size: 8px;
@@ -1976,6 +1985,7 @@ footer {
   top: 50%;
   transform-origin: 0 0;
   transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px);
+  animation: rotate-text-counter 8s linear infinite;
   white-space: nowrap;
 }
 
