@@ -265,6 +265,16 @@ npm run deploy
 **File Modified:**
 - `src/app/layout.js` - Line 29: Simplified to fire-and-forget pattern (no await, no scheduling)
 
+## Fix: formatTimeAgo timestamp validation
+**Issue:** `formatTimeAgo` was not handling invalid timestamps, future timestamps, or edge cases, causing "messages not working" and time display issues
+**Fix:** Added validation to handle:
+- Invalid/null/NaN timestamps → returns 'just now'
+- Future timestamps (negative diff) → returns 'just now'
+- Ensures timestamp is converted to number before calculation
+**Files Modified:**
+- `src/app/page.js` - Line 19: Added validation to local `formatTimeAgo` function
+- `src/lib/dates.js` - Line 25: Added validation to exported `formatTimeAgo` function
+
 ## Notes
 - All fixes follow Next.js 15 best practices for server-side rendering
 - `suppressHydrationWarning` is used correctly (one level deep, on elements with expected differences)

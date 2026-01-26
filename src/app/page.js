@@ -17,8 +17,20 @@ import HomeSectionCard from '../components/HomeSectionCard';
 export const dynamic = 'force-dynamic';
 
 function formatTimeAgo(timestamp) {
+  // Ensure timestamp is a valid number
+  const ts = Number(timestamp);
+  if (!ts || isNaN(ts) || ts <= 0) {
+    return 'just now';
+  }
+  
   const now = Date.now();
-  const diff = now - timestamp;
+  const diff = now - ts;
+  
+  // Handle future timestamps or invalid diffs
+  if (diff < 0) {
+    return 'just now';
+  }
+  
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
