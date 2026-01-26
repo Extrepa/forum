@@ -740,6 +740,15 @@ main {
   .account-columns {
     grid-template-columns: 1fr;
   }
+  
+  /* Hide desktop edit button, show mobile edit button when columns wrap */
+  .username-edit-btn {
+    display: none !important;
+  }
+  
+  .username-edit-btn-mobile {
+    display: inline-block !important;
+  }
 }
 
 .account-col {

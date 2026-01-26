@@ -247,7 +247,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       case 'soundcloud':
         return (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ display: 'block' }}>
-            <path d="M1.175 13.5c-.65 0-1.175.525-1.175 1.175v4.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-4.65c0-.65-.525-1.175-1.175-1.175zm3-3c-.65 0-1.175.525-1.175 1.175v7.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-7.65c0-.65-.525-1.175-1.175-1.175zm3-3c-.65 0-1.175.525-1.175 1.175v10.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-10.65c0-.65-.525-1.175-1.175-1.175zm3-1.5c-.65 0-1.175.525-1.175 1.175v12.15c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-12.15c0-.65-.525-1.175-1.175-1.175zm3-1.5c-.65 0-1.175.525-1.175 1.175v13.65c0 .65.525 1.175 1.175 1.175s1.175-.525 1.175-1.175v-13.65c0-.65-.525-1.175-1.175-1.175zm9-3c-1.5 0-2.5 1-2.5 2.5v8c0 1.5 1 2.5 2.5 2.5s2.5-1 2.5-2.5-1-2.5-2.5-2.5z" fill="#FF6B00" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 107, 0, 0.6))' }}/>
+            <path d="M19.5 9.5c-.8 0-1.5.7-1.5 1.5v2c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-2c0-.8-.7-1.5-1.5-1.5zm-3-2c-.8 0-1.5.7-1.5 1.5v4c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-4c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v5c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-5c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v6c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v7c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-7c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v8c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-8c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v9c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-9c0-.8-.7-1.5-1.5-1.5zm-3-1c-.8 0-1.5.7-1.5 1.5v10c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-10c0-.8-.7-1.5-1.5-1.5z" fill="#FF6B00" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 107, 0, 0.6))' }}/>
+            <path d="M2 12c0-2.2 1.8-4 4-4 .5 0 1 .1 1.4.3C8.2 7.1 9.1 6.5 10 6.5c.9 0 1.8.6 2.6 1.8.4-.2.9-.3 1.4-.3 2.2 0 4 1.8 4 4v1H2v-1z" fill="#FF6B00" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 107, 0, 0.6))' }}/>
           </svg>
         );
       default:
@@ -351,7 +352,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Right Column: Username, Color, and Social Links */}
             <div className="account-col">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-                {/* Username and Colors Container with Edit Button Between */}
+                {/* Username and Colors Container */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
@@ -458,75 +459,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   </div>
 
-                  {/* Social Links Display - only show when NOT editing */}
-                  {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '12px', alignItems: 'flex-start' }}>
-                      {stats.profileLinks.map((link) => {
-                        if (typeof link !== 'object' || !link.platform || !link.url) return null;
-                        const platformData = socialPlatforms.find(p => p.value === link.platform);
-                        if (!platformData) return null;
-                        const username = extractUsername(link.platform, link.url);
-                        const isSoundCloud = link.platform === 'soundcloud';
-                        return (
-                          <a
-                            key={link.platform}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              padding: '4px 8px',
-                              borderRadius: '6px',
-                              border: isSoundCloud 
-                                ? '1px solid rgba(255, 107, 0, 0.3)' 
-                                : '1px solid rgba(52, 225, 255, 0.3)',
-                              background: isSoundCloud 
-                                ? 'rgba(255, 107, 0, 0.05)' 
-                                : 'rgba(52, 225, 255, 0.05)',
-                              color: 'var(--accent)',
-                              textDecoration: 'none',
-                              fontSize: '13px',
-                              transition: 'all 0.2s ease',
-                              cursor: 'pointer',
-                              width: 'fit-content'
-                            }}
-                            title={platformData.label}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = isSoundCloud 
-                                ? 'rgba(255, 107, 0, 0.15)' 
-                                : 'rgba(52, 225, 255, 0.15)';
-                              e.currentTarget.style.borderColor = isSoundCloud 
-                                ? 'rgba(255, 107, 0, 0.6)' 
-                                : 'rgba(52, 225, 255, 0.6)';
-                              e.currentTarget.style.boxShadow = isSoundCloud 
-                                ? '0 0 12px rgba(255, 107, 0, 0.4)' 
-                                : '0 0 12px rgba(52, 225, 255, 0.4)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = isSoundCloud 
-                                ? 'rgba(255, 107, 0, 0.05)' 
-                                : 'rgba(52, 225, 255, 0.05)';
-                              e.currentTarget.style.borderColor = isSoundCloud 
-                                ? 'rgba(255, 107, 0, 0.3)' 
-                                : 'rgba(52, 225, 255, 0.3)';
-                              e.currentTarget.style.boxShadow = 'none';
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              {getPlatformIcon(link.platform)}
-                            </span>
-                            {username && (
-                              <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
-                            )}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Edit Button - positioned between username and colors */}
+                  {/* Edit Button - positioned between username and colors on desktop, below everything on mobile */}
                   {!isEditingUsername && (
                     <button
                       type="button"
@@ -560,6 +493,108 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </button>
                   )}
                 </div>
+
+                {/* Social Links Display - only show when NOT editing */}
+                {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                    {stats.profileLinks.map((link) => {
+                      if (typeof link !== 'object' || !link.platform || !link.url) return null;
+                      const platformData = socialPlatforms.find(p => p.value === link.platform);
+                      if (!platformData) return null;
+                      const username = extractUsername(link.platform, link.url);
+                      const isSoundCloud = link.platform === 'soundcloud';
+                      return (
+                        <a
+                          key={link.platform}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: isSoundCloud 
+                              ? '1px solid rgba(255, 107, 0, 0.3)' 
+                              : '1px solid rgba(52, 225, 255, 0.3)',
+                            background: isSoundCloud 
+                              ? 'rgba(255, 107, 0, 0.05)' 
+                              : 'rgba(52, 225, 255, 0.05)',
+                            color: 'var(--accent)',
+                            textDecoration: 'none',
+                            fontSize: '13px',
+                            transition: 'all 0.2s ease',
+                            cursor: 'pointer',
+                            width: 'fit-content'
+                          }}
+                          title={platformData.label}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = isSoundCloud 
+                              ? 'rgba(255, 107, 0, 0.15)' 
+                              : 'rgba(52, 225, 255, 0.15)';
+                            e.currentTarget.style.borderColor = isSoundCloud 
+                              ? 'rgba(255, 107, 0, 0.6)' 
+                              : 'rgba(52, 225, 255, 0.6)';
+                            e.currentTarget.style.boxShadow = isSoundCloud 
+                              ? '0 0 12px rgba(255, 107, 0, 0.4)' 
+                              : '0 0 12px rgba(52, 225, 255, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = isSoundCloud 
+                              ? 'rgba(255, 107, 0, 0.05)' 
+                              : 'rgba(52, 225, 255, 0.05)';
+                            e.currentTarget.style.borderColor = isSoundCloud 
+                              ? 'rgba(255, 107, 0, 0.3)' 
+                              : 'rgba(52, 225, 255, 0.3)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {getPlatformIcon(link.platform)}
+                          </span>
+                          {username && (
+                            <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Edit Button - appears below all content on mobile when columns wrap */}
+                {!isEditingUsername && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingUsername(true);
+                      setNewUsername(user.username);
+                      setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                      setUsernameStatus({ type: 'idle', message: null });
+                      setColorStatus({ type: 'idle', message: null });
+                    }}
+                    className="username-edit-btn-mobile"
+                    style={{
+                      display: 'none',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--accent)',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s ease',
+                      fontWeight: '500',
+                      alignSelf: 'flex-start',
+                      marginTop: '4px'
+                    }}
+                    title="Edit username and color"
+                  >
+                    edit
+                  </button>
+                )}
+              </div>
+            </div>
 
                 {/* Social Media Links - only show when editing */}
                 {isEditingUsername && (
