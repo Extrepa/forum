@@ -72,7 +72,7 @@ export default async function RootLayout({ children }) {
                       (Effervescent Remnant of Radical Luminosity/Liminality)
                     </span>
                     <span className="footer-copyright-inline">
-                      • © <time dateTime="2015-05-01">2015</time> • ™ All rights reserved.
+                      • © <time dateTime="2015-05-01">2015</time> All rights reserved.
                     </span>
                   </div>
                 </div>
