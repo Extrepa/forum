@@ -2,6 +2,7 @@ import './globals.css';
 import { UiPrefsProvider } from '../components/UiPrefsProvider';
 import SiteHeader from '../components/SiteHeader';
 import NotificationTutorial from '../components/NotificationTutorial';
+import ScrollToTopButton from '../components/ScrollToTopButton';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
 import { updateUserLastSeen } from '../lib/auth';
@@ -96,6 +97,7 @@ export default async function RootLayout({ children }) {
                 </p>
               </div>
             </footer>
+            <ScrollToTopButton />
           </div>
         </UiPrefsProvider>
       </body>
