@@ -1893,6 +1893,44 @@ footer {
   transform: translateY(0) scale(0.95);
 }
 
+@keyframes scrollToTopColorCycle {
+  0% {
+    filter:
+      drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
+  }
+  16.66% {
+    filter:
+      drop-shadow(0 0 4px hsl(150, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(150, 95%, 60% / 0.22));
+  }
+  33.33% {
+    filter:
+      drop-shadow(0 0 4px hsl(60, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(60, 95%, 60% / 0.22));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 4px hsl(30, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(30, 95%, 60% / 0.22));
+  }
+  66.66% {
+    filter:
+      drop-shadow(0 0 4px hsl(300, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(300, 95%, 60% / 0.22));
+  }
+  83.33% {
+    filter:
+      drop-shadow(0 0 4px hsl(240, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(240, 95%, 60% / 0.22));
+  }
+  100% {
+    filter:
+      drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
+      drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
+  }
+}
+
 .scroll-to-top-face {
   width: 30px;
   height: 30px;
@@ -1905,7 +1943,7 @@ footer {
 }
 
 .scroll-to-top-button:hover .scroll-to-top-face {
-  filter: drop-shadow(0 0 12px rgba(52, 225, 255, 0.9));
+  animation: scrollToTopColorCycle 3s linear infinite;
 }
 
 .scroll-to-top-path {
@@ -1937,7 +1975,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-21px);
+  transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px);
   white-space: nowrap;
 }
 
@@ -1946,7 +1984,7 @@ footer {
     transform: rotate(0deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(-360deg);
   }
 }
 
