@@ -1927,7 +1927,7 @@ footer {
 
 .scroll-to-top-letter {
   position: absolute;
-  font-size: 7.5px;
+  font-size: 8px;
   font-weight: 600;
   color: var(--word-color, var(--errl-accent));
   text-shadow: 0 0 4px currentColor;
@@ -1935,7 +1935,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-16px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-25px);
   white-space: nowrap;
 }
 
@@ -1962,9 +1962,9 @@ footer {
   }
 
   .scroll-to-top-letter {
-    font-size: 6.5px;
+    font-size: 7px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-14px);
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-21px);
   }
 }
 
