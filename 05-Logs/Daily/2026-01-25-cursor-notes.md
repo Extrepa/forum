@@ -1521,3 +1521,19 @@ The home page now displays a different Errl-themed greeting message for each hou
 - **Created:** `05-Logs/Development/2026-01-25-development-post-04.md`
 - **Scope:** Notifications (full coverage, individual delete, Clear All confirmation), announcements (image upload, admin-only), dual-page forms (type dropdown, no members-only), feed/home (hourly greetings, portal message on feed, 15 items, PostMetaBar, event attendees, last-activity layout), dev latest post scrollable, username colors system-wide, edit/delete/lock (Lore/Memories, DeleteCommentButton), Next.js 15 params/serialization fixes, art page variable-order bug, API params consistency.
 - **Known issues / if problems:** Old `target_type === 'post'` notifications show "Notification" with no link; `IMAGE_UPLOAD_ALLOWLIST` for announcement images; `posts.is_deleted` may be missing; lock for posts deferred; ~38 API routes may need `await params`; optional threading/quote on Lore/Memories/devlog.
+
+---
+
+## Notes Organization (2026-01-25)
+
+- **Reorganized 05-Logs directory structure:**
+  - Moved dated files (`2026-01-23-*.md`) from root to `Daily/` folder
+  - Created `Implementation/` folder for implementation summaries and verification documents
+  - Created `Reference/` folder for build commands and migration instructions
+  - Created `README.md` in `05-Logs/` documenting the directory structure and file naming conventions
+- **Final structure:**
+  - `Daily/` - All daily session notes and implementation logs (dated files)
+  - `Development/` - Development update posts for the forum
+  - `Implementation/` - High-level implementation summaries and completion notes
+  - `Reference/` - Build commands, migration instructions, and operational guides
+- **Root directory:** Now clean with only `README.md` for navigation
