@@ -292,46 +292,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Right Column: Username, Color, and Social Links */}
             <div className="account-col">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-                {/* Username and Color Picker Row */}
+                {/* Username Row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  {/* Username Display/Input */}
                   {!isEditingUsername ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: 0 }}>
-                      <Username
-                        name={user.username}
-                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsEditingUsername(true);
-                          setNewUsername(user.username);
-                          setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                          setUsernameStatus({ type: 'idle', message: null });
-                          setColorStatus({ type: 'idle', message: null });
-                        }}
-                        className="username-edit-btn"
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '4px',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: 'rgba(2, 7, 10, 0.6)',
-                          color: 'var(--accent)',
-                          cursor: 'pointer',
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          transition: 'all 0.2s ease',
-                          flexShrink: 0
-                        }}
-                        title="Edit username"
-                      >
-                        ✏️
-                      </button>
-                    </div>
+                    <Username
+                      name={user.username}
+                      colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                    />
                   ) : (
                     <input
                       type="text"
@@ -353,9 +320,41 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       autoFocus
                     />
                   )}
+                </div>
+
+                {/* Edit Button - positioned between username and colors */}
+                {!isEditingUsername && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0, maxWidth: '100%' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingUsername(true);
+                        setNewUsername(user.username);
+                        setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                        setUsernameStatus({ type: 'idle', message: null });
+                        setColorStatus({ type: 'idle', message: null });
+                      }}
+                      className="username-edit-btn"
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        background: 'rgba(2, 7, 10, 0.6)',
+                        color: 'var(--accent)',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        transition: 'all 0.2s ease',
+                        fontWeight: '500'
+                      }}
+                      title="Edit username and color"
+                    >
+                      edit
+                    </button>
+                  </div>
+                )}
                   
-                  {/* Color Picker Buttons */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flex: '0 0 auto' }}>
+                {/* Color Picker Buttons Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                   {colorOptions.map((option) => {
                     const isSelected = selectedColorIndex === option.index;
                     const disabled = !isEditingUsername || usernameStatus.type === 'loading';
@@ -371,7 +370,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           flex: '0 0 auto',
                           width: size,
                           height: size,
-                          borderRadius: option.index === null ? '4px' : '50%',
+                          borderRadius: '50%',
                           border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
                           background: option.index === null
                             ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
@@ -401,12 +400,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         }}
                       >
                         {option.index === null && (
-                          <span style={{ fontSize: '10px', color: 'var(--ink)', fontWeight: 'bold' }}>A</span>
+                          <span style={{ fontSize: '9px', color: 'var(--ink)', fontWeight: 'bold' }}>A</span>
                         )}
                       </button>
                     );
                   })}
-                  </div>
                 </div>
 
                 {/* Social Media Links - only show when editing */}
