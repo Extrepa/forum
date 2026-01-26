@@ -196,6 +196,65 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { value: 'soundcloud', label: 'SoundCloud', icon: '🎵' },
   ];
 
+  // Extract username from platform URLs
+  const extractUsername = (platform, url) => {
+    try {
+      const parsed = new URL(url);
+      const pathname = parsed.pathname;
+      
+      if (platform === 'soundcloud') {
+        // SoundCloud: https://soundcloud.com/username
+        const match = pathname.match(/^\/([^\/]+)/);
+        return match ? match[1] : null;
+      } else if (platform === 'github') {
+        // GitHub: https://github.com/username
+        const match = pathname.match(/^\/([^\/]+)/);
+        return match ? match[1] : null;
+      } else if (platform === 'youtube') {
+        // YouTube: https://youtube.com/@username or /c/channelname or /user/username
+        if (pathname.startsWith('/@')) {
+          return pathname.slice(2);
+        } else if (pathname.startsWith('/c/')) {
+          return pathname.slice(3);
+        } else if (pathname.startsWith('/user/')) {
+          return pathname.slice(6);
+        } else if (pathname.startsWith('/channel/')) {
+          return pathname.slice(9);
+        }
+        return null;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Get platform icon component
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'github':
+        return (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        );
+      case 'youtube':
+        return (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
+            <path d="M15.32 4.06c-.434.772-1.05 1.388-1.82 1.82C12.28 6.34 8 6.34 8 6.34s-4.28 0-5.5.54c-.77-.432-1.386-1.048-1.82-1.82C.14 4.84 0 5.4 0 6v4c0 .6.14 1.16.68 1.94.434.772 1.05 1.388 1.82 1.82 1.22.54 5.5.54 5.5.54s4.28 0 5.5-.54c.77-.432 1.386-1.048 1.82-1.82.54-.78.68-1.34.68-1.94V6c0-.6-.14-1.16-.68-1.94zM6.4 9.02V6.98L10.16 8l-3.76 1.02z"/>
+          </svg>
+        );
+      case 'soundcloud':
+        return (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ display: 'block' }}>
+            <path d="M13.5 0c-1.5 0-2.5 1-2.5 2.5v8c0 1.5 1 2.5 2.5 2.5s2.5-1 2.5-2.5S15 0 13.5 0zM1 9.5C.5 9.5 0 10 0 10.5v3c0 .5.5 1 1 1s1-.5 1-1v-3c0-.5-.5-1-1-1zm2-2C2.5 7.5 2 8 2 8.5v5c0 .5.5 1 1 1s1-.5 1-1v-5c0-.5-.5-1-1-1zm2-2C4.5 5.5 4 6 4 6.5v7c0 .5.5 1 1 1s1-.5 1-1v-7c0-.5-.5-1-1-1zm2-1C6.5 4.5 6 5 6 5.5v8c0 .5.5 1 1 1s1-.5 1-1v-8c0-.5-.5-1-1-1zm2-1C8.5 3.5 8 4 8 4.5v9c0 .5.5 1 1 1s1-.5 1-1v-9c0-.5-.5-1-1-1z"/>
+          </svg>
+        );
+      default:
+        return '🔗';
+    }
+  };
+
   const handleSocialLinkChange = (index, field, value) => {
     const updated = [...socialLinks];
     updated[index] = { ...updated[index], [field]: value };
@@ -401,11 +460,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
                   {/* Social Links Display - only show when NOT editing */}
                   {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '12px' }}>
                       {stats.profileLinks.map((link) => {
                         if (typeof link !== 'object' || !link.platform || !link.url) return null;
                         const platformData = socialPlatforms.find(p => p.value === link.platform);
                         if (!platformData) return null;
+                        const username = extractUsername(link.platform, link.url);
                         return (
                           <a
                             key={link.platform}
@@ -413,17 +473,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              display: 'inline-flex',
+                              display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '50%',
+                              gap: '8px',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
                               border: '1px solid rgba(52, 225, 255, 0.3)',
                               background: 'rgba(52, 225, 255, 0.05)',
                               color: 'var(--accent)',
                               textDecoration: 'none',
-                              fontSize: '14px',
+                              fontSize: '13px',
                               transition: 'all 0.2s ease',
                               cursor: 'pointer'
                             }}
@@ -432,16 +491,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
                               e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.6)';
                               e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.4)';
-                              e.currentTarget.style.transform = 'scale(1.1)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.background = 'rgba(52, 225, 255, 0.05)';
                               e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
                               e.currentTarget.style.boxShadow = 'none';
-                              e.currentTarget.style.transform = 'scale(1)';
                             }}
                           >
-                            {platformData.icon}
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {getPlatformIcon(link.platform)}
+                            </span>
+                            {username && (
+                              <span style={{ color: 'var(--ink)', fontSize: '13px' }}>{username}</span>
+                            )}
                           </a>
                         );
                       })}
