@@ -64,16 +64,16 @@ export default async function RootLayout({ children }) {
                   </div>
                 </div>
 
-                {/* Right: Trademark */}
+                {/* Right: Trademark & Copyright */}
                 <div className="footer-column footer-column-right">
-                  <div className="footer-trademark">
+                  <div className="footer-trademark-copyright">
                     <span className="footer-trademark-name">Errl</span>
                     <span className="footer-trademark-expansion">
                       (Effervescent Remnant of Radical Luminosity/Liminality)
                     </span>
-                  </div>
-                  <div className="footer-copyright">
-                    © <time dateTime="2015-05-01">2015</time> • ™ All rights reserved.
+                    <span className="footer-copyright-inline">
+                      • © <time dateTime="2015-05-01">2015</time> • ™ All rights reserved.
+                    </span>
                   </div>
                 </div>
               </div>

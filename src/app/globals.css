@@ -1605,7 +1605,7 @@ footer {
   margin-top: 36px;
   color: var(--muted);
   font-size: 13px;
-  padding: 24px 20px 16px;
+  padding: 16px 20px 12px;
   border-top: 1px solid rgba(22, 58, 74, 0.45);
   background: linear-gradient(180deg, transparent, rgba(2, 7, 10, 0.35));
 }
@@ -1614,15 +1614,15 @@ footer {
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   max-width: 100%;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 @media (min-width: 768px) {
   .footer-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1.5rem;
   }
 }
 
@@ -1630,7 +1630,7 @@ footer {
 .footer-column {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .footer-column-left {
@@ -1665,13 +1665,13 @@ footer {
 .footer-portal-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 8px 16px;
+  gap: 0.4rem;
+  padding: 6px 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.05);
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -1691,8 +1691,9 @@ footer {
 
 /* Signature */
 .footer-signature {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.8);
+  line-height: 1.3;
 }
 
 .footer-signature-name {
@@ -1702,15 +1703,16 @@ footer {
 
 /* Date */
 .footer-date {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
+  line-height: 1.3;
 }
 
-/* Trademark */
-.footer-trademark {
-  font-size: 12px;
+/* Trademark & Copyright (combined) */
+.footer-trademark-copyright {
+  font-size: 11px;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .footer-trademark-name {
@@ -1719,29 +1721,19 @@ footer {
 }
 
 .footer-trademark-expansion {
-  display: block;
-  margin-top: 0.25rem;
+  display: inline;
+  margin-left: 0.25rem;
 }
 
-@media (min-width: 640px) {
-  .footer-trademark-expansion {
-    display: inline;
-    margin-top: 0;
-    margin-left: 0.25rem;
-  }
-}
-
-/* Copyright */
-.footer-copyright {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 0.5rem;
+.footer-copyright-inline {
+  display: inline;
+  margin-left: 0.25rem;
 }
 
 /* Tagline bar */
 .footer-tagline-bar {
-  margin-top: 2rem;
-  padding: 16px 20px;
+  margin-top: 1rem;
+  padding: 12px 16px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);

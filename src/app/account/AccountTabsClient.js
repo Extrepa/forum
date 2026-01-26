@@ -115,8 +115,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     const usernameChanged = trimmed !== (user?.username || '');
     const colorChanged = selectedColorIndex !== (user?.preferred_username_color_index ?? null);
     
-    // Check if social links changed
-    const currentLinks = initialStats?.profileLinks || [];
+    // Check if social links changed (use current stats, not initialStats, to account for background refreshes)
+    const currentLinks = stats?.profileLinks || [];
     const linksToSave = socialLinks
       .filter(link => link.url.trim())
       .map(link => ({ platform: link.platform, url: link.url.trim() }));
