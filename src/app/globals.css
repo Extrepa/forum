@@ -749,6 +749,13 @@ main {
   transform: scale(1.1);
 }
 
+/* Keep edit button closer for in-between viewport sizes */
+@media (max-width: 1024px) and (min-width: 641px) {
+  .username-edit-btn {
+    right: 12px !important;
+  }
+}
+
 @media (max-width: 640px) {
   .account-columns {
     grid-template-columns: 1fr;

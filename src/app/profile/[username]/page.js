@@ -399,7 +399,9 @@ export default async function ProfilePage({ params }) {
         <div className="account-columns" style={{ marginBottom: '24px' }}>
           {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
-            <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Profile</h2>
+            <h2 className="section-title" style={{ marginBottom: '4px' }}>
+              <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
+            </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Username Row - same line */}
               <div>
@@ -463,8 +465,8 @@ export default async function ProfilePage({ params }) {
 
           {/* Right Column: Stats */}
           <div className="account-col">
-            <h2 className="section-title" style={{ marginBottom: '8px', textAlign: 'right' }}>
-              <span style={{ textDecoration: 'underline', textDecorationColor: 'var(--accent-2)', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
+            <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>
+              <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               {(() => {
