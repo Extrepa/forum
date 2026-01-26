@@ -406,18 +406,21 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
-                    {(isEditingUsername || !isEditingUsername) && (
-                      <label style={{ fontSize: isEditingUsername ? '11px' : '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                        {isEditingUsername ? 'Username' : 'Username:'}
+                    {isEditingUsername && (
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>
+                        Username
                       </label>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                      {!isEditingUsername ? (
+                    {!isEditingUsername ? (
+                      <div>
+                        <strong>Username:</strong>{' '}
                         <Username
                           name={user.username}
                           colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
                         />
-                      ) : (
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                         <input
                           type="text"
                           value={newUsername}
@@ -437,8 +440,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           }}
                           autoFocus
                         />
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Color Picker Buttons Row */}
@@ -546,10 +549,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
                 {/* Social Links Display - only show when NOT editing */}
                 {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                    <label style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                      Socials:
-                    </label>
+                  <div>
+                    <strong>Socials:</strong>
+                    <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
                     {stats.profileLinks.map((link) => {
                       if (typeof link !== 'object' || !link.platform || !link.url) return null;
                       const platformData = socialPlatforms.find(p => p.value === link.platform);
@@ -612,6 +614,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         </a>
                       );
                     })}
+                    </div>
                   </div>
                 )}
 
