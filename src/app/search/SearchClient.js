@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import { formatDateTime } from '../../lib/dates';
 
 export default function SearchClient({ query: initialQuery, results }) {
   const router = useRouter();
@@ -143,7 +144,7 @@ export default function SearchClient({ query: initialQuery, results }) {
                           <Username name={result.author_name} colorIndex={colorIndex} />
                         </span>
                         <span>
-                          {new Date(result.created_at).toLocaleString()}
+                          <span suppressHydrationWarning>{formatDateTime(result.created_at)}</span>
                           {result.reply_count !== undefined &&
                             ` · ${result.reply_count} ${result.reply_count === 1 ? 'reply' : 'replies'}`}
                           {result.status && (

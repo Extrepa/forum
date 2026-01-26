@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { formatDateTime } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import DeleteCommentButton from './DeleteCommentButton';
 
@@ -169,7 +170,7 @@ export default function EventCommentsSection({
                   <span>
                     <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                     {' · '}
-                    <span suppressHydrationWarning>{new Date(c.created_at).toLocaleString()}</span>
+                    <span suppressHydrationWarning>{formatDateTime(c.created_at)}</span>
                   </span>
                   <ReplyButton
                     replyId={c.id}

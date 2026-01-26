@@ -15,6 +15,7 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import { formatDateTime } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -435,7 +436,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     <span>
                       <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                       {' · '}
-                      {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
+                      {comment.created_at ? <span suppressHydrationWarning>{formatDateTime(comment.created_at)}</span> : ''}
                     </span>
                   </div>
                   <CommentActions

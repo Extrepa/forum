@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { formatDateTime } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import ReplyFormWrapper from './ReplyFormWrapper';
 import DeleteCommentButton from './DeleteCommentButton';
@@ -98,7 +99,7 @@ export default function ProjectRepliesSection({
             <span>
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
-              {r.created_at ? <span suppressHydrationWarning>{new Date(r.created_at).toLocaleString()}</span> : ''}
+              {r.created_at ? <span suppressHydrationWarning>{formatDateTime(r.created_at)}</span> : ''}
             </span>
             <ReplyButton
               replyId={r.id}

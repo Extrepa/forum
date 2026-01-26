@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
-import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate } from '../../lib/dates';
+import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTime } from '../../lib/dates';
 import Username from '../../components/Username';
 import HomeWelcome from '../../components/HomeWelcome';
 
@@ -469,7 +469,7 @@ export default async function FeedPage() {
                       </div>
                       {item.lastActivity ? (
                         <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '12px' }} suppressHydrationWarning>
-                          Last activity: {new Date(item.lastActivity).toLocaleString()}
+                          Last activity: {formatDateTime(item.lastActivity)}
                         </span>
                       ) : null}
                     </div>

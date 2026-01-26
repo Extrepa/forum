@@ -3,7 +3,7 @@
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
-import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../lib/dates';
+import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming, formatDateTime } from '../../lib/dates';
 import PostMetaBar from '../../components/PostMetaBar';
 
 export default function EventsClient({ events, notice }) {
@@ -130,7 +130,7 @@ export default function EventsClient({ events, notice }) {
                       </div>
                       {(row.last_activity_at || row.created_at) ? (
                         <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }} suppressHydrationWarning>
-                          Last activity: {new Date(row.last_activity_at || row.created_at).toLocaleString()}
+                          Last activity: {formatDateTime(row.last_activity_at || row.created_at)}
                         </span>
                       ) : null}
                     </div>

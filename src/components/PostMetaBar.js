@@ -1,6 +1,7 @@
 'use client';
 
 import Username from './Username';
+import { formatDateTime } from '../lib/dates';
 
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
@@ -84,11 +85,11 @@ export default function PostMetaBar({
         gap: '8px'
       }}>
         <span className="muted" suppressHydrationWarning>
-          {createdAt ? new Date(createdAt).toLocaleString() : ''}
+          {createdAt ? formatDateTime(createdAt) : ''}
         </span>
         {lastActivity && (
           <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }} suppressHydrationWarning>
-            Last activity: {new Date(lastActivity).toLocaleString()}
+            Last activity: {formatDateTime(lastActivity)}
           </span>
         )}
       </div>

@@ -292,6 +292,20 @@ npm run deploy
 - `src/lib/forum-texts/variations.js` - Lines 141-145: Use PST/PDT timezone for `getTimeBasedGreetingTemplate`
 - `src/lib/forum-texts/variations.js` - Lines 21-27: Use PST/PDT timezone for `getTimeOfDay`
 
+## Fix: Timezone handling for all time displays (PST/PDT)
+**Issue:** All time displays across the portal were using browser local time instead of PST/PDT
+**Fix:** Updated all `toLocaleString()` calls to use `formatDateTime()` which uses PST/PDT timezone
+**Files Modified:**
+- `src/components/PostMetaBar.js` - Use `formatDateTime()` for `createdAt` and `lastActivity`
+- `src/app/feed/page.js` - Use `formatDateTime()` for "Last activity" display
+- `src/components/PostHeader.js` - Use `formatDateTime()` for `createdAt` and `updatedAt`
+- `src/components/EventCommentsSection.js` - Use `formatDateTime()` for comment dates
+- `src/components/ProjectRepliesSection.js` - Use `formatDateTime()` for reply dates
+- `src/app/events/EventsClient.js` - Use `formatDateTime()` for "Last activity" display
+- `src/app/music/[id]/page.js` - Use `formatDateTime()` for comment dates
+- `src/app/announcements/[id]/page.js` - Use `formatDateTime()` for comment dates
+- `src/app/search/SearchClient.js` - Use `formatDateTime()` for result dates
+
 ## Final Verification Summary
 
 ### All Fixes Applied ✅

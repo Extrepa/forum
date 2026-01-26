@@ -12,6 +12,7 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import { formatDateTime } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -242,9 +243,9 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                   <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span>
-                      <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
-                      {' · '}
-                      {new Date(c.created_at).toLocaleString()}
+                    <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                    {' · '}
+                    <span suppressHydrationWarning>{formatDateTime(c.created_at)}</span>
                     </span>
                   </div>
                   <CommentActions
