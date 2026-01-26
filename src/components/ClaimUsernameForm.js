@@ -429,14 +429,18 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             style={{
               fontSize: '11px',
               padding: 0,
+              margin: 0,
               border: 'none',
+              borderRadius: 0,
               background: 'transparent',
               color: 'var(--muted)',
               cursor: status.type === 'loading' ? 'not-allowed' : 'pointer',
               opacity: status.type === 'loading' ? 0.6 : 1,
               whiteSpace: 'nowrap',
               flexShrink: 0,
-              textDecoration: 'none'
+              textDecoration: 'none',
+              outline: 'none',
+              boxShadow: 'none'
             }}
             onMouseEnter={(e) => {
               if (status.type !== 'loading') {
