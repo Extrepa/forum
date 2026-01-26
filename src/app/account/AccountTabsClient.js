@@ -31,6 +31,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       url: linkMap[platform] || ''
     }));
   });
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
   const handleTabChange = (tab) => {
     router.push(`/account?tab=${tab}`, { scroll: false });
@@ -81,6 +82,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       };
     }
   }, [activeTab, user]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (Object.keys(openDropdowns).length > 0) {
+        const isClickInside = event.target.closest('[data-dropdown-container]');
+        if (!isClickInside) {
+          closeAllDropdowns();
+        }
+      }
+    };
+
+    if (Object.keys(openDropdowns).length > 0) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openDropdowns]);
 
   const handleSave = async (e) => {
     e?.preventDefault?.();
@@ -192,12 +212,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   ];
 
   const socialPlatforms = [
-    { value: 'github', label: 'GitHub', icon: '💻' },
-    { value: 'youtube', label: 'YouTube', icon: '▶️' },
-    { value: 'soundcloud', label: 'SoundCloud', icon: '🎵' },
-    { value: 'discord', label: 'Discord', icon: '💬' },
-    { value: 'chatgpt', label: 'ChatGPT', icon: '🤖' },
+    { value: 'github', label: 'GitHub' },
+    { value: 'youtube', label: 'YouTube' },
+    { value: 'soundcloud', label: 'SoundCloud' },
+    { value: 'discord', label: 'Discord' },
+    { value: 'chatgpt', label: 'ChatGPT' },
   ];
+
+  const toggleDropdown = (index) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const closeAllDropdowns = () => {
+    setOpenDropdowns({});
+  };
 
   // Extract username from platform URLs
   const extractUsername = (platform, url) => {
@@ -586,28 +617,91 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
                     <strong style={{ fontSize: '14px' }}>Social Links:</strong>
                     {socialLinks.map((link, index) => (
-                      <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <select
-                          value={link.platform}
-                          onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
-                          disabled={usernameStatus.type === 'loading'}
-                          style={{
-                            padding: '6px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(52, 225, 255, 0.3)',
-                            background: 'rgba(2, 7, 10, 0.6)',
-                            color: 'var(--ink)',
-                            fontSize: '13px',
-                            width: '100px',
-                            flexShrink: 0
-                          }}
-                        >
-                          {socialPlatforms.map(platform => (
-                            <option key={platform.value} value={platform.value}>
-                              {platform.icon} {platform.label}
-                            </option>
-                          ))}
-                        </select>
+                      <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center', position: 'relative' }}>
+                        <div style={{ position: 'relative', flexShrink: 0 }} data-dropdown-container>
+                          <button
+                            type="button"
+                            onClick={() => toggleDropdown(index)}
+                            disabled={usernameStatus.type === 'loading'}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(52, 225, 255, 0.3)',
+                              background: 'rgba(2, 7, 10, 0.6)',
+                              color: 'var(--ink)',
+                              fontSize: '13px',
+                              width: '100px',
+                              cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                              opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              {getPlatformIcon(link.platform)}
+                              <span style={{ fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {socialPlatforms.find(p => p.value === link.platform)?.label || link.platform}
+                              </span>
+                            </span>
+                            <span style={{ fontSize: '10px', opacity: 0.7 }}>▼</span>
+                          </button>
+                          {openDropdowns[index] && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                zIndex: 1000,
+                                marginTop: '4px',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(52, 225, 255, 0.3)',
+                                background: 'rgba(2, 7, 10, 0.95)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                minWidth: '100px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {socialPlatforms.map(platform => (
+                                <button
+                                  key={platform.value}
+                                  type="button"
+                                  onClick={() => {
+                                    handleSocialLinkChange(index, 'platform', platform.value);
+                                    toggleDropdown(index);
+                                  }}
+                                  disabled={usernameStatus.type === 'loading'}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    width: '100%',
+                                    padding: '6px 8px',
+                                    border: 'none',
+                                    background: link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent',
+                                    color: 'var(--ink)',
+                                    fontSize: '13px',
+                                    cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                                    textAlign: 'left',
+                                    transition: 'background 0.2s ease'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (usernameStatus.type !== 'loading') {
+                                      e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent';
+                                  }}
+                                >
+                                  {getPlatformIcon(platform.value)}
+                                  <span>{platform.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <input
                           type="url"
                           value={link.url}
