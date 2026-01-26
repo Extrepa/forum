@@ -403,7 +403,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
               <option value="5">5 - This is my new personality</option>
             </select>
           </label>
-          <button type="submit" style={{ flexShrink: 0 }}>Submit rating</button>
+          <button type="submit" style={{ flexShrink: 0, maxWidth: '80px', whiteSpace: 'normal', lineHeight: '1.2', padding: '8px 12px' }}>Submit rating</button>
         </form>
       </section>
 
