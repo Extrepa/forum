@@ -389,10 +389,10 @@ export default async function MusicDetailPage({ params, searchParams }) {
 
       {/* Rating Section - Separate skinny card */}
       <section className="card">
-        <h3 className="section-title" style={{ marginBottom: '12px' }}>Rate this</h3>
         {notice ? <div className="notice" style={{ marginBottom: '12px' }}>{notice}</div> : null}
-        <form action="/api/music/ratings" method="post" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <form action="/api/music/ratings" method="post" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input type="hidden" name="post_id" value={id} />
+          <h3 className="section-title" style={{ margin: 0, flexShrink: 0 }}>Rate this</h3>
           <label style={{ flex: '1 1 auto', minWidth: '200px' }}>
             <div className="muted">Your rating (1-5)</div>
             <select name="rating" defaultValue="5" style={{ width: '100%' }}>
