@@ -1795,8 +1795,8 @@ footer {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: 2px solid rgba(52, 225, 255, 0.4);
   background: rgba(2, 7, 10, 0.85);
@@ -1812,6 +1812,15 @@ footer {
   opacity: 0;
   transform: translateY(20px) scale(0.8);
   pointer-events: none;
+}
+
+.scroll-to-top-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .scroll-to-top-button.scroll-to-top-visible {
@@ -1833,10 +1842,12 @@ footer {
 }
 
 .scroll-to-top-face {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   filter: drop-shadow(0 0 8px rgba(52, 225, 255, 0.6));
   transition: filter 0.3s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-face {
@@ -1851,17 +1862,55 @@ footer {
   stroke: var(--errl-accent);
 }
 
+/* Revolving text around button */
+.scroll-to-top-text-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  animation: rotate-text 8s linear infinite;
+}
+
+.scroll-to-top-letter {
+  position: absolute;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--errl-accent);
+  text-shadow: 0 0 6px rgba(52, 225, 255, 0.6);
+  letter-spacing: 0.5px;
+  left: 50%;
+  top: 50%;
+  transform-origin: 0 0;
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-38px);
+  white-space: nowrap;
+}
+
+@keyframes rotate-text {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 640px) {
   .scroll-to-top-button {
     bottom: 20px;
     right: 20px;
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
   }
 
   .scroll-to-top-face {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .scroll-to-top-letter {
+    font-size: 7px;
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-30px);
   }
 }
 

@@ -29,6 +29,9 @@ export default function ScrollToTopButton() {
     });
   };
 
+  const text = "RETURN TO TOP";
+  const letters = text.split('');
+
   return (
     <button
       onClick={scrollToTop}
@@ -36,21 +39,22 @@ export default function ScrollToTopButton() {
       aria-label="Scroll to top"
       type="button"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1000 1000"
-        preserveAspectRatio="xMidYMid meet"
-        className="scroll-to-top-face"
-        aria-hidden="true"
-      >
-        <g transform="translate(50,-50) scale(.8)">
-          <g id="region-face">
-            <path
-              className="scroll-to-top-path"
-              data-region="face"
-              fill="#000000"
-              stroke="#e5eef7"
-              strokeWidth="4"
+      <div className="scroll-to-top-content">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="xMidYMid meet"
+          className="scroll-to-top-face"
+          aria-hidden="true"
+        >
+          <g transform="translate(50,-50) scale(.8)">
+            <g id="region-face">
+              <path
+                className="scroll-to-top-path"
+                data-region="face"
+                fill="#000000"
+                stroke="#e5eef7"
+                strokeWidth="2"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -58,12 +62,12 @@ export default function ScrollToTopButton() {
             />
           </g>
           <g id="region-eyeL">
-            <path
+              <path
               className="scroll-to-top-path"
               data-region="eyeL"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="4"
+              strokeWidth="2"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -71,12 +75,12 @@ export default function ScrollToTopButton() {
             />
           </g>
           <g id="region-eyeR">
-            <path
+              <path
               className="scroll-to-top-path"
               data-region="eyeR"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="4"
+              strokeWidth="2"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -84,12 +88,12 @@ export default function ScrollToTopButton() {
             />
           </g>
           <g id="region-mouth">
-            <path
+              <path
               className="scroll-to-top-path"
               data-region="mouth"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="4"
+              strokeWidth="2"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -98,6 +102,21 @@ export default function ScrollToTopButton() {
           </g>
         </g>
       </svg>
+      <div className="scroll-to-top-text-container">
+        {letters.map((letter, index) => (
+          <span
+            key={index}
+            className="scroll-to-top-letter"
+            style={{
+              '--letter-index': index,
+              '--total-letters': letters.length
+            }}
+          >
+            {letter === ' ' ? '\u00A0' : letter}
+          </span>
+        ))}
+      </div>
+      </div>
     </button>
   );
 }
