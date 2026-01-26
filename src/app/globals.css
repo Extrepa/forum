@@ -2472,12 +2472,14 @@ header::before {
   }
 
   .auth-form-container > div:first-child {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     padding-right: 0 !important;
     padding-bottom: 24px !important;
     border-right: none !important;
     border-bottom: 1px solid rgba(52, 225, 255, 0.2) !important;
     min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .auth-form-container > div:last-child {
