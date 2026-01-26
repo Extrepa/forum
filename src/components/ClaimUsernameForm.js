@@ -428,28 +428,26 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             disabled={status.type === 'loading'}
             style={{
               fontSize: '11px',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              border: '1px solid rgba(52, 225, 255, 0.3)',
-              background: 'rgba(2, 7, 10, 0.6)',
+              padding: 0,
+              border: 'none',
+              background: 'transparent',
               color: 'var(--muted)',
               cursor: status.type === 'loading' ? 'not-allowed' : 'pointer',
               opacity: status.type === 'loading' ? 0.6 : 1,
               whiteSpace: 'nowrap',
-              flexShrink: 0
+              flexShrink: 0,
+              textDecoration: 'none'
             }}
             onMouseEnter={(e) => {
               if (status.type !== 'loading') {
-                e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.5)';
                 e.currentTarget.style.color = 'var(--accent)';
+                e.currentTarget.style.textShadow = '0 0 8px rgba(52, 225, 255, 0.6)';
               }
             }}
             onMouseLeave={(e) => {
               if (status.type !== 'loading') {
-                e.currentTarget.style.background = 'rgba(2, 7, 10, 0.6)';
-                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
                 e.currentTarget.style.color = 'var(--muted)';
+                e.currentTarget.style.textShadow = 'none';
               }
             }}
           >
