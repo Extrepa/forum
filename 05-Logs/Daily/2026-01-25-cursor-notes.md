@@ -257,6 +257,13 @@ npm run deploy
 1. `src/app/events/EventsClient.js` - Line 130: Added `suppressHydrationWarning` to "Last activity" date display
 2. `src/app/feed/page.js` - Line 471: Added `suppressHydrationWarning` to "Last activity" date display
 3. `src/app/forum/ForumClient.js` - Removed unused `formatTimeAgo` function (not causing issues but cleaned up)
+4. `src/components/SearchResultsPopover.js` - Line 107: Added `suppressHydrationWarning` to date display
+
+## Performance Fix: Non-blocking updateUserLastSeen
+**Issue:** `updateUserLastSeen` was being called in layout.js which could block page rendering
+**Fix:** Removed any scheduling - just fire and forget without awaiting. The `.catch()` handles errors silently.
+**File Modified:**
+- `src/app/layout.js` - Line 29: Simplified to fire-and-forget pattern (no await, no scheduling)
 
 ## Notes
 - All fixes follow Next.js 15 best practices for server-side rendering

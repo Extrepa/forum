@@ -24,8 +24,10 @@ export default async function RootLayout({ children }) {
   const easterEgg = getEasterEgg({ useLore });
 
   // Update user's last_seen timestamp to track active browsing
-  // Do this asynchronously so it doesn't block page rendering
+  // Fire and forget - don't await to avoid blocking page rendering
   if (user?.id) {
+    // Start the async operation but don't await it
+    // This allows the page to render while the DB update happens in the background
     updateUserLastSeen(user.id).catch(() => {
       // Silently fail - don't break page loads if this fails
     });

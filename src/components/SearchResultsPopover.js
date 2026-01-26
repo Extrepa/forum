@@ -103,7 +103,7 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
               )}
               <div className="search-result-meta">
                 <Username name={result.author_name} colorIndex={colorIndex} />
-                <span className="search-result-date">
+                <span className="search-result-date" suppressHydrationWarning>
                   {new Date(result.created_at).toLocaleDateString()}
                 </span>
               </div>
