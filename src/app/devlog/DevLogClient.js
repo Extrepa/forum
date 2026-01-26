@@ -26,7 +26,7 @@ export default function DevLogClient({ logs, notice }) {
       <section className="card">
         <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list list-scrollable">
+        <div className="list">
           {logs.length === 0 ? (
             <p className="muted">No Development posts yet.</p>
           ) : (
@@ -90,7 +90,7 @@ export default function DevLogClient({ logs, notice }) {
                       />
                     ) : null}
                     {!condensed ? (
-                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
                   </a>
                 );
