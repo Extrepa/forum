@@ -80,7 +80,7 @@ export default function EventsClient({ events, notice }) {
                       replies={row.comment_count || 0}
                       likes={row.like_count || 0}
                       createdAt={row.created_at}
-                      lastActivity={row.last_activity_at || row.created_at}
+                      lastActivity={undefined}
                       titleHref={`/events/${row.id}`}
                       showTitleLink={false}
                     />
@@ -96,34 +96,41 @@ export default function EventsClient({ events, notice }) {
                         style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
-                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: condensed ? '12px' : '14px' }}>
-                      <svg
-                        width={condensed ? "12" : "14"}
-                        height={condensed ? "12" : "14"}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
-                      >
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                      <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
-                        {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
-                        {isEventUpcoming(row.starts_at) ? (
-                          <span className="muted" style={{ marginLeft: '4px' }}>
-                            ({formatRelativeEventDate(row.starts_at)})
+                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: condensed ? '12px' : '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 auto', minWidth: 0 }}>
+                        <svg
+                          width={condensed ? "12" : "14"}
+                          height={condensed ? "12" : "14"}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
+                        >
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        <span style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}>
+                          {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
+                          {isEventUpcoming(row.starts_at) ? (
+                            <span className="muted" style={{ marginLeft: '4px' }}>
+                              ({formatRelativeEventDate(row.starts_at)})
+                            </span>
+                          ) : null}
+                        </span>
+                        {row.user_attending ? (
+                          <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>
+                            ✓ Attending
                           </span>
                         ) : null}
-                      </span>
-                      {row.user_attending ? (
-                        <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>
-                          ✓ Attending
+                      </div>
+                      {(row.last_activity_at || row.created_at) ? (
+                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }}>
+                          Last activity: {new Date(row.last_activity_at || row.created_at).toLocaleString()}
                         </span>
                       ) : null}
                     </div>

@@ -87,7 +87,7 @@ export default function PostMetaBar({
           {createdAt ? new Date(createdAt).toLocaleString() : ''}
         </span>
         {lastActivity && (
-          <span className="muted">
+          <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
             Last activity: {new Date(lastActivity).toLocaleString()}
           </span>
         )}
