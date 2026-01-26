@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
-export default function HomeSectionCard({ title, description, count, recentActivity, href }) {
+export default function HomeSectionCard({ title, description, count, recentActivity, href, usernameColorMap, preferredColors }) {
   if (!recentActivity) {
     return (
       <Link
@@ -25,7 +25,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
     <>
       <Username
         name={recentActivity.activityAuthor}
-        colorIndex={getUsernameColorIndex(recentActivity.activityAuthor, { preferredColorIndex: recentActivity.activityAuthorColorPreference })}
+        colorIndex={usernameColorMap?.get(recentActivity.activityAuthor) ?? getUsernameColorIndex(recentActivity.activityAuthor, { preferredColorIndex: recentActivity.activityAuthorColorPreference })}
         preferredColorIndex={recentActivity.activityAuthorColorPreference}
       />
       {recentActivity.type === 'comment' ? ' commented on ' : ' replied to '}
@@ -33,7 +33,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
       {' by '}
       <Username
         name={recentActivity.postAuthor}
-        colorIndex={getUsernameColorIndex(recentActivity.postAuthor, { preferredColorIndex: recentActivity.postAuthorColorPreference })}
+        colorIndex={usernameColorMap?.get(recentActivity.postAuthor) ?? getUsernameColorIndex(recentActivity.postAuthor, { preferredColorIndex: recentActivity.postAuthorColorPreference })}
         preferredColorIndex={recentActivity.postAuthorColorPreference}
       />
     </>
@@ -41,7 +41,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
     <>
       <Username
         name={recentActivity.postAuthor || recentActivity.author}
-        colorIndex={getUsernameColorIndex(recentActivity.postAuthor || recentActivity.author, { preferredColorIndex: recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference })}
+        colorIndex={usernameColorMap?.get(recentActivity.postAuthor || recentActivity.author) ?? getUsernameColorIndex(recentActivity.postAuthor || recentActivity.author, { preferredColorIndex: recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference })}
         preferredColorIndex={recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference}
       />
       {' posted '}

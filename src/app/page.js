@@ -1095,19 +1095,140 @@ export default async function HomePage({ searchParams }) {
     }
   }
 
-  // Build preferences map and assign unique colors to all usernames in recent activity feed
+  // Collect all usernames from recentPosts and sectionData
   const allUsernames = [
     ...recentPosts.map(p => p.author_name),
     ...recentPosts.map(p => p.parent_author).filter(Boolean)
   ].filter(Boolean);
   
+  // Collect usernames from sectionData
+  if (sectionData) {
+    // Timeline
+    if (sectionData.timeline?.recent?.author) {
+      allUsernames.push(sectionData.timeline.recent.author);
+    }
+    // Forum
+    if (sectionData.forum?.recent) {
+      if (sectionData.forum.recent.postAuthor) allUsernames.push(sectionData.forum.recent.postAuthor);
+      if (sectionData.forum.recent.activityAuthor) allUsernames.push(sectionData.forum.recent.activityAuthor);
+    }
+    // Events
+    if (sectionData.events?.recent) {
+      if (sectionData.events.recent.postAuthor) allUsernames.push(sectionData.events.recent.postAuthor);
+      if (sectionData.events.recent.activityAuthor) allUsernames.push(sectionData.events.recent.activityAuthor);
+    }
+    // Music
+    if (sectionData.music?.recent) {
+      if (sectionData.music.recent.postAuthor) allUsernames.push(sectionData.music.recent.postAuthor);
+      if (sectionData.music.recent.activityAuthor) allUsernames.push(sectionData.music.recent.activityAuthor);
+    }
+    // Projects
+    if (sectionData.projects?.recent) {
+      if (sectionData.projects.recent.postAuthor) allUsernames.push(sectionData.projects.recent.postAuthor);
+      if (sectionData.projects.recent.activityAuthor) allUsernames.push(sectionData.projects.recent.activityAuthor);
+    }
+    // Shitposts
+    if (sectionData.shitposts?.recent?.author) {
+      allUsernames.push(sectionData.shitposts.recent.author);
+    }
+    // Art & Nostalgia
+    if (sectionData.artNostalgia?.recent?.author) {
+      allUsernames.push(sectionData.artNostalgia.recent.author);
+    }
+    // Bugs & Rant
+    if (sectionData.bugsRant?.recent?.author) {
+      allUsernames.push(sectionData.bugsRant.recent.author);
+    }
+    // Devlog
+    if (sectionData.devlog?.recent) {
+      if (sectionData.devlog.recent.postAuthor) allUsernames.push(sectionData.devlog.recent.postAuthor);
+      if (sectionData.devlog.recent.activityAuthor) allUsernames.push(sectionData.devlog.recent.activityAuthor);
+    }
+    // Lore & Memories
+    if (sectionData.loreMemories?.recent?.author) {
+      allUsernames.push(sectionData.loreMemories.recent.author);
+    }
+  }
+  
   // Build map of username -> preferred color index
   const preferredColors = new Map();
+  
+  // From recentPosts
   recentPosts.forEach(p => {
     if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
       preferredColors.set(p.author_name, Number(p.author_color_preference));
     }
   });
+  
+  // From sectionData
+  if (sectionData) {
+    // Timeline
+    if (sectionData.timeline?.recent?.author && sectionData.timeline.recent.authorColorPreference !== null && sectionData.timeline.recent.authorColorPreference !== undefined) {
+      preferredColors.set(sectionData.timeline.recent.author, Number(sectionData.timeline.recent.authorColorPreference));
+    }
+    // Forum
+    if (sectionData.forum?.recent) {
+      if (sectionData.forum.recent.postAuthor && sectionData.forum.recent.postAuthorColorPreference !== null && sectionData.forum.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.forum.recent.postAuthor, Number(sectionData.forum.recent.postAuthorColorPreference));
+      }
+      if (sectionData.forum.recent.activityAuthor && sectionData.forum.recent.activityAuthorColorPreference !== null && sectionData.forum.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.forum.recent.activityAuthor, Number(sectionData.forum.recent.activityAuthorColorPreference));
+      }
+    }
+    // Events
+    if (sectionData.events?.recent) {
+      if (sectionData.events.recent.postAuthor && sectionData.events.recent.postAuthorColorPreference !== null && sectionData.events.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.events.recent.postAuthor, Number(sectionData.events.recent.postAuthorColorPreference));
+      }
+      if (sectionData.events.recent.activityAuthor && sectionData.events.recent.activityAuthorColorPreference !== null && sectionData.events.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.events.recent.activityAuthor, Number(sectionData.events.recent.activityAuthorColorPreference));
+      }
+    }
+    // Music
+    if (sectionData.music?.recent) {
+      if (sectionData.music.recent.postAuthor && sectionData.music.recent.postAuthorColorPreference !== null && sectionData.music.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.music.recent.postAuthor, Number(sectionData.music.recent.postAuthorColorPreference));
+      }
+      if (sectionData.music.recent.activityAuthor && sectionData.music.recent.activityAuthorColorPreference !== null && sectionData.music.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.music.recent.activityAuthor, Number(sectionData.music.recent.activityAuthorColorPreference));
+      }
+    }
+    // Projects
+    if (sectionData.projects?.recent) {
+      if (sectionData.projects.recent.postAuthor && sectionData.projects.recent.postAuthorColorPreference !== null && sectionData.projects.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.projects.recent.postAuthor, Number(sectionData.projects.recent.postAuthorColorPreference));
+      }
+      if (sectionData.projects.recent.activityAuthor && sectionData.projects.recent.activityAuthorColorPreference !== null && sectionData.projects.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.projects.recent.activityAuthor, Number(sectionData.projects.recent.activityAuthorColorPreference));
+      }
+    }
+    // Shitposts
+    if (sectionData.shitposts?.recent?.author && sectionData.shitposts.recent.authorColorPreference !== null && sectionData.shitposts.recent.authorColorPreference !== undefined) {
+      preferredColors.set(sectionData.shitposts.recent.author, Number(sectionData.shitposts.recent.authorColorPreference));
+    }
+    // Art & Nostalgia
+    if (sectionData.artNostalgia?.recent?.author && sectionData.artNostalgia.recent.authorColorPreference !== null && sectionData.artNostalgia.recent.authorColorPreference !== undefined) {
+      preferredColors.set(sectionData.artNostalgia.recent.author, Number(sectionData.artNostalgia.recent.authorColorPreference));
+    }
+    // Bugs & Rant
+    if (sectionData.bugsRant?.recent?.author && sectionData.bugsRant.recent.authorColorPreference !== null && sectionData.bugsRant.recent.authorColorPreference !== undefined) {
+      preferredColors.set(sectionData.bugsRant.recent.author, Number(sectionData.bugsRant.recent.authorColorPreference));
+    }
+    // Devlog
+    if (sectionData.devlog?.recent) {
+      if (sectionData.devlog.recent.postAuthor && sectionData.devlog.recent.postAuthorColorPreference !== null && sectionData.devlog.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.devlog.recent.postAuthor, Number(sectionData.devlog.recent.postAuthorColorPreference));
+      }
+      if (sectionData.devlog.recent.activityAuthor && sectionData.devlog.recent.activityAuthorColorPreference !== null && sectionData.devlog.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.devlog.recent.activityAuthor, Number(sectionData.devlog.recent.activityAuthorColorPreference));
+      }
+    }
+    // Lore & Memories
+    if (sectionData.loreMemories?.recent?.author && sectionData.loreMemories.recent.authorColorPreference !== null && sectionData.loreMemories.recent.authorColorPreference !== undefined) {
+      preferredColors.set(sectionData.loreMemories.recent.author, Number(sectionData.loreMemories.recent.authorColorPreference));
+    }
+  }
+  
   // Also get preferences for parent authors (need to fetch separately)
   const uniqueParentAuthors = [...new Set(recentPosts.map(p => p.parent_author).filter(Boolean))];
   if (uniqueParentAuthors.length > 0) {
@@ -1155,11 +1276,15 @@ export default async function HomePage({ searchParams }) {
                   type: 'post',
                   postTitle: sectionData.timeline.recent.title,
                   postAuthor: sectionData.timeline.recent.author,
+                  postAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
                   activityAuthor: sectionData.timeline.recent.author,
+                  activityAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
                   timeAgo: sectionData.timeline.recent.timeAgo,
                   href: sectionData.timeline.recent.url
                 } : null}
                 href="/announcements"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               <HomeSectionCard
                 title={strings.cards.general.title}
@@ -1167,6 +1292,8 @@ export default async function HomePage({ searchParams }) {
                 count={sectionData?.forum?.count || 0}
                 recentActivity={sectionData?.forum?.recent || null}
                 href="/lobby"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               <HomeSectionCard
                 title={strings.cards.events.title}
@@ -1174,6 +1301,8 @@ export default async function HomePage({ searchParams }) {
                 count={sectionData?.events?.count || 0}
                 recentActivity={sectionData?.events?.recent || null}
                 href="/events"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               <HomeSectionCard
                 title={strings.cards.music.title}
@@ -1181,6 +1310,8 @@ export default async function HomePage({ searchParams }) {
                 count={sectionData?.music?.count || 0}
                 recentActivity={sectionData?.music?.recent || null}
                 href="/music"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               <HomeSectionCard
                 title={strings.cards.projects.title}
@@ -1188,6 +1319,8 @@ export default async function HomePage({ searchParams }) {
                 count={sectionData?.projects?.count || 0}
                 recentActivity={sectionData?.projects?.recent || null}
                 href="/projects"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               <HomeSectionCard
                 title={strings.cards.shitposts.title}
@@ -1197,11 +1330,15 @@ export default async function HomePage({ searchParams }) {
                   type: 'post',
                   postTitle: sectionData.shitposts.recent.title,
                   postAuthor: sectionData.shitposts.recent.author,
+                  postAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
                   activityAuthor: sectionData.shitposts.recent.author,
+                  activityAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
                   timeAgo: sectionData.shitposts.recent.timeAgo,
                   href: sectionData.shitposts.recent.url
                 } : null}
                 href="/shitposts"
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
               />
               {sectionData?.artNostalgia && (
                 <HomeSectionCard
@@ -1212,11 +1349,15 @@ export default async function HomePage({ searchParams }) {
                     type: 'post',
                     postTitle: sectionData.artNostalgia.recent.title || 'Untitled',
                     postAuthor: sectionData.artNostalgia.recent.author,
+                    postAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
                     activityAuthor: sectionData.artNostalgia.recent.author,
+                    activityAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
                     timeAgo: sectionData.artNostalgia.recent.timeAgo,
                     href: sectionData.artNostalgia.recent.url
                   } : null}
                   href="/art-nostalgia"
+                  usernameColorMap={usernameColorMap}
+                  preferredColors={preferredColors}
                 />
               )}
               {sectionData?.bugsRant && (
@@ -1228,11 +1369,15 @@ export default async function HomePage({ searchParams }) {
                     type: 'post',
                     postTitle: sectionData.bugsRant.recent.title || 'Untitled',
                     postAuthor: sectionData.bugsRant.recent.author,
+                    postAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
                     activityAuthor: sectionData.bugsRant.recent.author,
+                    activityAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
                     timeAgo: sectionData.bugsRant.recent.timeAgo,
                     href: sectionData.bugsRant.recent.url
                   } : null}
                   href="/bugs-rant"
+                  usernameColorMap={usernameColorMap}
+                  preferredColors={preferredColors}
                 />
               )}
               {hasUsername && sectionData?.devlog !== null && (
@@ -1242,6 +1387,8 @@ export default async function HomePage({ searchParams }) {
                   count={sectionData.devlog?.count || 0}
                   recentActivity={sectionData.devlog?.recent || null}
                   href="/devlog"
+                  usernameColorMap={usernameColorMap}
+                  preferredColors={preferredColors}
                 />
               )}
               {hasUsername && sectionData?.loreMemories !== null && (
@@ -1253,11 +1400,15 @@ export default async function HomePage({ searchParams }) {
                     type: 'post',
                     postTitle: sectionData.loreMemories.recent.title || 'Untitled',
                     postAuthor: sectionData.loreMemories.recent.author,
+                    postAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
                     activityAuthor: sectionData.loreMemories.recent.author,
+                    activityAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
                     timeAgo: sectionData.loreMemories.recent.timeAgo,
                     href: sectionData.loreMemories.recent.url
                   } : null}
                   href="/lore-memories"
+                  usernameColorMap={usernameColorMap}
+                  preferredColors={preferredColors}
                 />
               )}
             </div>
