@@ -306,6 +306,14 @@ npm run deploy
 - `src/app/announcements/[id]/page.js` - Use `formatDateTime()` for comment dates
 - `src/app/search/SearchClient.js` - Use `formatDateTime()` for result dates
 
+## Fix: Feed page greeting messages not working
+**Issue:** Feed page greeting messages were not working - HomeWelcome component was not receiving server-computed greeting props
+**Fix:** Added server-side greeting computation to feed page (same as home page) and pass `greetingParts` and `fallbackText` props to HomeWelcome
+**Files Modified:**
+- `src/app/feed/page.js` - Added imports for `getForumStrings`, `getTimeBasedGreetingTemplate`, `renderTemplateParts`
+- `src/app/feed/page.js` - Compute greeting on server using PST/PDT timezone (lines 40-46)
+- `src/app/feed/page.js` - Pass `greetingParts` and `fallbackText` to `HomeWelcome` component (line 395)
+
 ## Final Verification Summary
 
 ### All Fixes Applied ✅

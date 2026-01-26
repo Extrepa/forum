@@ -7,6 +7,11 @@ import { redirect } from 'next/navigation';
 import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTime } from '../../lib/dates';
 import Username from '../../components/Username';
 import HomeWelcome from '../../components/HomeWelcome';
+import {
+  getForumStrings,
+  getTimeBasedGreetingTemplate,
+  renderTemplateParts
+} from '../../lib/forum-texts';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +34,16 @@ export default async function FeedPage() {
   if (!user) {
     redirect('/');
   }
+  
+  // Compute greeting on server to avoid hydration mismatch (same as home page)
+  const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
+  const useLore = !!user?.ui_lore_enabled || envLore;
+  const strings = getForumStrings({ useLore });
+  const greetingDate = new Date();
+  const greetingTemplate = getTimeBasedGreetingTemplate({ date: greetingDate, useLore, context: 'feed' });
+  const greetingParts = renderTemplateParts(greetingTemplate.template, 'username');
+  const fallbackGreetingText = strings.hero.title; // Use server-computed strings for fallback
+  
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
   const limitPerType = 20;
@@ -379,7 +394,7 @@ export default async function FeedPage() {
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} style={{ marginBottom: 0 }} />
 
-      <HomeWelcome user={user} context="feed" />
+      <HomeWelcome user={user} greetingParts={greetingParts} fallbackText={fallbackGreetingText} />
 
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
