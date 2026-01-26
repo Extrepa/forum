@@ -292,39 +292,101 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {/* Right Column: Username, Color, and Social Links */}
             <div className="account-col">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-                {/* Username Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  {!isEditingUsername ? (
-                    <Username
-                      name={user.username}
-                      colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      placeholder="username"
-                      pattern="[a-z0-9_]{3,20}"
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--ink)',
-                        fontSize: '14px',
-                        minWidth: '120px',
-                        maxWidth: '100%',
-                        flex: '1 1 auto'
-                      }}
-                      autoFocus
-                    />
-                  )}
-                </div>
+                {/* Username and Colors Container with Edit Button Between */}
+                <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
+                  {/* Username Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                    {!isEditingUsername ? (
+                      <Username
+                        name={user.username}
+                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="username"
+                        pattern="[a-z0-9_]{3,20}"
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--ink)',
+                          fontSize: '14px',
+                          minWidth: '120px',
+                          maxWidth: '100%',
+                          flex: '1 1 auto'
+                        }}
+                        autoFocus
+                      />
+                    )}
+                  </div>
 
-                {/* Edit Button - positioned between username and colors */}
-                {!isEditingUsername && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0, maxWidth: '100%' }}>
+                  {/* Color Picker Buttons Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
+                    {colorOptions.map((option) => {
+                      const isSelected = selectedColorIndex === option.index;
+                      const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                      const size = 18;
+                      return (
+                        <button
+                          key={option.index ?? 'auto'}
+                          type="button"
+                          onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
+                          disabled={disabled}
+                          className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
+                          style={{
+                            flex: '0 0 auto',
+                            width: `${size}px`,
+                            height: `${size}px`,
+                            minWidth: `${size}px`,
+                            maxWidth: `${size}px`,
+                            minHeight: `${size}px`,
+                            maxHeight: `${size}px`,
+                            borderRadius: '50%',
+                            border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                            background: option.index === null
+                              ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                              : option.color,
+                            cursor: disabled ? 'default' : 'pointer',
+                            opacity: disabled ? 0.5 : 1,
+                            transition: 'all 0.2s ease',
+                            padding: 0,
+                            margin: 0,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxSizing: 'border-box',
+                            boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
+                            lineHeight: 1,
+                            verticalAlign: 'middle'
+                          }}
+                          title={option.name}
+                          onMouseEnter={(e) => {
+                            if (isEditingUsername && !disabled) {
+                              e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (isEditingUsername && !disabled) {
+                              e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }
+                          }}
+                        >
+                          {option.index === null && (
+                            <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Edit Button - positioned between username and colors */}
+                  {!isEditingUsername && (
                     <button
                       type="button"
                       onClick={() => {
@@ -336,6 +398,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       }}
                       className="username-edit-btn"
                       style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
                         padding: '4px 8px',
                         borderRadius: '4px',
                         border: '1px solid rgba(52, 225, 255, 0.3)',
@@ -344,74 +410,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         cursor: 'pointer',
                         fontSize: '12px',
                         transition: 'all 0.2s ease',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        zIndex: 1
                       }}
                       title="Edit username and color"
                     >
                       edit
                     </button>
-                  </div>
-                )}
-                  
-                {/* Color Picker Buttons Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  {colorOptions.map((option) => {
-                    const isSelected = selectedColorIndex === option.index;
-                    const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                    const size = 18;
-                    return (
-                      <button
-                        key={option.index ?? 'auto'}
-                        type="button"
-                        onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
-                        disabled={disabled}
-                        className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
-                        style={{
-                          flex: '0 0 auto',
-                          width: `${size}px`,
-                          height: `${size}px`,
-                          minWidth: `${size}px`,
-                          maxWidth: `${size}px`,
-                          minHeight: `${size}px`,
-                          maxHeight: `${size}px`,
-                          borderRadius: '50%',
-                          border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                          background: option.index === null
-                            ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                            : option.color,
-                          cursor: disabled ? 'default' : 'pointer',
-                          opacity: disabled ? 0.5 : 1,
-                          transition: 'all 0.2s ease',
-                          padding: 0,
-                          margin: 0,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxSizing: 'border-box',
-                          boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
-                          lineHeight: 1,
-                          verticalAlign: 'middle'
-                        }}
-                        title={option.name}
-                        onMouseEnter={(e) => {
-                          if (isEditingUsername && !disabled) {
-                            e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (isEditingUsername && !disabled) {
-                            e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }
-                        }}
-                      >
-                        {option.index === null && (
-                          <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
-                        )}
-                      </button>
-                    );
-                  })}
+                  )}
                 </div>
 
                 {/* Social Media Links - only show when editing */}
