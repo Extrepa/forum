@@ -418,8 +418,43 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     const wrapperProps = noCardWrapper ? {} : { className: 'card' };
     return (
       <Wrapper {...wrapperProps}>
-        <div className="notice">
-          Signed in as <Username name={me.username} colorIndex={colorIndex} />
+        <div className="notice" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+          <span>
+            Signed in as <Username name={me.username} colorIndex={colorIndex} />
+          </span>
+          <button
+            type="button"
+            onClick={submitLogout}
+            disabled={status.type === 'loading'}
+            style={{
+              fontSize: '11px',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              border: '1px solid rgba(52, 225, 255, 0.3)',
+              background: 'rgba(2, 7, 10, 0.6)',
+              color: 'var(--muted)',
+              cursor: status.type === 'loading' ? 'not-allowed' : 'pointer',
+              opacity: status.type === 'loading' ? 0.6 : 1,
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              if (status.type !== 'loading') {
+                e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.5)';
+                e.currentTarget.style.color = 'var(--accent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (status.type !== 'loading') {
+                e.currentTarget.style.background = 'rgba(2, 7, 10, 0.6)';
+                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
+                e.currentTarget.style.color = 'var(--muted)';
+              }
+            }}
+          >
+            Sign out
+          </button>
         </div>
         <p className="muted">Your account is active on this device.</p>
 
@@ -628,7 +663,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
           </div>
         </div>
 
-        <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px' }}>
+        <button type="button" onClick={submitLogout} disabled={status.type === 'loading'} style={{ marginTop: '16px', width: '100%' }}>
           Sign out
         </button>
 
