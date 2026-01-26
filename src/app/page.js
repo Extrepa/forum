@@ -969,26 +969,58 @@ export default async function HomePage({ searchParams }) {
         activeUsersResult = { count: 0 };
       }
       
-      // Recent activity count (last 24 hours)
-      let recentActivityResult = null;
+      // Recent activity counts (last 24 hours) - separate posts and replies
+      const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
+      let recentPostsCount = 0;
+      let recentRepliesCount = 0;
       try {
-        recentActivityResult = await db
+        // Count posts (new threads, events, music posts, projects, dev logs, timeline updates, posts table entries)
+        const postsResult = await db
           .prepare(
             `SELECT COUNT(*) as count
              FROM (
                SELECT created_at FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-               UNION ALL
-               SELECT created_at FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
                UNION ALL
                SELECT created_at FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
                UNION ALL
                SELECT created_at FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
                UNION ALL
                SELECT created_at FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM timeline_updates WHERE created_at > ?
+               UNION ALL
+               SELECT created_at FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
              )`
           )
-          .bind(Date.now() - 24 * 60 * 60 * 1000, Date.now() - 24 * 60 * 60 * 1000, Date.now() - 24 * 60 * 60 * 1000, Date.now() - 24 * 60 * 60 * 1000, Date.now() - 24 * 60 * 60 * 1000)
+          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
           .first();
+        recentPostsCount = postsResult?.count || 0;
+
+        // Count replies/comments (forum replies, event comments, music comments, project replies, dev log comments, timeline comments, post comments)
+        const repliesResult = await db
+          .prepare(
+            `SELECT COUNT(*) as count
+             FROM (
+               SELECT created_at FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+               UNION ALL
+               SELECT created_at FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
+             )`
+          )
+          .bind(last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours)
+          .first();
+        recentRepliesCount = repliesResult?.count || 0;
       } catch (e) {
         // Tables might not exist yet
       }
@@ -997,11 +1029,13 @@ export default async function HomePage({ searchParams }) {
         totalPosts,
         totalUsers: totalUsersResult?.count || 0,
         activeUsers: activeUsersResult?.count || 0,
-        recentActivity: recentActivityResult?.count || 0
+        recentPostsCount,
+        recentRepliesCount,
+        recentActivity: recentPostsCount + recentRepliesCount
       };
 
       // Get recent activity from all sections (posts AND replies/comments) - last 24 hours only
-      const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
+      // Reuse last24Hours from above
       try {
         const recentActivityResult = await db
           .prepare(
@@ -1113,6 +1147,8 @@ export default async function HomePage({ searchParams }) {
         totalPosts: 0,
         totalUsers: 0,
         activeUsers: 0,
+        recentPostsCount: 0,
+        recentRepliesCount: 0,
         recentActivity: 0
       };
     }

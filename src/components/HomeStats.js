@@ -69,7 +69,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
           </div>
         </div>
 
-        {/* Recent Activity Card - With Links */}
+        {/* Recent Activity Card - Two Columns (Posts | Replies) */}
         <div
           className="card"
           style={{
@@ -78,11 +78,31 @@ export default function HomeStats({ stats, recentPosts = [] }) {
             background: 'rgba(4, 16, 23, 0.6)'
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
             Recent Activity
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px' }}>
-            {stats.recentActivity || 0}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '8px' }}>
+            <div style={{ flex: '1' }}>
+              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+                {stats.recentPostsCount || 0}
+              </div>
+              <div className="muted" style={{ fontSize: '11px' }}>
+                Posts
+              </div>
+            </div>
+            <div style={{ 
+              width: '1px', 
+              background: 'rgba(52, 225, 255, 0.2)', 
+              alignSelf: 'stretch' 
+            }} />
+            <div style={{ flex: '1' }}>
+              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+                {stats.recentRepliesCount || 0}
+              </div>
+              <div className="muted" style={{ fontSize: '11px' }}>
+                Replies
+              </div>
+            </div>
           </div>
           <div className="muted" style={{ fontSize: '11px', marginBottom: '8px' }}>
             Last 24 hours
