@@ -407,7 +407,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
                     {(isEditingUsername || !isEditingUsername) && (
-                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
+                      <label style={{ fontSize: isEditingUsername ? '11px' : '13px', color: 'var(--muted)', fontWeight: isEditingUsername ? '500' : 'bold' }}>
                         {isEditingUsername ? 'username' : 'Username:'}
                       </label>
                     )}
@@ -547,7 +547,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {/* Social Links Display - only show when NOT editing */}
                 {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                    <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
+                    <label style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
                       Socials:
                     </label>
                     {stats.profileLinks.map((link) => {
