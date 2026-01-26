@@ -115,8 +115,8 @@ export default function CollapsibleReplyForm({
         />
       </label>
       {allowImageUpload && (
-        <label>
-          <div className="muted" style={{ marginTop: '8px', marginBottom: '8px' }}>Image (optional)</div>
+        <label style={{ marginTop: '4px', display: 'block' }}>
+          <div className="muted" style={{ marginBottom: '8px' }}>Image (optional)</div>
           <input name="image" type="file" accept="image/*" />
         </label>
       )}
