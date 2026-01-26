@@ -2595,11 +2595,16 @@ header::before {
   /* Notifications popover - ensure it fits on mobile */
   .notifications-popover,
   .notifications-popover-errl {
+    /* Override inline width and positioning to fit viewport */
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
+    min-width: 0 !important;
+    /* Position from both sides to constrain width */
+    left: 8px !important;
     right: 8px !important;
-    left: auto !important;
     box-sizing: border-box !important;
+    transform: none !important;
+    margin: 0 !important;
   }
   
   /* Ensure content inside notifications popover doesn't overflow */
