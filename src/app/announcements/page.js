@@ -2,6 +2,7 @@ import TimelineClient from '../timeline/TimelineClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import PostForm from '../../components/PostForm';
@@ -105,6 +106,8 @@ export default async function AnnouncementsPage({ searchParams }) {
       ? 'Sign in before posting announcements.'
       : error === 'password'
       ? 'Set your password to continue posting.'
+      : error === 'admin_required'
+      ? 'Only admins can post announcements.'
       : error === 'upload'
       ? 'Image upload is not allowed for this username.'
       : error === 'too_large'
@@ -115,7 +118,7 @@ export default async function AnnouncementsPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  const canCreate = !!user && !!user.password_hash;
+  const canCreate = !!user && !!user.password_hash && isAdminUser(user);
 
   return (
     <>
@@ -129,7 +132,7 @@ export default async function AnnouncementsPage({ searchParams }) {
               bodyLabel="Update"
               buttonLabel="Post Announcement"
               titleRequired={false}
-              showImage={false}
+              showImage={true}
             />
           </NewPostModalButton>
         }
