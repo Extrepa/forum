@@ -4,7 +4,17 @@
  * or formats in a standard way for server-side rendering
  */
 export function formatDateTime(timestamp) {
+  // Handle null, undefined, or falsy values
+  if (!timestamp) {
+    return 'Unknown';
+  }
+  
   const date = new Date(timestamp);
+  
+  // Check if date is invalid
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
   
   // Format with locale and timezone options
   // This will use the server's locale, but we format it in a way that's clear
