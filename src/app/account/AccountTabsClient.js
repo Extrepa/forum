@@ -406,9 +406,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
-                    {isEditingUsername && (
+                    {(isEditingUsername || !isEditingUsername) && (
                       <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
-                        username
+                        {isEditingUsername ? 'username' : 'Username:'}
                       </label>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
@@ -547,6 +547,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {/* Social Links Display - only show when NOT editing */}
                 {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                    <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
+                      Socials:
+                    </label>
                     {stats.profileLinks.map((link) => {
                       if (typeof link !== 'object' || !link.platform || !link.url) return null;
                       const platformData = socialPlatforms.find(p => p.value === link.platform);
