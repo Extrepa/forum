@@ -2336,6 +2336,26 @@ header::before {
 
 /* Mobile adjustments */
 @media (max-width: 640px) {
+  /* Remove horizontal padding on mobile to use full viewport */
+  .site {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Add minimal padding back to main content area */
+  main {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  /* Auth form card should break out of main padding to use full width */
+  .auth-form-card {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: calc(100% + 16px) !important;
+  }
+
   .forum-logo-nav {
     flex: 1 1 auto;
     min-width: calc(50% - 4px);
@@ -2466,6 +2486,8 @@ header::before {
   .auth-form-container {
     flex-direction: column !important;
     gap: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .auth-form-container > div:first-child {
@@ -2504,8 +2526,8 @@ header::before {
     white-space: nowrap !important;
   }
 
-  /* Card wrapper adjustments for mobile - ensure auth form container uses full width */
-  .auth-form-container {
+  /* Card containing auth form should use full width on mobile */
+  .card {
     width: 100% !important;
     max-width: 100% !important;
   }
