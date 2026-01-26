@@ -54,7 +54,7 @@ export default function ScrollToTopButton() {
                 data-region="face"
                 fill="#000000"
                 stroke="#e5eef7"
-                strokeWidth="2"
+                strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"

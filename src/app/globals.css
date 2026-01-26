@@ -1878,11 +1878,11 @@ footer {
   font-weight: 600;
   color: var(--errl-accent);
   text-shadow: 0 0 6px rgba(52, 225, 255, 0.6);
-  letter-spacing: 0.5px;
+  letter-spacing: -0.2px;
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-38px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-28px);
   white-space: nowrap;
 }
 
@@ -1910,7 +1910,8 @@ footer {
 
   .scroll-to-top-letter {
     font-size: 7px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-30px);
+    letter-spacing: -0.2px;
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-22px);
   }
 }
 
