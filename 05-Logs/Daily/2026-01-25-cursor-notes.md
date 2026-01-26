@@ -1537,3 +1537,52 @@ The home page now displays a different Errl-themed greeting message for each hou
   - `Implementation/` - High-level implementation summaries and completion notes
   - `Reference/` - Build commands, migration instructions, and operational guides
 - **Root directory:** Now clean with only `README.md` for navigation
+
+---
+
+## Scroll-to-Bottom View Tracking (2026-01-25)
+
+### Feature: Automatic View Counting on Development Page
+
+**Problem:** Wanted to track when users read the latest development post without requiring them to click into the detail page.
+
+**Solution:** Added scroll detection that automatically counts a view when users scroll to the bottom of the latest post's content on the development list page.
+
+**Implementation:**
+- ✅ Modified `src/app/devlog/DevLogClient.js`:
+  - Added React hooks (`useEffect`, `useRef`, `useState`) for scroll tracking
+  - Implemented scroll detection that checks if bottom of post body is visible
+  - Only counts view after user has scrolled down (prevents false positives on page load)
+  - Targets the `.post-body.post-body-scrollable` element specifically, not the entire page
+  - Uses absolute position calculation: `viewportBottom >= elementBottomAbsolute - 50px`
+  - Calls `/api/devlog/[id]/view` endpoint when conditions are met
+  - One-time tracking per page load (uses state to prevent duplicate counts)
+
+**Key Features:**
+- Only triggers after user scrolls down (at least 10px from initial position)
+- Specifically checks bottom of post body content, not wrapper or entire page
+- Handles edge cases with 50px threshold
+- Silently fails if API call fails (won't break the page)
+
+**Iterations:**
+1. Initial implementation counted views on page load if post was short
+2. Fixed to require scrolling before counting
+3. Fixed to check post body element instead of wrapper/entire page
+4. Final version uses absolute position calculation for accurate detection
+
+### Database: View Count Reset
+
+**Created:** `migrations/0037_reset_all_view_counts.sql`
+- Resets view counts to zero for all content types:
+  - `dev_logs`, `music_posts`, `events`, `projects`, `posts`, `timeline_updates`, `forum_threads`
+
+**Applied:**
+- ✅ Local database
+- ✅ Remote database
+
+**Files Modified:**
+- `src/app/devlog/DevLogClient.js` - Added scroll tracking logic
+- `migrations/0037_reset_all_view_counts.sql` - New migration file
+
+**Documentation:**
+- Created `05-Logs/Development/2026-01-25-scroll-view-tracking.md` with full implementation details
