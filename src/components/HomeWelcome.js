@@ -1,24 +1,20 @@
 'use client';
 
-import { getForumStrings } from '../lib/forum-texts';
 import Username from './Username';
-import { useUiPrefs } from './UiPrefsProvider';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
-export default function HomeWelcome({ user, greetingParts }) {
-  const { loreEnabled } = useUiPrefs();
-  const strings = getForumStrings({ useLore: loreEnabled });
-  
+export default function HomeWelcome({ user, greetingParts, fallbackText = 'Welcome' }) {
   if (!user) {
+    // Use server-computed fallback text to avoid hydration mismatch
     return (
       <section className="card" style={{ padding: '16px 20px' }}>
-        <h2 className="section-title" style={{ marginBottom: '0' }}>{strings.hero.title}</h2>
+        <h2 className="section-title" style={{ marginBottom: '0' }} suppressHydrationWarning>{fallbackText}</h2>
       </section>
     );
   }
 
   // Use server-computed greeting parts to avoid hydration mismatch
-  const parts = greetingParts || { hasVar: false, before: strings.hero.title, after: '' };
+  const parts = greetingParts || { hasVar: false, before: fallbackText, after: '' };
 
   return (
     <section className="card" style={{ padding: '16px 20px' }}>
