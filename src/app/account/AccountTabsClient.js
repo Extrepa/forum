@@ -407,8 +407,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
                     {(isEditingUsername || !isEditingUsername) && (
-                      <label style={{ fontSize: isEditingUsername ? '11px' : '13px', color: 'var(--muted)', fontWeight: isEditingUsername ? '500' : 'bold' }}>
-                        {isEditingUsername ? 'username' : 'Username:'}
+                      <label style={{ fontSize: isEditingUsername ? '11px' : '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
+                        {isEditingUsername ? 'Username' : 'Username:'}
                       </label>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
@@ -444,8 +444,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   {/* Color Picker Buttons Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
                     {isEditingUsername && (
-                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
-                        username color
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>
+                        Username color
                       </label>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
