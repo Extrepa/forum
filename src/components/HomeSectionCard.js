@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default function HomeSectionCard({ title, description, count, recentActivity, href, usernameColorMap, preferredColors }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   if (!recentActivity) {
     return (
       <Link
@@ -68,7 +62,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
         {recentActivity && (
           <span>
             {' · '}
-            Latest: {activityDescription} · {mounted ? recentActivity.timeAgo : 'just now'}
+            Latest: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
           </span>
         )}
       </div>
