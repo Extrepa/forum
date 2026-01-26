@@ -803,21 +803,21 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {/* Right Column: Stats */}
             <div className="account-col">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                 <div>
-                  <strong>Joined:</strong> {formatDateTime(stats.joinDate)}
+                  {formatDateTime(stats.joinDate)} portal entry date
                 </div>
                 <div>
-                  <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
+                  {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
                 </div>
                 <div>
-                  <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
+                  {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
                 </div>
                 <div>
-                  <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
+                  {stats.threadCount + stats.replyCount} Total posts
                 </div>
                 <div>
-                  <strong>Profile views:</strong> {stats.profileViews || 0} {stats.profileViews === 1 ? 'view' : 'views'}
+                  {stats.profileViews || 0} {stats.profileViews === 1 ? 'view' : 'views'}
                 </div>
               </div>
             </div>
