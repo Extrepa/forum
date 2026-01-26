@@ -37,27 +37,31 @@ export default function ScrollToTopButton() {
   ];
   
   // Flatten words into letters with word indices
+  // Reverse the order since we're rotating counterclockwise
   // Add equal spacing between all words (including wrap-around)
-  let letterIndex = 0;
-  const lettersWithWordInfo = words.flatMap((word, wordIndex) => {
-    const wordLetters = word.split('').map((letter, letterInWord) => ({
+  const allLetters = words.flatMap((word, wordIndex) => {
+    const wordLetters = word.split('').map((letter) => ({
       letter,
-      letterIndex: letterIndex++,
       wordIndex,
       isSpace: false
     }));
     // Add equal spacing after each word (2 spaces for visual separation)
-    // This ensures even spacing between RETURN-TO, TO-TOP, and TOP-RETURN (wrap-around)
     for (let i = 0; i < 2; i++) {
       wordLetters.push({
         letter: ' ',
-        letterIndex: letterIndex++,
         wordIndex,
         isSpace: true
       });
     }
     return wordLetters;
   });
+  
+  // Reverse the entire array so letters appear in correct order when rotating counterclockwise
+  // Then assign indices starting from 0
+  const lettersWithWordInfo = allLetters.reverse().map((item, index) => ({
+    ...item,
+    letterIndex: index
+  }));
 
   return (
     <button

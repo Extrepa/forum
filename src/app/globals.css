@@ -1967,10 +1967,10 @@ footer {
 
 @keyframes rotate-text-counter {
   from {
-    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px) rotate(0deg);
+    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(calc(-1 * var(--text-radius, 19px))) rotate(0deg);
   }
   to {
-    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(-21px) rotate(360deg);
+    transform: rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) translateY(calc(-1 * var(--text-radius, 19px))) rotate(360deg);
   }
 }
 
@@ -1984,6 +1984,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
+  --text-radius: 19px;
   animation: rotate-text-counter 8s linear infinite;
   white-space: nowrap;
 }
@@ -2013,7 +2014,7 @@ footer {
   .scroll-to-top-letter {
     font-size: 7px;
     letter-spacing: -0.4px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-18px);
+    --text-radius: 16px;
   }
 }
 
