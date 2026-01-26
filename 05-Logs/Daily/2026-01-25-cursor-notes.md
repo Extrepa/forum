@@ -314,6 +314,18 @@ npm run deploy
 - `src/app/feed/page.js` - Compute greeting on server using PST/PDT timezone (lines 40-46)
 - `src/app/feed/page.js` - Pass `greetingParts` and `fallbackText` to `HomeWelcome` component (line 395)
 
+## Fix: Author view count protection - type coercion for ID comparison
+**Issue:** Author view count protection was using strict equality (`===`) between `post.author_user_id` (which can be BigInt from D1) and `user.id` (which may be string/number), causing comparison to fail. Authors could increment their own view counts.
+**Fix:** Use `String()` conversion for both values before comparison, following the precedent set by `DeleteCommentButton` component
+**Files Modified:**
+- `src/app/api/devlog/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/posts/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/music/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/events/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/projects/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/timeline/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+- `src/app/api/forum/[id]/view/route.js` - Line 18: `String(post.author_user_id) === String(user.id)`
+
 ## Final Verification Summary
 
 ### All Fixes Applied ✅

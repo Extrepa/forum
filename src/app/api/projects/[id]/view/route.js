@@ -15,7 +15,7 @@ export async function POST(request, { params }) {
         .bind(id)
         .first();
       
-      if (post && post.author_user_id === user.id) {
+      if (post && String(post.author_user_id) === String(user.id)) {
         // Author viewing their own post - don't increment view count
         return NextResponse.json({ ok: true, skipped: true });
       }
