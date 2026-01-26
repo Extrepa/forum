@@ -37,6 +37,11 @@ Hey everyone! Another round of improvements—this one focuses on **notification
 - **Devlog & post delete APIs**: Devlog posts and regular posts (Lore, etc.) can be deleted via new APIs; `DeletePostButton` supports both types.
 - **Event edit/delete**: Events now have consistent edit/delete buttons using `EditPostButtonWithPanel` and `DeletePostButton`. Edit panel with pre-filled form values; new `/api/events/[id]` route for editing.
 
+### Reply System Improvements
+- **Projects reply system**: Projects now use the same reply system as Events with `ProjectRepliesSection` component. Dynamic form updates when clicking reply buttons—no page refresh needed. Reply threading displays properly with parent/child relationships. URL deep linking to specific replies using `?replyTo=ID#reply-form` parameters.
+- **Reply button consistency**: Projects and Events use `ReplyButton` component (single "Reply" button in same row as username/timestamp) instead of separate Quote/Reply buttons. Matches the reply experience across content types.
+- **Reply tree validation**: Devlog and lobby use `validCommentIds` Set to ensure only valid parent IDs are used in reply tree building. Orphaned replies (pointing to deleted comments) become top-level instead of breaking the tree.
+
 ### Feed & List UI
 - **PostMetaBar everywhere**: Feed cards use the same meta bar as lobby/devlog—views, replies, likes, created date, **last activity**.
 - **Thinner cards**: Feed keeps the compact list style; no extra preview bloat.
@@ -73,8 +78,9 @@ Hey everyone! Another round of improvements—this one focuses on **notification
 - **API params consistency**: Events, projects, timeline comment/reply routes use `id` from `await params` consistently. Devlog comments API, delete routes (devlog post, post, comment/reply deletes) all await params correctly.
 
 ### Serialization & Data Handling
-- **Comment/reply serialization**: Devlog, events, music pre-render markdown and coerce numeric/BigInt values before passing to client components, avoiding serialization errors. Created `safeComments` arrays with full serialization (id, body, author_name, author_color_preference, created_at, reply_to_id) as String/Number.
-- **Reply tree validation**: Devlog and lobby use `validCommentIds` Set to ensure only valid parent IDs are used in reply tree building. Orphaned replies (pointing to deleted comments) become top-level.
+- **Comment/reply serialization**: Devlog, events, music, projects pre-render markdown and coerce numeric/BigInt values before passing to client components, avoiding serialization errors. Created `safeComments`/`safeReplies` arrays with full serialization (id, body, author_name, author_color_preference, created_at, reply_to_id, body_html) as String/Number. All data passed to `Username` and `CommentActions`/`ReplyButton` components is properly serialized.
+- **Reply tree validation**: Devlog and lobby use `validCommentIds` Set to ensure only valid parent IDs are used in reply tree building. Orphaned replies (pointing to deleted comments) become top-level. Projects already had `validReplyIds` pattern from previous work.
+- **SearchParams await**: All detail pages now await `searchParams` for Next.js 15 compatibility. Used for error handling, replyTo parameters, page numbers, and edit flags.
 
 ### Notification Fixes
 - **Blank notification labels**: Fixed notifications showing generic "Notification" with no details. All notification types now have proper labels and href links.
@@ -92,8 +98,10 @@ Hey everyone! Another round of improvements—this one focuses on **notification
 
 ### Component Architecture
 - **PostEditForm component**: New reusable component for editing posts (Lore, Memories, etc.) with `initialData` prop, title, body, is_private checkbox, optional image upload.
+- **ProjectRepliesSection component**: New client component for projects that manages reply state and form interactions. Uses `ReplyButton` component, listens for `replyToChanged` custom events for dynamic form updates, handles URL `replyTo` parameter for initial reply state, renders replies with proper threading support. Matches the pattern from `EventCommentsSection`.
 - **Event edit API**: New `/api/events/[id]` route for editing events. Enhanced `PostForm` component to support `initialData` prop for editing.
 - **GenericPostForm enhancements**: Added `allowedTypes` prop for dual-page forms, dynamic type-specific configurations (labels, placeholders, button text), real-time UI updates when dropdown selection changes.
+- **DeleteCommentButton component**: Shared component used across 13 pages + `ProjectRepliesSection` / `EventCommentsSection`. Handles all 7 comment/reply types ('post', 'devlog', 'project', 'forum', 'music', 'event', 'timeline'). Small trash icon (SVG) with proper accessibility, conditional rendering (author or admin only), hover states, uses `DeleteConfirmModal`.
 
 ### Database & Queries
 - **Username color preferences**: All queries that JOIN users now fetch `preferred_username_color_index AS author_color_preference`. Home page, Feed, devlog, events, projects, announcements, post sections all build preferences maps and pass to `assignUniqueColorsForPage()`.
@@ -132,6 +140,7 @@ With all these improvements, here's what you can do:
 - **Rely on notifications** for all sections—comments and replies—and **click through** to the right page.
 - **Delete** individual notifications or clear all (with confirmation).
 - **Edit/delete** your Lore, Memories, and devlog posts; **delete** your own comments/replies across the forum.
+- **Reply to projects** with dynamic form updates (no page refresh), proper threading, and URL deep linking—matches the Events reply experience.
 - **Use username colors** that match your profile preference on home, feed, and sections.
 - **Browse Feed** with richer meta, last activity, event attendees, and up to 15 items.
 - **Read the latest dev post** in full on the Development page without opening it.

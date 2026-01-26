@@ -1,11 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
 export default function DevLogClient({ logs, notice }) {
   const router = useRouter();
+  const latestPostRef = useRef(null);
+  const [viewTracked, setViewTracked] = useState(false);
 
   const navigateToLog = (event, href) => {
     if (event?.target?.closest && event.target.closest('a')) {
@@ -13,6 +16,55 @@ export default function DevLogClient({ logs, notice }) {
     }
     router.push(href);
   };
+
+  // Track view when user scrolls to bottom of latest post
+  useEffect(() => {
+    if (!latestPostRef.current || viewTracked || logs.length === 0) return;
+
+    const latestPostId = logs[0].id;
+    const latestPostElement = latestPostRef.current;
+
+    const checkScroll = () => {
+      if (viewTracked) return;
+
+      // Get the bounding box of the latest post element
+      const rect = latestPostElement.getBoundingClientRect();
+      const elementBottom = rect.bottom;
+      const windowHeight = window.innerHeight;
+
+      // Check if the bottom of the post has been scrolled into view
+      // We consider it "read" if the bottom of the element is at or above the bottom of the viewport
+      // This means the user has scrolled to see the entire post
+      // Using a 100px threshold to account for edge cases and ensure the user has actually scrolled
+      const isAtBottom = elementBottom <= windowHeight + 100;
+
+      if (isAtBottom) {
+        // Track the view
+        fetch(`/api/devlog/${latestPostId}/view`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(() => {
+          // Silently fail if view tracking fails
+        });
+
+        setViewTracked(true);
+      }
+    };
+
+    // Check on initial load (in case post is already fully visible)
+    // Use a small delay to ensure DOM is fully rendered
+    const initialCheck = setTimeout(checkScroll, 100);
+
+    // Check on scroll and resize
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll, { passive: true });
+
+    return () => {
+      clearTimeout(initialCheck);
+      window.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [logs, viewTracked]);
 
   return (
     <div className="stack">
@@ -98,7 +150,9 @@ export default function DevLogClient({ logs, notice }) {
 
               return (
                 <>
-                  {renderItem(latest, { condensed: false })}
+                  <div ref={latestPostRef}>
+                    {renderItem(latest, { condensed: false })}
+                  </div>
                   {rest.length ? (
                     <>
                       <div className="list-divider" />
