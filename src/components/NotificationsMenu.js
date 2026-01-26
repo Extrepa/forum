@@ -142,7 +142,7 @@ export default function NotificationsMenu({
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
         width: 380,
-        maxWidth: 'min(380px, calc(100vw - 16px))',
+        maxWidth: 380,
         zIndex: 1100,
         padding: '20px',
         maxHeight: 'min(80vh, 600px)',

@@ -2595,10 +2595,11 @@ header::before {
   /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
   .notifications-popover-errl {
-    /* Don't override width - keep original 380px size */
-    /* Only constrain max-width to prevent overflow */
-    max-width: calc(100vw - 16px) !important;
-    min-width: 0 !important;
+    /* Keep original 380px width - don't shrink unless viewport is smaller */
+    width: 380px !important;
+    max-width: 380px !important;
+    /* Only shrink if viewport is actually smaller than 380px */
+    min-width: min(380px, calc(100vw - 16px)) !important;
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -2620,6 +2621,30 @@ header::before {
       /* Shift by the overflow amount: max(0, 380px + 8px - 100vw) */
       transform: translateX(calc(-1 * max(0px, calc(388px - 100vw)))) !important;
     }
+  }
+  
+  /* Prevent content from being compressed - ensure proper text wrapping */
+  .notifications-popover > div,
+  .notifications-popover-errl > div {
+    min-width: 0 !important;
+  }
+  
+  /* Ensure buttons don't get squished */
+  .notifications-popover button,
+  .notifications-popover-errl button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Ensure header buttons container doesn't wrap too aggressively */
+  .notifications-popover > div:first-child,
+  .notifications-popover-errl > div:first-child {
+    gap: 8px !important;
+  }
+  
+  .notifications-popover > div:first-child > div:last-child,
+  .notifications-popover-errl > div:first-child > div:last-child {
+    flex-shrink: 0 !important;
   }
   
   /* Ensure content inside notifications popover doesn't overflow */
