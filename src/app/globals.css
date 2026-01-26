@@ -1795,8 +1795,8 @@ footer {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 80px;
-  height: 80px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   border: 2px solid rgba(52, 225, 255, 0.4);
   background: rgba(2, 7, 10, 0.85);
@@ -1876,13 +1876,13 @@ footer {
   position: absolute;
   font-size: 8px;
   font-weight: 600;
-  color: var(--errl-accent);
-  text-shadow: 0 0 6px rgba(52, 225, 255, 0.6);
-  letter-spacing: -0.2px;
+  color: var(--word-color, var(--errl-accent));
+  text-shadow: 0 0 4px currentColor;
+  letter-spacing: -0.4px;
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-28px);
+  transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-24px);
   white-space: nowrap;
 }
 
@@ -1899,19 +1899,19 @@ footer {
   .scroll-to-top-button {
     bottom: 20px;
     right: 20px;
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
   }
 
   .scroll-to-top-face {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 
   .scroll-to-top-letter {
     font-size: 7px;
-    letter-spacing: -0.2px;
-    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-22px);
+    letter-spacing: -0.4px;
+    transform: rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) translateY(-20px);
   }
 }
 

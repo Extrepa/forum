@@ -29,8 +29,33 @@ export default function ScrollToTopButton() {
     });
   };
 
-  const text = "RETURN TO TOP";
-  const letters = text.split('');
+  const words = ["RETURN", "TO", "TOP"];
+  const wordColors = [
+    'var(--errl-accent)',      // Cyan for RETURN
+    'var(--errl-accent-2)',    // Magenta for TO
+    'var(--errl-accent-3)'     // Yellow-green for TOP
+  ];
+  
+  // Flatten words into letters with word indices
+  let letterIndex = 0;
+  const lettersWithWordInfo = words.flatMap((word, wordIndex) => {
+    const wordLetters = word.split('').map((letter, letterInWord) => ({
+      letter,
+      letterIndex: letterIndex++,
+      wordIndex,
+      isSpace: false
+    }));
+    // Add space after each word except the last
+    if (wordIndex < words.length - 1) {
+      wordLetters.push({
+        letter: ' ',
+        letterIndex: letterIndex++,
+        wordIndex,
+        isSpace: true
+      });
+    }
+    return wordLetters;
+  });
 
   return (
     <button
@@ -67,7 +92,7 @@ export default function ScrollToTopButton() {
               data-region="eyeL"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="2"
+              strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -80,7 +105,7 @@ export default function ScrollToTopButton() {
               data-region="eyeR"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="2"
+              strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -93,7 +118,7 @@ export default function ScrollToTopButton() {
               data-region="mouth"
               fill="#000000"
               stroke="#e5eef7"
-              strokeWidth="2"
+              strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -103,16 +128,18 @@ export default function ScrollToTopButton() {
         </g>
       </svg>
       <div className="scroll-to-top-text-container">
-        {letters.map((letter, index) => (
+        {lettersWithWordInfo.map(({ letter, letterIndex, wordIndex, isSpace }) => (
           <span
-            key={index}
+            key={letterIndex}
             className="scroll-to-top-letter"
             style={{
-              '--letter-index': index,
-              '--total-letters': letters.length
+              '--letter-index': letterIndex,
+              '--total-letters': lettersWithWordInfo.length,
+              '--word-color': wordColors[wordIndex],
+              '--is-space': isSpace ? 1 : 0
             }}
           >
-            {letter === ' ' ? '\u00A0' : letter}
+            {isSpace ? '\u00A0\u00A0' : letter}
           </span>
         ))}
       </div>
