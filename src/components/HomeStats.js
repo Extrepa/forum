@@ -1,15 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { formatTimeAgo } from '../lib/dates';
 
 export default function HomeStats({ stats, recentPosts = [] }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   if (!stats) {
     return null;
   }
@@ -145,7 +139,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
                     e.target.style.color = 'var(--muted)';
                   }}
                 >
-                  {post.title || 'Untitled'} · {mounted ? formatTimeAgo(post.created_at) : 'just now'}
+                  {post.title || 'Untitled'} · <span suppressHydrationWarning>{formatTimeAgo(post.created_at)}</span>
                 </Link>
               ))}
             </div>

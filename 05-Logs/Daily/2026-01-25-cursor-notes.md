@@ -1885,31 +1885,32 @@ The `formatTimeAgo` function calculates relative time (e.g., "1 hour ago") based
 ### Fix Applied
 
 **Files Modified:**
-1. `src/components/HomeStats.js` - Added mounted state check for `formatTimeAgo`
-2. `src/components/HomeRecentFeed.js` - Added mounted state check for `formatTimeAgo`
+1. `src/components/HomeStats.js` - Added `suppressHydrationWarning` to `formatTimeAgo` span
+2. `src/components/HomeRecentFeed.js` - Added `suppressHydrationWarning` to `formatTimeAgo` span
 3. `src/components/NotificationsMenu.js` - Added `suppressHydrationWarning` prop
-4. `src/components/PostMetaBar.js` - Added mounted state check for `toLocaleString()` dates
-5. `src/components/HomeWelcome.js` - Added mounted state check for time-based greeting
-6. `src/components/HomeSectionCard.js` - Added mounted state check for `timeAgo` prop (computed on server, rendered on client)
+4. `src/components/PostMetaBar.js` - Added `suppressHydrationWarning` to date rendering spans
+5. `src/components/HomeWelcome.js` - Added `suppressHydrationWarning` to greeting heading
+6. `src/components/HomeSectionCard.js` - Added `suppressHydrationWarning` to `timeAgo` span
 
 **Solution:**
-1. Added `useState` and `useEffect` to track component mount state
-2. Only render `formatTimeAgo` after component has mounted on client
-3. Show "just now" as placeholder during initial server render
+Since time-based content will naturally differ between server render and client hydration (due to `Date.now()` differences), the best approach is to use `suppressHydrationWarning` on the elements containing time-based content. This tells React that differences in these elements are expected and should not trigger hydration errors.
 
 **Code Pattern Applied:**
 ```javascript
-const [mounted, setMounted] = useState(false);
+// For formatTimeAgo (uses Date.now() internally)
+<span suppressHydrationWarning>{formatTimeAgo(timestamp)}</span>
 
-useEffect(() => {
-  setMounted(true);
-}, []);
+// For toLocaleString() dates
+<span suppressHydrationWarning>{new Date(timestamp).toLocaleString()}</span>
 
-// In render:
-{mounted ? formatTimeAgo(timestamp) : 'just now'}
+// For time-based greetings
+<h2 suppressHydrationWarning>{greetingText}</h2>
 ```
 
-**For NotificationsMenu:** Used `suppressHydrationWarning` prop since it's a dropdown menu that's not critical for initial render.
+**Why This Works:**
+- `suppressHydrationWarning` tells React to ignore text content mismatches for that specific element
+- Time-based content is expected to differ between server and client
+- This is the recommended React pattern for content that will naturally differ
 
 ### Status
 ✅ **Fixed** - Build successful, all hydration errors resolved

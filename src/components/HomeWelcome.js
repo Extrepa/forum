@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { getForumStrings, getTimeBasedGreetingTemplate, renderTemplateParts } from '../lib/forum-texts';
 import Username from './Username';
 import { useUiPrefs } from './UiPrefsProvider';
@@ -9,11 +8,6 @@ import { getUsernameColorIndex } from '../lib/usernameColor';
 export default function HomeWelcome({ user, context = 'home' }) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   
   if (!user) {
     return (
@@ -23,12 +17,12 @@ export default function HomeWelcome({ user, context = 'home' }) {
     );
   }
 
-  const { template } = getTimeBasedGreetingTemplate({ date: mounted ? new Date() : new Date(0), useLore: loreEnabled, context });
+  const { template } = getTimeBasedGreetingTemplate({ date: new Date(), useLore: loreEnabled, context });
   const parts = renderTemplateParts(template, 'username');
 
   return (
     <section className="card" style={{ padding: '16px 20px' }}>
-      <h2 className="section-title" style={{ marginBottom: '0' }}>
+      <h2 className="section-title" style={{ marginBottom: '0' }} suppressHydrationWarning>
         {parts.hasVar ? (
           <>
             {parts.before}

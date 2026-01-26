@@ -1,18 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatTimeAgo } from '../lib/dates';
 
 export default function HomeRecentFeed({ recentPosts, usernameColorMap, preferredColors }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   if (!recentPosts || recentPosts.length === 0) {
     return null;
   }
@@ -64,7 +57,7 @@ export default function HomeRecentFeed({ recentPosts, usernameColorMap, preferre
                 )}
               </div>
               <div className="list-meta" style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span>{mounted ? formatTimeAgo(activity.created_at) : 'just now'}</span>
+                <span suppressHydrationWarning>{formatTimeAgo(activity.created_at)}</span>
                 {activity.section && (
                   <>
                     <span>·</span>
