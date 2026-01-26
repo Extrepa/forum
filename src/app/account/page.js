@@ -211,9 +211,9 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .all();
 
-      // Get user info
+      // Get user info including profile links
       const userInfo = await db
-        .prepare('SELECT created_at FROM users WHERE id = ?')
+        .prepare('SELECT created_at, profile_links FROM users WHERE id = ?')
         .bind(user.id)
         .first();
 
@@ -240,6 +240,17 @@ export default async function AccountPage({ searchParams }) {
         .sort((a, b) => b.created_at - a.created_at)
         .slice(0, 10);
 
+      // Parse profile links if they exist
+      let profileLinks = [];
+      if (userInfo?.profile_links) {
+        try {
+          profileLinks = JSON.parse(userInfo.profile_links);
+        } catch (e) {
+          // If not JSON, try comma-separated
+          profileLinks = userInfo.profile_links.split(',').map(link => link.trim()).filter(Boolean);
+        }
+      }
+
       stats = {
         threadCount,
         replyCount,
@@ -247,6 +258,7 @@ export default async function AccountPage({ searchParams }) {
         recentThreads: allPosts.slice(0, 10),
         recentReplies: allReplies.slice(0, 10),
         recentActivity: allActivity,
+        profileLinks,
       };
     } catch (e) {
       // Fallback if queries fail

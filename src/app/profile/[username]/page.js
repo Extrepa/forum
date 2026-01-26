@@ -96,12 +96,24 @@ export default async function ProfilePage({ params }) {
   let profileLinks = [];
   if (profileUser.profile_links) {
     try {
-      profileLinks = JSON.parse(profileUser.profile_links);
+      const parsed = JSON.parse(profileUser.profile_links);
+      if (Array.isArray(parsed)) {
+        profileLinks = parsed;
+      } else {
+        profileLinks = [];
+      }
     } catch (e) {
       // If not JSON, try comma-separated
       profileLinks = profileUser.profile_links.split(',').map(link => link.trim()).filter(Boolean);
     }
   }
+
+  const platformIcons = {
+    github: '💻',
+    facebook: '👤',
+    youtube: '▶️',
+    soundcloud: '🎵',
+  };
 
   return (
     <div className="stack">
@@ -123,13 +135,44 @@ export default async function ProfilePage({ params }) {
           )}
           {profileLinks.length > 0 && (
             <div style={{ marginTop: '8px' }}>
-              <strong>Links:</strong>
-              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {profileLinks.map((link, idx) => (
-                  <a key={idx} href={link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
-                    {link}
-                  </a>
-                ))}
+              <strong>Social Links:</strong>
+              <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                {profileLinks.map((link, idx) => {
+                  const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
+                  const icon = linkObj.platform ? (platformIcons[linkObj.platform] || '🔗') : '🔗';
+                  return (
+                    <a
+                      key={idx}
+                      href={linkObj.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        background: 'rgba(52, 225, 255, 0.05)',
+                        color: 'var(--accent)',
+                        textDecoration: 'none',
+                        fontSize: '14px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(52, 225, 255, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
+                      }}
+                    >
+                      <span>{icon}</span>
+                      <span>{linkObj.platform ? linkObj.platform.charAt(0).toUpperCase() + linkObj.platform.slice(1) : 'Link'}</span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}

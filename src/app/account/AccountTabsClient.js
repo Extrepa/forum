@@ -15,6 +15,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [usernameStatus, setUsernameStatus] = useState({ type: 'idle', message: null });
   const [selectedColorIndex, setSelectedColorIndex] = useState(user?.preferred_username_color_index ?? null);
   const [colorStatus, setColorStatus] = useState({ type: 'idle', message: null });
+  const [socialLinks, setSocialLinks] = useState(() => {
+    const links = initialStats?.profileLinks || [];
+    // Initialize with empty entries for each platform
+    const platforms = ['github', 'facebook', 'youtube', 'soundcloud'];
+    const linkMap = {};
+    links.forEach(link => {
+      if (typeof link === 'object' && link.platform && link.url) {
+        linkMap[link.platform] = link.url;
+      }
+    });
+    return platforms.map(platform => ({
+      platform,
+      url: linkMap[platform] || ''
+    }));
+  });
+  const [socialLinksStatus, setSocialLinksStatus] = useState({ type: 'idle', message: null });
 
   const handleTabChange = (tab) => {
     router.push(`/account?tab=${tab}`, { scroll: false });
@@ -29,6 +45,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           if (res.ok) {
             const data = await res.json();
             setStats(data);
+            // Update social links if they changed
+            if (data.profileLinks) {
+              const platforms = ['github', 'facebook', 'youtube', 'soundcloud'];
+              const linkMap = {};
+              data.profileLinks.forEach(link => {
+                if (typeof link === 'object' && link.platform && link.url) {
+                  linkMap[link.platform] = link.url;
+                }
+              });
+              setSocialLinks(platforms.map(platform => ({
+                platform,
+                url: linkMap[platform] || ''
+              })));
+            }
           }
         } catch (e) {
           // Silently fail - stats will just be stale
@@ -122,6 +152,53 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { index: 7, name: 'Lime', color: '#CCFF00' },
   ];
 
+  const socialPlatforms = [
+    { value: 'github', label: 'GitHub', icon: '💻' },
+    { value: 'facebook', label: 'Facebook', icon: '👤' },
+    { value: 'youtube', label: 'YouTube', icon: '▶️' },
+    { value: 'soundcloud', label: 'SoundCloud', icon: '🎵' },
+  ];
+
+  const getPlatformIcon = (platform) => {
+    const platformData = socialPlatforms.find(p => p.value === platform);
+    return platformData?.icon || '🔗';
+  };
+
+  const handleSocialLinkChange = (index, field, value) => {
+    const updated = [...socialLinks];
+    updated[index] = { ...updated[index], [field]: value };
+    setSocialLinks(updated);
+  };
+
+  const handleSaveSocialLinks = async () => {
+    setSocialLinksStatus({ type: 'loading', message: 'Saving...' });
+    
+    try {
+      const linksToSave = socialLinks
+        .filter(link => link.url.trim())
+        .map(link => ({ platform: link.platform, url: link.url.trim() }));
+      
+      const fd = new FormData();
+      fd.append('links', JSON.stringify(linksToSave));
+      
+      const res = await fetch('/api/account/social-links', { method: 'POST', body: fd });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setSocialLinksStatus({ type: 'error', message: data.error || 'Failed to update social links' });
+        return;
+      }
+      
+      setSocialLinksStatus({ type: 'success', message: 'Social links updated!' });
+      setTimeout(() => {
+        setSocialLinksStatus({ type: 'idle', message: null });
+        router.refresh();
+      }, 1000);
+    } catch (err) {
+      setSocialLinksStatus({ type: 'error', message: 'Network error. Please try again.' });
+    }
+  };
+
   const tabBase = {
     padding: '8px 12px',
     background: 'transparent',
@@ -189,183 +266,265 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <h2 className="section-title" style={{ borderBottom: 'none' }}>Profile</h2>
           
-          {/* Username and Color Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px', minWidth: 0, maxWidth: '100%' }}>
-            {/* Username row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-              <strong>Username:</strong>
-              {!isEditingUsername ? (
-                <div style={{ flexShrink: 0 }}>
-                  <Username
-                    name={user.username}
-                    colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                  />
+          {/* Two Column Layout */}
+          <div className="account-columns" style={{ marginBottom: '24px' }}>
+            {/* Left Column: Stats */}
+            <div className="account-col">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <strong>Joined:</strong> {formatDateTime(stats.joinDate)}
                 </div>
-              ) : (
-                <input
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  placeholder="username"
-                  pattern="[a-z0-9_]{3,20}"
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(52, 225, 255, 0.3)',
-                    background: 'rgba(2, 7, 10, 0.6)',
-                    color: 'var(--ink)',
-                    fontSize: '14px',
-                    minWidth: '120px',
-                    maxWidth: '100%',
-                    flex: '1 1 auto'
-                  }}
-                  autoFocus
-                />
-              )}
-            </div>
-
-            {/* Username color label and picker - same row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-              <strong>Username color:</strong>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', flex: '0 0 auto' }}>
-              {colorOptions.map((option) => {
-                const isSelected = selectedColorIndex === option.index;
-                const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                const size = 18;
-                return (
-                  <button
-                    key={option.index ?? 'auto'}
-                    type="button"
-                    onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
-                    disabled={disabled}
-                    style={{
-                      flex: '0 0 auto',
-                      width: option.index === null ? 'auto' : size,
-                      height: size,
-                      minWidth: option.index === null ? 'auto' : size,
-                      aspectRatio: option.index === null ? 'auto' : '1',
-                      borderRadius: option.index === null ? '3px' : '50%',
-                      border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                      background: option.index === null
-                        ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                        : option.color,
-                      cursor: disabled ? 'default' : 'pointer',
-                      opacity: disabled ? 0.7 : 1,
-                      transition: 'all 0.2s ease',
-                      padding: option.index === null ? '0 6px' : 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: option.index === null ? '9px' : '0',
-                      color: 'var(--ink)',
-                      fontWeight: 'bold',
-                      boxSizing: 'border-box'
-                    }}
-                    title={option.name}
-                  >
-                    {option.index === null ? 'Auto' : ''}
-                  </button>
-                );
-              })}
+                <div>
+                  <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
+                </div>
+                <div>
+                  <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
+                </div>
+                <div>
+                  <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
+                </div>
               </div>
             </div>
 
-            {/* Edit / Save / Cancel row - below username and color */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%' }}>
-              {!isEditingUsername ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditingUsername(true);
-                    setNewUsername(user.username);
-                    setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                    setUsernameStatus({ type: 'idle', message: null });
-                    setColorStatus({ type: 'idle', message: null });
-                  }}
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 12px',
-                    height: '32px',
-                    width: '100%',
-                    background: 'rgba(52, 225, 255, 0.1)',
-                    border: '1px solid rgba(52, 225, 255, 0.3)',
-                    borderRadius: '6px',
-                    color: 'var(--accent)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Edit
-                </button>
-              ) : (
-                <>
+            {/* Right Column: Username, Color, and Social Links */}
+            <div className="account-col">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
+                {/* Username row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                  <strong>Username:</strong>
+                  {!isEditingUsername ? (
+                    <div style={{ flexShrink: 0 }}>
+                      <Username
+                        name={user.username}
+                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      placeholder="username"
+                      pattern="[a-z0-9_]{3,20}"
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        background: 'rgba(2, 7, 10, 0.6)',
+                        color: 'var(--ink)',
+                        fontSize: '14px',
+                        minWidth: '120px',
+                        maxWidth: '100%',
+                        flex: '1 1 auto'
+                      }}
+                      autoFocus
+                    />
+                  )}
+                </div>
+
+                {/* Username color label and picker */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                  <strong>Username color:</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', flex: '0 0 auto' }}>
+                  {colorOptions.map((option) => {
+                    const isSelected = selectedColorIndex === option.index;
+                    const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                    const size = 18;
+                    return (
+                      <button
+                        key={option.index ?? 'auto'}
+                        type="button"
+                        onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
+                        disabled={disabled}
+                        style={{
+                          flex: '0 0 auto',
+                          width: option.index === null ? 'auto' : size,
+                          height: size,
+                          minWidth: option.index === null ? 'auto' : size,
+                          aspectRatio: option.index === null ? 'auto' : '1',
+                          borderRadius: option.index === null ? '3px' : '50%',
+                          border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                          background: option.index === null
+                            ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                            : option.color,
+                          cursor: disabled ? 'default' : 'pointer',
+                          opacity: disabled ? 0.7 : 1,
+                          transition: 'all 0.2s ease',
+                          padding: option.index === null ? '0 6px' : 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: option.index === null ? '9px' : '0',
+                          color: 'var(--ink)',
+                          fontWeight: 'bold',
+                          boxSizing: 'border-box'
+                        }}
+                        title={option.name}
+                      >
+                        {option.index === null ? 'Auto' : ''}
+                      </button>
+                    );
+                  })}
+                  </div>
+                </div>
+
+                {/* Social Media Links */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                  <strong>Social Links:</strong>
+                  {socialLinks.map((link, index) => (
+                    <div key={link.platform} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <select
+                        value={link.platform}
+                        onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
+                        disabled={socialLinksStatus.type === 'loading'}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--ink)',
+                          fontSize: '14px',
+                          minWidth: '120px',
+                          flex: '0 0 auto'
+                        }}
+                      >
+                        {socialPlatforms.map(platform => (
+                          <option key={platform.value} value={platform.value}>
+                            {platform.icon} {platform.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="url"
+                        value={link.url}
+                        onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
+                        placeholder="https://..."
+                        disabled={socialLinksStatus.type === 'loading'}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--ink)',
+                          fontSize: '14px',
+                          flex: '1 1 auto',
+                          minWidth: '150px'
+                        }}
+                      />
+                    </div>
+                  ))}
                   <button
                     type="button"
-                    onClick={handleSave}
-                    disabled={usernameStatus.type === 'loading'}
+                    onClick={handleSaveSocialLinks}
+                    disabled={socialLinksStatus.type === 'loading'}
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
-                      flex: '1 1 auto',
-                      background: 'var(--accent)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: 'var(--bg)',
-                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={usernameStatus.type === 'loading'}
-                    style={{
-                      fontSize: '12px',
-                      padding: '6px 12px',
-                      flex: '1 1 auto',
-                      background: 'transparent',
+                      height: '32px',
+                      background: 'rgba(52, 225, 255, 0.1)',
                       border: '1px solid rgba(52, 225, 255, 0.3)',
                       borderRadius: '6px',
-                      color: 'var(--muted)',
-                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      whiteSpace: 'nowrap'
+                      color: 'var(--accent)',
+                      cursor: socialLinksStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                      opacity: socialLinksStatus.type === 'loading' ? 0.6 : 1,
+                      whiteSpace: 'nowrap',
+                      alignSelf: 'flex-start'
                     }}
                   >
-                    Cancel
+                    {socialLinksStatus.type === 'loading' ? 'Saving…' : 'Save Links'}
                   </button>
-                </>
-              )}
-            </div>
+                  {socialLinksStatus.message && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: socialLinksStatus.type === 'error' ? '#ff6b6b' : socialLinksStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
+                    }}>
+                      {socialLinksStatus.message}
+                    </div>
+                  )}
+                </div>
 
-            {usernameStatus.message && (
-              <div style={{
-                fontSize: '12px',
-                color: usernameStatus.type === 'error' ? '#ff6b6b' : usernameStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
-              }}>
-                {usernameStatus.message}
+                {/* Edit / Save / Cancel row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
+                  {!isEditingUsername ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingUsername(true);
+                        setNewUsername(user.username);
+                        setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                        setUsernameStatus({ type: 'idle', message: null });
+                        setColorStatus({ type: 'idle', message: null });
+                      }}
+                      style={{
+                        fontSize: '12px',
+                        padding: '6px 12px',
+                        height: '32px',
+                        width: '100%',
+                        background: 'rgba(52, 225, 255, 0.1)',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        borderRadius: '6px',
+                        color: 'var(--accent)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={usernameStatus.type === 'loading'}
+                        style={{
+                          fontSize: '12px',
+                          padding: '6px 12px',
+                          flex: '1 1 auto',
+                          background: 'var(--accent)',
+                          border: 'none',
+                          borderRadius: '6px',
+                          color: 'var(--bg)',
+                          cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                          opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        disabled={usernameStatus.type === 'loading'}
+                        style={{
+                          fontSize: '12px',
+                          padding: '6px 12px',
+                          flex: '1 1 auto',
+                          background: 'transparent',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          borderRadius: '6px',
+                          color: 'var(--muted)',
+                          cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {usernameStatus.message && (
+                  <div style={{
+                    fontSize: '12px',
+                    color: usernameStatus.type === 'error' ? '#ff6b6b' : usernameStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
+                  }}>
+                    {usernameStatus.message}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Stats Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-            <div>
-              <strong>Joined:</strong> {formatDateTime(stats.joinDate)}
-            </div>
-            <div>
-              <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
-            </div>
-            <div>
-              <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
-            </div>
-            <div>
-              <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
             </div>
           </div>
 

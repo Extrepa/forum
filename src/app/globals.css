@@ -720,6 +720,12 @@ main {
   margin-top: 12px;
 }
 
+@media (max-width: 640px) {
+  .account-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .account-col {
   display: grid;
   gap: 12px;
