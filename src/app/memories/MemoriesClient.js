@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
@@ -10,6 +10,72 @@ export default function MemoriesClient({ posts, notice }) {
     () => 'Nomad history, documents, and the things we did together.',
     []
   );
+  const latestPostRef = useRef(null);
+  const [viewTracked, setViewTracked] = useState(false);
+
+  // Track view when user scrolls to bottom of latest post
+  useEffect(() => {
+    if (!latestPostRef.current || viewTracked || posts.length === 0) return;
+
+    const latestPostId = posts[0].id;
+    let initialScrollY = window.scrollY || window.pageYOffset;
+    let hasScrolledDown = false;
+    let maxScrollY = initialScrollY;
+
+    const checkScroll = () => {
+      if (viewTracked) return;
+
+      const currentScrollY = window.scrollY || window.pageYOffset;
+      
+      // Track if user has scrolled DOWN (not just any scroll)
+      if (currentScrollY > maxScrollY) {
+        hasScrolledDown = true;
+        maxScrollY = currentScrollY;
+      }
+
+      // Only count as view if user has scrolled down AND reached the bottom of the post
+      if (!hasScrolledDown) return;
+
+      // Find the post body element within the latest post (the actual content div)
+      const latestPostWrapper = latestPostRef.current;
+      const postBodyElement = latestPostWrapper?.querySelector('.post-body');
+      
+      if (!postBodyElement) return;
+
+      // Get the bounding box of the post body element (the actual content)
+      const rect = postBodyElement.getBoundingClientRect();
+      
+      // Calculate the absolute position of the bottom of the post body on the page
+      // rect.bottom is relative to viewport top, so we add scrollY to get absolute position
+      const elementBottomAbsolute = currentScrollY + rect.bottom;
+      
+      // Check if the user has scrolled enough that the bottom of the post body is visible
+      // The bottom is visible when the viewport bottom has reached or passed the element bottom
+      const viewportBottom = currentScrollY + window.innerHeight;
+      const isBottomVisible = viewportBottom >= elementBottomAbsolute - 50; // 50px threshold
+
+      if (isBottomVisible) {
+        // Track the view
+        fetch(`/api/posts/${latestPostId}/view`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(() => {
+          // Silently fail if view tracking fails
+        });
+
+        setViewTracked(true);
+      }
+    };
+
+    // Check on scroll and resize
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [posts, viewTracked]);
 
   return (
     <div className="stack">
@@ -82,7 +148,9 @@ export default function MemoriesClient({ posts, notice }) {
 
               return (
                 <>
-                  {renderItem(latest, { condensed: false })}
+                  <div ref={latestPostRef}>
+                    {renderItem(latest, { condensed: false })}
+                  </div>
                   {rest.length ? (
                     <>
                       <div className="list-divider" />
