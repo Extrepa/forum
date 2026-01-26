@@ -2336,6 +2336,7 @@ header::before {
 
 /* Mobile adjustments */
 @media (max-width: 640px) {
+
   .forum-logo-nav {
     flex: 1 1 auto;
     min-width: calc(50% - 4px);
@@ -2465,14 +2466,260 @@ header::before {
   /* ClaimUsernameForm: Stack columns on mobile */
   .auth-form-container {
     flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .auth-form-container > div:first-child {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     padding-right: 0 !important;
     padding-bottom: 24px !important;
     border-right: none !important;
     border-bottom: 1px solid rgba(52, 225, 255, 0.2) !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .auth-form-container > div:last-child {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Ensure the form container div uses full width */
+  .auth-form-container > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+  
+  /* Ensure forms use full width - remove any constraints */
+  .auth-form-container form {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure inputs use full width - override any inherited styles */
+  .auth-form-container input[type="text"],
+  .auth-form-container input[type="email"],
+  .auth-form-container input[type="password"],
+  .auth-form-container input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    flex: 1 1 100% !important;
+  }
+  
+  /* Ensure labels don't constrain input width */
+  .auth-form-container label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure label inner divs don't constrain width */
+  .auth-form-container label > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure relative wrapper divs use full width */
+  .auth-form-container label > div[style*="position: relative"],
+  .auth-form-container label > div[style*="relative"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ensure buttons are full width - override inline styles if needed */
+  .auth-form-container button[type="submit"],
+  .auth-form-container button[type="button"],
+  .auth-form-container button,
+  .auth-form-container + button,
+  .card > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    flex: 1 1 100% !important;
+  }
+  
+  /* Ensure buttons that come after forms also use full width */
+  .auth-form-container ~ button,
+  form ~ button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix placeholder overflow */
+  .auth-form-container .rotating-placeholder-overlay {
+    max-width: calc(100% - 24px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Card containing auth form should use full width on mobile */
+  .card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Ensure auth form container and all children use full width */
+  .auth-form-container,
+  .auth-form-container > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Navigation menu padding */
+  .nav-menu-expanded {
+    padding-bottom: 20px !important;
+  }
+
+  /* Notifications popover - keep original size, just ensure it doesn't overflow */
+  .notifications-popover,
+  .notifications-popover-errl {
+    /* Keep original 380px width - don't shrink unless viewport is smaller */
+    width: 380px !important;
+    max-width: 380px !important;
+    /* Only shrink if viewport is actually smaller than 380px */
+    min-width: min(380px, calc(100vw - 16px)) !important;
+    /* Keep right alignment to logo */
+    right: 0 !important;
+    left: auto !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure the parent container allows proper positioning */
+  .notifications-logo-trigger {
+    position: relative !important;
+    overflow: visible !important;
+  }
+  
+  /* On mobile, use fixed positioning to ensure it stays in viewport */
+  @media (max-width: 640px) {
+    .notifications-popover,
+    .notifications-popover-errl {
+      /* Use fixed positioning relative to viewport */
+      position: fixed !important;
+      /* Calculate right position: align to logo but ensure 8px margin from viewport edge */
+      /* Logo is typically near right edge, so we'll position from viewport right */
+      right: 8px !important;
+      left: auto !important;
+      /* Keep original width unless viewport is smaller */
+      width: min(380px, calc(100vw - 16px)) !important;
+      max-width: min(380px, calc(100vw - 16px)) !important;
+      transform: none !important;
+      /* Calculate top position based on logo position - will be handled by JS or keep relative */
+      top: auto !important;
+    }
+  }
+  
+  /* On very small screens where 380px doesn't fit, shrink it */
+  @media (max-width: 396px) {
+    .notifications-popover,
+    .notifications-popover-errl {
+      width: calc(100vw - 16px) !important;
+      max-width: calc(100vw - 16px) !important;
+    }
+  }
+  
+  /* Prevent content from being compressed - ensure proper text wrapping */
+  .notifications-popover > div,
+  .notifications-popover-errl > div {
+    min-width: 0 !important;
+  }
+  
+  /* Ensure buttons don't get squished */
+  .notifications-popover button,
+  .notifications-popover-errl button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Ensure header buttons container doesn't wrap too aggressively */
+  .notifications-popover > div:first-child,
+  .notifications-popover-errl > div:first-child {
+    gap: 8px !important;
+  }
+  
+  .notifications-popover > div:first-child > div:last-child,
+  .notifications-popover-errl > div:first-child > div:last-child {
+    flex-shrink: 0 !important;
+  }
+  
+  /* Ensure content inside notifications popover doesn't overflow */
+  .notifications-popover *,
+  .notifications-popover-errl * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Ensure buttons in notifications popover fit but don't stretch */
+  .notifications-popover button,
+  .notifications-popover-errl button {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  
+  /* Ensure footer container doesn't overflow */
+  .notifications-popover > div:last-child,
+  .notifications-popover-errl > div:last-child {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+  
+  /* Footer left button group */
+  .notifications-popover > div:last-child > div:first-child,
+  .notifications-popover-errl > div:last-child > div:first-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  /* Footer buttons - keep them small, don't stretch */
+  .notifications-popover > div:last-child button,
+  .notifications-popover-errl > div:last-child button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    padding: 5px 8px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Close button should stay small on the right */
+  .notifications-popover > div:last-child > button:last-child,
+  .notifications-popover-errl > div:last-child > button:last-child {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    margin-left: auto !important;
   }
 
 }

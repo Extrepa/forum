@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -67,6 +67,9 @@ export default function NotificationsMenu({
   const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [showClearAllModal, setShowClearAllModal] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState({});
+  const popoverRef = useRef(null);
+  const triggerRef = useRef(null);
   const hasItems = items && items.length > 0;
   
   const usernameColorIndex = useMemo(() => {
@@ -99,6 +102,87 @@ export default function NotificationsMenu({
           // Ignore errors
         });
     }
+  }, [open]);
+
+  // Calculate popover position on mobile to align with logo and prevent overflow
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return;
+    
+    const updatePosition = () => {
+      if (window.innerWidth > 640) {
+        // Desktop - use default positioning
+        setPopoverStyle({});
+        return;
+      }
+      
+      // Mobile - find the logo trigger element and calculate position
+      const trigger = document.querySelector('.notifications-logo-trigger');
+      if (!trigger) return;
+      
+      const triggerRect = trigger.getBoundingClientRect();
+      const popoverWidth = 380;
+      const viewportWidth = window.innerWidth;
+      const margin = 12; // Margin to ensure borders are visible
+      
+      // Determine width first - shrink if needed, but ensure margins
+      const maxPopoverWidth = viewportWidth - margin * 2;
+      const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
+      
+      // Calculate right position: align to logo's right edge if possible
+      // triggerRect.right is the distance from left edge of viewport to right edge of logo
+      const logoRightEdge = viewportWidth - triggerRect.right;
+      
+      // Check if we can align to logo without overflow
+      const spaceNeeded = finalWidth + margin;
+      const spaceAvailable = triggerRect.right; // Space from logo's right edge to viewport left
+      
+      let actualRight;
+      if (spaceAvailable >= spaceNeeded && logoRightEdge >= margin) {
+        // Enough space - align to logo
+        actualRight = logoRightEdge;
+      } else {
+        // Not enough space - center it with equal margins
+        // Calculate centered position: (viewportWidth - finalWidth) / 2
+        // This gives us equal space on both sides
+        const centeredRight = (viewportWidth - finalWidth) / 2;
+        actualRight = centeredRight;
+      }
+      
+      // Critical: Ensure popover doesn't overflow left edge
+      // Calculate where left edge would be: viewportWidth - actualRight - finalWidth
+      const leftEdgePosition = viewportWidth - actualRight - finalWidth;
+      if (leftEdgePosition < margin) {
+        // Would overflow left - adjust to ensure minimum margin
+        actualRight = viewportWidth - finalWidth - margin;
+      }
+      
+      // Final bounds check: ensure right is within valid range
+      // Right position must be: margin <= right <= viewportWidth - finalWidth - margin
+      actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
+      
+      // Calculate top position: below the logo
+      const top = triggerRect.bottom + 8;
+      
+      setPopoverStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        right: `${actualRight}px`,
+        left: 'auto',
+        width: `${finalWidth}px`,
+        maxWidth: `${finalWidth}px`
+      });
+    };
+    
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updatePosition, 0);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
   }, [open]);
 
   const handleDeleteNotification = async (notificationId) => {
@@ -135,6 +219,7 @@ export default function NotificationsMenu({
         }
       `}</style>
     <div
+      ref={popoverRef}
       className="card notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
@@ -142,12 +227,14 @@ export default function NotificationsMenu({
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
         width: 380,
-        maxWidth: '90vw',
+        maxWidth: 380,
         zIndex: 1100,
         padding: '20px',
         maxHeight: 'min(80vh, 600px)',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+        ...popoverStyle
       }}
       role="menu"
       aria-label={title}
@@ -405,13 +492,13 @@ export default function NotificationsMenu({
       )}
 
       {/* Footer with mark all read, clear, and close */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
           <button 
             type="button" 
             onClick={onMarkAllRead} 
             disabled={unreadCount === 0}
-            style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1 }}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: unreadCount === 0 ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             Mark all read
           </button>
@@ -419,7 +506,7 @@ export default function NotificationsMenu({
             type="button" 
             onClick={() => setShowClearAllModal(true)}
             disabled={!hasItems}
-            style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1 }}
+            style={{ fontSize: '12px', padding: '6px 10px', opacity: !hasItems ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             Clear
           </button>
@@ -427,7 +514,7 @@ export default function NotificationsMenu({
         <button 
           type="button" 
           onClick={onClose}
-          style={{ fontSize: '12px', padding: '6px 10px' }}
+          style={{ fontSize: '12px', padding: '6px 10px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           Close
         </button>
