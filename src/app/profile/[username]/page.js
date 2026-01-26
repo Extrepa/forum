@@ -418,108 +418,95 @@ export default async function ProfilePage({ params }) {
 
           {/* Right Column: Username, Color, and Social Links */}
           <div className="account-col">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-              {/* Username Row */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
-                <label style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                  Username:
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  <Username
-                    name={profileUser.username}
-                    colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
-                  />
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Username Row - same line */}
+              <div>
+                <strong>Username:</strong>{' '}
+                <Username
+                  name={profileUser.username}
+                  colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+                />
               </div>
 
-              {/* Color Picker Display Row */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
-                <label style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                  Username color:
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                  {colorOptions.map((option) => {
-                    const isSelected = selectedColorIndex === option.index;
+              {/* Color Display - only show selected color */}
+              <div>
+                <strong>Username color:</strong>{' '}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  {(() => {
+                    const selectedOption = colorOptions.find(opt => opt.index === selectedColorIndex) || colorOptions[0];
                     const size = 18;
                     return (
-                      <div
-                        key={option.index ?? 'auto'}
+                      <span
                         style={{
-                          flex: '0 0 auto',
-                          width: `${size}px`,
-                          height: `${size}px`,
-                          minWidth: `${size}px`,
-                          maxWidth: `${size}px`,
-                          minHeight: `${size}px`,
-                          maxHeight: `${size}px`,
-                          borderRadius: '50%',
-                          border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                          background: option.index === null
-                            ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                            : option.color,
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          width: `${size}px`,
+                          height: `${size}px`,
+                          borderRadius: '50%',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: selectedOption.index === null
+                            ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                            : selectedOption.color,
                           boxSizing: 'border-box',
-                          boxShadow: isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
                         }}
-                        title={option.name}
+                        title={selectedOption.name}
                       >
-                        {option.index === null && (
-                          <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
+                        {selectedOption.index === null && (
+                          <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1 }}>A</span>
                         )}
-                      </div>
+                      </span>
                     );
-                  })}
-                </div>
+                  })()}
+                </span>
               </div>
 
               {/* Social Links Display */}
               {profileLinks.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start', marginTop: '8px' }}>
-                  <label style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                    Socials:
-                  </label>
-                  {profileLinks.map((link, idx) => {
-                    const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
-                    if (!linkObj.platform || !linkObj.url) return null;
-                    const username = extractUsername(linkObj.platform, linkObj.url);
-                    const isSoundCloud = linkObj.platform === 'soundcloud';
-                    return (
-                      <a
-                        key={idx}
-                        href={linkObj.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          border: isSoundCloud
-                            ? '1px solid rgba(255, 107, 0, 0.3)'
-                            : '1px solid rgba(52, 225, 255, 0.3)',
-                          background: isSoundCloud
-                            ? 'rgba(255, 107, 0, 0.05)'
-                            : 'rgba(52, 225, 255, 0.05)',
-                          color: 'var(--accent)',
-                          textDecoration: 'none',
-                          fontSize: '13px',
-                          transition: 'all 0.2s ease',
-                          cursor: 'pointer',
-                          width: 'fit-content'
-                        }}
-                      >
-                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {getPlatformIcon(linkObj.platform)}
-                        </span>
-                        {username && (
-                          <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
-                        )}
-                      </a>
-                    );
-                  })}
+                <div>
+                  <strong>Socials:</strong>
+                  <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                    {profileLinks.map((link, idx) => {
+                      const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
+                      if (!linkObj.platform || !linkObj.url) return null;
+                      const username = extractUsername(linkObj.platform, linkObj.url);
+                      const isSoundCloud = linkObj.platform === 'soundcloud';
+                      return (
+                        <a
+                          key={idx}
+                          href={linkObj.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: isSoundCloud
+                              ? '1px solid rgba(255, 107, 0, 0.3)'
+                              : '1px solid rgba(52, 225, 255, 0.3)',
+                            background: isSoundCloud
+                              ? 'rgba(255, 107, 0, 0.05)'
+                              : 'rgba(52, 225, 255, 0.05)',
+                            color: 'var(--accent)',
+                            textDecoration: 'none',
+                            fontSize: '13px',
+                            transition: 'all 0.2s ease',
+                            cursor: 'pointer',
+                            width: 'fit-content'
+                          }}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {getPlatformIcon(linkObj.platform)}
+                          </span>
+                          {username && (
+                            <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
