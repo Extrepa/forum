@@ -293,6 +293,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               const replyLink = `/lore-memories/${id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
+              const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
                 <div key={c.id} className="list-item" style={{ position: 'relative' }}>
                   <DeleteCommentButton
@@ -315,7 +316,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                         preferredColorIndex={preferredColor}
                       />
                       {' · '}
-                      {c.created_at ? formatDateTime(c.created_at) : ''}
+                      <span suppressHydrationWarning>{formattedDate}</span>
                     </span>
                     <ReplyButton
                       replyId={c.id}

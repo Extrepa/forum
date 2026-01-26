@@ -294,6 +294,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 ? Number(c.author_color_preference)
                 : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
+            formattedDate: c.created_at ? formatDateTime(c.created_at) : '',
             reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
           };
         })
@@ -511,7 +512,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                       <span>
                         <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                         {' · '}
-                        {c.created_at ? formatDateTime(c.created_at) : ''}
+                        <span suppressHydrationWarning>{c.formattedDate || ''}</span>
                       </span>
                       <ReplyButton
                         replyId={c.id}

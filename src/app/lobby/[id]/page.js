@@ -619,6 +619,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       }
       
       const replyLink = `/lobby/${safeThreadId}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
+      const formattedDate = r.created_at ? formatDateTime(r.created_at) : '';
       
       return (
         <div
@@ -643,7 +644,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             <span>
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
-              {r.created_at ? formatDateTime(r.created_at) : ''}
+              <span suppressHydrationWarning>{formattedDate}</span>
             </span>
             <ReplyButton
               replyId={r.id}

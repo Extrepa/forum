@@ -113,7 +113,7 @@ export default async function ProfilePage({ params }) {
             <strong>Username:</strong> <Username name={profileUser.username} colorIndex={getUsernameColorIndex(profileUser.username)} />
           </div>
           <div>
-            <strong>Joined:</strong> {formatDateTime(profileUser.created_at)}
+            <strong>Joined:</strong> <span suppressHydrationWarning>{formatDateTime(profileUser.created_at)}</span>
           </div>
           {profileUser.profile_bio && (
             <div style={{ marginTop: '8px' }}>
@@ -159,7 +159,7 @@ export default async function ProfilePage({ params }) {
                     <strong>{thread.title}</strong>
                   </div>
                   <div className="list-meta" style={{ fontSize: '12px' }}>
-                    {formatDateTime(thread.created_at)}
+                    <span suppressHydrationWarning>{formatDateTime(thread.created_at)}</span>
                   </div>
                 </a>
               ))}
@@ -174,7 +174,7 @@ export default async function ProfilePage({ params }) {
                     Replied to <strong>{reply.thread_title}</strong>
                   </div>
                   <div className="list-meta" style={{ fontSize: '12px' }}>
-                    {formatDateTime(reply.created_at)}
+                    <span suppressHydrationWarning>{formatDateTime(reply.created_at)}</span>
                   </div>
                 </a>
               ))}
