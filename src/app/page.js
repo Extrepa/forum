@@ -946,12 +946,22 @@ export default async function HomePage({ searchParams }) {
         // Table might not exist yet
       }
 
-      // Currently active users (users with valid session tokens)
+      // Currently active users (users who have been active in the last 15 minutes)
       let activeUsersResult = null;
       try {
-        activeUsersResult = await db
-          .prepare('SELECT COUNT(DISTINCT session_token) as count FROM users WHERE session_token IS NOT NULL AND session_token != ""')
-          .first();
+        const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
+        // Try with last_seen column first
+        try {
+          activeUsersResult = await db
+            .prepare('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?')
+            .bind(fifteenMinutesAgo)
+            .first();
+        } catch (e) {
+          // Fallback: if last_seen column doesn't exist yet, use session_token as proxy
+          activeUsersResult = await db
+            .prepare('SELECT COUNT(DISTINCT session_token) as count FROM users WHERE session_token IS NOT NULL AND session_token != ""')
+            .first();
+        }
       } catch (e) {
         // Table might not exist yet
       }

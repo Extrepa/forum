@@ -51,3 +51,30 @@ export async function getSessionUser() {
     }
   }
 }
+
+/**
+ * Update the last_seen timestamp for a user
+ * This should be called when a user visits a page to track active browsing
+ */
+export async function updateUserLastSeen(userId) {
+  if (!userId) {
+    return;
+  }
+  try {
+    const db = await getDb();
+    const now = Date.now();
+    // Update last_seen, but only if column exists (graceful fallback)
+    try {
+      await db
+        .prepare('UPDATE users SET last_seen = ? WHERE id = ?')
+        .bind(now, userId)
+        .run();
+    } catch (e) {
+      // Column might not exist yet if migration hasn't run
+      // Silently fail - this is expected during initial setup
+    }
+  } catch (e) {
+    // Database might not be available
+    // Silently fail to avoid breaking page loads
+  }
+}

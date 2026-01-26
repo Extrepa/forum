@@ -4,6 +4,7 @@ import SiteHeader from '../components/SiteHeader';
 import NotificationTutorial from '../components/NotificationTutorial';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
+import { updateUserLastSeen } from '../lib/auth';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -21,6 +22,14 @@ export default async function RootLayout({ children }) {
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
   const easterEgg = getEasterEgg({ useLore });
+
+  // Update user's last_seen timestamp to track active browsing
+  // Do this asynchronously so it doesn't block page rendering
+  if (user?.id) {
+    updateUserLastSeen(user.id).catch(() => {
+      // Silently fail - don't break page loads if this fails
+    });
+  }
 
   return (
     <html lang="en">
