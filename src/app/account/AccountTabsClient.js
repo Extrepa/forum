@@ -295,37 +295,50 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {/* Username and Colors Container with Edit Button Between */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
                   {/* Username Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                    {!isEditingUsername ? (
-                      <Username
-                        name={user.username}
-                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                        placeholder="username"
-                        pattern="[a-z0-9_]{3,20}"
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: 'rgba(2, 7, 10, 0.6)',
-                          color: 'var(--ink)',
-                          fontSize: '14px',
-                          minWidth: '120px',
-                          maxWidth: '100%',
-                          flex: '1 1 auto'
-                        }}
-                        autoFocus
-                      />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
+                    {isEditingUsername && (
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
+                        username
+                      </label>
                     )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                      {!isEditingUsername ? (
+                        <Username
+                          name={user.username}
+                          colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          placeholder="username"
+                          pattern="[a-z0-9_]{3,20}"
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(52, 225, 255, 0.3)',
+                            background: 'rgba(2, 7, 10, 0.6)',
+                            color: 'var(--ink)',
+                            fontSize: '14px',
+                            minWidth: '120px',
+                            maxWidth: '100%',
+                            flex: '1 1 auto'
+                          }}
+                          autoFocus
+                        />
+                      )}
+                    </div>
                   </div>
 
                   {/* Color Picker Buttons Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
+                    {isEditingUsername && (
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500' }}>
+                        username color
+                      </label>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
                     {colorOptions.map((option) => {
                       const isSelected = selectedColorIndex === option.index;
                       const disabled = !isEditingUsername || usernameStatus.type === 'loading';
@@ -383,6 +396,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         </button>
                       );
                     })}
+                    </div>
                   </div>
 
                   {/* Edit Button - positioned between username and colors */}
