@@ -22,7 +22,7 @@ export default async function ProfilePage({ params }) {
   
   // Get user by username
   const profileUser = await db
-    .prepare('SELECT id, username, created_at, profile_bio, profile_links, preferred_username_color_index FROM users WHERE username_norm = ?')
+    .prepare('SELECT id, username, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views FROM users WHERE username_norm = ?')
     .bind(username.toLowerCase())
     .first();
 
@@ -43,6 +43,17 @@ export default async function ProfilePage({ params }) {
   // If viewing own profile, redirect to account page
   if (isOwnProfile) {
     redirect('/account?tab=profile');
+  }
+
+  // Increment profile views (only when viewed by someone else)
+  try {
+    await db
+      .prepare('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = ?')
+      .bind(profileUser.id)
+      .run();
+  } catch (e) {
+    // Ignore errors - profile views are not critical
+    console.error('Failed to increment profile views:', e);
   }
 
   // Get stats for this user
@@ -272,17 +283,21 @@ export default async function ProfilePage({ params }) {
     stats = {
       threadCount,
       replyCount,
+      joinDate: profileUser.created_at,
       recentThreads: allPosts.slice(0, 10),
       recentReplies: allReplies.slice(0, 10),
       recentActivity: allActivity,
+      profileViews: profileUser.profile_views || 0,
     };
   } catch (e) {
     stats = {
       threadCount: 0,
       replyCount: 0,
+      joinDate: profileUser.created_at,
       recentThreads: [],
       recentReplies: [],
       recentActivity: [],
+      profileViews: profileUser.profile_views || 0,
     };
   }
 
@@ -464,6 +479,9 @@ export default async function ProfilePage({ params }) {
               </div>
               <div>
                 <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
+              </div>
+              <div>
+                <strong>Profile views:</strong> {stats.profileViews || 0} {stats.profileViews === 1 ? 'view' : 'views'}
               </div>
             </div>
           </div>

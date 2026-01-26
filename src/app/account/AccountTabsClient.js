@@ -511,7 +511,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       className="username-edit-btn"
                       style={{
                         position: 'absolute',
-                        right: 0,
+                        right: '12px',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         padding: '4px 8px',
@@ -815,6 +815,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </div>
                 <div>
                   <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
+                </div>
+                <div>
+                  <strong>Profile views:</strong> {stats.profileViews || 0} {stats.profileViews === 1 ? 'view' : 'views'}
                 </div>
               </div>
             </div>

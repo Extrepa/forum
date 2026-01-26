@@ -211,7 +211,7 @@ export async function GET() {
       .all();
 
     const userInfo = await db
-      .prepare('SELECT created_at, profile_links FROM users WHERE id = ?')
+      .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
       .bind(user.id)
       .first();
 
@@ -260,6 +260,7 @@ export async function GET() {
       recentReplies: allReplies.slice(0, 10),
       recentActivity: allActivity,
       profileLinks,
+      profileViews: userInfo?.profile_views || 0,
     });
   } catch (e) {
     return NextResponse.json({
@@ -270,6 +271,7 @@ export async function GET() {
       recentReplies: [],
       recentActivity: [],
       profileLinks: [],
+      profileViews: 0,
     });
   }
 }

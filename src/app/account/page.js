@@ -213,7 +213,7 @@ export default async function AccountPage({ searchParams }) {
 
       // Get user info including profile links
       const userInfo = await db
-        .prepare('SELECT created_at, profile_links FROM users WHERE id = ?')
+        .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
         .bind(user.id)
         .first();
 
@@ -262,6 +262,7 @@ export default async function AccountPage({ searchParams }) {
         recentReplies: allReplies.slice(0, 10),
         recentActivity: allActivity,
         profileLinks,
+        profileViews: userInfo?.profile_views || 0,
       };
     } catch (e) {
       // Fallback if queries fail
@@ -273,6 +274,7 @@ export default async function AccountPage({ searchParams }) {
         recentReplies: [],
         recentActivity: [],
         profileLinks: [],
+        profileViews: userInfo?.profile_views || 0,
       };
     }
   }
