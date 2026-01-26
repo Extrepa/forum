@@ -377,9 +377,9 @@ export default async function FeedPage() {
 
   return (
     <div className="stack">
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} />
+      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} style={{ marginBottom: 0 }} />
 
-      <HomeWelcome user={user} />
+      <HomeWelcome user={user} context="feed" />
 
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>

@@ -28,7 +28,8 @@ export function getTimeOfDay(date = new Date()) {
 
 // 24 unique messages for each hour (0-23)
 const HOURLY_GREETINGS = {
-  standard: [
+  home: {
+    standard: [
     'Midnight portal hours. The goo never sleeps, {username}.', // 0
     '1am vibes. Errl is watching. The drip continues.', // 1
     '2am portal energy. Late-night thoughts welcome here, {username}.', // 2
@@ -53,8 +54,8 @@ const HOURLY_GREETINGS = {
     '9pm portal hours. Perfect for deep thoughts, {username}.', // 21
     '10pm portal night. The goo is listening, {username}.', // 22
     '11pm late-night drips. The portal is open, {username}.' // 23
-  ],
-  lore: [
+    ],
+    lore: [
     'Midnight portal hours. Errl was born May 1, 2015. The drip continues, {username}.', // 0
     '1am Nomad hours. The drip that followed us home, {username}.', // 1
     '2am portal energy. Pulled together by chance and light, {username}.', // 2
@@ -79,12 +80,68 @@ const HOURLY_GREETINGS = {
     '9pm portal hours. Perfect for deep thoughts, Nomad {username}.', // 21
     '10pm portal night. Nomads are still awake. Join them, {username}.', // 22
     '11pm late-night drips. The portal is open. The goo is listening, {username}.' // 23
-  ]
+    ]
+  },
+  feed: {
+    standard: [
+      'Midnight feed hours. Fresh drips are flowing, {username}.', // 0
+      '1am feed vibes. The latest activity never sleeps, {username}.', // 1
+      '2am feed energy. Late-night updates welcome here, {username}.', // 2
+      '3am feed hours. New posts are dropping, {username}.', // 3
+      '4am feed stillness. The activity stream breathes with you, {username}.', // 4
+      '5am feed glow. Fresh updates incoming, {username}.', // 5
+      '6am feed awakening. Rise and check the latest, {username}.', // 6
+      '7am feed fresh. New activity detected, {username}.', // 7
+      '8am feed breakfast. Good morning, {username}. Check your feed.', // 8
+      '9am feed active. Latest updates are rolling in, {username}.', // 9
+      '10am feed vibes. The activity stream is warm, {username}.', // 10
+      '11am feed mid-morning. Fresh posts await, {username}.', // 11
+      'Noon feed peak. Maximum activity detected, {username}.', // 12
+      '1pm feed afternoon. Portal activity is active, {username}.', // 13
+      '2pm feed energy. The latest updates continue, {username}.', // 14
+      '3pm feed flow. Consistency in the activity stream, {username}.', // 15
+      '4pm feed glow. Afternoon updates hit different, {username}.', // 16
+      '5pm feed transition. Evening activity approaches, {username}.', // 17
+      '6pm feed evening. The activity stream is quieter now, {username}.', // 18
+      '7pm feed glow. Evening updates activated, {username}.', // 19
+      '8pm feed winding down… or heating up, {username}?', // 20
+      '9pm feed hours. Perfect time to catch up, {username}.', // 21
+      '10pm feed night. The activity stream is listening, {username}.', // 22
+      '11pm feed late-night. Fresh updates are still flowing, {username}.' // 23
+    ],
+    lore: [
+      'Midnight feed hours. Errl was born May 1, 2015. The activity continues, {username}.', // 0
+      '1am feed Nomad hours. The latest drips that followed us home, {username}.', // 1
+      '2am feed energy. Pulled together by chance and light. Check your feed, {username}.', // 2
+      '3am feed hours. Errl approves, Nomad {username}. New posts await.', // 3
+      '4am feed stillness. Face never changes. Activity expresses everything, {username}.', // 4
+      '5am feed glow. From Mayday Heyday to the Portal, {username}.', // 5
+      '6am feed awakening. Rise and check the latest, Nomad {username}.', // 6
+      '7am feed fresh. Good morning, {username}. The Nomad network is active.', // 7
+      '8am feed breakfast. Consistency inside chaos. Good morning, {username}.', // 8
+      '9am feed active. The Nomads made it real, {username}.', // 9
+      '10am feed vibes. Geoff found Errl in the projector goo, {username}.', // 10
+      '11am feed mid-morning. The world melts; the activity holds, {username}.', // 11
+      'Noon feed peak. Effervescent Remnant of Radical Liminality, {username}.', // 12
+      '1pm feed afternoon. Portal activity is active, Nomad {username}.', // 13
+      '2pm feed energy. The Nomad network is awake, {username}.', // 14
+      '3pm feed flow. Consistency inside chaos, {username}.', // 15
+      '4pm feed glow. The activity stream continues, {username}.', // 16
+      '5pm feed transition. Evening updates approach, Nomad {username}.', // 17
+      '6pm feed evening. The activity stream is quieter now, {username}.', // 18
+      '7pm feed glow. Evening updates activated, {username}. Face never changes.', // 19
+      '8pm feed winding down… or heating up, {username}?', // 20
+      '9pm feed hours. Perfect time to catch up, Nomad {username}.', // 21
+      '10pm feed night. Nomads are still active. Join them, {username}.', // 22
+      '11pm feed late-night. The activity stream is open. Fresh updates await, {username}.' // 23
+    ]
+  }
 };
 
-export function getTimeBasedGreetingTemplate({ useLore = false, date = new Date() } = {}) {
+export function getTimeBasedGreetingTemplate({ useLore = false, date = new Date(), context = 'home' } = {}) {
   const hour = date.getHours(); // 0-23
-  const messages = useLore ? HOURLY_GREETINGS.lore : HOURLY_GREETINGS.standard;
+  const contextSet = HOURLY_GREETINGS[context] || HOURLY_GREETINGS.home;
+  const messages = useLore ? contextSet.lore : contextSet.standard;
   const template = messages[hour] || messages[12]; // Default to noon if somehow invalid
   const timeOfDay = getTimeOfDay(date); // Keep for backwards compatibility
   return { template, timeOfDay };

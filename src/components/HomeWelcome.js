@@ -5,7 +5,7 @@ import Username from './Username';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
-export default function HomeWelcome({ user }) {
+export default function HomeWelcome({ user, context = 'home' }) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
   
@@ -17,7 +17,7 @@ export default function HomeWelcome({ user }) {
     );
   }
 
-  const { template } = getTimeBasedGreetingTemplate({ date: new Date(), useLore: loreEnabled });
+  const { template } = getTimeBasedGreetingTemplate({ date: new Date(), useLore: loreEnabled, context });
   const parts = renderTemplateParts(template, 'username');
 
   return (

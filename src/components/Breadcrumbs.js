@@ -1,10 +1,10 @@
-export default function Breadcrumbs({ items }) {
+export default function Breadcrumbs({ items, style }) {
   if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <nav className="breadcrumbs" aria-label="Breadcrumb">
+    <nav className="breadcrumbs" aria-label="Breadcrumb" style={style}>
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
         return (
