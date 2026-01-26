@@ -380,29 +380,14 @@ export default async function ProfilePage({ params }) {
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
       <section className="card">
-        <h2 className="section-title">Profile</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
+          <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
+        </div>
         
         {/* Two Column Layout */}
         <div className="account-columns" style={{ marginBottom: '24px' }}>
-          {/* Left Column: Stats */}
-          <div className="account-col">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <strong>Joined:</strong> {formatDateTime(profileUser.created_at)}
-              </div>
-              <div>
-                <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
-              </div>
-              <div>
-                <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
-              </div>
-              <div>
-                <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Username, Color, and Social Links */}
+          {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Username Row - same line */}
@@ -462,6 +447,24 @@ export default async function ProfilePage({ params }) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Right Column: Stats */}
+          <div className="account-col">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <strong>Joined:</strong> {formatDateTime(profileUser.created_at)}
+              </div>
+              <div>
+                <strong>Posts:</strong> {stats.threadCount} {stats.threadCount === 1 ? 'thread' : 'threads'}
+              </div>
+              <div>
+                <strong>Replies:</strong> {stats.replyCount} {stats.replyCount === 1 ? 'reply' : 'replies'}
+              </div>
+              <div>
+                <strong>Total activity:</strong> {stats.threadCount + stats.replyCount} {stats.threadCount + stats.replyCount === 1 ? 'post' : 'posts'}
+              </div>
             </div>
           </div>
         </div>
