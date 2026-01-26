@@ -2504,12 +2504,10 @@ header::before {
     white-space: nowrap !important;
   }
 
-  /* Card wrapper adjustments for mobile */
-  .card:has(.auth-form-container) {
+  /* Card wrapper adjustments for mobile - ensure auth form container uses full width */
+  .auth-form-container {
     width: 100% !important;
     max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
   }
 
   /* Navigation menu padding */
