@@ -122,16 +122,16 @@ export default function NotificationsMenu({
       const triggerRect = trigger.getBoundingClientRect();
       const popoverWidth = 380;
       const viewportWidth = window.innerWidth;
-      const margin = 8;
+      const margin = 12; // Increased margin to ensure borders are visible
       
       // Calculate right position: align to logo's right edge
       // triggerRect.right is the distance from left edge of viewport to right edge of logo
       // We want popover's right edge to align with logo's right edge
       const logoRightEdge = viewportWidth - triggerRect.right;
       
-      // If popover would overflow viewport, shift it left
-      // popoverWidth + margin is how much space we need from the right edge
-      const neededSpace = popoverWidth + margin;
+      // If popover would overflow viewport, center it with margins
+      // popoverWidth + margin*2 is how much space we need total
+      const neededSpace = popoverWidth + margin * 2;
       const availableSpace = triggerRect.right; // Space from logo's right edge to viewport left
       
       let actualRight;
@@ -139,21 +139,29 @@ export default function NotificationsMenu({
         // Enough space - align to logo
         actualRight = logoRightEdge;
       } else {
-        // Not enough space - position from viewport edge with margin
-        actualRight = margin;
+        // Not enough space - center it horizontally with equal margins
+        // Center calculation: (viewportWidth - popoverWidth) / 2, but ensure margin
+        const centeredRight = (viewportWidth - popoverWidth) / 2;
+        // Ensure we have at least margin on both sides
+        actualRight = Math.max(margin, Math.min(centeredRight, viewportWidth - popoverWidth - margin));
       }
       
       // Calculate top position: below the logo
       const top = triggerRect.bottom + 8;
       
-      // Determine width - shrink if needed
+      // Determine width - shrink if needed, but ensure margins
       const maxPopoverWidth = viewportWidth - margin * 2;
       const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
+      
+      // Recalculate right position if width changed
+      const finalRight = finalWidth < popoverWidth 
+        ? margin // If shrunk, use margin from edge
+        : actualRight;
       
       setPopoverStyle({
         position: 'fixed',
         top: `${top}px`,
-        right: `${actualRight}px`,
+        right: `${finalRight}px`,
         left: 'auto',
         width: `${finalWidth}px`,
         maxWidth: `${finalWidth}px`
