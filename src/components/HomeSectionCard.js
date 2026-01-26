@@ -15,7 +15,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
         <strong>{title}</strong>
         <div className="list-meta">{description}</div>
         <div className="section-stats">
-          <span>{count} {count === 1 ? 'post' : 'posts'}</span>
+          <span suppressHydrationWarning>{count} {count === 1 ? 'post' : 'posts'}</span>
         </div>
       </Link>
     );
@@ -57,7 +57,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
     >
       <strong>{title}</strong>
       <div className="list-meta">{description}</div>
-      <div className="section-stats">
+      <div className="section-stats" suppressHydrationWarning>
         <span>{count} {count === 1 ? 'post' : 'posts'}</span>
         {recentActivity && (
           <span>

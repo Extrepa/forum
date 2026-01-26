@@ -46,6 +46,11 @@ export default async function HomePage({ searchParams }) {
   const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
+  
+  // Compute greeting on server to avoid hydration mismatch
+  const greetingDate = new Date();
+  const greetingTemplate = user ? getTimeBasedGreetingTemplate({ date: greetingDate, useLore, context: 'home' }) : null;
+  const greetingParts = greetingTemplate ? renderTemplateParts(greetingTemplate.template, 'username') : null;
 
   const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
     try {
@@ -910,7 +915,7 @@ export default async function HomePage({ searchParams }) {
               title: loreMemoriesRecent.title || 'Untitled',
               author: loreMemoriesRecent.author_name,
               authorColorPreference: loreMemoriesRecent.author_color_preference !== null && loreMemoriesRecent.author_color_preference !== undefined ? Number(loreMemoriesRecent.author_color_preference) : null,
-              timeAgo: formatTimeAgo(loreMemoriesRecent.created_at),
+              createdAt: loreMemoriesRecent.created_at,
               url: `/lore-memories/${loreMemoriesRecent.id}`
             }
           : null
@@ -1329,6 +1334,7 @@ export default async function HomePage({ searchParams }) {
               author_name: authorResult?.username || 'Unknown',
               author_color_preference: authorResult?.preferred_username_color_index !== null && authorResult?.preferred_username_color_index !== undefined ? Number(authorResult.preferred_username_color_index) : null,
               created_at: activity.created_at,
+              timeAgo: formatTimeAgo(activity.created_at), // Compute on server to avoid hydration mismatch
               section: activity.section,
               activity_type: activity.activity_type,
               parent_title: activity.parent_title,
@@ -1524,7 +1530,7 @@ export default async function HomePage({ searchParams }) {
 
       {hasUsername && (
         <>
-          <HomeWelcome user={user} />
+          <HomeWelcome user={user} greetingParts={greetingParts} />
           <HomeStats stats={stats} recentPosts={recentPosts} />
           <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} preferredColors={preferredColors} />
           <section className="card">

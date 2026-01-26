@@ -1,11 +1,11 @@
 'use client';
 
-import { getForumStrings, getTimeBasedGreetingTemplate, renderTemplateParts } from '../lib/forum-texts';
+import { getForumStrings } from '../lib/forum-texts';
 import Username from './Username';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
-export default function HomeWelcome({ user, context = 'home' }) {
+export default function HomeWelcome({ user, greetingParts }) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
   
@@ -17,8 +17,8 @@ export default function HomeWelcome({ user, context = 'home' }) {
     );
   }
 
-  const { template } = getTimeBasedGreetingTemplate({ date: new Date(), useLore: loreEnabled, context });
-  const parts = renderTemplateParts(template, 'username');
+  // Use server-computed greeting parts to avoid hydration mismatch
+  const parts = greetingParts || { hasVar: false, before: strings.hero.title, after: '' };
 
   return (
     <section className="card" style={{ padding: '16px 20px' }}>

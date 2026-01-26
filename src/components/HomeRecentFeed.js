@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
-import { formatTimeAgo } from '../lib/dates';
 
 export default function HomeRecentFeed({ recentPosts, usernameColorMap, preferredColors }) {
   if (!recentPosts || recentPosts.length === 0) {
@@ -57,7 +56,7 @@ export default function HomeRecentFeed({ recentPosts, usernameColorMap, preferre
                 )}
               </div>
               <div className="list-meta" style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span suppressHydrationWarning>{formatTimeAgo(activity.created_at)}</span>
+                <span suppressHydrationWarning>{activity.timeAgo || 'just now'}</span>
                 {activity.section && (
                   <>
                     <span>·</span>
