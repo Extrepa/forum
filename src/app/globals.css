@@ -2613,13 +2613,27 @@ header::before {
     overflow: visible !important;
   }
   
-  /* On small screens, shift popover left if it would overflow */
+  /* On mobile, reposition to ensure it stays in viewport */
   @media (max-width: 640px) {
     .notifications-popover,
     .notifications-popover-errl {
-      /* Only shift left if the popover (380px) would overflow the viewport */
-      /* Shift by the overflow amount: max(0, 380px + 8px - 100vw) */
-      transform: translateX(calc(-1 * max(0px, calc(388px - 100vw)))) !important;
+      /* On mobile, position from right edge of viewport instead of logo */
+      /* This ensures it always stays within the screen */
+      right: 8px !important;
+      left: auto !important;
+      /* If popover is wider than viewport, allow it to shrink */
+      max-width: calc(100vw - 16px) !important;
+      width: min(380px, calc(100vw - 16px)) !important;
+      transform: none !important;
+    }
+  }
+  
+  /* On very small screens where 380px doesn't fit, shrink it */
+  @media (max-width: 396px) {
+    .notifications-popover,
+    .notifications-popover-errl {
+      width: calc(100vw - 16px) !important;
+      max-width: calc(100vw - 16px) !important;
     }
   }
   
