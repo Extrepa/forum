@@ -336,7 +336,7 @@ export default function NotificationsMenu({
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
                     <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                      <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }}>
+                      <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
                         {formatTimeAgo(n.created_at)}
                       </span>
                       <button

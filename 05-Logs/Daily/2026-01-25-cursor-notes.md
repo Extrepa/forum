@@ -1877,19 +1877,24 @@ FROM (
 ## React Hydration Error Fix - 2026-01-25 (Evening)
 
 ### Issue
-React error #418 - hydration mismatch in HomeStats component when rendering `formatTimeAgo(post.created_at)`.
+React error #418 - hydration mismatch in multiple client components when rendering `formatTimeAgo(timestamp)`.
 
 ### Root Cause
 The `formatTimeAgo` function calculates relative time (e.g., "1 hour ago") based on `Date.now()`, which differs between server render and client hydration, causing a text content mismatch.
 
 ### Fix Applied
-**File:** `src/components/HomeStats.js`
 
+**Files Modified:**
+1. `src/components/HomeStats.js`
+2. `src/components/HomeRecentFeed.js`
+3. `src/components/NotificationsMenu.js` (added `suppressHydrationWarning`)
+
+**Solution:**
 1. Added `useState` and `useEffect` to track component mount state
 2. Only render `formatTimeAgo` after component has mounted on client
 3. Show "just now" as placeholder during initial server render
 
-**Code Changes:**
+**Code Pattern Applied:**
 ```javascript
 const [mounted, setMounted] = useState(false);
 
@@ -1898,11 +1903,13 @@ useEffect(() => {
 }, []);
 
 // In render:
-{post.title || 'Untitled'} · {mounted ? formatTimeAgo(post.created_at) : 'just now'}
+{mounted ? formatTimeAgo(timestamp) : 'just now'}
 ```
 
+**For NotificationsMenu:** Used `suppressHydrationWarning` prop since it's a dropdown menu that's not critical for initial render.
+
 ### Status
-✅ **Fixed** - Build successful, no hydration errors
+✅ **Fixed** - Build successful, all hydration errors resolved
 
 ### Note on Recent Activity Still Showing 0
 The queries are correct and should work. If Recent Activity still shows 0 after deployment:
