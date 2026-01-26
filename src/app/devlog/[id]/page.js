@@ -129,6 +129,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
             `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                     dev_logs.created_at, dev_logs.updated_at,
                     users.username AS author_name,
+                    users.preferred_username_color_index AS author_color_preference,
                     0 AS like_count
              FROM dev_logs
              JOIN users ON users.id = dev_logs.author_user_id
