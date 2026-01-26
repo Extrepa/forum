@@ -925,3 +925,147 @@ All comment/reply routes now `await params`, use `const { id } = await params`, 
 - `src/app/api/projects/[id]/replies/route.js`
 - `src/app/api/timeline/[id]/comments/route.js`
 - `src/components/NotificationsMenu.js` (add `lore-memories` to sections)
+
+---
+
+## Individual Notification Delete Feature (2026-01-25)
+
+### User Request
+Add a tiny trash icon in the bottom right corner below the "minutes ago" text for each notification, allowing users to delete individual notifications without clearing all of them.
+
+### Implementation
+
+#### 1. New API Endpoint: `/api/notifications/[id]/delete`
+**File Created:** `src/app/api/notifications/[id]/delete/route.js`
+
+**Functionality:**
+- **Method:** POST
+- **Authentication:** Requires valid session user via `getSessionUser()`
+- **Security:** Verifies notification belongs to current user before deletion
+  - Queries: `SELECT id FROM notifications WHERE id = ? AND user_id = ?`
+  - Deletes: `DELETE FROM notifications WHERE id = ? AND user_id = ?`
+- **Response:** Returns `{ ok: true, unreadCount: <updated_count> }` after successful deletion
+- **Error Handling:** Returns 401 if unauthorized, 404 if notification not found, 500 on database errors
+
+**Next.js 15 Compatibility:**
+- Uses `const { id } = await params;` pattern for Promise-based params
+- Properly handles async params
+
+#### 2. UI Component Updates: `NotificationsMenu.js`
+
+**New Components:**
+- **`TrashIcon` function component:**
+  - Inline SVG trash icon (10x10px default size)
+  - Uses `viewBox="0 0 24 24"` for scalable rendering
+  - Accessible with `role="img"` and `aria-label="Delete"`
+
+**New State Management:**
+- `deletingNotificationId`: Tracks which notification is being deleted (for disabled state)
+- `showDeleteModal`: Controls visibility of delete confirmation modal
+
+**New Handler:**
+- **`handleDeleteNotification(notificationId)`:**
+  - Calls `/api/notifications/${notificationId}/delete` (POST)
+  - On success: Calls `onRefresh()` to update the notification list and unread count
+  - On error: Shows alert to user
+  - Always resets state after completion
+
+**UI Changes:**
+- **Notification Item Layout:**
+  - Changed from single flex row to nested structure
+  - Main row: notification label (left) + time/delete column (right)
+  - Right column: flex column with `alignItems: 'flex-end'`, `gap: 4px`
+    - Top: "minutes ago" text (unchanged styling)
+    - Bottom: trash icon button
+
+- **Trash Icon Button:**
+  - **Size:** 10x10px (matches icon size, no padding)
+  - **Position:** Bottom right, below "minutes ago" text
+  - **Default State:**
+    - `opacity: 0.4` (subtle, doesn't distract)
+    - `color: var(--muted)`
+    - `background: transparent`
+    - `border: none`
+    - `cursor: pointer`
+  - **Hover State:**
+    - `opacity: 1.0` (fully visible)
+    - `color: #ff6b6b` (red tint for delete action)
+    - Smooth transition: `opacity 0.2s ease, color 0.2s ease`
+  - **Disabled State:**
+    - When `deletingNotificationId === n.id`
+    - `opacity: 0.5`
+    - `cursor: not-allowed`
+  - **Click Behavior:**
+    - `e.preventDefault()` and `e.stopPropagation()` to prevent navigation
+    - Sets `deletingNotificationId` and `showDeleteModal` to open confirmation
+
+- **Delete Confirmation Modal:**
+  - Uses existing `DeleteConfirmModal` component
+  - Single modal instance (moved outside the `.map()` loop)
+  - Renders when `showDeleteModal && deletingNotificationId`
+  - `itemType="notification"` for appropriate messaging
+  - On confirm: calls `handleDeleteNotification(deletingNotificationId)`
+  - On close: resets both state variables
+
+**Integration:**
+- Works seamlessly with existing `onRefresh` prop from parent components
+- No changes needed to `NotificationsLogoTrigger` or `NotificationsBell` (they already pass `onRefresh`)
+- Delete operation automatically updates unread count via API response
+
+### Design Decisions
+
+1. **Icon Size:** 10x10px chosen to be "tiny tiny" as requested, subtle but discoverable
+2. **Position:** Bottom right below time text - clear visual hierarchy, doesn't interfere with clickable notification area
+3. **Opacity:** Default 0.4 opacity keeps it subtle; hover to 1.0 makes it clear it's interactive
+4. **Color:** Red on hover (`#ff6b6b`) provides clear visual feedback for destructive action
+5. **Confirmation Modal:** Reuses existing `DeleteConfirmModal` for consistency with other delete actions
+6. **State Management:** Single modal instance prevents multiple modals from rendering simultaneously
+
+### Security Considerations
+
+- **User Verification:** API endpoint verifies notification ownership before deletion
+- **Double Bind:** Both SELECT and DELETE queries use `user_id` bind to prevent unauthorized access
+- **Error Handling:** Proper HTTP status codes (401, 404, 500) for different failure scenarios
+
+### Files Modified
+
+- **Created:**
+  - `src/app/api/notifications/[id]/delete/route.js` (new API endpoint)
+
+- **Modified:**
+  - `src/components/NotificationsMenu.js`
+    - Added `DeleteConfirmModal` import
+    - Added `TrashIcon` component
+    - Added state: `deletingNotificationId`, `showDeleteModal`
+    - Added `handleDeleteNotification` function
+    - Updated notification item JSX structure
+    - Added trash icon button with hover effects
+    - Added delete confirmation modal (single instance)
+
+### Build Status
+
+- ✅ Build passes with no errors
+- ✅ No linter warnings
+- ✅ All imports resolve correctly
+- ✅ TypeScript/ESLint checks pass
+
+### Testing Checklist
+
+- [ ] Click trash icon opens confirmation modal
+- [ ] Confirming deletion removes notification from list
+- [ ] Unread count updates correctly after deletion
+- [ ] Cancel button closes modal without deleting
+- [ ] Hover effect works (opacity and color change)
+- [ ] Icon is properly positioned below "minutes ago" text
+- [ ] Icon size is appropriately small (10x10px)
+- [ ] Multiple notifications can be deleted sequentially
+- [ ] Deleted notification doesn't reappear on refresh
+- [ ] Error handling works (network errors, API errors)
+
+### Notes
+
+- The trash icon is intentionally very small and subtle to avoid cluttering the UI
+- The hover effect provides clear visual feedback that the icon is interactive
+- The confirmation modal prevents accidental deletions
+- The API endpoint returns the updated unread count, which could be used for optimistic updates in the future
+- All existing notification functionality (mark read, mark all read, clear all) remains unchanged

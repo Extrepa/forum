@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 function formatTimeAgo(timestamp) {
   const now = Date.now();
@@ -16,6 +17,28 @@ function formatTimeAgo(timestamp) {
   if (hours > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
   if (minutes > 0) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
   return 'just now';
+}
+
+function TrashIcon({ size = 10 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="Delete"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
 }
 
 const ERL_TAGLINES = [
@@ -42,6 +65,8 @@ export default function NotificationsMenu({
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState(null);
   const [preferredColorIndex, setPreferredColorIndex] = useState(null);
+  const [deletingNotificationId, setDeletingNotificationId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const hasItems = items && items.length > 0;
   
   const usernameColorIndex = useMemo(() => {
@@ -75,6 +100,30 @@ export default function NotificationsMenu({
         });
     }
   }, [open]);
+
+  const handleDeleteNotification = async (notificationId) => {
+    setDeletingNotificationId(notificationId);
+    try {
+      const res = await fetch(`/api/notifications/${notificationId}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const payload = await res.json();
+      if (res.ok) {
+        // Refresh notifications list
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } else {
+        alert('Failed to delete notification');
+      }
+    } catch (e) {
+      alert('Failed to delete notification');
+    } finally {
+      setDeletingNotificationId(null);
+      setShowDeleteModal(false);
+    }
+  };
 
   if (!open) return null;
 
@@ -285,11 +334,55 @@ export default function NotificationsMenu({
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
                     <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
-                    <span style={{ whiteSpace: 'nowrap', fontSize: '12px', flexShrink: 0, color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }}>
-                      {formatTimeAgo(n.created_at)}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                      <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }}>
+                        {formatTimeAgo(n.created_at)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDeletingNotificationId(n.id);
+                          setShowDeleteModal(true);
+                        }}
+                        disabled={deletingNotificationId === n.id}
+                        title="Delete notification"
+                        style={{
+                          width: 10,
+                          height: 10,
+                          minWidth: 10,
+                          minHeight: 10,
+                          padding: 0,
+                          margin: 0,
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 2,
+                          cursor: deletingNotificationId === n.id ? 'not-allowed' : 'pointer',
+                          opacity: deletingNotificationId === n.id ? 0.5 : 0.4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--muted)',
+                          boxShadow: 'none',
+                          transition: 'opacity 0.2s ease, color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (deletingNotificationId !== n.id) {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.color = '#ff6b6b';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '0.4';
+                          e.currentTarget.style.color = 'var(--muted)';
+                        }}
+                      >
+                        <TrashIcon size={10} />
+                      </button>
+                    </div>
                   </div>
                 </a>
               );
@@ -297,6 +390,19 @@ export default function NotificationsMenu({
           </div>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && deletingNotificationId && (
+        <DeleteConfirmModal
+          isOpen={true}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDeletingNotificationId(null);
+          }}
+          onConfirm={() => handleDeleteNotification(deletingNotificationId)}
+          itemType="notification"
+        />
+      )}
 
       {/* Footer with mark all read, clear, and close */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
