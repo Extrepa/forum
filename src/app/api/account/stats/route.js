@@ -269,6 +269,7 @@ export async function GET() {
       recentThreads: [],
       recentReplies: [],
       recentActivity: [],
+      profileLinks: [],
     });
   }
 }

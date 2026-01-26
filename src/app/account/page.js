@@ -244,7 +244,10 @@ export default async function AccountPage({ searchParams }) {
       let profileLinks = [];
       if (userInfo?.profile_links) {
         try {
-          profileLinks = JSON.parse(userInfo.profile_links);
+          const parsed = JSON.parse(userInfo.profile_links);
+          if (Array.isArray(parsed)) {
+            profileLinks = parsed;
+          }
         } catch (e) {
           // If not JSON, try comma-separated
           profileLinks = userInfo.profile_links.split(',').map(link => link.trim()).filter(Boolean);
@@ -269,6 +272,7 @@ export default async function AccountPage({ searchParams }) {
         recentThreads: [],
         recentReplies: [],
         recentActivity: [],
+        profileLinks: [],
       };
     }
   }
