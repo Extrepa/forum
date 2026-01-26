@@ -381,7 +381,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-columns" style={{ marginBottom: '24px' }}>
             {/* Left Column: Username, Color, and Social Links */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px' }}>Profile</h2>
+              <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Profile</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
@@ -768,7 +768,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {/* Right Column: Stats */}
             <div className="account-col">
-              <h2 className="section-title" style={{ borderBottom: 'none', marginBottom: '8px', textAlign: 'right' }}>Stats</h2>
+              <h2 className="section-title" style={{ borderBottom: '1px solid var(--accent-2)', marginBottom: '8px', paddingBottom: '4px', textAlign: 'right', boxShadow: '0 1px 3px rgba(255, 52, 245, 0.3)' }}>Stats</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                 {(() => {
                   // RPG-style rarity color function
