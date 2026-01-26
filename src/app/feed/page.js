@@ -6,6 +6,7 @@ import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
 import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate } from '../../lib/dates';
 import Username from '../../components/Username';
+import HomeWelcome from '../../components/HomeWelcome';
 
 export const dynamic = 'force-dynamic';
 
@@ -377,6 +378,8 @@ export default async function FeedPage() {
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} />
+
+      <HomeWelcome user={user} />
 
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
