@@ -10,7 +10,7 @@ import { useRotatingPlaceholder } from '../lib/useRotatingPlaceholder';
 export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const router = useRouter();
   const [status, setStatus] = useState({ type: 'idle', message: null });
-  const [mode, setMode] = useState('signup'); // signup | login - defaults to signup, will be updated by useEffect based on session
+  const [mode, setMode] = useState('login'); // signup | login - defaults to login, will be updated by useEffect based on session
   const { loreEnabled, setLoreEnabled } = useUiPrefs();
 
   const [me, setMe] = useState(null);
@@ -139,14 +139,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setDefaultLandingPage(user?.defaultLandingPage || 'feed');
         
         // Set default mode based on whether user exists
-        // If no user, default to signup (first-time visitor)
+        // If no user, default to login (existing users more common than new signups)
         // Note: If user exists, this form won't be rendered (handled by parent page)
         if (!user) {
-          setMode('signup');
+          setMode('login');
         }
       } catch (error) {
-        // No session, default to signup for first-time visitors
-        setMode('signup');
+        // No session, default to login for returning visitors
+        setMode('login');
       }
     };
     load();
@@ -639,8 +639,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const Wrapper = noCardWrapper ? 'div' : 'div';
   const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
-    <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
-      <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+    <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ flex: '0 0 25%', minWidth: '200px', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
           <div style={{ position: 'sticky', top: '20px' }}>
             <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
@@ -677,7 +677,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       placeholder={loginIdentifier ? '' : (loginIdentifierActive ? loginIdentifierPlaceholder.placeholder : 'you@example.com')}
                       autoComplete="username"
                       required
-                      style={{ position: 'relative', zIndex: 1 }}
+                      style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                     />
                     {!loginIdentifier && loginIdentifierActive && (
                       <div
@@ -693,6 +693,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           zIndex: 0,
                           opacity: loginIdentifierPlaceholder.opacity * 0.4,
                           transition: 'opacity 0.6s ease-in-out',
+                          maxWidth: 'calc(100% - 24px)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {loginIdentifierPlaceholder.placeholder}
@@ -711,7 +715,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     required
                   />
                 </label>
-                <button type="submit" disabled={status.type === 'loading'}>
+                <button type="submit" disabled={status.type === 'loading'} style={{ width: '100%' }}>
                   Sign in
                 </button>
               </form>
@@ -755,7 +759,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
                       autoComplete="email"
                       required
-                      style={{ position: 'relative', zIndex: 1 }}
+                      style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                     />
                     {!signupEmail && signupEmailActive && (
                       <div
@@ -771,6 +775,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           zIndex: 0,
                           opacity: signupEmailPlaceholder.opacity * 0.4,
                           transition: 'opacity 0.6s ease-in-out',
+                          maxWidth: 'calc(100% - 24px)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {signupEmailPlaceholder.placeholder}
@@ -790,7 +798,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       placeholder={signupUsername ? '' : (signupUsernameActive ? signupUsernamePlaceholder.placeholder : 'errlmember')}
                       autoComplete="username"
                       required
-                      style={{ position: 'relative', zIndex: 1 }}
+                      style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                     />
                     {!signupUsername && signupUsernameActive && (
                       <div
@@ -806,6 +814,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           zIndex: 0,
                           opacity: signupUsernamePlaceholder.opacity * 0.4,
                           transition: 'opacity 0.6s ease-in-out',
+                          maxWidth: 'calc(100% - 24px)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {signupUsernamePlaceholder.placeholder}
@@ -843,7 +855,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
                   </label>
                 </div>
-                <button type="submit" disabled={status.type === 'loading'}>
+                <button type="submit" disabled={status.type === 'loading'} style={{ width: '100%' }}>
                   Create account
                 </button>
               </form>

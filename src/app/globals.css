@@ -2465,6 +2465,7 @@ header::before {
   /* ClaimUsernameForm: Stack columns on mobile */
   .auth-form-container {
     flex-direction: column !important;
+    gap: 16px !important;
   }
 
   .auth-form-container > div:first-child {
@@ -2473,6 +2474,47 @@ header::before {
     padding-bottom: 24px !important;
     border-right: none !important;
     border-bottom: 1px solid rgba(52, 225, 255, 0.2) !important;
+    min-width: 0 !important;
+  }
+
+  .auth-form-container > div:last-child {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Ensure inputs use full width and handle overflow */
+  .auth-form-container input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Ensure buttons are full width */
+  .auth-form-container button {
+    width: 100% !important;
+  }
+
+  /* Fix placeholder overflow */
+  .auth-form-container .rotating-placeholder-overlay {
+    max-width: calc(100% - 24px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Card wrapper adjustments for mobile */
+  .card:has(.auth-form-container) {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Navigation menu padding */
+  .nav-menu-expanded {
+    padding-bottom: 20px !important;
   }
 
 }
