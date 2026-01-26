@@ -388,8 +388,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
       </section>
 
       <section className="card">
-        <div className="rating-comments-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-          <div>
+        <div className="rating-comments-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(150px, 20%) 1fr', gap: '24px', alignItems: 'flex-start' }}>
+          {/* Ratings Column - ~20% width */}
+          <div style={{ minWidth: 0 }}>
             <h3 className="section-title" style={{ marginBottom: '12px' }}>Rate this</h3>
             {notice ? <div className="notice" style={{ marginBottom: '12px' }}>{notice}</div> : null}
             <form action="/api/music/ratings" method="post">
@@ -397,71 +398,75 @@ export default async function MusicDetailPage({ params, searchParams }) {
               <label>
                 <div className="muted">Your rating (1-5)</div>
                 <select name="rating" defaultValue="5">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
+                  <option value="1">1 - I didn't have time to listen</option>
+                  <option value="2">2 - I'm not really my style</option>
+                  <option value="3">3 - I vibe with it</option>
+                  <option value="4">4 - I love it</option>
+                  <option value="5">5 - This is my new personality</option>
                 </select>
               </label>
               <button type="submit">Submit rating</button>
             </form>
           </div>
-          <div>
+          
+          {/* Comments Column - ~80% width */}
+          <div style={{ minWidth: 0 }}>
             <h3 className="section-title" style={{ marginBottom: '12px' }}>Comments</h3>
+            <div className="list">
+              {safeComments.length === 0 ? (
+                <p className="muted">No comments yet.</p>
+              ) : (
+                safeComments.map((comment) => {
+                  const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
+                  const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
+                  return (
+                    <div key={comment.id} className="list-item" style={{ position: 'relative' }}>
+                      <DeleteCommentButton
+                        commentId={comment.id}
+                        parentId={id}
+                        type="music"
+                        authorUserId={comment.author_user_id}
+                        currentUserId={user?.id}
+                        isAdmin={!!isAdmin}
+                      />
+                      <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
+                      <div
+                        className="list-meta"
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
+                      >
+                        <span>
+                          <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+                          {' · '}
+                          {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
+                        </span>
+                      </div>
+                      <CommentActions
+                        commentId={comment.id}
+                        commentAuthor={comment.author_name}
+                        commentBody={comment.body}
+                        replyHref={`/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
+                      />
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            {post.is_locked ? (
+              <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this post.</p>
+            ) : (
+              <div style={{ marginTop: '12px' }}>
+                <CommentFormWrapper
+                  action="/api/music/comments"
+                  buttonLabel="Post comment"
+                  placeholder="Drop your thoughts into the goo..."
+                  labelText="What would you like to say?"
+                  hiddenFields={{ post_id: id }}
+                  notice={notice}
+                />
+              </div>
+            )}
           </div>
         </div>
-        <div className="list">
-          {safeComments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
-          ) : (
-            safeComments.map((comment) => {
-              const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
-              const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
-              return (
-                <div key={comment.id} className="list-item" style={{ position: 'relative' }}>
-                  <DeleteCommentButton
-                    commentId={comment.id}
-                    parentId={id}
-                    type="music"
-                    authorUserId={comment.author_user_id}
-                    currentUserId={user?.id}
-                    isAdmin={!!isAdmin}
-                  />
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
-                  <div
-                    className="list-meta"
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
-                  >
-                    <span>
-                      <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
-                      {' · '}
-                      {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
-                    </span>
-                  </div>
-                  <CommentActions
-                    commentId={comment.id}
-                    commentAuthor={comment.author_name}
-                    commentBody={comment.body}
-                    replyHref={`/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
-                  />
-                </div>
-              );
-            })
-          )}
-        </div>
-        {post.is_locked ? (
-          <p className="muted">Comments are locked for this post.</p>
-        ) : (
-          <CommentFormWrapper
-            action="/api/music/comments"
-            buttonLabel="Post comment"
-            placeholder="Drop your thoughts into the goo..."
-            labelText="What would you like to say?"
-            hiddenFields={{ post_id: id }}
-            notice={notice}
-          />
-        )}
       </section>
     </div>
   );
