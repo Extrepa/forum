@@ -2,6 +2,7 @@
 
 import Username from './Username';
 import LikeButton from './LikeButton';
+import { formatDateTime } from '../lib/dates';
 
 /**
  * PostHeader - Standardized header for detail pages
