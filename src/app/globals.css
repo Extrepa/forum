@@ -1966,17 +1966,36 @@ footer {
 }
 
 @keyframes rotate-text-counter {
-  from {
-    /* Position letter around circle */
-    /* Counter-rotate to make letter tangent to circle at its position */
-    /* This creates smooth transition: upright at top, tangent at sides, readable along outline */
+  0% {
+    /* Start: readable along outline (tangent to circle) */
     transform: 
       rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
       translateY(calc(-1 * var(--text-radius, 19px))) 
       rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 0deg));
   }
-  to {
-    /* As container rotates counterclockwise, maintain tangent orientation */
+  25% {
+    /* Transition to: readable on face (upright) */
+    transform: 
+      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
+      translateY(calc(-1 * var(--text-radius, 19px))) 
+      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 90deg));
+  }
+  50% {
+    /* Back to: readable along outline (tangent) */
+    transform: 
+      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
+      translateY(calc(-1 * var(--text-radius, 19px))) 
+      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 180deg));
+  }
+  75% {
+    /* Transition to: readable on face (upright) */
+    transform: 
+      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
+      translateY(calc(-1 * var(--text-radius, 19px))) 
+      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 270deg));
+  }
+  100% {
+    /* Back to: readable along outline (tangent) - completes full cycle */
     transform: 
       rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
       translateY(calc(-1 * var(--text-radius, 19px))) 
