@@ -441,3 +441,58 @@ All changes are complete, tested, and ready to deploy.
 - `toLocaleString()` differences are expected and handled with `suppressHydrationWarning`
 - No performance impact - computations happen once on server, not on every client render
 - Art posts now consistently require images across all entry points
+
+---
+
+## Project Replies Image Upload Feature - 2026-01-25
+
+### Feature: Image Upload Support for Project Replies
+**Status:** ✅ COMPLETE
+
+**Branch:** `feat/project-replies-image-upload`
+
+**Changes Made:**
+1. **Database Migration** (`migrations/0040_project_replies_image_key.sql`)
+   - Added `image_key` column to `project_replies` table
+   - Migration applied to local database
+
+2. **Form Components**
+   - Updated `CollapsibleReplyForm.js` to support image uploads with `allowImageUpload` prop
+   - Updated `ReplyFormWrapper.js` to pass through `allowImageUpload` prop
+   - Enabled image uploads in `ProjectRepliesSection.js` for project replies only
+
+3. **API Route** (`src/app/api/projects/[id]/replies/route.js`)
+   - Added image upload handling (validation, permission checks, upload to R2 bucket)
+   - Updated INSERT query to include `image_key` with fallback for older migrations
+   - Handles image validation and upload errors gracefully
+
+4. **Project Detail Page** (`src/app/projects/[id]/page.js`)
+   - Updated all three reply queries to fetch `image_key` from database
+   - Added `image_key` to serialized reply data
+
+5. **Display Component** (`src/components/ProjectRepliesSection.js`)
+   - Added image display in replies (shows image below reply body if present)
+   - Images displayed using `/api/media/${imageKey}` endpoint
+
+6. **Spacing Adjustments**
+   - Reduced padding between textarea and image upload field
+   - Applied negative margin (`-8px`) to image upload label to minimize spacing
+   - Set textarea `marginBottom: 0` to reduce gap
+
+**Build Status:**
+- ✅ Next.js build: Successful
+- ✅ Cloudflare worker build: Successful
+- ✅ Migrations: Applied locally
+
+**Deployment Notes:**
+- Migration needs to be applied to remote database before feature works in production
+- Command: `npx wrangler d1 migrations apply errl_forum_db --remote`
+- Feature is rollout-safe (works even if migration hasn't run yet)
+
+**Files Modified:**
+- `migrations/0040_project_replies_image_key.sql` (new)
+- `src/components/CollapsibleReplyForm.js`
+- `src/components/ReplyFormWrapper.js`
+- `src/components/ProjectRepliesSection.js`
+- `src/app/api/projects/[id]/replies/route.js`
+- `src/app/projects/[id]/page.js`
