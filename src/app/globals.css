@@ -752,7 +752,14 @@ main {
 /* Keep edit button closer for in-between viewport sizes */
 @media (max-width: 1024px) and (min-width: 641px) {
   .username-edit-btn {
-    right: 12px !important;
+    right: 8px !important;
+  }
+}
+
+/* Even closer for smaller medium sizes */
+@media (max-width: 900px) and (min-width: 641px) {
+  .username-edit-btn {
+    right: 4px !important;
   }
 }
 
