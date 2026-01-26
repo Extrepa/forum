@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -67,6 +67,9 @@ export default function NotificationsMenu({
   const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [showClearAllModal, setShowClearAllModal] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState({});
+  const popoverRef = useRef(null);
+  const triggerRef = useRef(null);
   const hasItems = items && items.length > 0;
   
   const usernameColorIndex = useMemo(() => {
@@ -99,6 +102,74 @@ export default function NotificationsMenu({
           // Ignore errors
         });
     }
+  }, [open]);
+
+  // Calculate popover position on mobile to align with logo and prevent overflow
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return;
+    
+    const updatePosition = () => {
+      if (window.innerWidth > 640) {
+        // Desktop - use default positioning
+        setPopoverStyle({});
+        return;
+      }
+      
+      // Mobile - find the logo trigger element and calculate position
+      const trigger = document.querySelector('.notifications-logo-trigger');
+      if (!trigger) return;
+      
+      const triggerRect = trigger.getBoundingClientRect();
+      const popoverWidth = 380;
+      const viewportWidth = window.innerWidth;
+      const margin = 8;
+      
+      // Calculate right position: align to logo's right edge
+      // triggerRect.right is the distance from left edge of viewport to right edge of logo
+      // We want popover's right edge to align with logo's right edge
+      const logoRightEdge = viewportWidth - triggerRect.right;
+      
+      // If popover would overflow viewport, shift it left
+      // popoverWidth + margin is how much space we need from the right edge
+      const neededSpace = popoverWidth + margin;
+      const availableSpace = triggerRect.right; // Space from logo's right edge to viewport left
+      
+      let actualRight;
+      if (availableSpace >= neededSpace) {
+        // Enough space - align to logo
+        actualRight = logoRightEdge;
+      } else {
+        // Not enough space - position from viewport edge with margin
+        actualRight = margin;
+      }
+      
+      // Calculate top position: below the logo
+      const top = triggerRect.bottom + 8;
+      
+      // Determine width - shrink if needed
+      const maxPopoverWidth = viewportWidth - margin * 2;
+      const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
+      
+      setPopoverStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        right: `${actualRight}px`,
+        left: 'auto',
+        width: `${finalWidth}px`,
+        maxWidth: `${finalWidth}px`
+      });
+    };
+    
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updatePosition, 0);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
   }, [open]);
 
   const handleDeleteNotification = async (notificationId) => {
@@ -135,6 +206,7 @@ export default function NotificationsMenu({
         }
       `}</style>
     <div
+      ref={popoverRef}
       className="card notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
@@ -149,8 +221,7 @@ export default function NotificationsMenu({
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
-        // Ensure it doesn't overflow viewport - will be overridden by CSS on mobile
-        transform: anchor === 'right' ? 'translateX(0)' : 'none'
+        ...popoverStyle
       }}
       role="menu"
       aria-label={title}

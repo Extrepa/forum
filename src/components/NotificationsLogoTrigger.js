@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import ForumLogo from './ForumLogo';
 import NotificationsMenu from './NotificationsMenu';
 
@@ -93,8 +93,10 @@ export default function NotificationsLogoTrigger() {
     }
   };
 
+  const triggerRef = useRef(null);
+  
   return (
-    <div className="notifications-logo-trigger" style={{ position: 'relative', overflow: 'visible' }}>
+    <div ref={triggerRef} className="notifications-logo-trigger" style={{ position: 'relative', overflow: 'visible' }}>
       <ForumLogo
         variant="header"
         showText={false}

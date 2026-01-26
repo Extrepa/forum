@@ -2613,18 +2613,22 @@ header::before {
     overflow: visible !important;
   }
   
-  /* On mobile, reposition to ensure it stays in viewport */
+  /* On mobile, use fixed positioning to ensure it stays in viewport */
   @media (max-width: 640px) {
     .notifications-popover,
     .notifications-popover-errl {
-      /* On mobile, position from right edge of viewport instead of logo */
-      /* This ensures it always stays within the screen */
+      /* Use fixed positioning relative to viewport */
+      position: fixed !important;
+      /* Calculate right position: align to logo but ensure 8px margin from viewport edge */
+      /* Logo is typically near right edge, so we'll position from viewport right */
       right: 8px !important;
       left: auto !important;
-      /* If popover is wider than viewport, allow it to shrink */
-      max-width: calc(100vw - 16px) !important;
+      /* Keep original width unless viewport is smaller */
       width: min(380px, calc(100vw - 16px)) !important;
+      max-width: min(380px, calc(100vw - 16px)) !important;
       transform: none !important;
+      /* Calculate top position based on logo position - will be handled by JS or keep relative */
+      top: auto !important;
     }
   }
   
