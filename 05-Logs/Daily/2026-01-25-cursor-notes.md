@@ -1890,6 +1890,7 @@ The `formatTimeAgo` function calculates relative time (e.g., "1 hour ago") based
 3. `src/components/NotificationsMenu.js` - Added `suppressHydrationWarning` prop
 4. `src/components/PostMetaBar.js` - Added mounted state check for `toLocaleString()` dates
 5. `src/components/HomeWelcome.js` - Added mounted state check for time-based greeting
+6. `src/components/HomeSectionCard.js` - Added mounted state check for `timeAgo` prop (computed on server, rendered on client)
 
 **Solution:**
 1. Added `useState` and `useEffect` to track component mount state
