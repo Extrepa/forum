@@ -2555,7 +2555,7 @@ footer {
 /* Tooltip - positioned relative to wrapper, doesn't rotate */
 .scroll-to-top-tooltip {
   position: absolute;
-  bottom: calc(100% + 20px); /* Positioned higher above button */
+  bottom: calc(100% + 40px); /* Positioned much higher above button */
   right: 0;
   white-space: nowrap;
   padding: 8px 12px;
@@ -2801,7 +2801,7 @@ footer {
 
   /* Mobile tooltip positioning */
   .scroll-to-top-tooltip {
-    bottom: calc(100% + 16px); /* Positioned higher above button */
+    bottom: calc(100% + 32px); /* Positioned much higher above button */
     font-size: 11px;
     padding: 6px 10px;
   }
