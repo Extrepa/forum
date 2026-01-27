@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { sendOutboundNotification } from './outboundNotifications';
 
 /**
  * Extracts usernames from text (e.g. @username)
@@ -25,8 +26,9 @@ export function extractMentions(text) {
  * @param {string} options.actorId - The user ID of the person doing the mentioning
  * @param {string} options.targetType - The type of content (e.g. 'post', 'comment')
  * @param {string} options.targetId - The ID of the content
+ * @param {string} [options.requestUrl] - The URL of the request (for outbound links)
  */
-export async function createMentionNotifications({ text, actorId, targetType, targetId }) {
+export async function createMentionNotifications({ text, actorId, targetType, targetId, requestUrl }) {
   const usernames = extractMentions(text);
   if (usernames.length === 0) return;
 
@@ -35,11 +37,15 @@ export async function createMentionNotifications({ text, actorId, targetType, ta
   // Resolve usernames to user IDs and check preferences
   const placeholders = usernames.map(() => '?').join(',');
   const { results: users } = await db
-    .prepare(`SELECT id, username_norm, notify_mention_enabled FROM users WHERE username_norm IN (${placeholders})`)
+    .prepare(`SELECT id, username_norm, email, phone, notify_mention_enabled, notify_email_enabled, notify_sms_enabled FROM users WHERE username_norm IN (${placeholders})`)
     .bind(...usernames)
     .all();
 
   if (!users || users.length === 0) return;
+
+  // Get actor info for outbound
+  const actor = await db.prepare('SELECT username FROM users WHERE id = ?').bind(actorId).first();
+  const actorUsername = actor?.username || 'Someone';
 
   const now = Date.now();
   for (const user of users) {
@@ -61,10 +67,21 @@ export async function createMentionNotifications({ text, actorId, targetType, ta
           now
         )
         .run();
+
+      // Send outbound if requestUrl provided
+      if (requestUrl) {
+        await sendOutboundNotification({
+          requestUrl,
+          recipient: user,
+          actorUsername,
+          type: 'mention',
+          targetType,
+          targetId,
+          bodySnippet: text
+        });
+      }
     } catch (e) {
-      // Ignore failures (e.g. unique constraint if they are already being notified for something else)
-      // Actually, notifications don't have a unique constraint on (user_id, type, target_id) but maybe they should?
-      // For mentions, it's fine to have multiple if it's different.
+      // Ignore failures
     }
   }
 }

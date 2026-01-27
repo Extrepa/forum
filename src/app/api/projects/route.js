@@ -81,7 +81,8 @@ export async function POST(request) {
     text: description,
     actorId: user.id,
     targetType: 'project',
-    targetId: projectId
+    targetId: projectId,
+    requestUrl: request.url
   });
 
   return NextResponse.redirect(redirectUrl, 303);

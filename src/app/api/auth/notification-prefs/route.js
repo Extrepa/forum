@@ -21,6 +21,8 @@ export async function POST(request) {
   const likeEnabled = payload.likeEnabled !== undefined ? (payload.likeEnabled ? 1 : 0) : 1;
   const updateEnabled = payload.updateEnabled !== undefined ? (payload.updateEnabled ? 1 : 0) : 1;
   const mentionEnabled = payload.mentionEnabled !== undefined ? (payload.mentionEnabled ? 1 : 0) : 1;
+  const replyEnabled = payload.replyEnabled !== undefined ? (payload.replyEnabled ? 1 : 0) : 1;
+  const commentEnabled = payload.commentEnabled !== undefined ? (payload.commentEnabled ? 1 : 0) : 1;
 
   if (emailEnabled && !user.email) {
     return NextResponse.json({ error: 'Set an email before enabling email notifications.' }, { status: 400 });
@@ -38,10 +40,12 @@ export async function POST(request) {
           notify_rsvp_enabled = ?,
           notify_like_enabled = ?,
           notify_update_enabled = ?,
-          notify_mention_enabled = ?
+          notify_mention_enabled = ?,
+          notify_reply_enabled = ?,
+          notify_comment_enabled = ?
       WHERE id = ?
     `)
-    .bind(emailEnabled, smsEnabled, rsvpEnabled, likeEnabled, updateEnabled, mentionEnabled, user.id)
+    .bind(emailEnabled, smsEnabled, rsvpEnabled, likeEnabled, updateEnabled, mentionEnabled, replyEnabled, commentEnabled, user.id)
     .run();
 
   return NextResponse.json({ 
@@ -51,7 +55,9 @@ export async function POST(request) {
     notifyRsvpEnabled: !!rsvpEnabled,
     notifyLikeEnabled: !!likeEnabled,
     notifyUpdateEnabled: !!updateEnabled,
-    notifyMentionEnabled: !!mentionEnabled
+    notifyMentionEnabled: !!mentionEnabled,
+    notifyReplyEnabled: !!replyEnabled,
+    notifyCommentEnabled: !!commentEnabled
   });
 }
 

@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../../lib/uploads';
+import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
@@ -71,9 +72,14 @@ export async function POST(request, { params }) {
 
   // Notify participants (commenters) about the project update
   try {
+    const project = await db
+      .prepare('SELECT title FROM projects WHERE id = ?')
+      .bind(params.id)
+      .first();
+
     const { results: participants } = await db
       .prepare(`
-        SELECT DISTINCT pc.author_user_id, u.notify_update_enabled 
+        SELECT DISTINCT pc.author_user_id, u.email, u.phone, u.notify_update_enabled, u.notify_email_enabled, u.notify_sms_enabled 
         FROM project_comments pc
         JOIN users u ON u.id = pc.author_user_id
         WHERE pc.project_id = ? AND pc.is_deleted = 0
@@ -81,29 +87,37 @@ export async function POST(request, { params }) {
       .bind(params.id)
       .all();
 
-    const recipients = new Set();
-    for (const row of participants || []) {
-      if (row?.author_user_id && row.notify_update_enabled !== 0) {
-        recipients.add(row.author_user_id);
-      }
-    }
-    recipients.delete(user.id);
+    const actorUsername = user.username || 'Someone';
 
-    for (const recipientUserId of recipients) {
-      await db
-        .prepare(
-          'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'update',
-          'project',
-          params.id,
-          now
-        )
-        .run();
+    for (const recipient of participants || []) {
+      if (recipient?.author_user_id && recipient.author_user_id !== user.id && recipient.notify_update_enabled !== 0) {
+        await db
+          .prepare(
+            'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+          )
+          .bind(
+            crypto.randomUUID(),
+            recipient.author_user_id,
+            user.id,
+            'update',
+            'project',
+            params.id,
+            now
+          )
+          .run();
+
+        // Send outbound notification
+        await sendOutboundNotification({
+          requestUrl: request.url,
+          recipient: recipient, // It has notify_email_enabled, email, phone, etc.
+          actorUsername,
+          type: 'update',
+          targetType: 'project',
+          targetId: params.id,
+          targetTitle: project?.title,
+          bodySnippet: title // Using the update title as snippet
+        });
+      }
     }
   } catch (e) {
     // Ignore notification failures

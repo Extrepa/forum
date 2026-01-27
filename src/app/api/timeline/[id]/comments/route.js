@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
+import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -70,35 +71,39 @@ export async function POST(request, { params }) {
       text: body,
       actorId: user.id,
       targetType: 'timeline_update',
-      targetId: id
+      targetId: id,
+      requestUrl: request.url
     });
 
-    const update = await db
-      .prepare('SELECT author_user_id FROM timeline_updates WHERE id = ?')
+    const updateAuthor = await db
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM timeline_updates JOIN users ON users.id = timeline_updates.author_user_id WHERE timeline_updates.id = ?')
       .bind(id)
       .first();
 
-    const recipients = new Set();
-    if (update?.author_user_id) {
-      recipients.add(update.author_user_id);
+    const recipients = new Map();
+    if (updateAuthor?.author_user_id && updateAuthor.author_user_id !== user.id && updateAuthor.notify_comment_enabled !== 0) {
+      recipients.set(updateAuthor.author_user_id, updateAuthor);
     }
 
     const { results: participants } = await db
       .prepare(
-        'SELECT DISTINCT author_user_id FROM timeline_comments WHERE update_id = ? AND is_deleted = 0'
+        `SELECT DISTINCT tc.author_user_id, u.email, u.phone, u.notify_comment_enabled, u.notify_email_enabled, u.notify_sms_enabled
+         FROM timeline_comments tc
+         JOIN users u ON u.id = tc.author_user_id
+         WHERE tc.update_id = ? AND tc.is_deleted = 0`
       )
       .bind(id)
       .all();
 
     for (const row of participants || []) {
-      if (row?.author_user_id) {
-        recipients.add(row.author_user_id);
+      if (row?.author_user_id && row.author_user_id !== user.id && row.notify_comment_enabled !== 0) {
+        recipients.set(row.author_user_id, row);
       }
     }
 
-    recipients.delete(user.id);
+    const actorUsername = user.username || 'Someone';
 
-    for (const recipientUserId of recipients) {
+    for (const [recipientUserId, recipient] of recipients) {
       await db
         .prepare(
           `INSERT INTO notifications
@@ -115,6 +120,22 @@ export async function POST(request, { params }) {
           now
         )
         .run();
+
+      // Send outbound notification
+      try {
+        await sendOutboundNotification({
+          requestUrl: request.url,
+          recipient,
+          actorUsername,
+          type: 'comment',
+          targetType: 'timeline_update',
+          targetId: id,
+          targetTitle: updateAuthor?.title,
+          bodySnippet: body
+        });
+      } catch (e) {
+        // ignore
+      }
     }
   } catch (e) {
     // Notifications table might not exist yet, ignore

@@ -20,6 +20,8 @@ export async function GET() {
       notifyLikeEnabled: user.notify_like_enabled !== 0,
       notifyUpdateEnabled: user.notify_update_enabled !== 0,
       notifyMentionEnabled: user.notify_mention_enabled !== 0,
+      notifyReplyEnabled: user.notify_reply_enabled !== 0,
+      notifyCommentEnabled: user.notify_comment_enabled !== 0,
       uiLoreEnabled: !!user.ui_lore_enabled,
       defaultLandingPage: user.default_landing_page ?? 'home',
       preferredUsernameColorIndex: user.preferred_username_color_index ?? null

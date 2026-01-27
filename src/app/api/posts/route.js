@@ -134,7 +134,8 @@ export async function POST(request) {
       text: body,
       actorId: user.id,
       targetType: type === 'about' ? 'about' : type,
-      targetId: postId
+      targetId: postId,
+      requestUrl: request.url
     });
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');

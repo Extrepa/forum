@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
-import { sendForumReplyOutbound } from '../../../../../lib/outboundNotifications';
+import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 
 export async function POST(request, { params }) {
@@ -98,30 +98,46 @@ export async function POST(request, { params }) {
     text: body,
     actorId: user.id,
     targetType: 'forum_thread',
-    targetId: id
+    targetId: id,
+    requestUrl: request.url
   });
 
-  const recipients = new Set();
-  if (thread?.author_user_id) {
-    recipients.add(thread.author_user_id);
-  }
+  const actorUsername = user.username || 'Someone';
+  const threadTitle = thread?.title || 'a thread';
 
   const { results: participants } = await db
     .prepare(
-      'SELECT DISTINCT author_user_id FROM forum_replies WHERE thread_id = ? AND is_deleted = 0'
+      `SELECT DISTINCT fr.author_user_id, u.email, u.phone, u.notify_reply_enabled, u.notify_email_enabled, u.notify_sms_enabled
+       FROM forum_replies fr
+       JOIN users u ON u.id = fr.author_user_id
+       WHERE fr.thread_id = ? AND fr.is_deleted = 0`
     )
     .bind(id)
     .all();
 
+  const recipients = new Map();
   for (const row of participants || []) {
-    if (row?.author_user_id) {
-      recipients.add(row.author_user_id);
+    if (row?.author_user_id && row.author_user_id !== user.id && row.notify_reply_enabled !== 0) {
+      recipients.set(row.author_user_id, row);
     }
   }
 
-  recipients.delete(user.id);
+  // Also check thread author's preference
+  const threadAuthor = await db
+    .prepare(`
+      SELECT author_user_id, u.email, u.phone, u.notify_reply_enabled, u.notify_email_enabled, u.notify_sms_enabled 
+      FROM forum_threads 
+      JOIN users u ON u.id = forum_threads.author_user_id 
+      WHERE forum_threads.id = ?
+    `)
+    .bind(id)
+    .first();
 
-  for (const recipientUserId of recipients) {
+  if (threadAuthor?.author_user_id && threadAuthor.author_user_id !== user.id && threadAuthor.notify_reply_enabled !== 0) {
+    recipients.set(threadAuthor.author_user_id, threadAuthor);
+  }
+
+  for (const [recipientUserId, recipient] of recipients) {
     await db
       .prepare(
         `INSERT INTO notifications
@@ -138,38 +154,22 @@ export async function POST(request, { params }) {
         now
       )
       .run();
-  }
 
-  // Optional outbound delivery (email/SMS) based on preferences + configured provider secrets.
-  // Failures should never block posting.
-  try {
-    if (recipients.size && thread?.title) {
-      const placeholders = Array.from(recipients)
-        .map(() => '?')
-        .join(',');
-      const query = `SELECT id, email, phone, notify_email_enabled, notify_sms_enabled FROM users WHERE id IN (${placeholders})`;
-      const stmt = db.prepare(query);
-      const bound = stmt.bind(...Array.from(recipients));
-      const { results } = await bound.all();
-
-      const actorUsername = user.username || 'someone';
-      const threadTitle = thread.title || 'a thread';
-      const replyBody = body;
-      await Promise.all(
-        (results || []).map((recipient) =>
-          sendForumReplyOutbound({
-            requestUrl: request.url,
-            recipient,
-            actorUsername,
-            threadTitle,
-            threadId: id,
-            replyBody
-          })
-        )
-      );
+    // Optional outbound delivery
+    try {
+      await sendOutboundNotification({
+        requestUrl: request.url,
+        recipient,
+        actorUsername,
+        type: 'reply',
+        targetType: 'forum_thread',
+        targetId: id,
+        targetTitle: threadTitle,
+        bodySnippet: body
+      });
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // swallow
   }
 
   // Redirect to last page after posting, or to nested reply if applicable

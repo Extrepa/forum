@@ -112,6 +112,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [notifyLikeEnabled, setNotifyLikeEnabled] = useState(true);
   const [notifyUpdateEnabled, setNotifyUpdateEnabled] = useState(true);
   const [notifyMentionEnabled, setNotifyMentionEnabled] = useState(true);
+  const [notifyReplyEnabled, setNotifyReplyEnabled] = useState(true);
+  const [notifyCommentEnabled, setNotifyCommentEnabled] = useState(true);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
   const [defaultLandingPage, setDefaultLandingPage] = useState('feed');
 
@@ -142,6 +144,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setNotifyLikeEnabled(user?.notifyLikeEnabled ?? true);
         setNotifyUpdateEnabled(user?.notifyUpdateEnabled ?? true);
         setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
+        setNotifyReplyEnabled(user?.notifyReplyEnabled ?? true);
+        setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
         setUiLoreEnabled(!!user?.uiLoreEnabled);
         setLoreEnabled(!!user?.uiLoreEnabled);
         setDefaultLandingPage(user?.defaultLandingPage || 'feed');
@@ -178,6 +182,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setNotifyLikeEnabled(user?.notifyLikeEnabled ?? true);
       setNotifyUpdateEnabled(user?.notifyUpdateEnabled ?? true);
       setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
+      setNotifyReplyEnabled(user?.notifyReplyEnabled ?? true);
+      setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
       setUiLoreEnabled(!!user?.uiLoreEnabled);
       setLoreEnabled(!!user?.uiLoreEnabled);
       setDefaultLandingPage(user?.defaultLandingPage || 'feed');
@@ -264,7 +270,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
           rsvpEnabled: notifyRsvpEnabled,
           likeEnabled: notifyLikeEnabled,
           updateEnabled: notifyUpdateEnabled,
-          mentionEnabled: notifyMentionEnabled
+          mentionEnabled: notifyMentionEnabled,
+          replyEnabled: notifyReplyEnabled,
+          commentEnabled: notifyCommentEnabled
         })
       });
       const payload = await response.json();
@@ -642,6 +650,22 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     type="checkbox"
                     checked={notifyMentionEnabled}
                     onChange={(e) => setNotifyMentionEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Reply notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyReplyEnabled}
+                    onChange={(e) => setNotifyReplyEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Comment notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyCommentEnabled}
+                    onChange={(e) => setNotifyCommentEnabled(e.target.checked)}
                   />
                 </label>
                 <button 

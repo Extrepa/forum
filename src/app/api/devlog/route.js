@@ -88,7 +88,8 @@ export async function POST(request) {
       text: body,
       actorId: user.id,
       targetType: 'dev_log',
-      targetId: logId
+      targetId: logId,
+      requestUrl: request.url
     });
   } catch (e) {
     // Rollout compatibility if columns aren't migrated yet.

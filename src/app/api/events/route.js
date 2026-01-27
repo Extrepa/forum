@@ -64,7 +64,8 @@ export async function POST(request) {
     text: body,
     actorId: user.id,
     targetType: 'event',
-    targetId: eventId
+    targetId: eventId,
+    requestUrl: request.url
   });
 
   return NextResponse.redirect(redirectUrl, 303);

@@ -43,7 +43,8 @@ export async function POST(request) {
     text: body,
     actorId: user.id,
     targetType: 'forum_thread',
-    targetId: threadId
+    targetId: threadId,
+    requestUrl: request.url
   });
 
   return NextResponse.redirect(redirectUrl, 303);

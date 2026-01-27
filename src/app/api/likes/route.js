@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
+import { sendOutboundNotification } from '../../../lib/outboundNotifications';
 
 const VALID_POST_TYPES = ['forum_thread', 'music_post', 'event', 'project', 'dev_log', 'timeline_update', 'post'];
 
@@ -74,7 +75,7 @@ export async function POST(request) {
         if (table) {
           const author = await db
             .prepare(`
-              SELECT c.author_user_id, u.notify_like_enabled 
+              SELECT c.author_user_id, u.email, u.phone, u.notify_like_enabled, u.notify_email_enabled, u.notify_sms_enabled 
               FROM ${table} c
               JOIN users u ON u.id = c.author_user_id
               WHERE c.id = ?
@@ -97,6 +98,16 @@ export async function POST(request) {
                 now
               )
               .run();
+
+            // Send outbound notification
+            await sendOutboundNotification({
+              requestUrl: request.url,
+              recipient: author,
+              actorUsername: user.username || 'Someone',
+              type: 'like',
+              targetType: postType,
+              targetId: postId
+            });
           }
         }
       } catch (e) {

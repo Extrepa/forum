@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
+import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
@@ -44,7 +45,7 @@ export async function POST(request, { params }) {
     try {
       const author = await db
         .prepare(`
-          SELECT e.author_user_id, u.notify_rsvp_enabled 
+          SELECT e.author_user_id, e.title, u.email, u.phone, u.notify_rsvp_enabled, u.notify_email_enabled, u.notify_sms_enabled
           FROM events e
           JOIN users u ON u.id = e.author_user_id
           WHERE e.id = ?
@@ -67,6 +68,17 @@ export async function POST(request, { params }) {
             Date.now()
           )
           .run();
+
+        // Send outbound notification
+        await sendOutboundNotification({
+          requestUrl: request.url,
+          recipient: author,
+          actorUsername: user.username || 'Someone',
+          type: 'rsvp',
+          targetType: 'event',
+          targetId: params.id,
+          targetTitle: author.title
+        });
       }
     } catch (e) {
       // Ignore notification failures

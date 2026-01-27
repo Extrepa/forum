@@ -454,3 +454,41 @@ Added a new card to the Account tab allowing users to toggle specific notificati
   - Updated `src/lib/markdown.js` to render `@username` as profile links.
   - Refined `src/lib/mentions.js` to use a more accurate regex that matches the frontend and avoids false positives (like emails).
   - Verified full build successfully.
+
+#### 4. Expanded Notification Preferences
+- **New Notification Types**: Added support for toggling "Reply" and "Comment" notifications independently.
+- **Database Schema**: Created migration `0043_add_reply_comment_notification_prefs.sql` to add `notify_reply_enabled` and `notify_comment_enabled` columns to the `users` table.
+- **Backend Updates**:
+  - Updated `src/lib/auth.js` (`getSessionUser`) to fetch the new preference columns.
+  - Updated `/api/auth/me` and `/api/auth/notification-prefs` to handle the new preferences.
+  - Modified notification triggers across all content types to check recipient preferences before sending:
+    - `forum replies`: `src/app/api/forum/[id]/replies/route.js`
+    - `post comments`: `src/app/api/posts/[id]/comments/route.js`
+    - `event comments`: `src/app/api/events/[id]/comments/route.js`
+    - `music comments`: `src/app/api/music/comments/route.js`
+    - `project comments`: `src/app/api/projects/[id]/comments/route.js`
+    - `project replies`: `src/app/api/projects/[id]/replies/route.js`
+    - `devlog comments`: `src/app/api/devlog/[id]/comments/route.js`
+    - `timeline comments`: `src/app/api/timeline/[id]/comments/route.js`
+- **UI Enhancements**:
+  - Updated `src/components/ClaimUsernameForm.js` with new toggles for "Reply notifications" and "Comment notifications".
+  - Ensured UI state stays in sync after saving.
+
+#### 5. Outbound Notification Integration
+
+Integrated outbound notifications (Email via Resend and SMS via Twilio) across all notification types, following a "master/channel" hierarchy:
+
+1.  **Master Toggle (Type)**: The specific notification preference (RSVP, Like, Update, Mention, Reply, Comment) acts as the master switch. If this is disabled, no notification is generated for the site, and consequently, no outbound messages are sent.
+2.  **Channel Toggles (Email/SMS)**: If the master toggle is enabled, the system then checks if the user has enabled Email or SMS notifications globally. If so, and if the necessary contact info (email/phone) and provider API keys are configured, an outbound notification is sent.
+
+**Integrated types:**
+- **Mentions**: Now send outbound notifications when a user is mentioned across all content types.
+- **RSVPs**: Event authors receive outbound notifications when someone RSVPs.
+- **Likes**: Content authors receive outbound notifications when their content is liked.
+- **Project Updates**: Project participants receive outbound notifications when the author posts an update.
+- **Replies/Comments**: Consistent outbound support added to forum replies, post comments, event comments, music comments, project comments/replies, devlog comments, and timeline comments.
+
+**Technical Implementation:**
+- Created `sendOutboundNotification` in `src/lib/outboundNotifications.js` as a generic helper for all types.
+- Updated `src/lib/mentions.js` to support outbound delivery with correct context links.
+- Modified multiple API routes to fetch recipient contact info and preferences before triggering `sendOutboundNotification`.

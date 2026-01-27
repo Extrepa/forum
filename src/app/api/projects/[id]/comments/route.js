@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
+import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -69,35 +70,39 @@ export async function POST(request, { params }) {
       text: body,
       actorId: user.id,
       targetType: 'project',
-      targetId: id
+      targetId: id,
+      requestUrl: request.url
     });
 
-    const project = await db
-      .prepare('SELECT author_user_id FROM projects WHERE id = ?')
+    const projectAuthor = await db
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM projects JOIN users ON users.id = projects.author_user_id WHERE projects.id = ?')
       .bind(id)
       .first();
 
-    const recipients = new Set();
-    if (project?.author_user_id) {
-      recipients.add(project.author_user_id);
+    const recipients = new Map();
+    if (projectAuthor?.author_user_id && projectAuthor.author_user_id !== user.id && projectAuthor.notify_comment_enabled !== 0) {
+      recipients.set(projectAuthor.author_user_id, projectAuthor);
     }
 
     const { results: participants } = await db
       .prepare(
-        'SELECT DISTINCT author_user_id FROM project_comments WHERE project_id = ? AND is_deleted = 0'
+        `SELECT DISTINCT pc.author_user_id, u.email, u.phone, u.notify_comment_enabled, u.notify_email_enabled, u.notify_sms_enabled 
+         FROM project_comments pc
+         JOIN users u ON u.id = pc.author_user_id
+         WHERE pc.project_id = ? AND pc.is_deleted = 0`
       )
       .bind(id)
       .all();
 
     for (const row of participants || []) {
-      if (row?.author_user_id) {
-        recipients.add(row.author_user_id);
+      if (row?.author_user_id && row.author_user_id !== user.id && row.notify_comment_enabled !== 0) {
+        recipients.set(row.author_user_id, row);
       }
     }
 
-    recipients.delete(user.id);
+    const actorUsername = user.username || 'Someone';
 
-    for (const recipientUserId of recipients) {
+    for (const [recipientUserId, recipient] of recipients) {
       await db
         .prepare(
           `INSERT INTO notifications
@@ -114,6 +119,22 @@ export async function POST(request, { params }) {
           now
         )
         .run();
+
+      // Send outbound notification
+      try {
+        await sendOutboundNotification({
+          requestUrl: request.url,
+          recipient,
+          actorUsername,
+          type: 'comment',
+          targetType: 'project',
+          targetId: id,
+          targetTitle: projectAuthor?.title,
+          bodySnippet: body
+        });
+      } catch (e) {
+        // ignore
+      }
     }
   } catch (e) {
     // Notifications table might not exist yet, ignore
