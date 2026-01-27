@@ -570,6 +570,27 @@ export default async function FeedPage() {
                           ) : null}
                         </span>
                       </div>
+                      {/* Mobile: Post time row (only on mobile) */}
+                      <div className="event-post-time-mobile" style={{ 
+                        display: 'none',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '8px',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        rowGap: '4px'
+                      }}>
+                        <span className="muted" suppressHydrationWarning>
+                          {item.createdAt ? formatDateTime(item.createdAt) : ''}
+                        </span>
+                        <span className="muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                          {[item.views > 0 && `${item.views} ${item.views === 1 ? 'view' : 'views'}`,
+                            item.replies > 0 && `${item.replies} ${item.replies === 1 ? 'reply' : 'replies'}`,
+                            item.likes > 0 && `${item.likes} ${item.likes === 1 ? 'like' : 'likes'}`
+                          ].filter(Boolean).join(' · ')}
+                        </span>
+                      </div>
                       {/* Bottom Row: Attending List on left, Last Activity on right */}
                       <div style={{ 
                         display: 'flex',

@@ -1262,6 +1262,9 @@ button:hover {
   .post-meta-last-activity-mobile {
     display: none !important;
   }
+  .event-post-time-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1275,6 +1278,9 @@ button:hover {
     display: none !important;
   }
   .post-meta-last-activity-mobile {
+    display: flex !important;
+  }
+  .event-post-time-mobile {
     display: flex !important;
   }
 }
