@@ -418,8 +418,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     const wrapperProps = noCardWrapper ? {} : { className: 'card' };
     return (
       <Wrapper {...wrapperProps}>
-        <div className="notice" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-          <span>
+        <div className="notice" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ minWidth: 0, flex: '1 1 auto', wordBreak: 'keep-all', overflowWrap: 'normal' }}>
             Signed in as <Username name={me.username} colorIndex={colorIndex} />
           </span>
           <button

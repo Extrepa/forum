@@ -1197,6 +1197,42 @@ button:hover {
   box-shadow: 0 0 18px rgba(52, 225, 255, 0.2);
 }
 
+/* Ensure username doesn't break mid-word in notice */
+.notice span {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+/* Prevent usernames from breaking mid-word - override default break-word */
+.notice .username {
+  white-space: nowrap !important;
+  display: inline-block;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+/* On very small screens, stack the signed-in notice content */
+@media (max-width: 480px) {
+  .notice {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .notice button {
+    align-self: flex-end;
+  }
+  
+  /* Allow wrapping on very small screens but keep username intact */
+  .notice span {
+    white-space: normal;
+  }
+  
+  .notice .username {
+    white-space: nowrap;
+  }
+}
+
 .list {
   display: grid;
   gap: 12px;
@@ -1990,6 +2026,13 @@ footer {
   position: relative;
   display: inline-block;
   overflow: visible; /* Allow extra R's to be visible */
+  transition: transform 1.2s ease-out; /* Match expansion animation timing */
+}
+
+/* Shift the word left when expanding to keep it centered */
+/* The extra content 'rrrrrrrrrrrrl.' is ~14 characters, so shift left by ~half */
+.footer-tagline-bar:hover .footer-tagline-word-errl {
+  transform: translateX(calc(-1 * 4.2em)); /* Shift left by approximately half the expansion width */
 }
 
 /* Target the second R (3rd character in "Errl" = E-r-r-l) */
@@ -2270,7 +2313,7 @@ footer {
   width: 12px;
   height: 12px;
   color: var(--errl-accent);
-  z-index: 3;
+  z-index: 1; /* Below face SVG (z-index: 2) */
   pointer-events: none;
   /* Counter-rotate to keep arrow facing up while button spins */
   animation: rotate-button-counter 8s linear infinite, arrowGlowCycle 3s linear infinite;
@@ -2307,33 +2350,34 @@ footer {
   opacity: 1;
 }
 
+/* Hover arrows positioned at button edge and extending outward */
 .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
-  top: -16px;
+  top: -6px; /* Arrow center at top edge, extends upward */
   left: 50%;
   margin-left: -6px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
-  bottom: -16px;
+  bottom: -6px; /* Arrow center at bottom edge, extends downward */
   left: 50%;
   margin-left: -6px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
   top: 50%;
-  left: -16px;
+  left: -6px; /* Arrow center at left edge, extends leftward */
   margin-top: -6px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
   top: 50%;
-  right: -16px;
+  right: -6px; /* Arrow center at right edge, extends rightward */
   margin-top: -6px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
-  top: -18px;
-  right: -18px;
+  top: -8px; /* Diagonal position, connected to top-right edge */
+  right: -8px;
 }
 
 @keyframes rotate-button-counter {
@@ -2439,28 +2483,28 @@ footer {
   }
 
   .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
-    top: -14px;
+    top: -5px; /* Arrow center at top edge, extends upward */
     margin-left: -5px;
   }
 
   .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
-    bottom: -14px;
+    bottom: -5px; /* Arrow center at bottom edge, extends downward */
     margin-left: -5px;
   }
 
   .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
-    left: -14px;
+    left: -5px; /* Arrow center at left edge, extends leftward */
     margin-top: -5px;
   }
 
   .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
-    right: -14px;
+    right: -5px; /* Arrow center at right edge, extends rightward */
     margin-top: -5px;
   }
 
   .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
-    top: -16px;
-    right: -16px;
+    top: -7px; /* Diagonal position, connected to top-right edge */
+    right: -7px;
   }
 }
 
