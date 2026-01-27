@@ -544,6 +544,13 @@ export default async function FeedPage() {
                   />
                   {item.type === 'Event' ? (
                     <>
+                      {item.createdAt && (
+                        <div style={{ marginTop: '8px' }}>
+                          <span className="muted event-post-time-desktop" style={{ fontSize: '12px' }} suppressHydrationWarning>
+                            {formatDateTime(item.createdAt)}
+                          </span>
+                        </div>
+                      )}
                       {/* Third Row: Event Information */}
                       <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                         <svg
@@ -571,13 +578,6 @@ export default async function FeedPage() {
                           ) : null}
                         </span>
                       </div>
-                      {item.createdAt && (
-                        <div style={{ marginTop: '8px' }}>
-                          <span className="muted event-post-time-desktop" style={{ fontSize: '12px' }} suppressHydrationWarning>
-                            {formatDateTime(item.createdAt)}
-                          </span>
-                        </div>
-                      )}
                       {/* Bottom Row: Attending List on left, Last Activity on right */}
                       <div style={{ 
                         display: 'flex',
