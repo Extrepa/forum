@@ -210,9 +210,12 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
 }
 
 export default async function LobbyPage({ searchParams }) {
-  const db = await getDb();
   const user = await getSessionUserWithRole();
-  const userId = user?.id || null;
+  if (!user) {
+    redirect('/');
+  }
+  const db = await getDb();
+  const userId = user.id;
 
   // Get announcements (admin-authored threads, or is_announcement = 1)
   let announcements = [];

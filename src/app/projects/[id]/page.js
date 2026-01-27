@@ -51,6 +51,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       );
     }
     const user = await getSessionUser();
+    if (!user) {
+      redirect('/');
+    }
     const db = await getDb();
     if (!db) {
       return (
