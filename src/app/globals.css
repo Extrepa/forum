@@ -1248,6 +1248,37 @@ button:hover {
   gap: 12px;
 }
 
+/* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
+@media (min-width: 768px) {
+  .post-meta-stats-desktop {
+    display: inline !important;
+  }
+  .post-meta-stats-mobile {
+    display: none !important;
+  }
+  .post-meta-last-activity {
+    display: inline !important;
+  }
+  .post-meta-last-activity-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .post-meta-stats-desktop {
+    display: none !important;
+  }
+  .post-meta-stats-mobile {
+    display: inline !important;
+  }
+  .post-meta-last-activity {
+    display: none !important;
+  }
+  .post-meta-last-activity-mobile {
+    display: flex !important;
+  }
+}
+
 .post-body-scrollable {
   max-height: 400px;
   overflow-y: auto;

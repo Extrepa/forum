@@ -47,8 +47,8 @@ export default function PostMetaBar({
 
   return (
     <div className={className}>
-      {/* Row 1: Title/Author on left, Views/Replies/Likes on top right */}
-      <div style={{ 
+      {/* Row 1: Title/Author on left, Views/Replies/Likes on top right (desktop) */}
+      <div className="post-meta-row1" style={{ 
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'baseline',
@@ -72,14 +72,15 @@ export default function PostMetaBar({
             />
           </span>
         </div>
+        {/* Desktop: Views/Replies/Likes on top right */}
         {topRight && (
-          <span className="muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <span className="post-meta-stats-desktop muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {topRight}
           </span>
         )}
       </div>
 
-      {/* Row 2: Date/time on bottom left, Last Activity on bottom right */}
+      {/* Row 2: Date/time on left, Views/Replies/Likes on right (mobile), Last Activity on right (desktop) */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -94,12 +95,32 @@ export default function PostMetaBar({
             {formatDateTime(createdAt)}
           </span>
         )}
+        {/* Mobile: Views/Replies/Likes on right side of date row */}
+        {topRight && (
+          <span className="post-meta-stats-mobile muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            {topRight}
+          </span>
+        )}
+        {/* Desktop: Last Activity on bottom right */}
         {lastActivity && (
-          <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
+          <span className="post-meta-last-activity muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
             Last activity: {formatDateTime(lastActivity)}
           </span>
         )}
       </div>
+      {/* Mobile: Last Activity on separate row */}
+      {lastActivity && (
+        <div className="post-meta-last-activity-mobile" style={{ 
+          display: 'flex',
+          justifyContent: 'flex-end',
+          fontSize: '12px',
+          marginTop: '4px'
+        }}>
+          <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
+            Last activity: {formatDateTime(lastActivity)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
