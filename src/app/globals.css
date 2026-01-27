@@ -1248,6 +1248,26 @@ button:hover {
   gap: 12px;
 }
 
+/* PostMetaBar: Desktop layout - keep in 2 rows */
+@media (min-width: 768px) {
+  .post-meta-desktop-inline {
+    display: flex !important;
+  }
+  .post-meta-mobile-rows {
+    display: none !important;
+  }
+}
+
+/* PostMetaBar: Mobile layout - allow wrapping */
+@media (max-width: 767px) {
+  .post-meta-desktop-inline {
+    display: none !important;
+  }
+  .post-meta-mobile-rows {
+    display: flex !important;
+  }
+}
+
 .post-body-scrollable {
   max-height: 400px;
   overflow-y: auto;
