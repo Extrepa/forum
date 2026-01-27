@@ -386,27 +386,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 // Redirect to forum.errl.wtf (sign-in screen)
                 window.location.href = 'https://forum.errl.wtf';
               }}
-              style={{
-                fontSize: '14px',
-                padding: '8px 16px',
-                border: '1px solid rgba(255, 52, 245, 0.3)',
-                borderRadius: '6px',
-                background: 'rgba(255, 52, 245, 0.05)',
-                color: 'var(--accent)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                width: '100%'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 52, 245, 0.15)';
-                e.currentTarget.style.borderColor = 'rgba(255, 52, 245, 0.6)';
-                e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 52, 245, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 52, 245, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255, 52, 245, 0.3)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              style={{ width: '100%' }}
             >
               Sign out
             </button>
