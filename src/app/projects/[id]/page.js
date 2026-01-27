@@ -281,7 +281,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
       : errorParam === 'notready'
       ? 'Replies are not enabled yet (database updates still applying).'
       : errorParam === 'missing'
-      ? 'Comment text is required.'
+      ? 'Reply text or image is required.'
+      : errorParam === 'upload'
+      ? 'Image upload failed. You may not have permission to upload images, or there was an error uploading.'
+      : errorParam === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : errorParam === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : errorParam
+      ? `Error: ${errorParam}`
       : null;
 
   // Fully serialize all data before rendering

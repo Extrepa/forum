@@ -18,6 +18,12 @@ export default function ProjectRepliesSection({
   isLocked = false,
   repliesEnabled = true
 }) {
+  // Log error notice for debugging
+  useEffect(() => {
+    if (commentNotice) {
+      console.error('Project reply error:', commentNotice);
+    }
+  }, [commentNotice]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyPrefill, setReplyPrefill] = useState('');
   

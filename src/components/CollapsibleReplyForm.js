@@ -110,7 +110,7 @@ export default function CollapsibleReplyForm({
           ref={textareaRef}
           name="body" 
           placeholder={currentReplyingTo ? 'Write your reply…' : placeholder} 
-          required
+          required={!allowImageUpload}
           defaultValue={currentPrefill}
           style={{ marginBottom: '0' }}
         />

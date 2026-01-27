@@ -18,14 +18,17 @@ export async function POST(request, { params }) {
     redirectUrl.searchParams.set('error', 'claim');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  if (!body) {
-    redirectUrl.searchParams.set('error', 'missing');
-    return NextResponse.redirect(redirectUrl, 303);
-  }
 
   // Handle image upload
   const formImage = formData.get('image');
-  const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  // Check if image is actually a File object with content
+  const imageFile = formImage && 
+                    typeof formImage === 'object' && 
+                    'arrayBuffer' in formImage && 
+                    'size' in formImage &&
+                    formImage.size > 0 
+                    ? formImage : null;
+  
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
 
   if (!validation.ok) {
@@ -33,8 +36,18 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
+  // Require either body text OR an image (or both)
+  if (!body && !imageFile) {
+    console.error('Project reply failed: both body and image are empty', { projectId: id, userId: user?.id });
+    redirectUrl.searchParams.set('error', 'missing');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  // Normalize empty body to empty string (database allows empty strings)
+  const finalBody = body || '';
+
   let imageKey = null;
-  if (imageFile && imageFile.size > 0) {
+  if (imageFile) {
     try {
       const { env } = await getCloudflareContext({ async: true });
       if (!canUploadImages(user, env)) {
@@ -100,25 +113,34 @@ export async function POST(request, { params }) {
   try {
     // Try with image_key first (if migration is applied)
     try {
-      await db
+      const replyId = crypto.randomUUID();
+      const result = await db
         .prepare(
           `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id, image_key)
            VALUES (?, ?, ?, ?, ?, ?, ?)`
         )
-        .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo, imageKey)
+        .bind(replyId, id, user.id, finalBody, now, effectiveReplyTo, imageKey)
         .run();
+      console.log('Project reply created successfully with image_key', { replyId, projectId: id, hasImage: !!imageKey });
     } catch (e) {
       // Fallback if image_key column doesn't exist yet
-      await db
+      if (imageKey) {
+        // If we have an image but the column doesn't exist, log error but still try to insert without image
+        console.error('Image key provided but image_key column may not exist, inserting without image', e);
+      }
+      const replyId = crypto.randomUUID();
+      const result = await db
         .prepare(
           `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id)
            VALUES (?, ?, ?, ?, ?, ?)`
         )
-        .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
+        .bind(replyId, id, user.id, finalBody, now, effectiveReplyTo)
         .run();
+      console.log('Project reply created successfully without image_key', { replyId, projectId: id });
     }
   } catch (e) {
-    // Migration not applied yet.
+    // Database insert failed
+    console.error('Failed to create project reply:', e, { projectId: id, userId: user?.id, bodyLength: finalBody.length, hasImage: !!imageKey });
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
   }
@@ -172,9 +194,11 @@ export async function POST(request, { params }) {
     // Notifications table might not exist yet, ignore
   }
 
+  // Convert URL to string and append hash if needed (Next.js redirect doesn't preserve URL.hash property)
+  let finalRedirectUrl = redirectUrl.toString();
   if (effectiveReplyTo) {
-    redirectUrl.hash = `reply-${effectiveReplyTo}`;
+    finalRedirectUrl = `${finalRedirectUrl}#reply-${effectiveReplyTo}`;
   }
-  return NextResponse.redirect(redirectUrl, 303);
+  return NextResponse.redirect(finalRedirectUrl, 303);
 }
 
