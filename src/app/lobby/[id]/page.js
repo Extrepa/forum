@@ -13,7 +13,7 @@ import EditThreadForm from '../../../components/EditThreadForm';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import { isAdminUser } from '../../../lib/admin';
 import PostHeader from '../../../components/PostHeader';
-import ViewTracker from '../../../components/ViewTracker';
+import ThreadViewTracker from '../../../components/ThreadViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
@@ -733,7 +733,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
         }
       />
-      <ViewTracker contentType="forum" contentId={safeThreadId} />
+      <ThreadViewTracker threadId={safeThreadId} />
       
       <section className="card">
         <PostHeader

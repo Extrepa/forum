@@ -284,6 +284,8 @@ export default async function FeedPage() {
   const items = [
     ...announcements.map((row) => ({
       type: 'Announcement',
+      contentType: 'timeline_update',
+      contentId: row.id,
       href: `/announcements/${row.id}`,
       createdAt: row.created_at,
       title: row.title || 'Update',
@@ -296,6 +298,8 @@ export default async function FeedPage() {
     })),
     ...threads.map((row) => ({
       type: 'Lobby',
+      contentType: 'forum_thread',
+      contentId: row.id,
       href: `/lobby/${row.id}`,
       createdAt: row.created_at,
       title: row.title,
@@ -308,6 +312,8 @@ export default async function FeedPage() {
     })),
     ...events.map((row) => ({
       type: 'Event',
+      contentType: 'event',
+      contentId: row.id,
       href: `/events/${row.id}`,
       createdAt: row.created_at,
       title: row.title,
@@ -323,6 +329,8 @@ export default async function FeedPage() {
     })),
     ...music.map((row) => ({
       type: 'Music',
+      contentType: 'music_post',
+      contentId: row.id,
       href: `/music/${row.id}`,
       createdAt: row.created_at,
       title: row.title,
@@ -335,6 +343,8 @@ export default async function FeedPage() {
     })),
     ...projects.map((row) => ({
       type: 'Project',
+      contentType: 'project',
+      contentId: row.id,
       href: `/projects/${row.id}`,
       createdAt: row.created_at,
       title: row.title,
@@ -347,6 +357,8 @@ export default async function FeedPage() {
     })),
     ...posts.map((row) => ({
       type: labelForPostType(row.type),
+      contentType: 'post',
+      contentId: row.id,
       href: `/${row.type}/${row.id}`,
       createdAt: row.created_at,
       title: row.title || 'Untitled',
@@ -360,6 +372,8 @@ export default async function FeedPage() {
     })),
     ...devlogs.map((row) => ({
       type: 'Development',
+      contentType: 'dev_log',
+      contentId: row.id,
       href: `/devlog/${row.id}`,
       createdAt: row.created_at,
       title: row.title || 'Development update',
@@ -374,6 +388,89 @@ export default async function FeedPage() {
     .filter((x) => !!x.createdAt)
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 15);
+
+  // Add unread status for logged-in users
+  if (user && items.length > 0) {
+    try {
+      // Group items by content type
+      const itemsByType = new Map();
+      items.forEach(item => {
+        if (!itemsByType.has(item.contentType)) {
+          itemsByType.set(item.contentType, []);
+        }
+        itemsByType.get(item.contentType).push(item);
+      });
+
+      // Check unread status for each content type
+      for (const [contentType, typeItems] of itemsByType.entries()) {
+        const contentIds = typeItems.map(i => i.contentId);
+        if (contentIds.length === 0) continue;
+
+        if (contentType === 'forum_thread') {
+          // Forum threads use specialized forum_thread_reads table
+          try {
+            const placeholders = contentIds.map(() => '?').join(',');
+            const readStates = await db
+              .prepare(
+                `SELECT thread_id FROM forum_thread_reads 
+                 WHERE user_id = ? AND thread_id IN (${placeholders})`
+              )
+              .bind(user.id, ...contentIds)
+              .all();
+
+            const readSet = new Set();
+            (readStates?.results || []).forEach(r => {
+              readSet.add(r.thread_id);
+            });
+
+            typeItems.forEach(item => {
+              item.is_unread = !readSet.has(item.contentId);
+            });
+          } catch (e) {
+            // forum_thread_reads table might not exist yet, mark all as read
+            typeItems.forEach(item => {
+              item.is_unread = false;
+            });
+          }
+        } else {
+          // Other content types use content_reads table
+          try {
+            const placeholders = contentIds.map(() => '?').join(',');
+            const readStates = await db
+              .prepare(
+                `SELECT content_id FROM content_reads 
+                 WHERE user_id = ? AND content_type = ? AND content_id IN (${placeholders})`
+              )
+              .bind(user.id, contentType, ...contentIds)
+              .all();
+
+            const readSet = new Set();
+            (readStates?.results || []).forEach(r => {
+              readSet.add(r.content_id);
+            });
+
+            typeItems.forEach(item => {
+              item.is_unread = !readSet.has(item.contentId);
+            });
+          } catch (e) {
+            // content_reads table might not exist yet, mark all as read
+            typeItems.forEach(item => {
+              item.is_unread = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Error checking read status, mark all as read
+      items.forEach(item => {
+        item.is_unread = false;
+      });
+    }
+  } else {
+    items.forEach(item => {
+      item.is_unread = false;
+    });
+  }
 
   // Build preferences map and assign unique colors
   const allUsernames = items.flatMap(i => {
@@ -412,8 +509,11 @@ export default async function FeedPage() {
             items.map((item) => {
               const authorPreferredColor = item.authorColorPreference;
               const authorColorIndex = usernameColorMap.get(item.author) ?? getUsernameColorIndex(item.author, { preferredColorIndex: authorPreferredColor });
+              const statusIcons = [];
+              if (item.is_unread) statusIcons.push('🆕');
               const titleWithType = (
                 <>
+                  {statusIcons.length > 0 ? <span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span> : null}
                   {item.title}
                   <span className="muted" style={{ fontSize: '12px', marginLeft: '4px', marginRight: 0, fontWeight: 'normal' }}>
                     ({item.type})
@@ -425,7 +525,7 @@ export default async function FeedPage() {
                 <a
                   key={`${item.type}:${item.href}`}
                   href={item.href}
-                  className="list-item"
+                  className={`list-item ${item.is_unread ? 'thread-unread' : ''}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                 >
                   <PostMetaBar
