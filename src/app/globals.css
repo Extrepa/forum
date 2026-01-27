@@ -1289,6 +1289,10 @@ button:hover {
   .event-post-time-desktop {
     display: none !important;
   }
+
+  .event-info-row {
+    justify-content: center !important;
+  }
 }
 
 .post-body-scrollable {

@@ -545,7 +545,7 @@ export default async function FeedPage() {
                   {item.type === 'Event' ? (
                     <>
                       {/* Second Row: Post time on left, Event Information on right */}
-                      <div style={{
+                      <div className="event-info-row" style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
