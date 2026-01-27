@@ -1211,18 +1211,13 @@ button:hover {
   overflow-wrap: normal !important;
 }
 
-/* On very small screens, stack the signed-in notice content */
+/* Keep sign-out button on same row even on small screens */
+/* Allow text to wrap if needed but keep button on same row */
+.notice {
+  align-items: center;
+}
+
 @media (max-width: 480px) {
-  .notice {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 8px !important;
-  }
-  
-  .notice button {
-    align-self: flex-end;
-  }
-  
   /* Allow wrapping on very small screens but keep username intact */
   .notice span {
     white-space: normal;
@@ -1230,6 +1225,11 @@ button:hover {
   
   .notice .username {
     white-space: nowrap;
+  }
+  
+  /* Ensure button stays on same row */
+  .notice button {
+    flex-shrink: 0;
   }
 }
 
@@ -2332,7 +2332,7 @@ footer {
 }
 
 .scroll-to-top-arrow[data-arrow-index="2"] {
-  bottom: 6px;
+  bottom: 2px; /* Moved closer to outline (was 6px) */
   left: 50%;
   margin-left: -6px; /* Center horizontally (half of arrow width) */
 }
@@ -2471,7 +2471,7 @@ footer {
   }
 
   .scroll-to-top-arrow[data-arrow-index="2"] {
-    bottom: 5px;
+    bottom: 2px; /* Moved closer to outline (was 5px) */
     left: 50%;
     margin-left: -5px;
   }
