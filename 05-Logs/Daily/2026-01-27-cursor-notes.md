@@ -551,6 +551,7 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - [x] Rearranged and refined Notification Preferences card with clear explanations of site-wide vs delivery channel settings.
 - [x] UI Color Settings & Site Settings (Theme, Neon, Invert) verified.
 - [x] Refined Lore Mode description on the account page to clarify the contrast between plain and Errl-themed microcopy.
+- [x] Updated "Edit contact info" button to be full-width (stacked) to match other buttons on the page.
 - [x] Migration 0045 created and integrated into backend/frontend.
 - [x] All pending migrations (0044, 0045) applied to both local and remote (D1) databases.
 - [x] Clean build and no linter errors.

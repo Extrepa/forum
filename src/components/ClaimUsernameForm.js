@@ -541,7 +541,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     disabled={!!me.email && !editingEmail}
                   />
                 </label>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div className="stack" style={{ gap: 10 }}>
                   {(!me.email || editingEmail) ? (
                     <>
                       <button type="submit" disabled={status.type === 'loading'}>
