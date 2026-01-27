@@ -1742,6 +1742,7 @@ footer {
   border-radius: 18px;
   background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
   z-index: 0;
+  overflow: visible; /* Allow extra R's in Errl to be visible */
 }
 
 /* Rainbow snaking border effect */
@@ -1809,6 +1810,7 @@ footer {
   text-shadow: 0 0 10px rgba(245, 255, 183, 0.16);
   text-align: center;
   z-index: 1;
+  overflow: visible; /* Allow extra R's in Errl to be visible */
 }
 
 .footer-tagline-phrase {
@@ -1954,7 +1956,8 @@ footer {
   }
 }
 
-.footer-tagline-phrase:hover .footer-tagline-word-weird .footer-tagline-special-letter {
+/* Hover anywhere in footer tagline bar triggers all effects */
+.footer-tagline-bar:hover .footer-tagline-word-weird .footer-tagline-special-letter {
   animation: tagline-dance 0.6s ease-in-out infinite;
   animation-delay: var(--letter-delay, 0s);
 }
@@ -1975,7 +1978,7 @@ footer {
   }
 }
 
-.footer-tagline-phrase:hover .footer-tagline-word-drippy .footer-tagline-special-letter {
+.footer-tagline-bar:hover .footer-tagline-word-drippy .footer-tagline-special-letter {
   animation: tagline-drip 0.8s ease-in-out infinite;
   animation-delay: var(--letter-delay, 0s);
 }
@@ -1984,6 +1987,7 @@ footer {
 .footer-tagline-word-errl {
   position: relative;
   display: inline-block;
+  overflow: visible; /* Allow extra R's to be visible */
 }
 
 /* Target the second R (3rd character in "Errl" = E-r-r-l) */
@@ -1991,8 +1995,8 @@ footer {
   position: relative;
 }
 
-/* Add extra R's after the second R on hover */
-.footer-tagline-phrase:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3)::after {
+/* Add extra R's after the second R on hover - ensure l and period remain visible */
+.footer-tagline-bar:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3)::after {
   content: 'rrrrrrrrrrrr';
   position: absolute;
   left: 100%;
@@ -2005,6 +2009,13 @@ footer {
   font-weight: inherit;
   letter-spacing: inherit;
   white-space: nowrap;
+  z-index: 1;
+}
+
+/* Ensure the "l" and period remain visible and positioned correctly */
+.footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes errl-r-expand {
@@ -2018,11 +2029,6 @@ footer {
     transform: translateX(0) scaleX(1);
     letter-spacing: inherit;
   }
-}
-
-/* Return to normal when hover ends */
-.footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3)::after {
-  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* Keep general wiggle for non-special letters on hover */
@@ -2083,6 +2089,7 @@ footer {
   opacity: 0;
   transform: translateY(20px) scale(0.8);
   pointer-events: none;
+  animation: rotate-button 8s linear infinite; /* Whole button spins */
 }
 
 /* Rainbow snaking border effect */
@@ -2146,6 +2153,7 @@ footer {
 .scroll-to-top-button:hover {
   background: rgba(13, 51, 68, 0.9);
   transform: translateY(-2px) scale(1.05);
+  animation-play-state: paused; /* Pause rotation on hover */
 }
 
 .scroll-to-top-button:hover::before {
@@ -2226,52 +2234,34 @@ footer {
   stroke: var(--errl-accent);
 }
 
-/* Revolving text around button */
+/* Button rotation animation */
+@keyframes rotate-button {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Revolving text around button - positioned between face and outline */
 .scroll-to-top-text-container {
   position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-  animation: rotate-text 8s linear infinite;
   z-index: 1;
+  /* Counter-rotate to keep text readable as button spins */
+  animation: rotate-text-counter 8s linear infinite;
 }
 
 @keyframes rotate-text-counter {
-  0% {
-    /* Start: readable along outline (tangent to circle) */
-    transform: 
-      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
-      translateY(calc(-1 * var(--text-radius, 20px))) 
-      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 0deg));
+  from {
+    transform: rotate(0deg);
   }
-  25% {
-    /* Transition to: readable on face (upright) */
-    transform: 
-      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
-      translateY(calc(-1 * var(--text-radius, 20px))) 
-      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 90deg));
-  }
-  50% {
-    /* Back to: readable along outline (tangent) */
-    transform: 
-      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
-      translateY(calc(-1 * var(--text-radius, 20px))) 
-      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 180deg));
-  }
-  75% {
-    /* Transition to: readable on face (upright) */
-    transform: 
-      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
-      translateY(calc(-1 * var(--text-radius, 20px))) 
-      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 270deg));
-  }
-  100% {
-    /* Back to: readable along outline (tangent) - completes full cycle */
-    transform: 
-      rotate(calc(var(--letter-index) * -360deg / var(--total-letters))) 
-      translateY(calc(-1 * var(--text-radius, 20px))) 
-      rotate(calc(var(--letter-index) * 360deg / var(--total-letters) + 360deg));
+  to {
+    transform: rotate(-360deg);
   }
 }
 
@@ -2285,18 +2275,13 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  --text-radius: 20px; /* Reduced to prevent overflow */
-  animation: rotate-text-counter 8s linear infinite;
+  --text-radius: 19px; /* Between face (15px) and outline (26px) */
+  /* Position letter around circle, rotated to be tangent (readable as button spins) */
+  transform: 
+    rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) 
+    translateY(calc(-1 * var(--text-radius, 19px))) 
+    rotate(calc(-1 * var(--letter-index) * 360deg / var(--total-letters)));
   white-space: nowrap;
-}
-
-@keyframes rotate-text {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg);
-  }
 }
 
 @media (max-width: 640px) {
@@ -2315,7 +2300,7 @@ footer {
   .scroll-to-top-letter {
     font-size: 7px;
     letter-spacing: -0.4px;
-    --text-radius: 18px; /* Reduced to prevent overflow */
+    --text-radius: 16px; /* Between face (13px) and outline (22px) on mobile */
   }
 }
 
