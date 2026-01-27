@@ -2345,103 +2345,6 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
-/* Hover text - "RETURN TO TOP" - one above (rainbow arc) and one below (smile arc) */
-.scroll-to-top-hover-text {
-  position: absolute; /* Relative to button so it rotates with it */
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 1000;
-  transform-origin: center center;
-}
-
-/* Two texts: one above (top half circle arc) and one below (bottom half circle arc) */
-/* Button is 52px, center at 26px, arc radius ~40px */
-.scroll-to-top-hover-text-top {
-  /* Top text - follows top half of circle */
-  top: 50%;
-  left: 50%;
-  transform-origin: center center;
-  animation: scrollToTopRainbowArc 4s linear infinite, scrollToTopTextColorCycle 3s linear infinite;
-}
-
-.scroll-to-top-hover-text-bottom {
-  /* Bottom text - follows bottom half of circle */
-  top: 50%;
-  left: 50%;
-  transform-origin: center center;
-  animation: scrollToTopSmileArc 4s linear infinite;
-  color: hsl(60, 95%, 70%);
-  text-shadow: 
-    0 0 8px hsl(60, 95%, 70%),
-    0 0 16px hsl(60, 95%, 60%),
-    0 0 24px hsl(60, 95%, 50%);
-}
-
-.scroll-to-top-button:hover .scroll-to-top-hover-text {
-  opacity: 1;
-}
-
-/* Rainbow arc animation - top half of circle (180° to 0° to -180°) */
-@keyframes scrollToTopRainbowArc {
-  0% {
-    /* Left side of arc */
-    transform: translate(-40px, 0) rotate(0deg);
-  }
-  25% {
-    /* Top-left quarter */
-    transform: translate(-28px, -28px) rotate(-45deg);
-  }
-  50% {
-    /* Top of arc */
-    transform: translate(0, -40px) rotate(0deg);
-  }
-  75% {
-    /* Top-right quarter */
-    transform: translate(28px, -28px) rotate(45deg);
-  }
-  100% {
-    /* Right side of arc */
-    transform: translate(40px, 0) rotate(0deg);
-  }
-}
-
-/* Smile arc animation - bottom half of circle (-180° to 0° to 180°) */
-@keyframes scrollToTopSmileArc {
-  0% {
-    /* Left side of arc */
-    transform: translate(-40px, 0) rotate(0deg);
-  }
-  25% {
-    /* Bottom-left quarter */
-    transform: translate(-28px, 28px) rotate(45deg);
-  }
-  50% {
-    /* Bottom of arc */
-    transform: translate(0, 40px) rotate(0deg);
-  }
-  75% {
-    /* Bottom-right quarter */
-    transform: translate(28px, 28px) rotate(-45deg);
-  }
-  100% {
-    /* Right side of arc */
-    transform: translate(40px, 0) rotate(0deg);
-  }
-}
-
-/* Prevent text from overflowing viewport on small screens */
-@media (max-width: 500px) {
-  .scroll-to-top-hover-text {
-    max-width: calc(100vw - 80px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
 
 .scroll-to-top-button:hover::before {
   opacity: 1;
@@ -2460,41 +2363,99 @@ footer {
   transform: translateY(0) scale(0.95);
 }
 
-@keyframes scrollToTopColorCycle {
+/* Face stroke color cycle - syncs with arrow colors */
+@keyframes scrollToTopFaceStrokeCycle {
+  0% {
+    stroke: hsl(193, 95%, 70%);
+  }
+  16.66% {
+    stroke: hsl(150, 95%, 70%);
+  }
+  33.33% {
+    stroke: hsl(60, 95%, 70%);
+  }
+  50% {
+    stroke: hsl(30, 95%, 70%);
+  }
+  66.66% {
+    stroke: hsl(300, 95%, 70%);
+  }
+  83.33% {
+    stroke: hsl(240, 95%, 70%);
+  }
+  100% {
+    stroke: hsl(193, 95%, 70%);
+  }
+}
+
+/* Face hover animation - different rainbow pattern (reversed order with different colors) */
+@keyframes scrollToTopFaceHoverCycle {
   0% {
     filter:
-      drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(240, 95%, 70%))
+      drop-shadow(0 0 8px hsl(240, 95%, 60%))
+      drop-shadow(0 0 12px hsl(240, 95%, 50%));
   }
   16.66% {
     filter:
-      drop-shadow(0 0 4px hsl(150, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(150, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(300, 95%, 70%))
+      drop-shadow(0 0 8px hsl(300, 95%, 60%))
+      drop-shadow(0 0 12px hsl(300, 95%, 50%));
   }
   33.33% {
     filter:
-      drop-shadow(0 0 4px hsl(60, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(60, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(30, 95%, 70%))
+      drop-shadow(0 0 8px hsl(30, 95%, 60%))
+      drop-shadow(0 0 12px hsl(30, 95%, 50%));
   }
   50% {
     filter:
-      drop-shadow(0 0 4px hsl(30, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(30, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(60, 95%, 70%))
+      drop-shadow(0 0 8px hsl(60, 95%, 60%))
+      drop-shadow(0 0 12px hsl(60, 95%, 50%));
   }
   66.66% {
     filter:
-      drop-shadow(0 0 4px hsl(300, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(300, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(150, 95%, 70%))
+      drop-shadow(0 0 8px hsl(150, 95%, 60%))
+      drop-shadow(0 0 12px hsl(150, 95%, 50%));
   }
   83.33% {
     filter:
-      drop-shadow(0 0 4px hsl(240, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(240, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(193, 95%, 70%))
+      drop-shadow(0 0 8px hsl(193, 95%, 60%))
+      drop-shadow(0 0 12px hsl(193, 95%, 50%));
   }
   100% {
     filter:
-      drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
-      drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
+      drop-shadow(0 0 4px hsl(240, 95%, 70%))
+      drop-shadow(0 0 8px hsl(240, 95%, 60%))
+      drop-shadow(0 0 12px hsl(240, 95%, 50%));
+  }
+}
+
+/* Face stroke hover animation - different rainbow pattern */
+@keyframes scrollToTopFaceStrokeHoverCycle {
+  0% {
+    stroke: hsl(240, 95%, 70%);
+  }
+  16.66% {
+    stroke: hsl(300, 95%, 70%);
+  }
+  33.33% {
+    stroke: hsl(30, 95%, 70%);
+  }
+  50% {
+    stroke: hsl(60, 95%, 70%);
+  }
+  66.66% {
+    stroke: hsl(150, 95%, 70%);
+  }
+  83.33% {
+    stroke: hsl(193, 95%, 70%);
+  }
+  100% {
+    stroke: hsl(240, 95%, 70%);
   }
 }
 
@@ -2502,23 +2463,31 @@ footer {
   width: 30px;
   height: 30px;
   filter:
-    drop-shadow(0 0 4px hsl(193, 95%, 70% / 0.35))
-    drop-shadow(0 0 10px hsl(193, 95%, 60% / 0.22));
+    drop-shadow(0 0 4px hsl(193, 95%, 70%))
+    drop-shadow(0 0 8px hsl(193, 95%, 60%))
+    drop-shadow(0 0 12px hsl(193, 95%, 50%));
   position: relative;
   z-index: 2;
-}
-
-.scroll-to-top-button:hover .scroll-to-top-face {
-  animation: scrollToTopColorCycle 3s linear infinite;
-  transition: none;
+  /* Sync with arrow colors */
+  animation: arrowGlowCycle 3s linear infinite;
 }
 
 .scroll-to-top-path {
   transition: stroke 0.3s ease;
+  /* Sync stroke color with arrow colors */
+  stroke: hsl(193, 95%, 70%);
+  animation: scrollToTopFaceStrokeCycle 3s linear infinite;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-face {
+  /* Different rainbow pattern on hover */
+  animation: scrollToTopFaceHoverCycle 3s linear infinite;
+  transition: none;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-path {
-  stroke: var(--errl-accent);
+  /* Different rainbow pattern for stroke on hover */
+  animation: scrollToTopFaceStrokeHoverCycle 3s linear infinite;
 }
 
 /* Button rotation animation */
@@ -2577,58 +2546,6 @@ footer {
   left: 4px;
 }
 
-/* Hover text color cycle animation - neon rainbow */
-@keyframes scrollToTopTextColorCycle {
-  0% {
-    color: hsl(193, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(193, 95%, 70%),
-      0 0 16px hsl(193, 95%, 60%),
-      0 0 24px hsl(193, 95%, 50%);
-  }
-  16.66% {
-    color: hsl(150, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(150, 95%, 70%),
-      0 0 16px hsl(150, 95%, 60%),
-      0 0 24px hsl(150, 95%, 50%);
-  }
-  33.33% {
-    color: hsl(60, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(60, 95%, 70%),
-      0 0 16px hsl(60, 95%, 60%),
-      0 0 24px hsl(60, 95%, 50%);
-  }
-  50% {
-    color: hsl(30, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(30, 95%, 70%),
-      0 0 16px hsl(30, 95%, 60%),
-      0 0 24px hsl(30, 95%, 50%);
-  }
-  66.66% {
-    color: hsl(300, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(300, 95%, 70%),
-      0 0 16px hsl(300, 95%, 60%),
-      0 0 24px hsl(300, 95%, 50%);
-  }
-  83.33% {
-    color: hsl(240, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(240, 95%, 70%),
-      0 0 16px hsl(240, 95%, 60%),
-      0 0 24px hsl(240, 95%, 50%);
-  }
-  100% {
-    color: hsl(193, 95%, 70%);
-    text-shadow: 
-      0 0 8px hsl(193, 95%, 70%),
-      0 0 16px hsl(193, 95%, 60%),
-      0 0 24px hsl(193, 95%, 50%);
-  }
-}
 
 @keyframes rotate-button-counter {
   from {
@@ -2742,65 +2659,6 @@ footer {
     left: 3px;
   }
 
-  /* Mobile hover text - one above (rainbow arc) and one below (smile arc) */
-  /* Button is 44px, center at 22px, arc radius ~35px */
-  .scroll-to-top-hover-text {
-    font-size: 11px;
-    max-width: calc(100vw - 80px);
-  }
-
-  .scroll-to-top-hover-text-top {
-    top: 50%;
-    left: 50%;
-    transform-origin: center center;
-    /* Scale down arc for smaller button */
-    animation: scrollToTopRainbowArcMobile 4s linear infinite, scrollToTopTextColorCycle 3s linear infinite;
-  }
-
-  .scroll-to-top-hover-text-bottom {
-    top: 50%;
-    left: 50%;
-    transform-origin: center center;
-    /* Scale down arc for smaller button */
-    animation: scrollToTopSmileArcMobile 4s linear infinite;
-  }
-
-  /* Mobile arc animations with smaller radius */
-  @keyframes scrollToTopRainbowArcMobile {
-    0% {
-      transform: translate(-35px, 0) rotate(0deg);
-    }
-    25% {
-      transform: translate(-25px, -25px) rotate(-45deg);
-    }
-    50% {
-      transform: translate(0, -35px) rotate(0deg);
-    }
-    75% {
-      transform: translate(25px, -25px) rotate(45deg);
-    }
-    100% {
-      transform: translate(35px, 0) rotate(0deg);
-    }
-  }
-
-  @keyframes scrollToTopSmileArcMobile {
-    0% {
-      transform: translate(-35px, 0) rotate(0deg);
-    }
-    25% {
-      transform: translate(-25px, 25px) rotate(45deg);
-    }
-    50% {
-      transform: translate(0, 35px) rotate(0deg);
-    }
-    75% {
-      transform: translate(25px, 25px) rotate(-45deg);
-    }
-    100% {
-      transform: translate(35px, 0) rotate(0deg);
-    }
-  }
 }
 
 header::before,
