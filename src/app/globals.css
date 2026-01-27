@@ -1638,7 +1638,7 @@ span:has(.username) + .status-badge {
 }
 
 footer {
-  margin-top: 36px;
+  margin-top: 20px;
   color: var(--muted);
   font-size: 13px;
   padding: 16px 20px 12px;
@@ -1697,26 +1697,30 @@ footer {
   }
 }
 
-/* Portal link button */
+/* Portal link button - matches standard button styling */
 .footer-portal-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 500;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 10px 18px;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
+  color: #001018;
+  font-weight: 600;
+  font-size: 15px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 18px rgba(52, 225, 255, 0.45);
 }
 
 .footer-portal-link:hover,
 .footer-portal-link:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 0 24px rgba(255, 52, 245, 0.55);
   text-decoration: none;
 }
 
@@ -2363,7 +2367,53 @@ footer {
   transform: translateY(0) scale(0.95);
 }
 
-/* Face stroke color cycle - syncs with arrow colors */
+/* Face glow cycle - slower and more subtle */
+@keyframes scrollToTopFaceGlowCycle {
+  0% {
+    filter:
+      drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(193, 95%, 50% / 0.15));
+  }
+  16.66% {
+    filter:
+      drop-shadow(0 0 2px hsl(150, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(150, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(150, 95%, 50% / 0.15));
+  }
+  33.33% {
+    filter:
+      drop-shadow(0 0 2px hsl(60, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(60, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(60, 95%, 50% / 0.15));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 2px hsl(30, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(30, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(30, 95%, 50% / 0.15));
+  }
+  66.66% {
+    filter:
+      drop-shadow(0 0 2px hsl(300, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(300, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(300, 95%, 50% / 0.15));
+  }
+  83.33% {
+    filter:
+      drop-shadow(0 0 2px hsl(240, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(240, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(240, 95%, 50% / 0.15));
+  }
+  100% {
+    filter:
+      drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.4))
+      drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.25))
+      drop-shadow(0 0 6px hsl(193, 95%, 50% / 0.15));
+  }
+}
+
+/* Face stroke color cycle - slower and more subtle */
 @keyframes scrollToTopFaceStrokeCycle {
   0% {
     stroke: hsl(193, 95%, 70%);
@@ -2388,49 +2438,49 @@ footer {
   }
 }
 
-/* Face hover animation - different rainbow pattern (reversed order with different colors) */
+/* Face hover animation - different rainbow pattern (reversed order, slower and more subtle) */
 @keyframes scrollToTopFaceHoverCycle {
   0% {
     filter:
-      drop-shadow(0 0 4px hsl(240, 95%, 70%))
-      drop-shadow(0 0 8px hsl(240, 95%, 60%))
-      drop-shadow(0 0 12px hsl(240, 95%, 50%));
+      drop-shadow(0 0 2px hsl(240, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(240, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(240, 95%, 50% / 0.2));
   }
   16.66% {
     filter:
-      drop-shadow(0 0 4px hsl(300, 95%, 70%))
-      drop-shadow(0 0 8px hsl(300, 95%, 60%))
-      drop-shadow(0 0 12px hsl(300, 95%, 50%));
+      drop-shadow(0 0 2px hsl(300, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(300, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(300, 95%, 50% / 0.2));
   }
   33.33% {
     filter:
-      drop-shadow(0 0 4px hsl(30, 95%, 70%))
-      drop-shadow(0 0 8px hsl(30, 95%, 60%))
-      drop-shadow(0 0 12px hsl(30, 95%, 50%));
+      drop-shadow(0 0 2px hsl(30, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(30, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(30, 95%, 50% / 0.2));
   }
   50% {
     filter:
-      drop-shadow(0 0 4px hsl(60, 95%, 70%))
-      drop-shadow(0 0 8px hsl(60, 95%, 60%))
-      drop-shadow(0 0 12px hsl(60, 95%, 50%));
+      drop-shadow(0 0 2px hsl(60, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(60, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(60, 95%, 50% / 0.2));
   }
   66.66% {
     filter:
-      drop-shadow(0 0 4px hsl(150, 95%, 70%))
-      drop-shadow(0 0 8px hsl(150, 95%, 60%))
-      drop-shadow(0 0 12px hsl(150, 95%, 50%));
+      drop-shadow(0 0 2px hsl(150, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(150, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(150, 95%, 50% / 0.2));
   }
   83.33% {
     filter:
-      drop-shadow(0 0 4px hsl(193, 95%, 70%))
-      drop-shadow(0 0 8px hsl(193, 95%, 60%))
-      drop-shadow(0 0 12px hsl(193, 95%, 50%));
+      drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(193, 95%, 50% / 0.2));
   }
   100% {
     filter:
-      drop-shadow(0 0 4px hsl(240, 95%, 70%))
-      drop-shadow(0 0 8px hsl(240, 95%, 60%))
-      drop-shadow(0 0 12px hsl(240, 95%, 50%));
+      drop-shadow(0 0 2px hsl(240, 95%, 70% / 0.5))
+      drop-shadow(0 0 4px hsl(240, 95%, 60% / 0.3))
+      drop-shadow(0 0 6px hsl(240, 95%, 50% / 0.2));
   }
 }
 
@@ -2463,31 +2513,70 @@ footer {
   width: 30px;
   height: 30px;
   filter:
-    drop-shadow(0 0 4px hsl(193, 95%, 70%))
-    drop-shadow(0 0 8px hsl(193, 95%, 60%))
-    drop-shadow(0 0 12px hsl(193, 95%, 50%));
+    drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.4))
+    drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.25))
+    drop-shadow(0 0 6px hsl(193, 95%, 50% / 0.15));
   position: relative;
   z-index: 2;
-  /* Sync with arrow colors */
-  animation: arrowGlowCycle 3s linear infinite;
+  /* Slower, more subtle color cycle */
+  animation: scrollToTopFaceGlowCycle 8s linear infinite;
 }
 
 .scroll-to-top-path {
   transition: stroke 0.3s ease;
-  /* Sync stroke color with arrow colors */
+  /* Slower, more subtle stroke color cycle */
   stroke: hsl(193, 95%, 70%);
-  animation: scrollToTopFaceStrokeCycle 3s linear infinite;
+  animation: scrollToTopFaceStrokeCycle 8s linear infinite;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-face {
-  /* Different rainbow pattern on hover */
-  animation: scrollToTopFaceHoverCycle 3s linear infinite;
+  /* Different rainbow pattern on hover - slower and more subtle */
+  animation: scrollToTopFaceHoverCycle 8s linear infinite;
   transition: none;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-path {
-  /* Different rainbow pattern for stroke on hover */
-  animation: scrollToTopFaceStrokeHoverCycle 3s linear infinite;
+  /* Different rainbow pattern for stroke on hover - slower */
+  animation: scrollToTopFaceStrokeHoverCycle 8s linear infinite;
+}
+
+/* Tooltip */
+.scroll-to-top-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 8px 12px;
+  background: rgba(7, 27, 37, 0.95);
+  border: 1px solid rgba(52, 225, 255, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--errl-text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10000;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 8px rgba(52, 225, 255, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.scroll-to-top-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(52, 225, 255, 0.3);
+}
+
+.scroll-to-top-button:hover .scroll-to-top-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
 }
 
 /* Button rotation animation */

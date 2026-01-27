@@ -41,6 +41,7 @@ export default function ScrollToTopButton() {
       aria-label="Scroll to top"
       type="button"
     >
+      <span className="scroll-to-top-tooltip">Scroll to top</span>
       <div className="scroll-to-top-content">
         <svg
           xmlns="http://www.w3.org/2000/svg"
