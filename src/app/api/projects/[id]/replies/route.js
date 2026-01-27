@@ -35,16 +35,23 @@ export async function POST(request, { params }) {
 
   let imageKey = null;
   if (imageFile && imageFile.size > 0) {
-    const { env } = await getCloudflareContext({ async: true });
-    if (!canUploadImages(user, env)) {
+    try {
+      const { env } = await getCloudflareContext({ async: true });
+      if (!canUploadImages(user, env)) {
+        redirectUrl.searchParams.set('error', 'upload');
+        return NextResponse.redirect(redirectUrl, 303);
+      }
+      const bucket = await getUploadsBucket();
+      imageKey = buildImageKey('project-replies', imageFile.name || 'image');
+      await bucket.put(imageKey, await imageFile.arrayBuffer(), {
+        httpMetadata: { contentType: imageFile.type }
+      });
+    } catch (e) {
+      // If image upload fails, redirect with error instead of silently failing
+      console.error('Image upload failed:', e);
       redirectUrl.searchParams.set('error', 'upload');
       return NextResponse.redirect(redirectUrl, 303);
     }
-    const bucket = await getUploadsBucket();
-    imageKey = buildImageKey('projects', imageFile.name || 'image');
-    await bucket.put(imageKey, await imageFile.arrayBuffer(), {
-      httpMetadata: { contentType: imageFile.type }
-    });
   }
 
   const db = await getDb();
