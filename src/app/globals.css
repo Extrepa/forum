@@ -2207,10 +2207,12 @@ footer {
 
 @media (min-width: 640px) {
   .footer-tagline-phrase {
-    display: inline;
+    display: inline-block; /* Use inline-block for proper transform support */
     width: auto;
     text-align: inherit;
     transition: transform 0.3s ease;
+    position: relative; /* Ensure transform works properly */
+    vertical-align: baseline; /* Align phrases on same baseline */
   }
 
   .footer-tagline-separator {
@@ -2220,12 +2222,12 @@ footer {
   /* On hover, shift first two phrases left to make room for expanded third phrase */
   .footer-tagline-bar:hover .footer-tagline-phrase-0,
   .footer-tagline-bar:hover .footer-tagline-phrase-1 {
-    transform: translateX(-60px); /* Shift left to make room */
+    transform: translateX(-60px) !important; /* Shift left to make room, force override */
   }
   
   /* Third phrase stays in place but expands */
   .footer-tagline-bar:hover .footer-tagline-phrase-2 {
-    transform: translateX(0); /* Keep centered */
+    transform: translateX(0) !important; /* Keep centered, force override */
   }
 }
 
@@ -2323,10 +2325,9 @@ footer {
 
 /* Hover text - "RETURN TO TOP" */
 .scroll-to-top-hover-text {
-  position: absolute;
-  right: calc(100% + 12px); /* Position to the left of button, 12px gap */
-  top: 50%;
-  transform: translateY(-50%); /* Center vertically */
+  position: fixed; /* Fixed to viewport, not relative to button */
+  bottom: 24px; /* Match button's bottom position */
+  right: 88px; /* Position to the left of button (24px button right + 52px button width + 12px gap) */
   white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
@@ -2346,7 +2347,9 @@ footer {
 /* Prevent text from overflowing viewport on small screens */
 @media (max-width: 500px) {
   .scroll-to-top-hover-text {
-    /* On small screens, ensure text stays within viewport */
+    /* On small screens, match button's mobile position */
+    bottom: 20px; /* Match button's bottom position on mobile */
+    right: 76px; /* Position to the left of button (20px button right + 44px button width + 12px gap) */
     max-width: calc(100vw - 80px);
     overflow: hidden;
     text-overflow: ellipsis;
