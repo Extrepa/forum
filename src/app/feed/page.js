@@ -540,10 +540,11 @@ export default async function FeedPage() {
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
                     titleHref={item.href}
                     showTitleLink={false}
+                    hideDateOnDesktop={item.type === 'Event'}
                   />
                   {item.type === 'Event' ? (
                     <>
-                      {/* Event Information Row */}
+                      {/* Third Row: Event Information */}
                       <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                         <svg
                           width="14"
@@ -561,15 +562,22 @@ export default async function FeedPage() {
                           <line x1="8" y1="2" x2="8" y2="6" />
                           <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
-                        <span style={{ color: 'var(--muted)' }}>
+                        <span className="muted" style={{ color: 'var(--errl-accent-3)', fontSize: '12px' }}>
                           Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
                           {isEventUpcoming(item.startsAt) ? (
-                            <span className="muted" style={{ marginLeft: '4px' }}>
+                            <span className="muted" style={{ marginLeft: '4px', color: 'var(--errl-accent-3)' }}>
                               ({formatRelativeEventDate(item.startsAt)})
                             </span>
                           ) : null}
                         </span>
                       </div>
+                      {item.createdAt && (
+                        <div style={{ marginTop: '8px' }}>
+                          <span className="muted event-post-time-desktop" style={{ fontSize: '12px' }} suppressHydrationWarning>
+                            {formatDateTime(item.createdAt)}
+                          </span>
+                        </div>
+                      )}
                       {/* Bottom Row: Attending List on left, Last Activity on right */}
                       <div style={{ 
                         display: 'flex',

@@ -1265,6 +1265,9 @@ button:hover {
   .post-meta-date-mobile-only {
     display: none !important;
   }
+  .event-post-time-desktop {
+    display: inline !important;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1282,6 +1285,9 @@ button:hover {
   }
   .post-meta-date-mobile-only {
     display: inline !important;
+  }
+  .event-post-time-desktop {
+    display: none !important;
   }
 }
 

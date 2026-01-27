@@ -92,7 +92,7 @@ export default function PostMetaBar({
         rowGap: '4px'
       }}>
         {createdAt && (
-          <span className={hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''} suppressHydrationWarning>
+          <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
             {formatDateTime(createdAt)}
           </span>
         )}
