@@ -560,3 +560,16 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 
 Everything set up for today has been completed and verified.
 
+# Cursor Notes - 2026-01-27
+
+- Investigating branch deployment behavior on Cloudflare.
+
+### Findings on Branch Deployment Issue
+
+- **Cause**: Both `--preview` and `--production` modes in `deploy.sh` execute `npm run deploy` (`wrangler deploy`) against the same worker (`errl-portal-forum`).
+- **Impact**: Preview deployments from feature branches overwrite the production worker, which is likely mapped to the main live portal URL.
+- **Recommended Fix**: Implement Cloudflare environments in `wrangler.toml` to isolate `preview` from production.
+- **Automated Pushes**: If pushes are auto-deploying, check Cloudflare Dashboard for 'Connected Git' settings on the worker.
+
+- **Updates Applied**: Created `[env.preview]` in `wrangler.toml` and updated `deploy.sh` to use `--env preview` for branch deployments. This isolates previews from the live production worker.
+- **Documentation Created**: Added detailed workflow guide at `docs/02-Deployment/NEW-BRANCH-WORKFLOW.md`.

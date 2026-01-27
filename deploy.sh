@@ -144,11 +144,11 @@ if [ "$DEPLOY_MODE" = "preview" ]; then
   echo -e "${YELLOW}⚠️  Preview deployments use the same production environment${NC}"
   echo -e "${YELLOW}   Test thoroughly before merging to main!${NC}"
   echo ""
-  npm run deploy
+  npx wrangler deploy --env preview
   
   echo ""
   echo -e "${GREEN}✅ Preview deployment complete!${NC}"
-  echo -e "${GREEN}🌐 Live at: https://errl-portal-forum.extrepatho.workers.dev${NC}"
+  echo -e "${GREEN}🌐 Live at: https://errl-portal-forum-preview.extrepatho.workers.dev${NC}"
   echo ""
   echo -e "${YELLOW}Next steps:${NC}"
   echo -e "  1. Test the preview deployment"
