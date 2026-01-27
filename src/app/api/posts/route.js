@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
+import { createMentionNotifications } from '../../../lib/mentions';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -118,14 +119,23 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const postId = crypto.randomUUID();
   try {
     await db
       .prepare(
         `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(crypto.randomUUID(), user.id, type, finalTitle, body || null, imageKey, isPrivate, Date.now())
+      .bind(postId, user.id, type, finalTitle, body || null, imageKey, isPrivate, Date.now())
       .run();
+
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: type === 'about' ? 'about' : type,
+      targetId: postId
+    });
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);

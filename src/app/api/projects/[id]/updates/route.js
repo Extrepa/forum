@@ -61,12 +61,53 @@ export async function POST(request, { params }) {
     });
   }
 
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO project_updates (id, project_id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), params.id, user.id, title, body, imageKey, Date.now())
+    .bind(crypto.randomUUID(), params.id, user.id, title, body, imageKey, now)
     .run();
+
+  // Notify participants (commenters) about the project update
+  try {
+    const { results: participants } = await db
+      .prepare(`
+        SELECT DISTINCT pc.author_user_id, u.notify_update_enabled 
+        FROM project_comments pc
+        JOIN users u ON u.id = pc.author_user_id
+        WHERE pc.project_id = ? AND pc.is_deleted = 0
+      `)
+      .bind(params.id)
+      .all();
+
+    const recipients = new Set();
+    for (const row of participants || []) {
+      if (row?.author_user_id && row.notify_update_enabled !== 0) {
+        recipients.add(row.author_user_id);
+      }
+    }
+    recipients.delete(user.id);
+
+    for (const recipientUserId of recipients) {
+      await db
+        .prepare(
+          'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )
+        .bind(
+          crypto.randomUUID(),
+          recipientUserId,
+          user.id,
+          'update',
+          'project',
+          params.id,
+          now
+        )
+        .run();
+    }
+  } catch (e) {
+    // Ignore notification failures
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

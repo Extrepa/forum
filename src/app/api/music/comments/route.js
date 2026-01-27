@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
+import { createMentionNotifications } from '../../../../lib/mentions';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -45,6 +46,14 @@ export async function POST(request) {
 
   // Create in-app notifications for music post author + participants (excluding the commenter).
   try {
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'music_post',
+      targetId: postId
+    });
+
     const post = await db
       .prepare('SELECT author_user_id FROM music_posts WHERE id = ?')
       .bind(postId)

@@ -39,6 +39,39 @@ export async function POST(request, { params }) {
       .prepare('INSERT INTO event_attendees (id, event_id, user_id, created_at) VALUES (?, ?, ?, ?)')
       .bind(crypto.randomUUID(), params.id, user.id, Date.now())
       .run();
+
+    // Notify event author
+    try {
+      const author = await db
+        .prepare(`
+          SELECT e.author_user_id, u.notify_rsvp_enabled 
+          FROM events e
+          JOIN users u ON u.id = e.author_user_id
+          WHERE e.id = ?
+        `)
+        .bind(params.id)
+        .first();
+      
+      if (author?.author_user_id && author.author_user_id !== user.id && author.notify_rsvp_enabled !== 0) {
+        await db
+          .prepare(
+            'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+          )
+          .bind(
+            crypto.randomUUID(),
+            author.author_user_id,
+            user.id,
+            'rsvp',
+            'event',
+            params.id,
+            Date.now()
+          )
+          .run();
+      }
+    } catch (e) {
+      // Ignore notification failures
+    }
+
     return NextResponse.json({ attending: true });
   }
 }

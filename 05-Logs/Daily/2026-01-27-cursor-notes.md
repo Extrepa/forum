@@ -352,6 +352,100 @@ Fixed project reply image upload functionality, improved feed sorting by activit
 - Mobile layout ensures date/time and stats stay on same row
 - Event posts properly show post time on mobile without duplicates
 - Feed automatically updates when new replies are posted
-- Desktop layout optimized to keep content in 2 rows when possible
-- Mobile layout ensures date/time and stats stay on same row
-- Event posts properly show post time on mobile without duplicates
+
+---
+
+## Notification System Overhaul
+
+### Summary
+Implemented comprehensive in-app notifications for RSVPs, Likes, Project Updates, and @mentions across all sections of the forum.
+
+### Changes Made
+
+#### 1. New Notification Types
+- **RSVP Notifications**: Event authors now get notified when someone marks "attending".
+- **Like Notifications**: Content authors (threads, posts, music, events, projects, devlogs, announcements) now get notified when someone likes their content.
+- **Project Update Notifications**: Users who have commented on a project now get notified when the project author posts an update.
+- **Mention Notifications**: Users now get notified when someone mentions them using `@username` in any post, thread, comment, or reply.
+
+#### 2. Core Logic: `src/lib/mentions.js`
+- Created a new library to handle `@username` parsing.
+- `extractMentions(text)`: Extracts unique, normalized usernames from text.
+- `createMentionNotifications({ text, actorId, targetType, targetId })`: Resolves usernames to user IDs and creates `mention` notifications.
+
+#### 3. UI Enhancements: `src/components/NotificationsMenu.js`
+- Added support for new notification types:
+  - `rsvp`: "Actor is attending your event"
+  - `like`: "Actor liked your [content type]"
+  - `update`: "Actor posted an update to a project"
+  - `mention`: "Actor mentioned you in a [content type]"
+- Corrected `href` generation for all new notification types to ensure users are taken to the right content.
+
+### Summary of Integrated Routes
+
+- **Mentions integrated into:**
+  - `src/app/api/threads/route.js` (Forum threads)
+  - `src/app/api/forum/[id]/replies/route.js` (Forum replies)
+  - `src/app/api/posts/route.js` (General posts)
+  - `src/app/api/posts/[id]/comments/route.js` (Post comments)
+  - `src/app/api/events/route.js` (Events)
+  - `src/app/api/events/[id]/comments/route.js` (Event comments)
+  - `src/app/api/projects/route.js` (Projects)
+  - `src/app/api/projects/[id]/comments/route.js" (Project comments)
+  - `src/app/api/projects/[id]/replies/route.js` (Project replies)
+  - `src/app/api/devlog/route.js` (Devlogs)
+  - `src/app/api/devlog/[id]/comments/route.js` (Devlog comments)
+  - `src/app/api/music/comments/route.js` (Music comments)
+  - `src/app/api/timeline/[id]/comments/route.js` (Announcement comments)
+
+- **RSVP integrated into:**
+  - `src/app/api/events/[id]/rsvp/route.js`
+  - `src/app/api/events/[id]/comments/route.js` (via RSVP checkbox)
+
+- **Likes integrated into:**
+  - `src/app/api/likes/route.js` (Handles all content types)
+
+- **Project Updates integrated into:**
+  - `src/app/api/projects/[id]/updates/route.js`
+
+### Testing Checklist
+- [ ] RSVP to an event and verify the author gets a notification.
+- [ ] Like various content types and verify authors get notifications.
+- [ ] Post a project update and verify project commenters get notifications.
+- [ ] Mention a user using `@username` in any section and verify they get a notification.
+- [ ] Verify the Notifications menu displays the correct labels and links for all new types.
+- [ ] Change notification preferences in the Account tab and verify they are saved and respected.
+
+---
+
+## Notification Preferences UI
+
+### Summary
+Added a new card to the Account tab allowing users to toggle specific notification types (RSVPs, Likes, Project Updates, and Mentions).
+
+### Changes Made
+
+#### 1. Database Schema
+- Created migration `0042_notification_type_prefs.sql` to add `notify_rsvp_enabled`, `notify_like_enabled`, `notify_update_enabled`, and `notify_mention_enabled` columns to the `users` table.
+
+#### 2. Backend Updates
+- Updated `src/app/api/auth/me/route.js` to return the new preference fields.
+- Updated `src/app/api/auth/notification-prefs/route.js` to handle saving the new preference fields.
+- Modified all notification triggers to check target user preferences before inserting into the `notifications` table:
+  - `src/app/api/events/[id]/rsvp/route.js`
+  - `src/app/api/events/[id]/comments/route.js`
+  - `src/app/api/likes/route.js`
+  - `src/app/api/projects/[id]/updates/route.js`
+  - `src/lib/mentions.js`
+
+#### 3. UI Enhancements
+- Updated `src/components/ClaimUsernameForm.js`:
+  - Added state management for new notification preference fields.
+  - Implemented a new "Notification Preferences" card with checkboxes for each type.
+  - Integrated the new preferences into the existing save logic.
+  - Removed "Notification preferences" from the "Future Settings" list.
+  - Refined UI: Moved "Notification Preferences" card outside the `canConfigureNotifications` check so it is visible to all signed-in users, even those without email/password set.
+  - Fixed Bug: Updated `refreshMe` function in `src/components/ClaimUsernameForm.js` to correctly sync the new notification preference states after saving.
+  - Fixed Bug: Updated `src/lib/auth.js` to include the new notification preference columns in the `getSessionUser` query, ensuring they are available to API routes.
+  - Fixed Bug: Updated `src/app/api/events/[id]/rsvp/route.js` to use `author.author_user_id` instead of `event.author_user_id` when creating notifications.
+  - Improved Default Logic: Updated `src/app/api/auth/me/route.js` to treat `null` or `undefined` as enabled (defaulting to `true`) for in-app notification preferences.

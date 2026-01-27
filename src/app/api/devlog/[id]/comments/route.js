@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUserWithRole } from '../../../../../lib/admin';
 import { getSessionUser } from '../../../../../lib/auth';
+import { createMentionNotifications } from '../../../../../lib/mentions';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -101,6 +102,14 @@ export async function POST(request, { params }) {
 
   // Create in-app notifications for devlog author + participants (excluding the commenter).
   try {
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'dev_log',
+      targetId: id
+    });
+
     const log = await db
       .prepare('SELECT author_user_id FROM dev_logs WHERE id = ?')
       .bind(id)

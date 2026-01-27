@@ -16,6 +16,10 @@ export async function GET() {
       hasPassword: !!user.password_hash,
       notifyEmailEnabled: !!user.notify_email_enabled,
       notifySmsEnabled: !!user.notify_sms_enabled,
+      notifyRsvpEnabled: user.notify_rsvp_enabled !== 0,
+      notifyLikeEnabled: user.notify_like_enabled !== 0,
+      notifyUpdateEnabled: user.notify_update_enabled !== 0,
+      notifyMentionEnabled: user.notify_mention_enabled !== 0,
       uiLoreEnabled: !!user.ui_lore_enabled,
       defaultLandingPage: user.default_landing_page ?? 'home',
       preferredUsernameColorIndex: user.preferred_username_color_index ?? null

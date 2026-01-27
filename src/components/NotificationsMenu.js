@@ -381,6 +381,66 @@ export default function NotificationsMenu({
               } else if (n.type === 'comment' && ['lore', 'memories', 'lore-memories', 'art', 'bugs', 'rant', 'nostalgia', 'about'].includes(n.target_type)) {
                 href = `/${n.target_type}/${n.target_id}`;
                 label = `${actor} commented on a post`;
+              } else if (n.type === 'rsvp' && n.target_type === 'event') {
+                href = `/events/${n.target_id}`;
+                label = `${actor} is attending your event`;
+              } else if (n.type === 'like') {
+                const typeMap = {
+                  'forum_thread': 'thread',
+                  'music_post': 'music post',
+                  'event': 'event',
+                  'project': 'project',
+                  'dev_log': 'dev log',
+                  'timeline_update': 'announcement',
+                  'post': 'post'
+                };
+                const displayType = typeMap[n.target_type] || 'content';
+                const baseHrefs = {
+                  'forum_thread': '/lobby/',
+                  'music_post': '/music/',
+                  'event': '/events/',
+                  'project': '/projects/',
+                  'dev_log': '/devlog/',
+                  'timeline_update': '/announcements/',
+                  'post': '/'
+                };
+                
+                if (['lore', 'memories', 'art', 'bugs', 'rant', 'nostalgia', 'about'].includes(n.target_type)) {
+                  href = `/${n.target_type}/${n.target_id}`;
+                } else {
+                  href = (baseHrefs[n.target_type] || '/') + n.target_id;
+                }
+                label = `${actor} liked your ${displayType}`;
+              } else if (n.type === 'update' && n.target_type === 'project') {
+                href = `/projects/${n.target_id}`;
+                label = `${actor} posted an update to a project`;
+              } else if (n.type === 'mention') {
+                const typeMap = {
+                  'forum_thread': 'thread',
+                  'music_post': 'music post',
+                  'event': 'event',
+                  'project': 'project',
+                  'dev_log': 'dev log',
+                  'timeline_update': 'announcement',
+                  'post': 'post'
+                };
+                const displayType = typeMap[n.target_type] || 'content';
+                const baseHrefs = {
+                  'forum_thread': '/lobby/',
+                  'music_post': '/music/',
+                  'event': '/events/',
+                  'project': '/projects/',
+                  'dev_log': '/devlog/',
+                  'timeline_update': '/announcements/',
+                  'post': '/'
+                };
+
+                if (['lore', 'memories', 'art', 'bugs', 'rant', 'nostalgia', 'about'].includes(n.target_type)) {
+                  href = `/${n.target_type}/${n.target_id}`;
+                } else {
+                  href = (baseHrefs[n.target_type] || '/') + n.target_id;
+                }
+                label = `${actor} mentioned you in a ${displayType}`;
               }
               
               return (

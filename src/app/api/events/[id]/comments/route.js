@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
+import { createMentionNotifications } from '../../../../../lib/mentions';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -66,6 +67,14 @@ export async function POST(request, { params }) {
 
   // Create in-app notifications for event author + participants (excluding the commenter).
   try {
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'event',
+      targetId: id
+    });
+
     const event = await db
       .prepare('SELECT author_user_id FROM events WHERE id = ?')
       .bind(id)
@@ -123,11 +132,44 @@ export async function POST(request, { params }) {
         .first();
 
       if (!existing) {
+        const nowRsvp = Date.now();
         // Add RSVP
         await db
           .prepare('INSERT INTO event_attendees (id, event_id, user_id, created_at) VALUES (?, ?, ?, ?)')
-          .bind(crypto.randomUUID(), id, user.id, Date.now())
+          .bind(crypto.randomUUID(), id, user.id, nowRsvp)
           .run();
+
+        // Notify event author (if not already notified by the comment itself)
+        try {
+          const author = await db
+            .prepare(`
+              SELECT e.author_user_id, u.notify_rsvp_enabled 
+              FROM events e
+              JOIN users u ON u.id = e.author_user_id
+              WHERE e.id = ?
+            `)
+            .bind(id)
+            .first();
+          
+          if (author?.author_user_id && author.author_user_id !== user.id && author.notify_rsvp_enabled !== 0) {
+            await db
+              .prepare(
+                'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+              )
+              .bind(
+                crypto.randomUUID(),
+                author.author_user_id,
+                user.id,
+                'rsvp',
+                'event',
+                id,
+                nowRsvp
+              )
+              .run();
+          }
+        } catch (e) {
+          // Ignore
+        }
       }
     } catch (e) {
       // event_attendees table might not exist yet, ignore

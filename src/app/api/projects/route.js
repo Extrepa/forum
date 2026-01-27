@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
+import { createMentionNotifications } from '../../../lib/mentions';
 
 export async function GET() {
   const db = await getDb();
@@ -67,12 +68,21 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const projectId = crypto.randomUUID();
   await db
     .prepare(
       'INSERT INTO projects (id, author_user_id, title, description, status, github_url, demo_url, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now())
+    .bind(projectId, user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now())
     .run();
+
+  // Create mention notifications
+  await createMentionNotifications({
+    text: description,
+    actorId: user.id,
+    targetType: 'project',
+    targetId: projectId
+  });
 
   return NextResponse.redirect(redirectUrl, 303);
 }

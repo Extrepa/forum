@@ -54,10 +54,54 @@ export async function POST(request) {
       });
     } else {
       // Like: create new like
+      const now = Date.now();
       await db
         .prepare('INSERT INTO post_likes (id, post_type, post_id, user_id, created_at) VALUES (?, ?, ?, ?, ?)')
-        .bind(crypto.randomUUID(), postType, postId, user.id, Date.now())
+        .bind(crypto.randomUUID(), postType, postId, user.id, now)
         .run();
+      
+      // Notify content author
+      try {
+        let table = null;
+        if (postType === 'forum_thread') table = 'forum_threads';
+        else if (postType === 'music_post') table = 'music_posts';
+        else if (postType === 'event') table = 'events';
+        else if (postType === 'project') table = 'projects';
+        else if (postType === 'dev_log') table = 'dev_logs';
+        else if (postType === 'timeline_update') table = 'timeline_updates';
+        else if (postType === 'post') table = 'posts';
+
+        if (table) {
+          const author = await db
+            .prepare(`
+              SELECT c.author_user_id, u.notify_like_enabled 
+              FROM ${table} c
+              JOIN users u ON u.id = c.author_user_id
+              WHERE c.id = ?
+            `)
+            .bind(postId)
+            .first();
+          
+          if (author?.author_user_id && author.author_user_id !== user.id && author.notify_like_enabled !== 0) {
+            await db
+              .prepare(
+                'INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+              )
+              .bind(
+                crypto.randomUUID(),
+                author.author_user_id,
+                user.id,
+                'like',
+                postType,
+                postId,
+                now
+              )
+              .run();
+          }
+        }
+      } catch (e) {
+        // Ignore notification failures
+      }
       
       // Get updated count
       const countResult = await db

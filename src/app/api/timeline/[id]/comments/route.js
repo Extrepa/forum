@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
+import { createMentionNotifications } from '../../../../../lib/mentions';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -64,6 +65,14 @@ export async function POST(request, { params }) {
 
   // Create in-app notifications for timeline update author + participants (excluding the commenter).
   try {
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'timeline_update',
+      targetId: id
+    });
+
     const update = await db
       .prepare('SELECT author_user_id FROM timeline_updates WHERE id = ?')
       .bind(id)

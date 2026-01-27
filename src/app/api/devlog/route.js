@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../lib/db';
 import { getSessionUserWithRole, isAdminUser } from '../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
+import { createMentionNotifications } from '../../../lib/mentions';
 
 export async function GET(request) {
   const user = await getSessionUserWithRole();
@@ -73,19 +74,36 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const logId = crypto.randomUUID();
   try {
     await db
       .prepare(
         'INSERT INTO dev_logs (id, author_user_id, title, body, image_key, github_url, demo_url, links, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .bind(crypto.randomUUID(), user.id, title, body, imageKey, githubUrl, demoUrl, links, Date.now())
+      .bind(logId, user.id, title, body, imageKey, githubUrl, demoUrl, links, Date.now())
       .run();
+
+    // Create mention notifications
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'dev_log',
+      targetId: logId
+    });
   } catch (e) {
     // Rollout compatibility if columns aren't migrated yet.
     await db
       .prepare('INSERT INTO dev_logs (id, author_user_id, title, body, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), user.id, title, body, imageKey, Date.now())
+      .bind(logId, user.id, title, body, imageKey, Date.now())
       .run();
+    
+    // Create mention notifications (fallback path)
+    await createMentionNotifications({
+      text: body,
+      actorId: user.id,
+      targetType: 'dev_log',
+      targetId: logId
+    });
   }
 
   return NextResponse.redirect(redirectUrl, 303);

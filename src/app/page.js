@@ -929,31 +929,33 @@ export default async function HomePage({ searchParams }) {
               title: loreMemoriesRecent.title || 'Untitled',
               author: loreMemoriesRecent.author_name,
               authorColorPreference: loreMemoriesRecent.author_color_preference !== null && loreMemoriesRecent.author_color_preference !== undefined ? Number(loreMemoriesRecent.author_color_preference) : null,
-              createdAt: loreMemoriesRecent.created_at,
-              url: `/lore-memories/${loreMemoriesRecent.id}`
-            }
-          : null
-      } : null
-    };
-  }
+            createdAt: loreMemoriesRecent.created_at,
+            timeAgo: formatTimeAgo(loreMemoriesRecent.created_at),
+            url: `/lore-memories/${loreMemoriesRecent.id}`
+          }
+        : null
+    } : null
+  };
+}
 
-  // Calculate stats and recent posts for signed-in users
-  let stats = null;
-  let recentPosts = [];
-  if (hasUsername && sectionData) {
-    const db = await getDb();
-    try {
-      // Total posts across all sections
-      const totalPosts = 
-        (sectionData.timeline?.count || 0) +
-        (sectionData.forum?.count || 0) +
-        (sectionData.events?.count || 0) +
-        (sectionData.music?.count || 0) +
-        (sectionData.projects?.count || 0) +
-        (sectionData.shitposts?.count || 0) +
-        (sectionData.artNostalgia?.count || 0) +
-        (sectionData.bugsRant?.count || 0) +
-        (sectionData.devlog?.count || 0);
+// Calculate stats and recent posts for signed-in users
+let stats = null;
+let recentPosts = [];
+if (hasUsername && sectionData) {
+  const db = await getDb();
+  try {
+    // Total posts across all sections
+    const totalPosts = 
+      (sectionData.timeline?.count || 0) +
+      (sectionData.forum?.count || 0) +
+      (sectionData.events?.count || 0) +
+      (sectionData.music?.count || 0) +
+      (sectionData.projects?.count || 0) +
+      (sectionData.shitposts?.count || 0) +
+      (sectionData.artNostalgia?.count || 0) +
+      (sectionData.bugsRant?.count || 0) +
+      (sectionData.devlog?.count || 0) +
+      (sectionData.loreMemories?.count || 0);
 
       // Total users (all users who have signed up)
       let totalUsersResult = null;

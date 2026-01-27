@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { sendForumReplyOutbound } from '../../../../../lib/outboundNotifications';
+import { createMentionNotifications } from '../../../../../lib/mentions';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -91,6 +92,14 @@ export async function POST(request, { params }) {
     .prepare('SELECT author_user_id, title FROM forum_threads WHERE id = ?')
     .bind(id)
     .first();
+
+  // Create mention notifications
+  await createMentionNotifications({
+    text: body,
+    actorId: user.id,
+    targetType: 'forum_thread',
+    targetId: id
+  });
 
   const recipients = new Set();
   if (thread?.author_user_id) {

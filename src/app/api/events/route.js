@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { parseLocalDateTimeToUTC } from '../../../lib/dates';
+import { createMentionNotifications } from '../../../lib/mentions';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -50,12 +51,21 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const eventId = crypto.randomUUID();
   await db
     .prepare(
       'INSERT INTO events (id, author_user_id, title, details, starts_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), user.id, title, body || null, startsAt, Date.now(), imageKey)
+    .bind(eventId, user.id, title, body || null, startsAt, Date.now(), imageKey)
     .run();
+
+  // Create mention notifications
+  await createMentionNotifications({
+    text: body,
+    actorId: user.id,
+    targetType: 'event',
+    targetId: eventId
+  });
 
   return NextResponse.redirect(redirectUrl, 303);
 }

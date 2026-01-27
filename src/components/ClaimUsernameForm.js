@@ -108,6 +108,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [newPhone, setNewPhone] = useState('');
   const [notifyEmailEnabled, setNotifyEmailEnabled] = useState(false);
   const [notifySmsEnabled, setNotifySmsEnabled] = useState(false);
+  const [notifyRsvpEnabled, setNotifyRsvpEnabled] = useState(true);
+  const [notifyLikeEnabled, setNotifyLikeEnabled] = useState(true);
+  const [notifyUpdateEnabled, setNotifyUpdateEnabled] = useState(true);
+  const [notifyMentionEnabled, setNotifyMentionEnabled] = useState(true);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
   const [defaultLandingPage, setDefaultLandingPage] = useState('feed');
 
@@ -134,6 +138,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setNewPhone(user?.phone || '');
         setNotifyEmailEnabled(!!user?.notifyEmailEnabled);
         setNotifySmsEnabled(!!user?.notifySmsEnabled);
+        setNotifyRsvpEnabled(user?.notifyRsvpEnabled ?? true);
+        setNotifyLikeEnabled(user?.notifyLikeEnabled ?? true);
+        setNotifyUpdateEnabled(user?.notifyUpdateEnabled ?? true);
+        setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
         setUiLoreEnabled(!!user?.uiLoreEnabled);
         setLoreEnabled(!!user?.uiLoreEnabled);
         setDefaultLandingPage(user?.defaultLandingPage || 'feed');
@@ -166,6 +174,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setNewPhone(user?.phone || '');
       setNotifyEmailEnabled(!!user?.notifyEmailEnabled);
       setNotifySmsEnabled(!!user?.notifySmsEnabled);
+      setNotifyRsvpEnabled(user?.notifyRsvpEnabled ?? true);
+      setNotifyLikeEnabled(user?.notifyLikeEnabled ?? true);
+      setNotifyUpdateEnabled(user?.notifyUpdateEnabled ?? true);
+      setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
       setUiLoreEnabled(!!user?.uiLoreEnabled);
       setLoreEnabled(!!user?.uiLoreEnabled);
       setDefaultLandingPage(user?.defaultLandingPage || 'feed');
@@ -246,7 +258,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       const response = await fetch('/api/auth/notification-prefs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailEnabled: notifyEmailEnabled, smsEnabled: notifySmsEnabled })
+        body: JSON.stringify({ 
+          emailEnabled: notifyEmailEnabled, 
+          smsEnabled: notifySmsEnabled,
+          rsvpEnabled: notifyRsvpEnabled,
+          likeEnabled: notifyLikeEnabled,
+          updateEnabled: notifyUpdateEnabled,
+          mentionEnabled: notifyMentionEnabled
+        })
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -545,46 +564,95 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             </form>
 
             {canConfigureNotifications ? (
-              <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
-                <h3 className="section-title" style={{ marginBottom: '4px', borderBottom: 'none' }}>
-                  Phone Number
-                </h3>
-                <label>
-                  <div className="muted">Phone number (required for SMS)</div>
-                  <input
-                    name="phone"
-                    value={newPhone}
-                    onChange={(event) => setNewPhone(event.target.value)}
-                    placeholder={me.phone || '+15551234567'}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span>Email notifications</span>
-                  <input
-                    type="checkbox"
-                    checked={notifyEmailEnabled}
-                    onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span>Text (SMS) notifications</span>
-                  <input
-                    type="checkbox"
-                    checked={notifySmsEnabled}
-                    onChange={(e) => setNotifySmsEnabled(e.target.checked)}
-                    disabled={!String(newPhone || '').trim()}
-                  />
-                </label>
-                {!String(newPhone || '').trim() ? (
-                  <div className="muted" style={{ fontSize: 13 }}>
-                    Add a phone number to enable SMS.
-                  </div>
-                ) : null}
-                <button type="submit" disabled={status.type === 'loading'}>
-                  Save notification settings
-                </button>
-              </form>
+              <div className="stack" style={{ gap: 12 }}>
+                <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
+                  <h3 className="section-title" style={{ marginBottom: '4px', borderBottom: 'none' }}>
+                    Phone Number
+                  </h3>
+                  <label>
+                    <div className="muted">Phone number (required for SMS)</div>
+                    <input
+                      name="phone"
+                      value={newPhone}
+                      onChange={(event) => setNewPhone(event.target.value)}
+                      placeholder={me.phone || '+15551234567'}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>Email notifications</span>
+                    <input
+                      type="checkbox"
+                      checked={notifyEmailEnabled}
+                      onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>Text (SMS) notifications</span>
+                    <input
+                      type="checkbox"
+                      checked={notifySmsEnabled}
+                      onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                      disabled={!String(newPhone || '').trim()}
+                    />
+                  </label>
+                  {!String(newPhone || '').trim() ? (
+                    <div className="muted" style={{ fontSize: 13 }}>
+                      Add a phone number to enable SMS.
+                    </div>
+                  ) : null}
+                  <button type="submit" disabled={status.type === 'loading'}>
+                    Save notification settings
+                  </button>
+                </form>
+              </div>
             ) : null}
+
+            <div className="card" style={{ padding: 12, marginTop: canConfigureNotifications ? 0 : 12 }}>
+              <h3 className="section-title" style={{ marginBottom: '12px', borderBottom: 'none' }}>
+                Notification Preferences
+              </h3>
+              <div className="stack" style={{ gap: 10 }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>RSVP notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyRsvpEnabled}
+                    onChange={(e) => setNotifyRsvpEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Like notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyLikeEnabled}
+                    onChange={(e) => setNotifyLikeEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Project update notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyUpdateEnabled}
+                    onChange={(e) => setNotifyUpdateEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Mention notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyMentionEnabled}
+                    onChange={(e) => setNotifyMentionEnabled(e.target.checked)}
+                  />
+                </label>
+                <button 
+                  type="button" 
+                  onClick={submitNotificationPrefs}
+                  disabled={status.type === 'loading'}
+                >
+                  Save preferences
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="account-col">
@@ -656,7 +724,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div className="muted" style={{ fontSize: 13 }}>Feed preferences</div>
-                  <div className="muted" style={{ fontSize: 13 }}>Notification preferences</div>
                   <div className="muted" style={{ fontSize: 13 }}>Color settings</div>
                   <div className="muted" style={{ fontSize: 13 }}>Movement/animation settings</div>
                 </div>
