@@ -29,39 +29,6 @@ export default function ScrollToTopButton() {
     });
   };
 
-  const words = ["RETURN", "TO", "TOP"];
-  const wordColors = [
-    'var(--errl-accent)',      // Cyan for RETURN
-    'var(--errl-accent-2)',    // Magenta for TO
-    'var(--errl-accent-3)'     // Yellow-green for TOP
-  ];
-  
-  // Flatten words into letters with word indices
-  // Reverse the order since we're rotating counterclockwise
-  // Add equal spacing between all words (including wrap-around)
-  const allLetters = words.flatMap((word, wordIndex) => {
-    const wordLetters = word.split('').map((letter) => ({
-      letter,
-      wordIndex,
-      isSpace: false
-    }));
-    // Add equal spacing after each word (2 spaces for visual separation)
-    for (let i = 0; i < 2; i++) {
-      wordLetters.push({
-        letter: ' ',
-        wordIndex,
-        isSpace: true
-      });
-    }
-    return wordLetters;
-  });
-  
-  // Assign indices starting from 0 (no reversal needed since button spins clockwise)
-  const lettersWithWordInfo = allLetters.map((item, index) => ({
-    ...item,
-    letterIndex: index
-  }));
-
   return (
     <button
       onClick={scrollToTop}
@@ -132,22 +99,21 @@ export default function ScrollToTopButton() {
           </g>
         </g>
       </svg>
-      <div className="scroll-to-top-text-container">
-        {lettersWithWordInfo.map(({ letter, letterIndex, wordIndex, isSpace }) => (
-          <span
-            key={letterIndex}
-            className="scroll-to-top-letter"
-            style={{
-              '--letter-index': letterIndex,
-              '--total-letters': lettersWithWordInfo.length,
-              '--word-color': wordColors[wordIndex],
-              '--is-space': isSpace ? 1 : 0
-            }}
-          >
-            {isSpace ? '\u00A0' : letter}
-          </span>
-        ))}
-      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        className="scroll-to-top-arrow"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
+          fill="currentColor"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
       </div>
     </button>
   );

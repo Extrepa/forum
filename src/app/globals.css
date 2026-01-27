@@ -1995,9 +1995,16 @@ footer {
   position: relative;
 }
 
-/* Add extra R's after the second R on hover - ensure l and period remain visible */
+/* Hide the original "l" when hovering */
+.footer-tagline-bar:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Add extra R's + l + period after the second R on hover */
 .footer-tagline-bar:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3)::after {
-  content: 'rrrrrrrrrrrr';
+  content: 'rrrrrrrrrrrrl.';
   position: absolute;
   left: 100%;
   top: 0;
@@ -2014,17 +2021,26 @@ footer {
   overflow: hidden;
 }
 
-/* Ensure the "l" (4th letter) remains visible and positioned correctly */
+/* Ensure the "l" (4th letter) is visible when not hovering */
 .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
   position: relative;
-  z-index: 10; /* Higher z-index to ensure it's always visible */
-  display: inline-block; /* Ensure it takes up space */
+  z-index: 10;
+  display: inline-block;
+  transition: opacity 0.2s ease, width 0.2s ease;
 }
 
-/* Ensure any characters (like period) after Errl word stay visible */
+/* Hide the period after Errl word when hovering (it's included in ::after) */
+.footer-tagline-bar:hover .footer-tagline-phrase .footer-tagline-word-errl ~ .footer-tagline-letter {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Ensure period is visible when not hovering */
 .footer-tagline-phrase .footer-tagline-word-errl ~ .footer-tagline-letter {
   position: relative;
   z-index: 10;
+  transition: opacity 0.2s ease, width 0.2s ease;
 }
 
 @keyframes errl-r-type {
@@ -2041,26 +2057,7 @@ footer {
   }
 }
 
-/* Keep general wiggle for non-special letters on hover */
-@keyframes tagline-wiggle {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-2px) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(1px) rotate(2deg);
-  }
-  75% {
-    transform: translateY(-1px) rotate(-1deg);
-  }
-}
-
-.footer-tagline-bar:hover .footer-tagline-letter:not(.footer-tagline-special-letter) {
-  animation: tagline-wiggle 0.5s ease-in-out infinite;
-  animation-delay: var(--letter-delay, 0s);
-}
+/* No wiggle for normal words - only special words have effects */
 
 .footer-tagline-separator {
   display: none;
@@ -2254,34 +2251,17 @@ footer {
   }
 }
 
-/* Revolving text around button - positioned between face and outline */
-.scroll-to-top-text-container {
+/* Arrow icon in corner */
+.scroll-to-top-arrow {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  /* No counter-rotation - letters stay fixed relative to button */
-}
-
-.scroll-to-top-letter {
-  position: absolute;
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--word-color, var(--errl-accent));
-  text-shadow: 0 0 4px currentColor;
-  letter-spacing: -0.4px;
-  left: 50%;
-  top: 50%;
-  transform-origin: center center; /* Origin at button center */
-  --text-radius: 19px; /* Between face (15px) and outline (26px) */
-  /* Position letter around circle, rotated to be tangent (readable) */
-  transform: 
-    rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) 
-    translate(0, calc(-1 * var(--text-radius, 19px))) 
-    rotate(90deg);
-  white-space: nowrap;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  color: var(--errl-accent);
+  filter: drop-shadow(0 0 3px currentColor);
+  z-index: 3;
+  pointer-events: none;
 }
 
 @media (max-width: 640px) {
@@ -2297,10 +2277,11 @@ footer {
     height: 26px;
   }
 
-  .scroll-to-top-letter {
-    font-size: 7px;
-    letter-spacing: -0.4px;
-    --text-radius: 16px; /* Between face (13px) and outline (22px) on mobile */
+  .scroll-to-top-arrow {
+    width: 10px;
+    height: 10px;
+    top: 5px;
+    right: 5px;
   }
 }
 
