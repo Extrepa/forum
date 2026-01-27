@@ -2163,6 +2163,10 @@ footer {
   animation-play-state: paused; /* Pause rotation on hover */
 }
 
+.scroll-to-top-button:hover .scroll-to-top-arrow {
+  animation-play-state: paused; /* Pause arrow rotation and glow on hover */
+}
+
 .scroll-to-top-button:hover::before {
   opacity: 1;
 }
@@ -2259,9 +2263,72 @@ footer {
   width: 12px;
   height: 12px;
   color: var(--errl-accent);
-  filter: drop-shadow(0 0 3px currentColor);
   z-index: 3;
   pointer-events: none;
+  /* Counter-rotate to keep arrow facing up while button spins */
+  animation: rotate-button-counter 8s linear infinite, arrowGlowCycle 3s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes rotate-button-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes arrowGlowCycle {
+  0% {
+    filter:
+      drop-shadow(0 0 4px hsl(193, 95%, 70%))
+      drop-shadow(0 0 8px hsl(193, 95%, 60%))
+      drop-shadow(0 0 12px hsl(193, 95%, 50%));
+    color: hsl(193, 95%, 70%);
+  }
+  16.66% {
+    filter:
+      drop-shadow(0 0 4px hsl(150, 95%, 70%))
+      drop-shadow(0 0 8px hsl(150, 95%, 60%))
+      drop-shadow(0 0 12px hsl(150, 95%, 50%));
+    color: hsl(150, 95%, 70%);
+  }
+  33.33% {
+    filter:
+      drop-shadow(0 0 4px hsl(60, 95%, 70%))
+      drop-shadow(0 0 8px hsl(60, 95%, 60%))
+      drop-shadow(0 0 12px hsl(60, 95%, 50%));
+    color: hsl(60, 95%, 70%);
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 4px hsl(30, 95%, 70%))
+      drop-shadow(0 0 8px hsl(30, 95%, 60%))
+      drop-shadow(0 0 12px hsl(30, 95%, 50%));
+    color: hsl(30, 95%, 70%);
+  }
+  66.66% {
+    filter:
+      drop-shadow(0 0 4px hsl(300, 95%, 70%))
+      drop-shadow(0 0 8px hsl(300, 95%, 60%))
+      drop-shadow(0 0 12px hsl(300, 95%, 50%));
+    color: hsl(300, 95%, 70%);
+  }
+  83.33% {
+    filter:
+      drop-shadow(0 0 4px hsl(240, 95%, 70%))
+      drop-shadow(0 0 8px hsl(240, 95%, 60%))
+      drop-shadow(0 0 12px hsl(240, 95%, 50%));
+    color: hsl(240, 95%, 70%);
+  }
+  100% {
+    filter:
+      drop-shadow(0 0 4px hsl(193, 95%, 70%))
+      drop-shadow(0 0 8px hsl(193, 95%, 60%))
+      drop-shadow(0 0 12px hsl(193, 95%, 50%));
+    color: hsl(193, 95%, 70%);
+  }
 }
 
 @media (max-width: 640px) {

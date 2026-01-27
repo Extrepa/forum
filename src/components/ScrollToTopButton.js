@@ -109,7 +109,7 @@ export default function ScrollToTopButton() {
           d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
           fill="currentColor"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
