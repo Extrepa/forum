@@ -35,14 +35,14 @@ export default function ScrollToTopButton() {
   };
 
   return (
-    <button
-      onClick={scrollToTop}
-      className={`scroll-to-top-button ${isVisible ? 'scroll-to-top-visible' : ''}`}
-      aria-label="Scroll to top"
-      type="button"
-    >
-      <span className="scroll-to-top-tooltip">Scroll to top</span>
-      <div className="scroll-to-top-content">
+    <div className="scroll-to-top-wrapper">
+      <button
+        onClick={scrollToTop}
+        className={`scroll-to-top-button ${isVisible ? 'scroll-to-top-visible' : ''}`}
+        aria-label="Scroll to top"
+        type="button"
+      >
+        <div className="scroll-to-top-content">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1000 1000"
@@ -126,6 +126,8 @@ export default function ScrollToTopButton() {
         </svg>
       ))}
       </div>
-    </button>
+      </button>
+      <span className={`scroll-to-top-tooltip ${isVisible ? 'scroll-to-top-visible' : ''}`}>Scroll to top</span>
+    </div>
   );
 }

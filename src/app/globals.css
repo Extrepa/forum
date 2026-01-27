@@ -1707,20 +1707,21 @@ footer {
   min-height: 32px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
+  background: linear-gradient(135deg, rgba(52, 225, 255, 0.4), rgba(255, 52, 245, 0.4));
   color: #001018;
   font-weight: 500;
   font-size: 12px;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 0 12px rgba(52, 225, 255, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.25);
 }
 
 .footer-portal-link:hover,
 .footer-portal-link:focus-visible {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 0 18px rgba(255, 52, 245, 0.5);
+  background: linear-gradient(135deg, rgba(52, 225, 255, 0.6), rgba(255, 52, 245, 0.6));
+  box-shadow: 0 0 18px rgba(255, 52, 245, 0.4);
   text-decoration: none;
 }
 
@@ -1858,9 +1859,9 @@ footer {
   cursor: pointer;
 }
 
-/* Different hover effects for each word */
+/* All words use same hover effect (translateY) but keep unique colors */
 .footer-expansion-word-effervescent:hover {
-  transform: scale(1.2);
+  transform: translateY(-4px);
   color: hsl(193, 95%, 70%);
   text-shadow: 0 0 8px hsl(193, 95%, 70%);
 }
@@ -1872,38 +1873,23 @@ footer {
 }
 
 .footer-expansion-word-of:hover {
-  transform: rotate(5deg) scale(1.1);
+  transform: translateY(-4px);
   color: hsl(60, 95%, 70%);
   text-shadow: 0 0 8px hsl(60, 95%, 70%);
 }
 
 .footer-expansion-word-radical:hover {
-  transform: scaleX(1.3);
+  transform: translateY(-4px);
   color: hsl(300, 95%, 70%);
   text-shadow: 0 0 8px hsl(300, 95%, 70%);
-  font-weight: 700;
 }
 
 .footer-expansion-word-liminality:hover {
-  animation: liminalityGlow 0.6s ease-in-out infinite;
+  transform: translateY(-4px);
   color: hsl(240, 95%, 70%);
+  text-shadow: 0 0 8px hsl(240, 95%, 70%);
 }
 
-@keyframes liminalityGlow {
-  0%, 100% {
-    text-shadow: 
-      0 0 8px hsl(240, 95%, 70%),
-      0 0 16px hsl(240, 95%, 60%);
-    transform: scale(1);
-  }
-  50% {
-    text-shadow: 
-      0 0 16px hsl(240, 95%, 80%),
-      0 0 24px hsl(240, 95%, 70%),
-      0 0 32px hsl(240, 95%, 60%);
-    transform: scale(1.1);
-  }
-}
 
 .footer-copyright-line {
   display: block;
@@ -2566,11 +2552,11 @@ footer {
   animation: scrollToTopFaceStrokeHoverCycle 8s linear infinite;
 }
 
-/* Tooltip - fixed to viewport so it doesn't rotate with button */
+/* Tooltip - positioned relative to wrapper, doesn't rotate */
 .scroll-to-top-tooltip {
-  position: fixed;
-  bottom: 88px; /* 24px (button bottom) + 52px (button height) + 12px (gap) */
-  right: 24px; /* Match button's right position */
+  position: absolute;
+  bottom: calc(100% + 8px); /* Closer to button */
+  right: 0;
   white-space: nowrap;
   padding: 8px 12px;
   background: rgba(7, 27, 37, 0.95);
@@ -2623,11 +2609,20 @@ footer {
   filter: drop-shadow(0 0 4px rgba(52, 225, 255, 0.5));
 }
 
-.scroll-to-top-button:hover .scroll-to-top-tooltip {
+/* Wrapper for button and tooltip */
+.scroll-to-top-wrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+}
+
+/* Show tooltip when hovering over button - using sibling selector */
+.scroll-to-top-button:hover ~ .scroll-to-top-tooltip {
   opacity: 1;
 }
 
-.scroll-to-top-button:hover .scroll-to-top-tooltip::before {
+.scroll-to-top-button:hover ~ .scroll-to-top-tooltip::before {
   opacity: 1;
 }
 
@@ -2751,8 +2746,6 @@ footer {
 
 @media (max-width: 640px) {
   .scroll-to-top-button {
-    bottom: 20px;
-    right: 20px;
     width: 44px;
     height: 44px;
   }
@@ -2800,10 +2793,15 @@ footer {
     left: 3px;
   }
 
-  /* Mobile tooltip positioning - fixed to viewport */
+  /* Mobile wrapper positioning */
+  .scroll-to-top-wrapper {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  /* Mobile tooltip positioning */
   .scroll-to-top-tooltip {
-    bottom: 74px; /* 20px (button bottom) + 44px (button height) + 10px (gap) */
-    right: 20px; /* Match button's right position */
+    bottom: calc(100% + 6px);
     font-size: 11px;
     padding: 6px 10px;
   }
