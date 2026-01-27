@@ -540,7 +540,6 @@ export default async function FeedPage() {
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
                     titleHref={item.href}
                     showTitleLink={false}
-                    hideDateOnDesktop={item.type === 'Event'}
                   />
                   {item.type === 'Event' ? (
                     <>
