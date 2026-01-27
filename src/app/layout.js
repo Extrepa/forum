@@ -70,7 +70,7 @@ export default async function RootLayout({ children }) {
                 <div className="footer-column footer-column-left">
                   <a className="footer-portal-link" href="https://errl.wtf">
                     <span aria-hidden="true">↩</span>
-                    <span>Return to the Errl Portal</span>
+                    <span>Return to the <span className="footer-portal-emphasized">Errl Portal</span></span>
                   </a>
                 </div>
 
