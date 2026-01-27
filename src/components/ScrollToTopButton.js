@@ -124,14 +124,11 @@ export default function ScrollToTopButton() {
           />
         </svg>
       ))}
-      {/* Three copies positioned in triangle pattern */}
+      {/* Two copies: one above (rainbow arc) and one below (smile arc) */}
       <span className="scroll-to-top-hover-text scroll-to-top-hover-text-top" data-text-index="0">
         RETURN TO TOP
       </span>
-      <span className="scroll-to-top-hover-text scroll-to-top-hover-text-bottom-right" data-text-index="1">
-        RETURN TO TOP
-      </span>
-      <span className="scroll-to-top-hover-text scroll-to-top-hover-text-bottom-left" data-text-index="2">
+      <span className="scroll-to-top-hover-text scroll-to-top-hover-text-bottom" data-text-index="1">
         RETURN TO TOP
       </span>
       </div>

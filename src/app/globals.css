@@ -2359,79 +2359,78 @@ footer {
   transform-origin: center center;
 }
 
-/* Three texts positioned in equilateral triangle (120° apart) */
-/* Button is 52px, center at 26px, texts at ~35px radius */
+/* Two texts: one above (top half circle arc) and one below (bottom half circle arc) */
+/* Button is 52px, center at 26px, arc radius ~40px */
 .scroll-to-top-hover-text-top {
-  /* Top vertex (0°) */
-  top: -35px;
+  /* Top text - follows top half of circle */
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform-origin: center center;
   animation: scrollToTopRainbowArc 4s linear infinite, scrollToTopTextColorCycle 3s linear infinite;
 }
 
-.scroll-to-top-hover-text-bottom-right {
-  /* Bottom-right vertex (120° from top) */
-  bottom: 9px;
-  right: 4px;
-  animation: scrollToTopTriangleArc 4s linear infinite;
-  color: hsl(150, 95%, 70%);
+.scroll-to-top-hover-text-bottom {
+  /* Bottom text - follows bottom half of circle */
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  animation: scrollToTopSmileArc 4s linear infinite;
+  color: hsl(60, 95%, 70%);
   text-shadow: 
-    0 0 8px hsl(150, 95%, 70%),
-    0 0 16px hsl(150, 95%, 60%),
-    0 0 24px hsl(150, 95%, 50%);
-}
-
-.scroll-to-top-hover-text-bottom-left {
-  /* Bottom-left vertex (240° from top) */
-  bottom: 9px;
-  left: 4px;
-  animation: scrollToTopTriangleArc 4s linear infinite;
-  color: hsl(300, 95%, 70%);
-  text-shadow: 
-    0 0 8px hsl(300, 95%, 70%),
-    0 0 16px hsl(300, 95%, 60%),
-    0 0 24px hsl(300, 95%, 50%);
+    0 0 8px hsl(60, 95%, 70%),
+    0 0 16px hsl(60, 95%, 60%),
+    0 0 24px hsl(60, 95%, 50%);
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
   opacity: 1;
 }
 
-/* Rainbow arc animation - curved path above button */
+/* Rainbow arc animation - top half of circle (180° to 0° to -180°) */
 @keyframes scrollToTopRainbowArc {
   0% {
-    transform: translateX(-50%) translateY(0) rotate(-15deg);
+    /* Left side of arc */
+    transform: translate(-40px, 0) rotate(0deg);
   }
   25% {
-    transform: translateX(-50%) translateY(-8px) rotate(0deg);
+    /* Top-left quarter */
+    transform: translate(-28px, -28px) rotate(-45deg);
   }
   50% {
-    transform: translateX(-50%) translateY(0) rotate(15deg);
+    /* Top of arc */
+    transform: translate(0, -40px) rotate(0deg);
   }
   75% {
-    transform: translateX(-50%) translateY(-8px) rotate(0deg);
+    /* Top-right quarter */
+    transform: translate(28px, -28px) rotate(45deg);
   }
   100% {
-    transform: translateX(-50%) translateY(0) rotate(-15deg);
+    /* Right side of arc */
+    transform: translate(40px, 0) rotate(0deg);
   }
 }
 
-/* Triangle arc animation for bottom texts */
-@keyframes scrollToTopTriangleArc {
+/* Smile arc animation - bottom half of circle (-180° to 0° to 180°) */
+@keyframes scrollToTopSmileArc {
   0% {
-    transform: translateY(0) rotate(10deg);
+    /* Left side of arc */
+    transform: translate(-40px, 0) rotate(0deg);
   }
   25% {
-    transform: translateY(5px) rotate(0deg);
+    /* Bottom-left quarter */
+    transform: translate(-28px, 28px) rotate(45deg);
   }
   50% {
-    transform: translateY(0) rotate(-10deg);
+    /* Bottom of arc */
+    transform: translate(0, 40px) rotate(0deg);
   }
   75% {
-    transform: translateY(5px) rotate(0deg);
+    /* Bottom-right quarter */
+    transform: translate(28px, 28px) rotate(-45deg);
   }
   100% {
-    transform: translateY(0) rotate(10deg);
+    /* Right side of arc */
+    transform: translate(40px, 0) rotate(0deg);
   }
 }
 
@@ -2743,30 +2742,64 @@ footer {
     left: 3px;
   }
 
-  /* Mobile hover text - three texts in triangle pattern */
-  /* Button is 44px, center at 22px, texts at ~30px radius */
+  /* Mobile hover text - one above (rainbow arc) and one below (smile arc) */
+  /* Button is 44px, center at 22px, arc radius ~35px */
   .scroll-to-top-hover-text {
     font-size: 11px;
     max-width: calc(100vw - 80px);
   }
 
   .scroll-to-top-hover-text-top {
-    /* Top vertex (0°) */
-    top: -30px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform-origin: center center;
+    /* Scale down arc for smaller button */
+    animation: scrollToTopRainbowArcMobile 4s linear infinite, scrollToTopTextColorCycle 3s linear infinite;
   }
 
-  .scroll-to-top-hover-text-bottom-right {
-    /* Bottom-right vertex (120° from top) */
-    bottom: 8px;
-    right: 3px;
+  .scroll-to-top-hover-text-bottom {
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    /* Scale down arc for smaller button */
+    animation: scrollToTopSmileArcMobile 4s linear infinite;
   }
 
-  .scroll-to-top-hover-text-bottom-left {
-    /* Bottom-left vertex (240° from top) */
-    bottom: 8px;
-    left: 3px;
+  /* Mobile arc animations with smaller radius */
+  @keyframes scrollToTopRainbowArcMobile {
+    0% {
+      transform: translate(-35px, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(-25px, -25px) rotate(-45deg);
+    }
+    50% {
+      transform: translate(0, -35px) rotate(0deg);
+    }
+    75% {
+      transform: translate(25px, -25px) rotate(45deg);
+    }
+    100% {
+      transform: translate(35px, 0) rotate(0deg);
+    }
+  }
+
+  @keyframes scrollToTopSmileArcMobile {
+    0% {
+      transform: translate(-35px, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(-25px, 25px) rotate(45deg);
+    }
+    50% {
+      transform: translate(0, 35px) rotate(0deg);
+    }
+    75% {
+      transform: translate(25px, 25px) rotate(-45deg);
+    }
+    100% {
+      transform: translate(35px, 0) rotate(0deg);
+    }
   }
 }
 
