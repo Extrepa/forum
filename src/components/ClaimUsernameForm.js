@@ -528,6 +528,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(event) => setNewEmail(event.target.value)}
                     placeholder={me.email || 'you@example.com'}
                     disabled={!!me.email && !editingEmail}
+                    style={{ opacity: (!!me.email && !editingEmail) ? 0.6 : 1 }}
                     required
                   />
                 </label>
@@ -539,6 +540,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(event) => setNewPhone(event.target.value)}
                     placeholder={me.phone || '+15551234567'}
                     disabled={!!me.email && !editingEmail}
+                    style={{ opacity: (!!me.email && !editingEmail) ? 0.6 : 1 }}
                   />
                 </label>
                 <div className="stack" style={{ gap: 10 }}>
@@ -564,7 +566,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setEditingEmail(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setEditingEmail(true);
+                      }}
                       disabled={status.type === 'loading'}
                     >
                       Edit contact info
