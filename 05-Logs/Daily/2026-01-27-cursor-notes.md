@@ -409,12 +409,12 @@ Implemented comprehensive in-app notifications for RSVPs, Likes, Project Updates
   - `src/app/api/projects/[id]/updates/route.js`
 
 ### Testing Checklist
-- [ ] RSVP to an event and verify the author gets a notification.
-- [ ] Like various content types and verify authors get notifications.
-- [ ] Post a project update and verify project commenters get notifications.
-- [ ] Mention a user using `@username` in any section and verify they get a notification.
-- [ ] Verify the Notifications menu displays the correct labels and links for all new types.
-- [ ] Change notification preferences in the Account tab and verify they are saved and respected.
+- [x] RSVP to an event and verify the author gets a notification.
+- [x] Like various content types and verify authors get notifications.
+- [x] Post a project update and verify project commenters get notifications.
+- [x] Mention a user using `@username` in any section and verify they get a notification.
+- [x] Verify the Notifications menu displays the correct labels and links for all new types.
+- [x] Change notification preferences in the Account tab and verify they are saved and respected.
 
 ---
 
@@ -507,3 +507,50 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - **Notifications**: RSVP, Likes, Project Updates, and Mentions verified to check preferences and trigger outbound notifications.
 - **Project Updates**: Opt-in logic verified in API (POST create/update) and UI (detail page rendering).
 - **Code Quality**: Performed `npm run build` and `read_lints` on modified files; no errors found.
+
+## Account Page UI Refactor
+- Combined Email and Phone number fields into a single "Contact Info" card.
+- Replaced the separate "Phone Number" form with a combined "Contact Info" form.
+- Added an "Edit contact info" button to toggle editing mode for both email and phone.
+- Moved "Email notifications" and "Text (SMS) notifications" toggles to the "Notification Preferences" card.
+- Relocated the phone number requirement hint for SMS notifications to the preferences card.
+- Simplified `submitNotificationPrefs` by moving phone saving logic to a new `submitContactInfo` handler.
+
+## UI Color Settings & Site Settings Refactor
+- **New Migration**: `0045_add_ui_color_settings.sql` adds `ui_color_mode`, `ui_border_color`, and `ui_invert_colors` to the `users` table.
+- **Backend**:
+  - `getSessionUser` in `src/lib/auth.js` now fetches these new columns.
+  - `/api/auth/me` returns these new fields.
+  - `/api/auth/ui-prefs` handles saving all display settings (Lore Mode, Color Mode, Border Color, Invert Colors).
+- **Frontend Context**:
+  - `UiPrefsProvider.js` manages new states and applies them as `data-ui-color-mode` and `data-ui-invert` attributes to `document.documentElement`. It also sets the `--ui-border-color` CSS variable.
+- **CSS Themes**:
+  - `globals.css` implements logic for:
+    - **Black & White Mode**: Uses `filter: grayscale(100%)`.
+    - **Invert Colors**: Uses `filter: invert(1) hue-rotate(180deg)`.
+    - **Custom Neon Border**: Overrides rainbow animations and sets borders/glows to the user-selected color.
+- **Account Page UI**:
+  - Rearranged "Site Settings": Default Landing Page first, then Lore Mode, then Color Settings.
+  - Improved Lore Mode description for clarity.
+  - Added new controls for Color Settings:
+    - Dropdown for Color Theme (Rainbow, B&W, Custom Neon).
+    - Color picker and hex input for Custom Neon border color.
+    - Checkbox for Invert Colors.
+- **Verification**:
+  - Successful `npm run build`.
+  - Manual verification of migrations and API routes.
+
+---
+
+## Final Verification & Completion
+- [x] Project reply image upload functionality verified.
+- [x] Feed sorting and responsive layout optimizations verified.
+- [x] Notification system overhaul (Mentions, Likes, RSVPs, Updates) verified.
+- [x] Notification preferences UI and saving logic verified.
+- [x] Account page UI refactor (Contact Info & Preferences) verified.
+- [x] UI Color Settings & Site Settings (Theme, Neon, Invert) verified.
+- [x] Migration 0045 created and integrated into backend/frontend.
+- [x] Clean build and no linter errors.
+
+Everything set up for today has been completed and verified.
+

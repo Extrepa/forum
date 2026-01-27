@@ -23,6 +23,9 @@ export async function GET() {
       notifyReplyEnabled: user.notify_reply_enabled !== 0,
       notifyCommentEnabled: user.notify_comment_enabled !== 0,
       uiLoreEnabled: !!user.ui_lore_enabled,
+      uiColorMode: user.ui_color_mode ?? 0,
+      uiBorderColor: user.ui_border_color ?? null,
+      uiInvertColors: !!user.ui_invert_colors,
       defaultLandingPage: user.default_landing_page ?? 'home',
       preferredUsernameColorIndex: user.preferred_username_color_index ?? null
     }

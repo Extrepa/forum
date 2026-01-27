@@ -59,7 +59,12 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <UiPrefsProvider initialLoreEnabled={useLore}>
+        <UiPrefsProvider 
+          initialLoreEnabled={useLore}
+          initialColorMode={user?.ui_color_mode ?? 0}
+          initialBorderColor={user?.ui_border_color ?? null}
+          initialInvertColors={!!user?.ui_invert_colors}
+        >
           <div className="site">
             <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} />
             <NotificationTutorial isSignedIn={isSignedIn} />

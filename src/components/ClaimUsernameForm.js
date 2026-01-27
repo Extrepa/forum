@@ -11,7 +11,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const router = useRouter();
   const [status, setStatus] = useState({ type: 'idle', message: null });
   const [mode, setMode] = useState('login'); // signup | login - defaults to login, will be updated by useEffect based on session
-  const { loreEnabled, setLoreEnabled } = useUiPrefs();
+  const { 
+    loreEnabled, setLoreEnabled,
+    setUiColorMode: setGlobalColorMode,
+    setUiBorderColor: setGlobalBorderColor,
+    setUiInvertColors: setGlobalInvertColors
+  } = useUiPrefs();
 
   const [me, setMe] = useState(null);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -115,6 +120,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [notifyReplyEnabled, setNotifyReplyEnabled] = useState(true);
   const [notifyCommentEnabled, setNotifyCommentEnabled] = useState(true);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
+  const [uiColorMode, setUiColorMode] = useState(0);
+  const [uiBorderColor, setUiBorderColor] = useState('#34e1ff');
+  const [uiInvertColors, setUiInvertColors] = useState(false);
   const [defaultLandingPage, setDefaultLandingPage] = useState('feed');
 
   const validatePassword = (value) => {
@@ -148,6 +156,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
         setUiLoreEnabled(!!user?.uiLoreEnabled);
         setLoreEnabled(!!user?.uiLoreEnabled);
+        setUiColorMode(user?.uiColorMode ?? 0);
+        setUiBorderColor(user?.uiBorderColor || '#34e1ff');
+        setUiInvertColors(!!user?.uiInvertColors);
         setDefaultLandingPage(user?.defaultLandingPage || 'feed');
         
         // Set default mode based on whether user exists
@@ -186,6 +197,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
       setUiLoreEnabled(!!user?.uiLoreEnabled);
       setLoreEnabled(!!user?.uiLoreEnabled);
+      setUiColorMode(user?.uiColorMode ?? 0);
+      setUiBorderColor(user?.uiBorderColor || '#34e1ff');
+      setUiInvertColors(!!user?.uiInvertColors);
       setDefaultLandingPage(user?.defaultLandingPage || 'feed');
       return user; // Return user for navigation logic
     } catch (error) {
@@ -209,7 +223,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       const response = await fetch('/api/auth/ui-prefs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loreEnabled: !!uiLoreEnabled })
+        body: JSON.stringify({ 
+          loreEnabled: !!uiLoreEnabled,
+          colorMode: uiColorMode,
+          borderColor: uiBorderColor,
+          invertColors: !!uiInvertColors
+        })
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -217,6 +236,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       }
       setStatus({ type: 'success', message: 'Display settings saved.' });
       setLoreEnabled(!!payload.uiLoreEnabled);
+      setGlobalColorMode(payload.uiColorMode);
+      setGlobalBorderColor(payload.uiBorderColor);
+      setGlobalInvertColors(!!payload.uiInvertColors);
       await refreshMe();
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -250,15 +272,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       const phoneTrimmed = String(newPhone || '').trim();
       if (notifySmsEnabled && !phoneTrimmed) {
         throw new Error('Enter a phone number before enabling SMS notifications.');
-      }
-      const phoneResponse = await fetch('/api/auth/set-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneTrimmed || null })
-      });
-      const phonePayload = await phoneResponse.json();
-      if (!phoneResponse.ok) {
-        throw new Error(phonePayload.error || 'Unable to save phone number.');
       }
 
       const response = await fetch('/api/auth/notification-prefs', {
@@ -385,23 +398,36 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     window.location.href = 'https://forum.errl.wtf';
   };
 
-  const submitSetEmail = async (event) => {
+  const submitContactInfo = async (event) => {
     event.preventDefault();
-    if (me?.email && !editingEmail) {
-      return;
-    }
-    setStatus({ type: 'loading', message: 'Saving email...' });
+    setStatus({ type: 'loading', message: 'Saving contact info...' });
     try {
-      const response = await fetch('/api/auth/set-email', {
+      // Save email if editing or not set
+      if (!me?.email || editingEmail) {
+        const emailResponse = await fetch('/api/auth/set-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: newEmail })
+        });
+        const emailPayload = await emailResponse.json();
+        if (!emailResponse.ok) {
+          throw new Error(emailPayload.error || 'Unable to set email.');
+        }
+      }
+
+      // Save phone
+      const phoneTrimmed = String(newPhone || '').trim();
+      const phoneResponse = await fetch('/api/auth/set-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newEmail })
+        body: JSON.stringify({ phone: phoneTrimmed || null })
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || 'Unable to set email.');
+      const phonePayload = await phoneResponse.json();
+      if (!phoneResponse.ok) {
+        throw new Error(phonePayload.error || 'Unable to save phone number.');
       }
-      setStatus({ type: 'success', message: 'Email saved.' });
+
+      setStatus({ type: 'success', message: 'Contact info saved.' });
       setEditingEmail(false);
       await refreshMe();
     } catch (error) {
@@ -489,53 +515,63 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
 
         <div className="account-columns">
           <div className="account-col">
-            <form onSubmit={submitSetEmail} className="card" style={{ padding: 12 }}>
+            <form onSubmit={submitContactInfo} className="card" style={{ padding: 12 }}>
               <h3 className="section-title" style={{ marginBottom: '4px', borderBottom: 'none' }}>
-                Email
+                Contact Info
               </h3>
-              {me.email && !editingEmail ? (
-                <div className="stack" style={{ gap: 10 }}>
-                  <input name="email" value={me.email} disabled />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStatus({ type: 'idle', message: null });
-                      setEditingEmail(true);
-                      setNewEmail(me.email || '');
-                    }}
-                    disabled={status.type === 'loading'}
-                  >
-                    Change email
-                  </button>
-                </div>
-              ) : (
-                <div className="stack" style={{ gap: 10 }}>
+              <div className="stack" style={{ gap: 10 }}>
+                <label>
+                  <div className="muted">Email</div>
                   <input
                     name="email"
                     value={newEmail}
                     onChange={(event) => setNewEmail(event.target.value)}
                     placeholder={me.email || 'you@example.com'}
+                    disabled={!!me.email && !editingEmail}
                     required
                   />
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    <button type="submit" disabled={status.type === 'loading'}>
-                      {me.email ? 'Save email' : 'Set email'}
-                    </button>
-                    {me.email ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingEmail(false);
-                          setNewEmail(me.email || '');
-                        }}
-                        disabled={status.type === 'loading'}
-                      >
-                        Cancel
+                </label>
+                <label>
+                  <div className="muted">Phone number</div>
+                  <input
+                    name="phone"
+                    value={newPhone}
+                    onChange={(event) => setNewPhone(event.target.value)}
+                    placeholder={me.phone || '+15551234567'}
+                    disabled={!!me.email && !editingEmail}
+                  />
+                </label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {(!me.email || editingEmail) ? (
+                    <>
+                      <button type="submit" disabled={status.type === 'loading'}>
+                        {me.email ? 'Save contact info' : 'Set contact info'}
                       </button>
-                    ) : null}
-                  </div>
+                      {me.email ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingEmail(false);
+                            setNewEmail(me.email || '');
+                            setNewPhone(me.phone || '');
+                          }}
+                          disabled={status.type === 'loading'}
+                        >
+                          Cancel
+                        </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditingEmail(true)}
+                      disabled={status.type === 'loading'}
+                    >
+                      Edit contact info
+                    </button>
+                  )}
                 </div>
-              )}
+              </div>
             </form>
 
             <form onSubmit={submitChangePassword} className="card" style={{ padding: 12 }}>
@@ -571,55 +607,36 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               </button>
             </form>
 
-            {canConfigureNotifications ? (
-              <div className="stack" style={{ gap: 12 }}>
-                <form onSubmit={submitNotificationPrefs} className="card" style={{ padding: 12 }}>
-                  <h3 className="section-title" style={{ marginBottom: '4px', borderBottom: 'none' }}>
-                    Phone Number
-                  </h3>
-                  <label>
-                    <div className="muted">Phone number (required for SMS)</div>
-                    <input
-                      name="phone"
-                      value={newPhone}
-                      onChange={(event) => setNewPhone(event.target.value)}
-                      placeholder={me.phone || '+15551234567'}
-                    />
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <span>Email notifications</span>
-                    <input
-                      type="checkbox"
-                      checked={notifyEmailEnabled}
-                      onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
-                    />
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <span>Text (SMS) notifications</span>
-                    <input
-                      type="checkbox"
-                      checked={notifySmsEnabled}
-                      onChange={(e) => setNotifySmsEnabled(e.target.checked)}
-                      disabled={!String(newPhone || '').trim()}
-                    />
-                  </label>
-                  {!String(newPhone || '').trim() ? (
-                    <div className="muted" style={{ fontSize: 13 }}>
-                      Add a phone number to enable SMS.
-                    </div>
-                  ) : null}
-                  <button type="submit" disabled={status.type === 'loading'}>
-                    Save notification settings
-                  </button>
-                </form>
-              </div>
-            ) : null}
-
-            <div className="card" style={{ padding: 12, marginTop: canConfigureNotifications ? 0 : 12 }}>
+            <div className="card" style={{ padding: 12 }}>
               <h3 className="section-title" style={{ marginBottom: '12px', borderBottom: 'none' }}>
                 Notification Preferences
               </h3>
               <div className="stack" style={{ gap: 10 }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Email notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyEmailEnabled}
+                    onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Text (SMS) notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifySmsEnabled}
+                    onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                    disabled={!String(newPhone || '').trim()}
+                  />
+                </label>
+                {!String(newPhone || '').trim() ? (
+                  <div className="muted" style={{ fontSize: 13, marginBottom: 4 }}>
+                    Add a phone number to enable SMS.
+                  </div>
+                ) : null}
+
+                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }}></div>
+
                 <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <span>RSVP notifications</span>
                   <input
@@ -683,35 +700,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <section className="card" style={{ padding: 12 }}>
               <h3 className="section-title" style={{ marginBottom: '16px' }}>Site Settings</h3>
               
-              <form onSubmit={submitUiPrefs} style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
-                <div className="muted" style={{ marginBottom: 8 }}>
-                  Lore Mode
-                </div>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span>Lore mode</span>
-                  <input
-                    type="checkbox"
-                    checked={envLore ? true : !!uiLoreEnabled}
-                    onChange={(e) => {
-                      setUiLoreEnabled(e.target.checked);
-                      if (!envLore) setLoreEnabled(e.target.checked);
-                    }}
-                    disabled={envLore || status.type === 'loading'}
-                  />
-                </label>
-                <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-                  {envLore
-                    ? 'Forced on by server config.'
-                    : loreEnabled
-                    ? 'On: microcopy gets more lore-y.'
-                    : 'Off: microcopy stays more plain.'}
-                </div>
-                <button type="submit" disabled={status.type === 'loading'}>
-                  Save display settings
-                </button>
-              </form>
-
-              <form onSubmit={submitLandingPref}>
+              <form onSubmit={submitLandingPref} style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
                 <div className="muted" style={{ marginBottom: 8 }}>
                   Default Landing Page
                 </div>
@@ -735,6 +724,86 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </button>
               </form>
 
+              <form onSubmit={submitUiPrefs}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ fontWeight: 500 }}>Lore mode</span>
+                  <input
+                    type="checkbox"
+                    checked={envLore ? true : !!uiLoreEnabled}
+                    onChange={(e) => {
+                      setUiLoreEnabled(e.target.checked);
+                      if (!envLore) setLoreEnabled(e.target.checked);
+                    }}
+                    disabled={envLore || status.type === 'loading'}
+                  />
+                </label>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+                  {envLore
+                    ? 'Forced on by server config.'
+                    : loreEnabled
+                    ? 'Changes microcopy (labels, hints, placeholders) to be more thematic and "lore-y" to match the Errl universe.'
+                    : 'Keeps microcopy plain and functional.'}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', margin: '16px 0', paddingTop: '16px' }}>
+                  <div className="muted" style={{ marginBottom: 12, fontWeight: 500, color: 'var(--ink)' }}>
+                    Color Settings
+                  </div>
+                  
+                  <div className="stack" style={{ gap: 12 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                      <span>Color theme</span>
+                      <select
+                        value={uiColorMode}
+                        onChange={(e) => setUiColorMode(parseInt(e.target.value))}
+                        disabled={status.type === 'loading'}
+                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)', color: 'var(--ink)', width: 'auto' }}
+                      >
+                        <option value="0">Rainbow (Default)</option>
+                        <option value="1">Black & White</option>
+                        <option value="2">Custom Neon Border</option>
+                      </select>
+                    </label>
+
+                    {uiColorMode === 2 && (
+                      <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                        <span>Border color</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="color"
+                            value={uiBorderColor}
+                            onChange={(e) => setUiBorderColor(e.target.value)}
+                            disabled={status.type === 'loading'}
+                            style={{ padding: 0, width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer' }}
+                          />
+                          <input
+                            type="text"
+                            value={uiBorderColor}
+                            onChange={(e) => setUiBorderColor(e.target.value)}
+                            disabled={status.type === 'loading'}
+                            style={{ padding: '4px 8px', width: 80, fontSize: 12, minHeight: 0 }}
+                          />
+                        </div>
+                      </label>
+                    )}
+
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                      <span>Invert colors</span>
+                      <input
+                        type="checkbox"
+                        checked={uiInvertColors}
+                        onChange={(e) => setUiInvertColors(e.target.checked)}
+                        disabled={status.type === 'loading'}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={status.type === 'loading'} style={{ marginTop: 8 }}>
+                  Save display settings
+                </button>
+              </form>
+
               <div style={{ 
                 marginTop: '24px', 
                 paddingTop: '24px', 
@@ -748,7 +817,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div className="muted" style={{ fontSize: 13 }}>Feed preferences</div>
-                  <div className="muted" style={{ fontSize: 13 }}>Color settings</div>
                   <div className="muted" style={{ fontSize: 13 }}>Movement/animation settings</div>
                 </div>
               </div>

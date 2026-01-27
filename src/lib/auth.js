@@ -11,7 +11,7 @@ export async function getSessionUser() {
     // Try with all columns including preferred_username_color_index
     const user = await db
       .prepare(
-        'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, notify_rsvp_enabled, notify_like_enabled, notify_update_enabled, notify_mention_enabled, notify_reply_enabled, notify_comment_enabled, ui_lore_enabled, default_landing_page, preferred_username_color_index FROM users WHERE session_token = ?'
+        'SELECT id, username, role, email, phone, password_hash, must_change_password, notify_email_enabled, notify_sms_enabled, notify_rsvp_enabled, notify_like_enabled, notify_update_enabled, notify_mention_enabled, notify_reply_enabled, notify_comment_enabled, ui_lore_enabled, ui_color_mode, ui_border_color, ui_invert_colors, default_landing_page, preferred_username_color_index FROM users WHERE session_token = ?'
       )
       .bind(token)
       .first();
