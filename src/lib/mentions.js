@@ -7,9 +7,15 @@ import { getDb } from './db';
  */
 export function extractMentions(text) {
   if (!text) return [];
-  const matches = text.match(/@([a-zA-Z0-9_-]+)/g);
-  if (!matches) return [];
-  return [...new Set(matches.map(m => m.slice(1).toLowerCase()))];
+  // Match @username preceded by start of line or whitespace.
+  // Usernames are 3-20 chars: a-z, 0-9, or underscores.
+  const regex = /(?:^|\s)@([a-z0-9_]{3,20})\b/gi;
+  const usernames = [];
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    usernames.push(match[1].toLowerCase());
+  }
+  return [...new Set(usernames)];
 }
 
 /**

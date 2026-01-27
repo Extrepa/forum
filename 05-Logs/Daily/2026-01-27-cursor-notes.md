@@ -449,3 +449,8 @@ Added a new card to the Account tab allowing users to toggle specific notificati
   - Fixed Bug: Updated `src/lib/auth.js` to include the new notification preference columns in the `getSessionUser` query, ensuring they are available to API routes.
   - Fixed Bug: Updated `src/app/api/events/[id]/rsvp/route.js` to use `author.author_user_id` instead of `event.author_user_id` when creating notifications.
   - Improved Default Logic: Updated `src/app/api/auth/me/route.js` to treat `null` or `undefined` as enabled (defaulting to `true`) for in-app notification preferences.
+- **Database Migrations**: Applied `0042_notification_type_prefs.sql` to the remote D1 database using Wrangler.
+- **@Mentions Enhancements**:
+  - Updated `src/lib/markdown.js` to render `@username` as profile links.
+  - Refined `src/lib/mentions.js` to use a more accurate regex that matches the frontend and avoids false positives (like emails).
+  - Verified full build successfully.
