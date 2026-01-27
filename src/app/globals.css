@@ -1725,7 +1725,7 @@ footer {
   text-decoration: none;
 }
 
-/* Emphasize "Errl Portal" text with neon coloring */
+/* Emphasize "Errl Portal" text with neon coloring - more subtle and slower */
 .footer-portal-link .footer-portal-emphasized {
   font-weight: 700;
   font-size: 13px;
@@ -1735,19 +1735,19 @@ footer {
   -webkit-text-fill-color: transparent;
   text-shadow: none;
   letter-spacing: 0.3px;
-  filter: drop-shadow(0 0 4px hsl(193, 95%, 70%)) drop-shadow(0 0 8px hsl(255, 95%, 60%));
-  animation: footerPortalNeonGlow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.5)) drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.3));
+  animation: footerPortalNeonGlow 8s ease-in-out infinite;
 }
 
 @keyframes footerPortalNeonGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 4px hsl(193, 95%, 70%)) drop-shadow(0 0 8px hsl(193, 95%, 60%));
+    filter: drop-shadow(0 0 2px hsl(193, 95%, 70% / 0.5)) drop-shadow(0 0 4px hsl(193, 95%, 60% / 0.3));
   }
   33% {
-    filter: drop-shadow(0 0 6px hsl(255, 95%, 70%)) drop-shadow(0 0 12px hsl(255, 95%, 60%));
+    filter: drop-shadow(0 0 2px hsl(255, 95%, 70% / 0.5)) drop-shadow(0 0 4px hsl(255, 95%, 60% / 0.3));
   }
   66% {
-    filter: drop-shadow(0 0 6px hsl(300, 95%, 70%)) drop-shadow(0 0 12px hsl(300, 95%, 60%));
+    filter: drop-shadow(0 0 2px hsl(300, 95%, 70% / 0.5)) drop-shadow(0 0 4px hsl(300, 95%, 60% / 0.3));
   }
 }
 
@@ -2555,7 +2555,7 @@ footer {
 /* Tooltip - positioned relative to wrapper, doesn't rotate */
 .scroll-to-top-tooltip {
   position: absolute;
-  bottom: calc(100% + 8px); /* Closer to button */
+  bottom: calc(100% + 12px); /* Positioned above button */
   right: 0;
   white-space: nowrap;
   padding: 8px 12px;
@@ -2801,7 +2801,7 @@ footer {
 
   /* Mobile tooltip positioning */
   .scroll-to-top-tooltip {
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 10px); /* Positioned above button */
     font-size: 11px;
     padding: 6px 10px;
   }
