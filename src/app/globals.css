@@ -2311,7 +2311,7 @@ footer {
 
 /* Hover text - "RETURN TO TOP" */
 .scroll-to-top-hover-text {
-  position: absolute;
+  position: fixed; /* Fixed to viewport, not button */
   white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
@@ -2321,9 +2321,6 @@ footer {
   transition: opacity 0.3s ease;
   z-index: 1000;
   animation: scrollToTopTextColorCycle 3s linear infinite, scrollToTopTextBounce 8s ease-in-out infinite;
-  /* Ensure text stays within viewport - max distance from button */
-  max-width: 140px;
-  text-align: center;
   /* Text shadow will be animated via keyframes */
 }
 
@@ -2331,27 +2328,24 @@ footer {
   opacity: 1;
 }
 
-/* Clock hand bounce animation - moves like minute hand from 7:30 (225°) to noon (0°) and back */
-/* Text moves in an arc pattern, staying within viewport bounds */
-/* Button is positioned at bottom-right (24px from edges), so we ensure text stays visible */
+/* Bounce animation - moves between bottom-right and bottom-left viewport corners */
+/* Text is locked to viewport corners, not button position */
 @keyframes scrollToTopTextBounce {
   0%, 100% {
-    /* 7:30 position (225 degrees) - bottom-left area of button */
-    /* Positioned to ensure it doesn't go off left edge of viewport */
-    bottom: 8px;
-    left: -120px; /* Offset left from button, but not too far */
-    right: auto;
+    /* Bottom-right corner of viewport */
+    bottom: 24px; /* Match button's bottom position */
+    right: 24px; /* Right edge of viewport */
+    left: auto;
     top: auto;
-    transform: translateY(0);
+    transform: translateX(0);
   }
   50% {
-    /* Noon position (0 degrees) - directly above button */
-    /* Positioned to ensure it doesn't go off top edge of viewport */
-    top: -38px; /* Above button, safe distance from top */
-    left: 50%;
+    /* Bottom-left corner of viewport */
+    bottom: 24px; /* Same bottom position */
+    left: 24px; /* Left edge of viewport */
     right: auto;
-    bottom: auto;
-    transform: translateX(-50%) translateY(0);
+    top: auto;
+    transform: translateX(0);
   }
 }
 
@@ -2626,7 +2620,26 @@ footer {
   /* Mobile hover text adjustments */
   .scroll-to-top-hover-text {
     font-size: 12px;
-    max-width: 110px; /* Smaller max-width on mobile */
+    /* Override animation for mobile with adjusted positions */
+    animation: scrollToTopTextColorCycle 3s linear infinite, scrollToTopTextBounceMobile 8s ease-in-out infinite;
+  }
+  
+  /* Mobile bounce animation - adjust for smaller button position */
+  @keyframes scrollToTopTextBounceMobile {
+    0%, 100% {
+      bottom: 20px; /* Match mobile button's bottom position */
+      right: 20px; /* Right edge of viewport */
+      left: auto;
+      top: auto;
+      transform: translateX(0);
+    }
+    50% {
+      bottom: 20px; /* Same bottom position */
+      left: 20px; /* Left edge of viewport */
+      right: auto;
+      top: auto;
+      transform: translateX(0);
+    }
   }
 }
 
