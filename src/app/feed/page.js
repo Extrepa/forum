@@ -545,7 +545,7 @@ export default async function FeedPage() {
                   {item.type === 'Event' ? (
                     <>
                       {item.createdAt && (
-                        <div style={{ marginTop: '8px' }}>
+                        <div>
                           <span className="muted event-post-time-desktop" style={{ fontSize: '12px' }} suppressHydrationWarning>
                             {formatDateTime(item.createdAt)}
                           </span>
