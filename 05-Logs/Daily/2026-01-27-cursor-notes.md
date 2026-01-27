@@ -549,7 +549,9 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - [x] Notification preferences UI and saving logic verified.
 - [x] Account page UI refactor (Contact Info & Preferences) verified.
 - [x] UI Color Settings & Site Settings (Theme, Neon, Invert) verified.
+- [x] Refined Lore Mode description on the account page to better explain microcopy.
 - [x] Migration 0045 created and integrated into backend/frontend.
+- [x] All pending migrations (0044, 0045) applied to both local and remote (D1) databases.
 - [x] Clean build and no linter errors.
 
 Everything set up for today has been completed and verified.

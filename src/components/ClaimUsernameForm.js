@@ -741,8 +741,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                   {envLore
                     ? 'Forced on by server config.'
                     : loreEnabled
-                    ? 'Changes microcopy (labels, hints, placeholders) to be more thematic and "lore-y" to match the Errl universe.'
-                    : 'Keeps microcopy plain and functional.'}
+                    ? 'Lore Mode transforms the interface\'s microcopy—the small bits of text like labels, button hints, and form placeholders—to match the thematic "lore" of the Errl universe.'
+                    : 'When off, microcopy (the functional text like labels and placeholders) remains plain and straightforward.'}
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--border)', margin: '16px 0', paddingTop: '16px' }}>
