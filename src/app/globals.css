@@ -1686,14 +1686,14 @@ footer {
 }
 
 .footer-column-right {
-  align-items: flex-start;
-  text-align: left;
+  align-items: center;
+  text-align: center;
 }
 
 @media (min-width: 768px) {
   .footer-column-right {
-    align-items: flex-end;
-    text-align: right;
+    align-items: center;
+    text-align: center;
   }
 }
 
@@ -1756,8 +1756,64 @@ footer {
 }
 
 .footer-trademark-name {
-  font-weight: 500;
+  font-weight: 700; /* More bold */
   color: rgba(255, 255, 255, 0.7);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+/* Errl hover color change - cycles through neon colors */
+.footer-trademark-name:hover {
+  color: hsl(193, 95%, 70%);
+  text-shadow: 
+    0 0 8px hsl(193, 95%, 70%),
+    0 0 16px hsl(193, 95%, 60%);
+  animation: errlTrademarkColorCycle 3s linear infinite;
+}
+
+@keyframes errlTrademarkColorCycle {
+  0% {
+    color: hsl(193, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(193, 95%, 70%),
+      0 0 16px hsl(193, 95%, 60%);
+  }
+  16.66% {
+    color: hsl(150, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(150, 95%, 70%),
+      0 0 16px hsl(150, 95%, 60%);
+  }
+  33.33% {
+    color: hsl(60, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(60, 95%, 70%),
+      0 0 16px hsl(60, 95%, 60%);
+  }
+  50% {
+    color: hsl(30, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(30, 95%, 70%),
+      0 0 16px hsl(30, 95%, 60%);
+  }
+  66.66% {
+    color: hsl(300, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(300, 95%, 70%),
+      0 0 16px hsl(300, 95%, 60%);
+  }
+  83.33% {
+    color: hsl(240, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(240, 95%, 70%),
+      0 0 16px hsl(240, 95%, 60%);
+  }
+  100% {
+    color: hsl(193, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(193, 95%, 70%),
+      0 0 16px hsl(193, 95%, 60%);
+  }
 }
 
 .footer-trademark-expansion {
@@ -1765,9 +1821,64 @@ footer {
   margin-left: 0.25rem;
 }
 
+/* Expansion word base styles */
+.footer-expansion-word {
+  display: inline-block;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Different hover effects for each word */
+.footer-expansion-word-effervescent:hover {
+  transform: scale(1.2);
+  color: hsl(193, 95%, 70%);
+  text-shadow: 0 0 8px hsl(193, 95%, 70%);
+}
+
+.footer-expansion-word-remnant:hover {
+  transform: translateY(-4px);
+  color: hsl(150, 95%, 70%);
+  text-shadow: 0 0 8px hsl(150, 95%, 70%);
+}
+
+.footer-expansion-word-of:hover {
+  transform: rotate(5deg) scale(1.1);
+  color: hsl(60, 95%, 70%);
+  text-shadow: 0 0 8px hsl(60, 95%, 70%);
+}
+
+.footer-expansion-word-radical:hover {
+  transform: scaleX(1.3);
+  color: hsl(300, 95%, 70%);
+  text-shadow: 0 0 8px hsl(300, 95%, 70%);
+  font-weight: 700;
+}
+
+.footer-expansion-word-liminality:hover {
+  animation: liminalityGlow 0.6s ease-in-out infinite;
+  color: hsl(240, 95%, 70%);
+}
+
+@keyframes liminalityGlow {
+  0%, 100% {
+    text-shadow: 
+      0 0 8px hsl(240, 95%, 70%),
+      0 0 16px hsl(240, 95%, 60%);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 
+      0 0 16px hsl(240, 95%, 80%),
+      0 0 24px hsl(240, 95%, 70%),
+      0 0 32px hsl(240, 95%, 60%);
+    transform: scale(1.1);
+  }
+}
+
 .footer-copyright-line {
   display: block;
   margin-top: 0.25rem;
+  text-align: center;
 }
 
 /* Tagline bar */
@@ -1948,7 +2059,11 @@ footer {
 
 .footer-tagline-phrase-2 {
   animation: tagline-rainbow-2 12s linear infinite;
+  position: relative;
+  display: inline-block;
 }
+
+/* Errl R expansion effect - simplified: replace entire phrase on hover */
 
 /* Individual letter styling */
 .footer-tagline-letter {
@@ -2021,38 +2136,25 @@ footer {
   animation-delay: var(--letter-delay, 0s);
 }
 
-/* Errl R expansion effect */
-.footer-tagline-word-errl {
-  position: relative;
-  display: inline-block;
-  overflow: visible; /* Allow extra R's to be visible */
-  transition: transform 1.2s ease-out; /* Match expansion animation timing */
-}
-
-/* Shift the word left when expanding to keep it centered */
-/* The extra content 'rrrrrrrrrrrrl.' is ~14 characters, so shift left by ~half */
-.footer-tagline-bar:hover .footer-tagline-word-errl {
-  transform: translateX(calc(-1 * 4.2em)); /* Shift left by approximately half the expansion width */
-}
-
-/* Target the second R (3rd character in "Errl" = E-r-r-l) */
-.footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3) {
-  position: relative;
-}
-
-/* Hide the original "l" when hovering */
-.footer-tagline-bar:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
+/* Hide original "Keep it Errl." content on hover */
+.footer-tagline-bar:hover .footer-tagline-phrase-2 > * {
   opacity: 0;
   width: 0;
   overflow: hidden;
+  display: inline-block;
+  font-size: 0;
 }
 
-/* Add extra R's + l + period after the second R on hover */
-.footer-tagline-bar:hover .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(3)::after {
-  content: 'rrrrrrrrrrrrl.';
+/* Show expanded "Keep it Errrrrrrrrrrrrl." on hover */
+.footer-tagline-bar:hover .footer-tagline-phrase-2::after {
+  content: 'Keep it Errrrrrrrrrrrrl.';
   position: absolute;
-  left: 100%;
+  left: 0;
   top: 0;
+  opacity: 1;
+  width: auto;
+  overflow: visible;
+  display: inline-block;
   animation: errl-r-type 1.2s ease-out forwards;
   color: inherit;
   text-shadow: inherit;
@@ -2062,30 +2164,16 @@ footer {
   letter-spacing: inherit;
   white-space: nowrap;
   z-index: 1;
-  pointer-events: none; /* Don't interfere with layout */
-  overflow: hidden;
+  pointer-events: none;
 }
 
-/* Ensure the "l" (4th letter) is visible when not hovering */
-.footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
-  position: relative;
-  z-index: 10;
-  display: inline-block;
-  transition: opacity 0.2s ease, width 0.2s ease;
-}
-
-/* Hide the period after Errl word when hovering (it's included in ::after) */
-.footer-tagline-bar:hover .footer-tagline-phrase .footer-tagline-word-errl ~ .footer-tagline-letter {
+/* Ensure ::after is hidden when not hovering */
+.footer-tagline-phrase-2::after {
+  content: '';
   opacity: 0;
   width: 0;
   overflow: hidden;
-}
-
-/* Ensure period is visible when not hovering */
-.footer-tagline-phrase .footer-tagline-word-errl ~ .footer-tagline-letter {
-  position: relative;
-  z-index: 10;
-  transition: opacity 0.2s ease, width 0.2s ease;
+  display: none;
 }
 
 @keyframes errl-r-type {
@@ -2214,9 +2302,26 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
-/* Ensure hover arrows also pause on hover */
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover {
-  animation-play-state: paused;
+/* Hover text - "RETURN TO TOP" */
+.scroll-to-top-hover-text {
+  position: absolute;
+  right: calc(100% + 12px); /* Position to the left of button, 12px gap */
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  animation: scrollToTopTextColorCycle 3s linear infinite;
+  /* Text shadow will be animated via keyframes */
+}
+
+.scroll-to-top-button:hover .scroll-to-top-hover-text {
+  opacity: 1;
 }
 
 .scroll-to-top-button:hover::before {
@@ -2337,47 +2442,57 @@ footer {
   margin-left: -6px; /* Center horizontally (half of arrow width) */
 }
 
-/* Hover arrows - hidden by default */
-.scroll-to-top-arrow-hover {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  width: 12px;
-  height: 12px;
-}
-
-/* Show and position hover arrows on button hover - positioned outside outline */
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover {
-  opacity: 1;
-}
-
-/* Hover arrows positioned at button edge and extending outward */
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
-  top: -6px; /* Arrow center at top edge, extends upward */
-  left: 50%;
-  margin-left: -6px;
-}
-
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
-  bottom: -6px; /* Arrow center at bottom edge, extends downward */
-  left: 50%;
-  margin-left: -6px;
-}
-
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
-  top: 50%;
-  left: -6px; /* Arrow center at left edge, extends leftward */
-  margin-top: -6px;
-}
-
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
-  top: 50%;
-  right: -6px; /* Arrow center at right edge, extends rightward */
-  margin-top: -6px;
-}
-
-.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
-  top: -8px; /* Diagonal position, connected to top-right edge */
-  right: -8px;
+/* Hover text color cycle animation - neon rainbow */
+@keyframes scrollToTopTextColorCycle {
+  0% {
+    color: hsl(193, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(193, 95%, 70%),
+      0 0 16px hsl(193, 95%, 60%),
+      0 0 24px hsl(193, 95%, 50%);
+  }
+  16.66% {
+    color: hsl(150, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(150, 95%, 70%),
+      0 0 16px hsl(150, 95%, 60%),
+      0 0 24px hsl(150, 95%, 50%);
+  }
+  33.33% {
+    color: hsl(60, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(60, 95%, 70%),
+      0 0 16px hsl(60, 95%, 60%),
+      0 0 24px hsl(60, 95%, 50%);
+  }
+  50% {
+    color: hsl(30, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(30, 95%, 70%),
+      0 0 16px hsl(30, 95%, 60%),
+      0 0 24px hsl(30, 95%, 50%);
+  }
+  66.66% {
+    color: hsl(300, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(300, 95%, 70%),
+      0 0 16px hsl(300, 95%, 60%),
+      0 0 24px hsl(300, 95%, 50%);
+  }
+  83.33% {
+    color: hsl(240, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(240, 95%, 70%),
+      0 0 16px hsl(240, 95%, 60%),
+      0 0 24px hsl(240, 95%, 50%);
+  }
+  100% {
+    color: hsl(193, 95%, 70%);
+    text-shadow: 
+      0 0 8px hsl(193, 95%, 70%),
+      0 0 16px hsl(193, 95%, 60%),
+      0 0 24px hsl(193, 95%, 50%);
+  }
 }
 
 @keyframes rotate-button-counter {
@@ -2477,34 +2592,10 @@ footer {
   }
 
   /* Mobile hover arrows */
-  .scroll-to-top-arrow-hover {
-    width: 10px;
-    height: 10px;
-  }
-
-  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
-    top: -5px; /* Arrow center at top edge, extends upward */
-    margin-left: -5px;
-  }
-
-  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
-    bottom: -5px; /* Arrow center at bottom edge, extends downward */
-    margin-left: -5px;
-  }
-
-  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
-    left: -5px; /* Arrow center at left edge, extends leftward */
-    margin-top: -5px;
-  }
-
-  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
-    right: -5px; /* Arrow center at right edge, extends rightward */
-    margin-top: -5px;
-  }
-
-  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
-    top: -7px; /* Diagonal position, connected to top-right edge */
-    right: -7px;
+  /* Mobile hover text adjustments */
+  .scroll-to-top-hover-text {
+    font-size: 12px;
+    right: calc(100% + 8px); /* Smaller gap on mobile */
   }
 }
 

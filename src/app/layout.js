@@ -90,7 +90,17 @@ export default async function RootLayout({ children }) {
                     <div className="footer-trademark-line">
                       <span className="footer-trademark-name">Errl</span>
                       <span className="footer-trademark-expansion">
-                        (Effervescent Remnant of Radical Liminality)
+                        {' ('}
+                        <span className="footer-expansion-word footer-expansion-word-effervescent">Effervescent</span>
+                        {' '}
+                        <span className="footer-expansion-word footer-expansion-word-remnant">Remnant</span>
+                        {' '}
+                        <span className="footer-expansion-word footer-expansion-word-of">of</span>
+                        {' '}
+                        <span className="footer-expansion-word footer-expansion-word-radical">Radical</span>
+                        {' '}
+                        <span className="footer-expansion-word footer-expansion-word-liminality">Liminality</span>
+                        {')'}
                       </span>
                     </div>
                     <div className="footer-copyright-line">

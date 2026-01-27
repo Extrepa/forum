@@ -124,26 +124,8 @@ export default function ScrollToTopButton() {
           />
         </svg>
       ))}
-      {/* Five hover arrows */}
-      {[3, 4, 5, 6, 7].map((index) => (
-        <svg
-          key={`arrow-hover-${index}`}
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          className="scroll-to-top-arrow scroll-to-top-arrow-hover"
-          data-arrow-index={index}
-          aria-hidden="true"
-        >
-          <path
-            d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
-            fill="currentColor"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ))}
+      {/* Hover text */}
+      <span className="scroll-to-top-hover-text">RETURN TO TOP</span>
       </div>
     </button>
   );
