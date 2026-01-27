@@ -548,6 +548,7 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - [x] Notification system overhaul (Mentions, Likes, RSVPs, Updates) verified.
 - [x] Notification preferences UI and saving logic verified.
 - [x] Account page UI refactor (Contact Info & Preferences) verified.
+- [x] Rearranged and refined Notification Preferences card with clear explanations of site-wide vs delivery channel settings.
 - [x] UI Color Settings & Site Settings (Theme, Neon, Invert) verified.
 - [x] Refined Lore Mode description on the account page to better explain microcopy.
 - [x] Migration 0045 created and integrated into backend/frontend.

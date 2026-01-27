@@ -611,32 +611,15 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               <h3 className="section-title" style={{ marginBottom: '12px', borderBottom: 'none' }}>
                 Notification Preferences
               </h3>
+              <div className="muted" style={{ fontSize: 13, marginBottom: 12, lineHeight: '1.4' }}>
+                Choose which activities trigger notifications on the site. If you enable Email or Text delivery below, those site notifications will also be sent to your external contact points.
+              </div>
+
               <div className="stack" style={{ gap: 10 }}>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span>Email notifications</span>
-                  <input
-                    type="checkbox"
-                    checked={notifyEmailEnabled}
-                    onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <span>Text (SMS) notifications</span>
-                  <input
-                    type="checkbox"
-                    checked={notifySmsEnabled}
-                    onChange={(e) => setNotifySmsEnabled(e.target.checked)}
-                    disabled={!String(newPhone || '').trim()}
-                  />
-                </label>
-                {!String(newPhone || '').trim() ? (
-                  <div className="muted" style={{ fontSize: 13, marginBottom: 4 }}>
-                    Add a phone number to enable SMS.
-                  </div>
-                ) : null}
-
-                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }}></div>
-
+                <div className="muted" style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
+                  Site Notifications
+                </div>
+                
                 <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <span>RSVP notifications</span>
                   <input
@@ -685,10 +668,41 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(e) => setNotifyCommentEnabled(e.target.checked)}
                   />
                 </label>
+
+                <div style={{ borderTop: '1px solid var(--border)', margin: '8px 0' }}></div>
+
+                <div className="muted" style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Delivery Channels
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Email notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifyEmailEnabled}
+                    onChange={(e) => setNotifyEmailEnabled(e.target.checked)}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span>Text (SMS) notifications</span>
+                  <input
+                    type="checkbox"
+                    checked={notifySmsEnabled}
+                    onChange={(e) => setNotifySmsEnabled(e.target.checked)}
+                    disabled={!String(newPhone || '').trim()}
+                  />
+                </label>
+                {!String(newPhone || '').trim() ? (
+                  <div className="muted" style={{ fontSize: 13, marginBottom: 4 }}>
+                    Add a phone number to enable SMS.
+                  </div>
+                ) : null}
+
                 <button 
                   type="button" 
                   onClick={submitNotificationPrefs}
                   disabled={status.type === 'loading'}
+                  style={{ marginTop: 8 }}
                 >
                   Save preferences
                 </button>
