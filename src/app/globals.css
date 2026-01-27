@@ -2221,7 +2221,9 @@ footer {
   }
 
   .footer-tagline-separator {
-    display: inline;
+    display: inline-block; /* Allow transforms */
+    transition: transform 0.3s ease;
+    vertical-align: baseline;
   }
   
   /* On hover, change to left-align and center manually */
@@ -2237,6 +2239,12 @@ footer {
   .footer-tagline-bar:hover .footer-tagline-phrase-0,
   .footer-tagline-bar:hover .footer-tagline-phrase-1 {
     transform: translateX(-90px) !important; /* Shift left more to prevent overlap */
+  }
+  
+  /* Shift separators that come after phrase-0 and phrase-1 */
+  .footer-tagline-bar:hover .footer-tagline-phrase-0 + .footer-tagline-separator,
+  .footer-tagline-bar:hover .footer-tagline-phrase-1 + .footer-tagline-separator {
+    transform: translateX(-90px) !important; /* Move with the phrases */
   }
   
   /* Third phrase stays in place */
@@ -2337,7 +2345,7 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
-/* Hover text - "RETURN TO TOP" - 5 copies positioned at same angles as arrows */
+/* Hover text - "RETURN TO TOP" - one above (rainbow arc) and one below (smile arc) */
 .scroll-to-top-hover-text {
   position: absolute; /* Relative to button so it rotates with it */
   white-space: nowrap;
@@ -2348,54 +2356,75 @@ footer {
   pointer-events: none;
   transition: opacity 0.3s ease;
   z-index: 1000;
-  animation: scrollToTopTextColorCycle 3s linear infinite;
-  /* Text shadow will be animated via keyframes */
   transform-origin: center center;
 }
 
-/* Position 5 copies of text at same angles as arrows (72° intervals) */
-/* Button is 52px, center at 26px, text at ~32px radius (outside button edge) */
-.scroll-to-top-hover-text[data-text-index="0"] {
-  /* 0° - top */
-  top: -20px;
+/* Top text - rainbow arc (curved path above button) */
+.scroll-to-top-hover-text-top {
+  top: -35px;
   left: 50%;
   transform: translateX(-50%);
+  animation: scrollToTopRainbowArc 4s linear infinite, scrollToTopTextColorCycle 3s linear infinite;
 }
 
-.scroll-to-top-hover-text[data-text-index="1"] {
-  /* 72° - top-right */
-  top: 8px;
-  right: -28px;
-}
-
-.scroll-to-top-hover-text[data-text-index="2"] {
-  /* 144° - bottom-right */
-  bottom: 8px;
-  right: -28px;
-}
-
-.scroll-to-top-hover-text[data-text-index="3"] {
-  /* 216° - bottom-left */
-  bottom: 8px;
-  left: -28px;
-}
-
-.scroll-to-top-hover-text[data-text-index="4"] {
-  /* 288° - top-left */
-  top: 8px;
-  left: -28px;
+/* Bottom text - smile arc (curved path below button) */
+.scroll-to-top-hover-text-bottom {
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollToTopSmileArc 4s linear infinite;
+  color: hsl(60, 95%, 70%);
+  text-shadow: 
+    0 0 8px hsl(60, 95%, 70%),
+    0 0 16px hsl(60, 95%, 60%),
+    0 0 24px hsl(60, 95%, 50%);
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
   opacity: 1;
 }
 
+/* Rainbow arc animation - curved path above button */
+@keyframes scrollToTopRainbowArc {
+  0% {
+    transform: translateX(-50%) translateY(0) rotate(-15deg);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-8px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-50%) translateY(0) rotate(15deg);
+  }
+  75% {
+    transform: translateX(-50%) translateY(-8px) rotate(0deg);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) rotate(-15deg);
+  }
+}
+
+/* Smile arc animation - curved path below button (like a smile) */
+@keyframes scrollToTopSmileArc {
+  0% {
+    transform: translateX(-50%) translateY(0) rotate(15deg);
+  }
+  25% {
+    transform: translateX(-50%) translateY(8px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-50%) translateY(0) rotate(-15deg);
+  }
+  75% {
+    transform: translateX(-50%) translateY(8px) rotate(0deg);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) rotate(15deg);
+  }
+}
+
 /* Prevent text from overflowing viewport on small screens */
 @media (max-width: 500px) {
   .scroll-to-top-hover-text {
-    /* On small screens, match button's mobile position */
-    bottom: 20px; /* Match button's bottom position on mobile */
-    right: 76px; /* Position to the left of button (20px button right + 44px button width + 12px gap) */
     max-width: calc(100vw - 80px);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2701,42 +2730,22 @@ footer {
     left: 3px;
   }
 
-  /* Mobile hover text - 5 copies at same angles as arrows */
-  /* Button is 44px, center at 22px, text at ~26px radius (outside button edge) */
+  /* Mobile hover text - one above (rainbow arc) and one below (smile arc) */
   .scroll-to-top-hover-text {
     font-size: 11px;
     max-width: calc(100vw - 80px);
   }
 
-  .scroll-to-top-hover-text[data-text-index="0"] {
-    /* 0° - top */
-    top: -18px;
+  .scroll-to-top-hover-text-top {
+    top: -30px;
     left: 50%;
     transform: translateX(-50%);
   }
 
-  .scroll-to-top-hover-text[data-text-index="1"] {
-    /* 72° - top-right */
-    top: 6px;
-    right: -24px;
-  }
-
-  .scroll-to-top-hover-text[data-text-index="2"] {
-    /* 144° - bottom-right */
-    bottom: 6px;
-    right: -24px;
-  }
-
-  .scroll-to-top-hover-text[data-text-index="3"] {
-    /* 216° - bottom-left */
-    bottom: 6px;
-    left: -24px;
-  }
-
-  .scroll-to-top-hover-text[data-text-index="4"] {
-    /* 288° - top-left */
-    top: 6px;
-    left: -24px;
+  .scroll-to-top-hover-text-bottom {
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
