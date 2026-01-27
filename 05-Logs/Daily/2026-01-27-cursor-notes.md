@@ -3,6 +3,17 @@
 ## Summary
 Fixed project reply image upload functionality, improved feed sorting by activity, and optimized feed layout for both desktop and mobile views.
 
+## Avatar Customizer Implementation (Feat)
+- Created branch `feat/avatar-customizer` (renamed from `brainstorm/avatar-customizer`).
+- Added migration `0046_add_user_avatar.sql` to add `avatar_key` and `avatar_state` to `users` table.
+- Implemented `AvatarCustomizer.js` with multi-layer support, drag-and-drop, image import, and randomization.
+- Created `/api/account/avatar` API route for R2 storage and database updates.
+- Integrated avatar display into `Username.js` and profile pages.
+- **Migration Applied**: Successfully applied `0046_add_user_avatar.sql` to the D1 database (local and remote).
+- **Wrangler Config**: Cleaned up `wrangler.toml` to fix duplicate binding errors.
+- **Test Build**: Successfully completed `npm run build` without errors.
+- **Ready for Deploy**: Branch is ready for deploy preview.
+
 ---
 
 ## Project Reply Image Upload Feature

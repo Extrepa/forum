@@ -718,6 +718,19 @@ main {
   letter-spacing: 0.2px;
   overflow-wrap: break-word;
   word-break: break-word;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: #000;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
 }
 
 .username--0 {

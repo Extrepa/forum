@@ -22,7 +22,7 @@ export default async function ProfilePage({ params }) {
   
   // Get user by username
   const profileUser = await db
-    .prepare('SELECT id, username, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views FROM users WHERE username_norm = ?')
+    .prepare('SELECT id, username, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?')
     .bind(username.toLowerCase())
     .first();
 
@@ -409,6 +409,7 @@ export default async function ProfilePage({ params }) {
                 <Username
                   name={profileUser.username}
                   colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+                  avatarKey={profileUser.avatar_key}
                 />
               </div>
 

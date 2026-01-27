@@ -13,6 +13,7 @@ export default function Username({
   className = '',
   title,
   href,
+  avatarKey,
 }) {
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -34,9 +35,26 @@ export default function Username({
   // Default href to profile page if not provided
   const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
+  const avatarUrl = avatarKey ? `/api/media/avatars/${avatarKey.split('/').pop()}` : null;
+
   return (
-    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none' }}>
-      {safeName}
+    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+      {avatarUrl && (
+        <img 
+          src={avatarUrl} 
+          alt="" 
+          className="username-avatar"
+          style={{ 
+            width: '20px', 
+            height: '20px', 
+            borderRadius: '50%', 
+            border: '1px solid var(--accent)',
+            background: '#000',
+            flexShrink: 0
+          }} 
+        />
+      )}
+      <span>{safeName}</span>
     </Link>
   );
 }

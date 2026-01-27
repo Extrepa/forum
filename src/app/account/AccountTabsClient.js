@@ -6,12 +6,14 @@ import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
+import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [newUsername, setNewUsername] = useState(user?.username || '');
   const [usernameStatus, setUsernameStatus] = useState({ type: 'idle', message: null });
   const [selectedColorIndex, setSelectedColorIndex] = useState(user?.preferred_username_color_index ?? null);
@@ -175,6 +177,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       }, 1000);
     } catch (err) {
       setUsernameStatus({ type: 'error', message: 'Network error. Please try again.' });
+    }
+  };
+
+  const handleAvatarSave = async (svg, avatarState) => {
+    try {
+      const res = await fetch('/api/account/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ svg, state: avatarState })
+      });
+      if (res.ok) {
+        setIsEditingAvatar(false);
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save avatar');
+      }
+    } catch (err) {
+      alert('Network error. Please try again.');
     }
   };
 
@@ -400,6 +421,79 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-columns" style={{ marginBottom: '24px' }}>
             {/* Left Column: Username, Color, and Social Links */}
             <div className="account-col">
+              {/* Custom Avatar Card */}
+              <div style={{ 
+                marginBottom: '24px', 
+                padding: '16px', 
+                background: 'rgba(2, 7, 10, 0.4)', 
+                borderRadius: '12px', 
+                border: '1px solid rgba(52, 225, 255, 0.2)',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
+                  {!isEditingAvatar && (
+                    <button 
+                      type="button" 
+                      onClick={() => setIsEditingAvatar(true)}
+                      className="btn-link"
+                      style={{ fontSize: '12px', color: 'var(--accent)' }}
+                    >
+                      edit
+                    </button>
+                  )}
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px' }}>
+                  {user.avatar_key ? (
+                    <img 
+                      src={`/api/media/avatars/${user.avatar_key.split('/').pop()}`} 
+                      alt="Current Avatar" 
+                      style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid var(--accent)', background: '#000' }} 
+                    />
+                  ) : (
+                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
+                      No avatar set
+                    </div>
+                  )}
+                </div>
+
+                {isEditingAvatar && (
+                  <div style={{ 
+                    position: 'fixed', 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    zIndex: 10000, 
+                    background: 'rgba(0,0,0,0.95)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '20px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', maxWidth: '1000px', margin: '0 auto 20px auto', width: '100%' }}>
+                      <h2 style={{ margin: 0 }}>Customize Your Errl Face</h2>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsEditingAvatar(false)}
+                        style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px' }}
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center' }}>
+                      <div style={{ width: '100%', maxWidth: '1000px' }}>
+                        <AvatarCustomizer 
+                          onSave={handleAvatarSave} 
+                          onCancel={() => setIsEditingAvatar(false)}
+                          initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <h2 className="section-title" style={{ marginBottom: '4px' }}>
                 <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
               </h2>
@@ -419,6 +513,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <Username
                           name={user.username}
                           colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                          avatarKey={user.avatar_key}
                         />
                       </div>
                     ) : (
