@@ -29,7 +29,8 @@ export default function PostMetaBar({
   lastActivity,
   className = '',
   titleHref,
-  showTitleLink = true
+  showTitleLink = true,
+  hideDateOnDesktop = false
 }) {
   const formatCount = (count) => {
     if (count === 0) return null;
@@ -91,7 +92,7 @@ export default function PostMetaBar({
         rowGap: '4px'
       }}>
         {createdAt && (
-          <span className="muted" suppressHydrationWarning>
+          <span className={hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''} suppressHydrationWarning>
             {formatDateTime(createdAt)}
           </span>
         )}

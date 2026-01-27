@@ -1262,7 +1262,7 @@ button:hover {
   .post-meta-last-activity-mobile {
     display: none !important;
   }
-  .event-post-time-mobile {
+  .post-meta-date-mobile-only {
     display: none !important;
   }
 }
@@ -1280,8 +1280,8 @@ button:hover {
   .post-meta-last-activity-mobile {
     display: flex !important;
   }
-  .event-post-time-mobile {
-    display: flex !important;
+  .post-meta-date-mobile-only {
+    display: inline !important;
   }
 }
 
