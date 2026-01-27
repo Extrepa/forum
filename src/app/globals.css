@@ -2311,9 +2311,10 @@ footer {
 
 /* Hover text - "RETURN TO TOP" */
 .scroll-to-top-hover-text {
-  position: absolute;
-  right: calc(100% + 12px); /* Position to the left of button, 12px gap */
-  top: 50%;
+  position: fixed; /* Fixed to viewport, not relative to button */
+  right: calc(24px + 52px + 12px); /* button right (24px) + button width (52px) + gap (12px) */
+  bottom: 24px; /* Match button bottom position */
+  transform: translateY(-50%); /* Center vertically relative to button */
   white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
@@ -2322,19 +2323,8 @@ footer {
   pointer-events: none;
   transition: opacity 0.3s ease;
   z-index: 1000;
-  animation: scrollToTopTextColorCycle 3s linear infinite, scrollToTopTextCounterRotate 8s linear infinite; /* Counter-rotate to stay fixed */
-  transform-origin: center center;
+  animation: scrollToTopTextColorCycle 3s linear infinite;
   /* Text shadow will be animated via keyframes */
-}
-
-/* Counter-rotation animation for text to keep it fixed */
-@keyframes scrollToTopTextCounterRotate {
-  from {
-    transform: translateY(-50%) rotate(0deg);
-  }
-  to {
-    transform: translateY(-50%) rotate(-360deg);
-  }
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
@@ -2612,7 +2602,8 @@ footer {
   /* Mobile hover text adjustments */
   .scroll-to-top-hover-text {
     font-size: 12px;
-    right: calc(100% + 8px); /* Smaller gap on mobile */
+    right: calc(20px + 44px + 8px); /* button right (20px) + button width (44px) + gap (8px) */
+    bottom: 20px; /* Match button bottom position on mobile */
   }
 }
 
