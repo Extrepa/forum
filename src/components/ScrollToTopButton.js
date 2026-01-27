@@ -124,8 +124,8 @@ export default function ScrollToTopButton() {
           />
         </svg>
       ))}
-      {/* Multiple copies of hover text positioned around button */}
-      {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+      {/* Five copies of hover text positioned at same angles as arrows */}
+      {[0, 1, 2, 3, 4].map((index) => (
         <span key={`text-${index}`} className="scroll-to-top-hover-text" data-text-index={index}>
           RETURN TO TOP
         </span>

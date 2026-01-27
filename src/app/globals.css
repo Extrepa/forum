@@ -2236,7 +2236,7 @@ footer {
   /* On hover, shift first two phrases left to make room for expanded third phrase */
   .footer-tagline-bar:hover .footer-tagline-phrase-0,
   .footer-tagline-bar:hover .footer-tagline-phrase-1 {
-    transform: translateX(-60px) !important; /* Shift left to make room */
+    transform: translateX(-90px) !important; /* Shift left more to prevent overlap */
   }
   
   /* Third phrase stays in place */
@@ -2337,11 +2337,11 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
-/* Hover text - "RETURN TO TOP" - multiple copies positioned around button */
+/* Hover text - "RETURN TO TOP" - 5 copies positioned at same angles as arrows */
 .scroll-to-top-hover-text {
-  position: fixed; /* Fixed to viewport, not relative to button */
+  position: absolute; /* Relative to button so it rotates with it */
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
   opacity: 0;
@@ -2350,60 +2350,40 @@ footer {
   z-index: 1000;
   animation: scrollToTopTextColorCycle 3s linear infinite;
   /* Text shadow will be animated via keyframes */
+  transform-origin: center center;
 }
 
-/* Position 8 copies of text around the button at different angles */
-/* Button center is at bottom: 24px + 26px = 50px, right: 24px + 26px = 50px */
+/* Position 5 copies of text at same angles as arrows (72° intervals) */
+/* Button is 52px, center at 26px, text at ~32px radius (outside button edge) */
 .scroll-to-top-hover-text[data-text-index="0"] {
-  /* Left of button */
-  bottom: 50px;
-  right: 88px; /* 50px (center) + 26px (half button) + 12px (gap) */
-  transform: translateY(50%);
+  /* 0° - top */
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .scroll-to-top-hover-text[data-text-index="1"] {
-  /* Top-left diagonal */
-  bottom: 70px;
-  right: 70px;
+  /* 72° - top-right */
+  top: 8px;
+  right: -28px;
 }
 
 .scroll-to-top-hover-text[data-text-index="2"] {
-  /* Top of button */
-  bottom: 88px;
-  right: 50px;
-  transform: translateX(50%);
+  /* 144° - bottom-right */
+  bottom: 8px;
+  right: -28px;
 }
 
 .scroll-to-top-hover-text[data-text-index="3"] {
-  /* Top-right diagonal */
-  bottom: 70px;
-  right: 30px;
+  /* 216° - bottom-left */
+  bottom: 8px;
+  left: -28px;
 }
 
 .scroll-to-top-hover-text[data-text-index="4"] {
-  /* Right of button */
-  bottom: 50px;
-  right: 12px; /* 50px (center) - 26px (half button) - 12px (gap) */
-  transform: translateY(50%);
-}
-
-.scroll-to-top-hover-text[data-text-index="5"] {
-  /* Bottom-right diagonal */
-  bottom: 30px;
-  right: 30px;
-}
-
-.scroll-to-top-hover-text[data-text-index="6"] {
-  /* Bottom of button */
-  bottom: 12px;
-  right: 50px;
-  transform: translateX(50%);
-}
-
-.scroll-to-top-hover-text[data-text-index="7"] {
-  /* Bottom-left diagonal */
-  bottom: 30px;
-  right: 70px;
+  /* 288° - top-left */
+  top: 8px;
+  left: -28px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
@@ -2524,36 +2504,36 @@ footer {
 }
 
 /* Position five arrows in star pattern (equally spaced at 72° intervals) */
-/* Button is 52px, center at 26px, arrows at ~18px radius */
+/* Button is 52px, center at 26px, arrows at ~22px radius (moved further out for visibility) */
 .scroll-to-top-arrow[data-arrow-index="0"] {
   /* 0° - top */
-  top: 8px;
+  top: 4px;
   left: 50%;
   margin-left: -6px; /* Center horizontally */
 }
 
 .scroll-to-top-arrow[data-arrow-index="1"] {
   /* 72° - top-right */
-  top: 20px;
-  right: 9px;
+  top: 16px;
+  right: 4px;
 }
 
 .scroll-to-top-arrow[data-arrow-index="2"] {
   /* 144° - bottom-right */
-  bottom: 11px;
-  right: 15px;
+  bottom: 7px;
+  right: 10px;
 }
 
 .scroll-to-top-arrow[data-arrow-index="3"] {
   /* 216° - bottom-left */
-  bottom: 11px;
-  left: 15px;
+  bottom: 7px;
+  left: 10px;
 }
 
 .scroll-to-top-arrow[data-arrow-index="4"] {
   /* 288° - top-left */
-  top: 20px;
-  left: 9px;
+  top: 16px;
+  left: 4px;
 }
 
 /* Hover text color cycle animation - neon rainbow */
@@ -2689,96 +2669,74 @@ footer {
   }
 
   /* Mobile positioning for five arrows in star pattern */
-  /* Button is 44px, center at 22px, arrows at ~15px radius */
+  /* Button is 44px, center at 22px, arrows at ~18px radius (moved further out for visibility) */
   .scroll-to-top-arrow[data-arrow-index="0"] {
     /* 0° - top */
-    top: 7px;
+    top: 3px;
     left: 50%;
     margin-left: -5px;
   }
 
   .scroll-to-top-arrow[data-arrow-index="1"] {
     /* 72° - top-right */
-    top: 17px;
-    right: 7px;
+    top: 14px;
+    right: 3px;
   }
 
   .scroll-to-top-arrow[data-arrow-index="2"] {
     /* 144° - bottom-right */
-    bottom: 9px;
-    right: 13px;
+    bottom: 6px;
+    right: 8px;
   }
 
   .scroll-to-top-arrow[data-arrow-index="3"] {
     /* 216° - bottom-left */
-    bottom: 9px;
-    left: 13px;
+    bottom: 6px;
+    left: 8px;
   }
 
   .scroll-to-top-arrow[data-arrow-index="4"] {
     /* 288° - top-left */
-    top: 17px;
-    left: 7px;
+    top: 14px;
+    left: 3px;
   }
 
-  /* Mobile hover arrows */
-  /* Mobile hover text adjustments - position 8 copies around button */
-  /* Button center is at bottom: 20px + 22px = 42px, right: 20px + 22px = 42px */
+  /* Mobile hover text - 5 copies at same angles as arrows */
+  /* Button is 44px, center at 22px, text at ~26px radius (outside button edge) */
   .scroll-to-top-hover-text {
-    font-size: 12px;
+    font-size: 11px;
     max-width: calc(100vw - 80px);
   }
 
   .scroll-to-top-hover-text[data-text-index="0"] {
-    /* Left of button */
-    bottom: 42px;
-    right: 76px; /* 42px (center) + 22px (half button) + 12px (gap) */
-    transform: translateY(50%);
+    /* 0° - top */
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .scroll-to-top-hover-text[data-text-index="1"] {
-    /* Top-left diagonal */
-    bottom: 58px;
-    right: 58px;
+    /* 72° - top-right */
+    top: 6px;
+    right: -24px;
   }
 
   .scroll-to-top-hover-text[data-text-index="2"] {
-    /* Top of button */
-    bottom: 76px;
-    right: 42px;
-    transform: translateX(50%);
+    /* 144° - bottom-right */
+    bottom: 6px;
+    right: -24px;
   }
 
   .scroll-to-top-hover-text[data-text-index="3"] {
-    /* Top-right diagonal */
-    bottom: 58px;
-    right: 26px;
+    /* 216° - bottom-left */
+    bottom: 6px;
+    left: -24px;
   }
 
   .scroll-to-top-hover-text[data-text-index="4"] {
-    /* Right of button */
-    bottom: 42px;
-    right: 8px; /* 42px (center) - 22px (half button) - 12px (gap) */
-    transform: translateY(50%);
-  }
-
-  .scroll-to-top-hover-text[data-text-index="5"] {
-    /* Bottom-right diagonal */
-    bottom: 26px;
-    right: 26px;
-  }
-
-  .scroll-to-top-hover-text[data-text-index="6"] {
-    /* Bottom of button */
-    bottom: 8px;
-    right: 42px;
-    transform: translateX(50%);
-  }
-
-  .scroll-to-top-hover-text[data-text-index="7"] {
-    /* Bottom-left diagonal */
-    bottom: 26px;
-    right: 58px;
+    /* 288° - top-left */
+    top: 6px;
+    left: -24px;
   }
 }
 
