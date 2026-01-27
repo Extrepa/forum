@@ -386,7 +386,7 @@ export default async function FeedPage() {
     }))
   ]
     .filter((x) => !!x.createdAt)
-    .sort((a, b) => b.createdAt - a.createdAt)
+    .sort((a, b) => (b.lastActivity || b.createdAt) - (a.lastActivity || a.createdAt))
     .slice(0, 15);
 
   // Add unread status for logged-in users
@@ -542,8 +542,9 @@ export default async function FeedPage() {
                     showTitleLink={false}
                   />
                   {item.type === 'Event' ? (
-                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 auto', minWidth: 0 }}>
+                    <>
+                      {/* Row 3: Event Information */}
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                         <svg
                           width="14"
                           height="14"
@@ -568,26 +569,35 @@ export default async function FeedPage() {
                             </span>
                           ) : null}
                         </span>
-                        {item.attendeeCount > 0 && (
-                          <span style={{ marginLeft: '8px', color: 'var(--muted)' }}>
-                            • {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
-                              <span key={name}>
-                                {i > 0 ? ', ' : ''}
-                                <Username 
-                                  name={name}
-                                  colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
-                                />
-                              </span>
-                            ))}
-                          </span>
-                        )}
                       </div>
-                      {item.lastActivity ? (
-                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '12px' }} suppressHydrationWarning>
-                          Last activity: {formatDateTime(item.lastActivity)}
-                        </span>
-                      ) : null}
-                    </div>
+                      {/* Row 4: Attending List (separate row) */}
+                      {item.attendeeCount > 0 && (
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: 'var(--muted)' }}>
+                          {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
+                            <span key={name}>
+                              {i > 0 ? ', ' : ''}
+                              <Username 
+                                name={name}
+                                colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
+                              />
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Row 5: Last Activity (bottom right) */}
+                      {item.lastActivity && (
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'flex-end',
+                          fontSize: '12px',
+                          marginTop: '8px'
+                        }}>
+                          <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
+                            Last activity: {formatDateTime(item.lastActivity)}
+                          </span>
+                        </div>
+                      )}
+                    </>
                   ) : item.meta ? (
                     <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
                       {item.meta}

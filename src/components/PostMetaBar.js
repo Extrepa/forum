@@ -7,12 +7,11 @@ import { formatDateTime } from '../lib/dates';
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  * 
  * Layout:
- * Top Row:
- *   Left: Post Title by <username>
- *   Right: {views} views · {replies} replies · {likes} likes
- * Bottom Row:
+ * Row 1: Post Title by <username>
+ * Row 2: 
  *   Left: Post date and time
- *   Right: Last activity (last comment/response timestamp)
+ *   Right: {views} views · {replies} replies · {likes} likes
+ * Row 3: Last activity (last comment/response timestamp) - bottom right
  */
 export default function PostMetaBar({
   title,
@@ -44,30 +43,36 @@ export default function PostMetaBar({
 
   return (
     <div className={className}>
-      {/* Top Row */}
+      {/* Row 1: Title and Author */}
+      <div style={{ marginBottom: '8px' }}>
+        <TitleElement 
+          {...titleProps}
+          style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
+        >
+          <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
+        </TitleElement>
+        <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+          by <Username 
+            name={author} 
+            colorIndex={authorColorIndex}
+            preferredColorIndex={authorPreferredColorIndex}
+          />
+        </span>
+      </div>
+
+      {/* Row 2: Date on left, Views/Replies/Likes on right */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'flex-start', 
-        marginBottom: '8px',
+        alignItems: 'center', 
+        fontSize: '12px',
         flexWrap: 'wrap',
-        gap: '8px'
+        gap: '8px',
+        marginBottom: lastActivity ? '8px' : '0'
       }}>
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <TitleElement 
-            {...titleProps}
-            style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
-          >
-            <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
-          </TitleElement>
-          <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-            by <Username 
-              name={author} 
-              colorIndex={authorColorIndex}
-              preferredColorIndex={authorPreferredColorIndex}
-            />
-          </span>
-        </div>
+        <span className="muted" suppressHydrationWarning>
+          {createdAt ? formatDateTime(createdAt) : ''}
+        </span>
         {topRight && (
           <span className="muted" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
             {topRight}
@@ -75,24 +80,19 @@ export default function PostMetaBar({
         )}
       </div>
 
-      {/* Bottom Row */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        fontSize: '12px',
-        flexWrap: 'wrap',
-        gap: '8px'
-      }}>
-        <span className="muted" suppressHydrationWarning>
-          {createdAt ? formatDateTime(createdAt) : ''}
-        </span>
-        {lastActivity && (
-          <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }} suppressHydrationWarning>
+      {/* Row 3: Last Activity (bottom right) */}
+      {lastActivity && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end',
+          fontSize: '12px',
+          marginTop: '4px'
+        }}>
+          <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
             Last activity: {formatDateTime(lastActivity)}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

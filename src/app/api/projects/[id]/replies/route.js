@@ -51,18 +51,31 @@ export async function POST(request, { params }) {
     try {
       const { env } = await getCloudflareContext({ async: true });
       if (!canUploadImages(user, env)) {
-        redirectUrl.searchParams.set('error', 'upload');
+        console.error('Image upload permission denied', { 
+          username: user?.username, 
+          hasAllowlist: !!env?.IMAGE_UPLOAD_ALLOWLIST,
+          allowlistValue: env?.IMAGE_UPLOAD_ALLOWLIST 
+        });
+        redirectUrl.searchParams.set('error', 'upload_permission');
         return NextResponse.redirect(redirectUrl, 303);
       }
       const bucket = await getUploadsBucket();
       imageKey = buildImageKey('project-replies', imageFile.name || 'image');
+      console.log('Uploading image to bucket', { imageKey, size: imageFile.size, type: imageFile.type });
       await bucket.put(imageKey, await imageFile.arrayBuffer(), {
         httpMetadata: { contentType: imageFile.type }
       });
+      console.log('Image uploaded successfully', { imageKey });
     } catch (e) {
       // If image upload fails, redirect with error instead of silently failing
-      console.error('Image upload failed:', e);
-      redirectUrl.searchParams.set('error', 'upload');
+      console.error('Image upload failed:', e, { 
+        errorMessage: e?.message, 
+        errorStack: e?.stack,
+        imageSize: imageFile?.size,
+        imageType: imageFile?.type,
+        username: user?.username
+      });
+      redirectUrl.searchParams.set('error', 'upload_failed');
       return NextResponse.redirect(redirectUrl, 303);
     }
   }
