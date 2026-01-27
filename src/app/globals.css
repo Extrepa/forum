@@ -1724,13 +1724,30 @@ footer {
   text-decoration: none;
 }
 
-/* Emphasize "Errl Portal" text */
+/* Emphasize "Errl Portal" text with neon coloring */
 .footer-portal-link .footer-portal-emphasized {
   font-weight: 700;
   font-size: 13px;
-  color: #000;
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, hsl(193, 95%, 70%), hsl(255, 95%, 70%), hsl(300, 95%, 70%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
   letter-spacing: 0.3px;
+  filter: drop-shadow(0 0 4px hsl(193, 95%, 70%)) drop-shadow(0 0 8px hsl(255, 95%, 60%));
+  animation: footerPortalNeonGlow 3s ease-in-out infinite;
+}
+
+@keyframes footerPortalNeonGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px hsl(193, 95%, 70%)) drop-shadow(0 0 8px hsl(193, 95%, 60%));
+  }
+  33% {
+    filter: drop-shadow(0 0 6px hsl(255, 95%, 70%)) drop-shadow(0 0 12px hsl(255, 95%, 60%));
+  }
+  66% {
+    filter: drop-shadow(0 0 6px hsl(300, 95%, 70%)) drop-shadow(0 0 12px hsl(300, 95%, 60%));
+  }
 }
 
 .footer-portal-link span[aria-hidden="true"] {
@@ -2553,39 +2570,65 @@ footer {
 .scroll-to-top-tooltip {
   position: absolute;
   bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   white-space: nowrap;
   padding: 8px 12px;
   background: rgba(7, 27, 37, 0.95);
-  border: 1px solid rgba(52, 225, 255, 0.3);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   color: var(--errl-text);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease;
   z-index: 10000;
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.4),
-    0 0 8px rgba(52, 225, 255, 0.2);
+    0 4px 12px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
+}
+
+/* Rainbow racing outline for tooltip */
+.scroll-to-top-tooltip::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    rgba(52, 225, 255, 0.9),
+    rgba(255, 52, 245, 0.9),
+    rgba(245, 255, 183, 0.9),
+    rgba(0, 245, 160, 0.9),
+    rgba(52, 225, 255, 0.9)
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  animation: neonChase 4s linear infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .scroll-to-top-tooltip::after {
   content: '';
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 20px;
   border: 6px solid transparent;
   border-top-color: rgba(52, 225, 255, 0.3);
+  filter: drop-shadow(0 0 4px rgba(52, 225, 255, 0.5));
 }
 
 .scroll-to-top-button:hover .scroll-to-top-tooltip {
   opacity: 1;
-  transform: translateX(-50%) translateY(-4px);
+}
+
+.scroll-to-top-button:hover .scroll-to-top-tooltip::before {
+  opacity: 1;
 }
 
 /* Button rotation animation */
@@ -2757,6 +2800,17 @@ footer {
     left: 3px;
   }
 
+  /* Mobile tooltip positioning */
+  .scroll-to-top-tooltip {
+    bottom: calc(100% + 10px);
+    right: 0;
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .scroll-to-top-tooltip::after {
+    right: 16px;
+  }
 }
 
 header::before,
