@@ -2001,7 +2001,7 @@ footer {
   position: absolute;
   left: 100%;
   top: 0;
-  animation: errl-r-expand 0.4s ease-out;
+  animation: errl-r-type 1.2s ease-out forwards;
   color: inherit;
   text-shadow: inherit;
   font-family: inherit;
@@ -2010,24 +2010,34 @@ footer {
   letter-spacing: inherit;
   white-space: nowrap;
   z-index: 1;
+  pointer-events: none; /* Don't interfere with layout */
+  overflow: hidden;
 }
 
-/* Ensure the "l" and period remain visible and positioned correctly */
+/* Ensure the "l" (4th letter) remains visible and positioned correctly */
 .footer-tagline-word-errl .footer-tagline-special-letter:nth-child(4) {
   position: relative;
-  z-index: 2;
+  z-index: 10; /* Higher z-index to ensure it's always visible */
+  display: inline-block; /* Ensure it takes up space */
 }
 
-@keyframes errl-r-expand {
+/* Ensure any characters (like period) after Errl word stay visible */
+.footer-tagline-phrase .footer-tagline-word-errl ~ .footer-tagline-letter {
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes errl-r-type {
   0% {
+    clip-path: inset(0 100% 0 0);
     opacity: 0;
-    transform: translateX(-8px) scaleX(0.3);
-    letter-spacing: -0.2em;
+  }
+  10% {
+    opacity: 1;
   }
   100% {
+    clip-path: inset(0 0% 0 0);
     opacity: 1;
-    transform: translateX(0) scaleX(1);
-    letter-spacing: inherit;
   }
 }
 
@@ -2252,17 +2262,7 @@ footer {
   top: 0;
   left: 0;
   z-index: 1;
-  /* Counter-rotate to keep text readable as button spins */
-  animation: rotate-text-counter 8s linear infinite;
-}
-
-@keyframes rotate-text-counter {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg);
-  }
+  /* No counter-rotation - letters stay fixed relative to button */
 }
 
 .scroll-to-top-letter {
@@ -2274,13 +2274,13 @@ footer {
   letter-spacing: -0.4px;
   left: 50%;
   top: 50%;
-  transform-origin: 0 0;
+  transform-origin: center center; /* Origin at button center */
   --text-radius: 19px; /* Between face (15px) and outline (26px) */
-  /* Position letter around circle, rotated to be tangent (readable as button spins) */
+  /* Position letter around circle, rotated to be tangent (readable) */
   transform: 
     rotate(calc(var(--letter-index) * 360deg / var(--total-letters))) 
-    translateY(calc(-1 * var(--text-radius, 19px))) 
-    rotate(calc(-1 * var(--letter-index) * 360deg / var(--total-letters)));
+    translate(0, calc(-1 * var(--text-radius, 19px))) 
+    rotate(90deg);
   white-space: nowrap;
 }
 

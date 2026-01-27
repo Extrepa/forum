@@ -56,9 +56,8 @@ export default function ScrollToTopButton() {
     return wordLetters;
   });
   
-  // Reverse the entire array so letters appear in correct order when rotating counterclockwise
-  // Then assign indices starting from 0
-  const lettersWithWordInfo = allLetters.reverse().map((item, index) => ({
+  // Assign indices starting from 0 (no reversal needed since button spins clockwise)
+  const lettersWithWordInfo = allLetters.map((item, index) => ({
     ...item,
     letterIndex: index
   }));
