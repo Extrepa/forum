@@ -536,14 +536,14 @@ export default async function FeedPage() {
                     views={item.views}
                     replies={item.replies}
                     likes={item.likes}
-                    createdAt={item.createdAt}
+                    createdAt={item.type === 'Event' ? undefined : item.createdAt}
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
                     titleHref={item.href}
                     showTitleLink={false}
                   />
                   {item.type === 'Event' ? (
                     <>
-                      {/* Row 3: Event Information */}
+                      {/* Event Information Row */}
                       <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                         <svg
                           width="14"
@@ -570,33 +570,38 @@ export default async function FeedPage() {
                           ) : null}
                         </span>
                       </div>
-                      {/* Row 4: Attending List (separate row) */}
-                      {item.attendeeCount > 0 && (
-                        <div style={{ marginTop: '6px', fontSize: '12px', color: 'var(--muted)' }}>
-                          {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
-                            <span key={name}>
-                              {i > 0 ? ', ' : ''}
-                              <Username 
-                                name={name}
-                                colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
-                              />
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {/* Row 5: Last Activity (bottom right) */}
-                      {item.lastActivity && (
-                        <div style={{ 
-                          display: 'flex', 
-                          justifyContent: 'flex-end',
-                          fontSize: '12px',
-                          marginTop: '8px'
-                        }}>
-                          <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
+                      {/* Bottom Row: Attending List on left, Last Activity on right */}
+                      <div style={{ 
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '12px',
+                        marginTop: '8px',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        rowGap: '4px'
+                      }}>
+                        {/* Bottom Left: Attending List */}
+                        {item.attendeeCount > 0 && (
+                          <span style={{ color: 'var(--muted)' }}>
+                            {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
+                              <span key={name}>
+                                {i > 0 ? ', ' : ''}
+                                <Username 
+                                  name={name}
+                                  colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
+                                />
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                        {/* Bottom Right: Last Activity */}
+                        {item.lastActivity && (
+                          <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
                             Last activity: {formatDateTime(item.lastActivity)}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </>
                   ) : item.meta ? (
                     <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
