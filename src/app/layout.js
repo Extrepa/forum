@@ -84,16 +84,110 @@ export default async function RootLayout({ children }) {
               {/* Tagline bar */}
               <div className="footer-tagline-bar" title={easterEgg || undefined}>
                 <p className="footer-tagline">
-                  {taglinePhrases.map((phrase, index) => (
-                    <span key={index}>
-                      <span className={`footer-tagline-phrase footer-tagline-phrase-${index}`}>
-                        {phrase}{phrase.endsWith('.') ? '' : '.'}
+                  {taglinePhrases.map((phrase, index) => {
+                    const phraseText = phrase + (phrase.endsWith('.') ? '' : '.');
+                    
+                    // Identify special words for hover effects
+                    let processedPhrase = [];
+                    let currentWord = '';
+                    let inWord = false;
+                    
+                    for (let i = 0; i < phraseText.length; i++) {
+                      const char = phraseText[i];
+                      const isLetter = /[a-zA-Z]/.test(char);
+                      
+                      if (isLetter) {
+                        if (!inWord) {
+                          inWord = true;
+                          currentWord = char;
+                        } else {
+                          currentWord += char;
+                        }
+                      } else {
+                        if (inWord) {
+                          // Check if this word is special
+                          const wordLower = currentWord.toLowerCase();
+                          if (wordLower === 'weird') {
+                            processedPhrase.push({ type: 'special-word', word: 'weird', className: 'footer-tagline-word-weird' });
+                          } else if (wordLower === 'drippy') {
+                            processedPhrase.push({ type: 'special-word', word: 'drippy', className: 'footer-tagline-word-drippy' });
+                          } else if (wordLower === 'errl') {
+                            processedPhrase.push({ type: 'special-word', word: 'Errl', className: 'footer-tagline-word-errl' });
+                          } else {
+                            processedPhrase.push({ type: 'normal-word', word: currentWord });
+                          }
+                          currentWord = '';
+                          inWord = false;
+                        }
+                        processedPhrase.push({ type: 'char', char });
+                      }
+                    }
+                    
+                    // Handle any remaining word
+                    if (inWord && currentWord) {
+                      const wordLower = currentWord.toLowerCase();
+                      if (wordLower === 'weird') {
+                        processedPhrase.push({ type: 'special-word', word: 'weird', className: 'footer-tagline-word-weird' });
+                      } else if (wordLower === 'drippy') {
+                        processedPhrase.push({ type: 'special-word', word: 'drippy', className: 'footer-tagline-word-drippy' });
+                      } else if (wordLower === 'errl') {
+                        processedPhrase.push({ type: 'special-word', word: 'Errl', className: 'footer-tagline-word-errl' });
+                      } else {
+                        processedPhrase.push({ type: 'normal-word', word: currentWord });
+                      }
+                    }
+                    
+                    return (
+                      <span key={index}>
+                        <span className={`footer-tagline-phrase footer-tagline-phrase-${index}`}>
+                          {processedPhrase.map((item, itemIndex) => {
+                            if (item.type === 'special-word') {
+                              // Special word - wrap each letter individually
+                              const wordLetters = item.word.split('');
+                              return (
+                                <span key={itemIndex} className={item.className}>
+                                  {wordLetters.map((letter, letterIndex) => (
+                                    <span
+                                      key={letterIndex}
+                                      className="footer-tagline-letter footer-tagline-special-letter"
+                                      style={{ '--letter-delay': `${letterIndex * 0.05}s` }}
+                                    >
+                                      {letter}
+                                    </span>
+                                  ))}
+                                </span>
+                              );
+                            } else if (item.type === 'normal-word') {
+                              // Normal word - wrap as single unit
+                              return (
+                                <span key={itemIndex} className="footer-tagline-normal-word">
+                                  {item.word.split('').map((letter, letterIndex) => (
+                                    <span
+                                      key={letterIndex}
+                                      className="footer-tagline-letter"
+                                      style={{ '--letter-delay': `${letterIndex * 0.05}s` }}
+                                    >
+                                      {letter}
+                                    </span>
+                                  ))}
+                                </span>
+                              );
+                            } else {
+                              // Regular character (space, punctuation)
+                              return (
+                                <span key={itemIndex} className="footer-tagline-letter">
+                                  {item.char === ' ' ? '\u00A0' : item.char}
+                                </span>
+                              );
+                            }
+                          })}
+                        </span>
+                        {index < taglinePhrases.length - 1 && (
+                          <span className="footer-tagline-separator">•</span>
+                        )}
                       </span>
-                      {index < taglinePhrases.length - 1 && (
-                        <span className="footer-tagline-separator">•</span>
-                      )}
-                    </span>
-                  ))}
+                    );
+                  })}
                 </p>
               </div>
             </footer>
