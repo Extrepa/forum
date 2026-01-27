@@ -71,7 +71,7 @@ export default async function RootLayout({ children }) {
                     <div className="footer-trademark-line">
                       <span className="footer-trademark-name">Errl</span>
                       <span className="footer-trademark-expansion">
-                        (Effervescent Remnant of Radical Luminosity/Liminality)
+                        (Effervescent Remnant of Radical Liminality)
                       </span>
                     </div>
                     <div className="footer-copyright-line">

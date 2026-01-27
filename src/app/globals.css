@@ -1736,14 +1736,70 @@ footer {
 
 /* Tagline bar */
 .footer-tagline-bar {
+  position: relative;
   margin-top: 1rem;
   padding: 12px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
+  z-index: 0;
+}
+
+/* Rainbow snaking border effect */
+.footer-tagline-bar::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 19px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    rgba(52, 225, 255, 0.9),
+    rgba(255, 52, 245, 0.9),
+    rgba(245, 255, 183, 0.9),
+    rgba(0, 245, 160, 0.9),
+    rgba(52, 225, 255, 0.9)
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: neonChase 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glow effect */
+.footer-tagline-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 0 20px rgba(52, 225, 255, 0.15),
+    0 0 30px rgba(255, 52, 245, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footer-tagline-bar:hover::before {
+  opacity: 1;
+}
+
+.footer-tagline-bar:hover::after {
+  box-shadow:
+    0 0 30px rgba(52, 225, 255, 0.3),
+    0 0 40px rgba(255, 52, 245, 0.2),
+    0 0 50px rgba(245, 255, 183, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.4);
+  opacity: 1;
 }
 
 .footer-tagline {
+  position: relative;
   margin: 0;
   font-family: "Unbounded", "Space Grotesk", sans-serif;
   font-size: 13px;
@@ -1752,6 +1808,7 @@ footer {
   color: rgba(245, 255, 183, 0.9);
   text-shadow: 0 0 10px rgba(245, 255, 183, 0.16);
   text-align: center;
+  z-index: 1;
 }
 
 .footer-tagline-phrase {
@@ -2013,7 +2070,7 @@ footer {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  --text-radius: 19px;
+  --text-radius: 22px;
   animation: rotate-text-counter 8s linear infinite;
   white-space: nowrap;
 }
@@ -2043,7 +2100,7 @@ footer {
   .scroll-to-top-letter {
     font-size: 7px;
     letter-spacing: -0.4px;
-    --text-radius: 16px;
+    --text-radius: 19px;
   }
 }
 
