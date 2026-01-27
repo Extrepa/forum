@@ -2206,6 +2206,11 @@ footer {
 }
 
 @media (min-width: 640px) {
+  .footer-tagline {
+    text-align: center;
+    position: relative;
+  }
+  
   .footer-tagline-phrase {
     display: inline-block; /* Use inline-block for proper transform support */
     width: auto;
@@ -2219,15 +2224,24 @@ footer {
     display: inline;
   }
   
+  /* On hover, change to left-align and center manually */
+  .footer-tagline-bar:hover .footer-tagline {
+    text-align: left;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
   /* On hover, shift first two phrases left to make room for expanded third phrase */
   .footer-tagline-bar:hover .footer-tagline-phrase-0,
   .footer-tagline-bar:hover .footer-tagline-phrase-1 {
-    transform: translateX(-60px) !important; /* Shift left to make room, force override */
+    transform: translateX(-60px) !important; /* Shift left to make room */
   }
   
-  /* Third phrase stays in place but expands */
+  /* Third phrase stays in place */
   .footer-tagline-bar:hover .footer-tagline-phrase-2 {
-    transform: translateX(0) !important; /* Keep centered, force override */
+    transform: translateX(0) !important; /* Keep in place */
   }
 }
 
@@ -2323,11 +2337,9 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
-/* Hover text - "RETURN TO TOP" */
+/* Hover text - "RETURN TO TOP" - multiple copies positioned around button */
 .scroll-to-top-hover-text {
   position: fixed; /* Fixed to viewport, not relative to button */
-  bottom: 24px; /* Match button's bottom position */
-  right: 88px; /* Position to the left of button (24px button right + 52px button width + 12px gap) */
   white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
@@ -2338,6 +2350,60 @@ footer {
   z-index: 1000;
   animation: scrollToTopTextColorCycle 3s linear infinite;
   /* Text shadow will be animated via keyframes */
+}
+
+/* Position 8 copies of text around the button at different angles */
+/* Button center is at bottom: 24px + 26px = 50px, right: 24px + 26px = 50px */
+.scroll-to-top-hover-text[data-text-index="0"] {
+  /* Left of button */
+  bottom: 50px;
+  right: 88px; /* 50px (center) + 26px (half button) + 12px (gap) */
+  transform: translateY(50%);
+}
+
+.scroll-to-top-hover-text[data-text-index="1"] {
+  /* Top-left diagonal */
+  bottom: 70px;
+  right: 70px;
+}
+
+.scroll-to-top-hover-text[data-text-index="2"] {
+  /* Top of button */
+  bottom: 88px;
+  right: 50px;
+  transform: translateX(50%);
+}
+
+.scroll-to-top-hover-text[data-text-index="3"] {
+  /* Top-right diagonal */
+  bottom: 70px;
+  right: 30px;
+}
+
+.scroll-to-top-hover-text[data-text-index="4"] {
+  /* Right of button */
+  bottom: 50px;
+  right: 12px; /* 50px (center) - 26px (half button) - 12px (gap) */
+  transform: translateY(50%);
+}
+
+.scroll-to-top-hover-text[data-text-index="5"] {
+  /* Bottom-right diagonal */
+  bottom: 30px;
+  right: 30px;
+}
+
+.scroll-to-top-hover-text[data-text-index="6"] {
+  /* Bottom of button */
+  bottom: 12px;
+  right: 50px;
+  transform: translateX(50%);
+}
+
+.scroll-to-top-hover-text[data-text-index="7"] {
+  /* Bottom-left diagonal */
+  bottom: 30px;
+  right: 70px;
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
@@ -2457,21 +2523,37 @@ footer {
   transform-origin: center center;
 }
 
-/* Position three default arrows around the button */
+/* Position five arrows in star pattern (equally spaced at 72° intervals) */
+/* Button is 52px, center at 26px, arrows at ~18px radius */
 .scroll-to-top-arrow[data-arrow-index="0"] {
-  top: 6px;
-  right: 6px;
+  /* 0° - top */
+  top: 8px;
+  left: 50%;
+  margin-left: -6px; /* Center horizontally */
 }
 
 .scroll-to-top-arrow[data-arrow-index="1"] {
-  top: 6px;
-  left: 6px;
+  /* 72° - top-right */
+  top: 20px;
+  right: 9px;
 }
 
 .scroll-to-top-arrow[data-arrow-index="2"] {
-  bottom: 2px; /* Moved closer to outline (was 6px) */
-  left: 50%;
-  margin-left: -6px; /* Center horizontally (half of arrow width) */
+  /* 144° - bottom-right */
+  bottom: 11px;
+  right: 15px;
+}
+
+.scroll-to-top-arrow[data-arrow-index="3"] {
+  /* 216° - bottom-left */
+  bottom: 11px;
+  left: 15px;
+}
+
+.scroll-to-top-arrow[data-arrow-index="4"] {
+  /* 288° - top-left */
+  top: 20px;
+  left: 9px;
 }
 
 /* Hover text color cycle animation - neon rainbow */
@@ -2606,29 +2688,97 @@ footer {
     height: 10px;
   }
 
-  /* Mobile positioning for default arrows */
+  /* Mobile positioning for five arrows in star pattern */
+  /* Button is 44px, center at 22px, arrows at ~15px radius */
   .scroll-to-top-arrow[data-arrow-index="0"] {
-    top: 5px;
-    right: 5px;
-  }
-
-  .scroll-to-top-arrow[data-arrow-index="1"] {
-    top: 5px;
-    left: 5px;
-  }
-
-  .scroll-to-top-arrow[data-arrow-index="2"] {
-    bottom: 2px; /* Moved closer to outline (was 5px) */
+    /* 0° - top */
+    top: 7px;
     left: 50%;
     margin-left: -5px;
   }
 
+  .scroll-to-top-arrow[data-arrow-index="1"] {
+    /* 72° - top-right */
+    top: 17px;
+    right: 7px;
+  }
+
+  .scroll-to-top-arrow[data-arrow-index="2"] {
+    /* 144° - bottom-right */
+    bottom: 9px;
+    right: 13px;
+  }
+
+  .scroll-to-top-arrow[data-arrow-index="3"] {
+    /* 216° - bottom-left */
+    bottom: 9px;
+    left: 13px;
+  }
+
+  .scroll-to-top-arrow[data-arrow-index="4"] {
+    /* 288° - top-left */
+    top: 17px;
+    left: 7px;
+  }
+
   /* Mobile hover arrows */
-  /* Mobile hover text adjustments */
+  /* Mobile hover text adjustments - position 8 copies around button */
+  /* Button center is at bottom: 20px + 22px = 42px, right: 20px + 22px = 42px */
   .scroll-to-top-hover-text {
     font-size: 12px;
-    right: calc(100% + 8px); /* Smaller gap on mobile */
-    max-width: calc(100vw - 80px); /* Adjusted for mobile button size */
+    max-width: calc(100vw - 80px);
+  }
+
+  .scroll-to-top-hover-text[data-text-index="0"] {
+    /* Left of button */
+    bottom: 42px;
+    right: 76px; /* 42px (center) + 22px (half button) + 12px (gap) */
+    transform: translateY(50%);
+  }
+
+  .scroll-to-top-hover-text[data-text-index="1"] {
+    /* Top-left diagonal */
+    bottom: 58px;
+    right: 58px;
+  }
+
+  .scroll-to-top-hover-text[data-text-index="2"] {
+    /* Top of button */
+    bottom: 76px;
+    right: 42px;
+    transform: translateX(50%);
+  }
+
+  .scroll-to-top-hover-text[data-text-index="3"] {
+    /* Top-right diagonal */
+    bottom: 58px;
+    right: 26px;
+  }
+
+  .scroll-to-top-hover-text[data-text-index="4"] {
+    /* Right of button */
+    bottom: 42px;
+    right: 8px; /* 42px (center) - 22px (half button) - 12px (gap) */
+    transform: translateY(50%);
+  }
+
+  .scroll-to-top-hover-text[data-text-index="5"] {
+    /* Bottom-right diagonal */
+    bottom: 26px;
+    right: 26px;
+  }
+
+  .scroll-to-top-hover-text[data-text-index="6"] {
+    /* Bottom of button */
+    bottom: 8px;
+    right: 42px;
+    transform: translateX(50%);
+  }
+
+  .scroll-to-top-hover-text[data-text-index="7"] {
+    /* Bottom-left diagonal */
+    bottom: 26px;
+    right: 58px;
   }
 }
 

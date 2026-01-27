@@ -104,8 +104,8 @@ export default function ScrollToTopButton() {
           </g>
         </g>
       </svg>
-      {/* Three default arrows */}
-      {[0, 1, 2].map((index) => (
+      {/* Five arrows in star pattern */}
+      {[0, 1, 2, 3, 4].map((index) => (
         <svg
           key={`arrow-${index}`}
           xmlns="http://www.w3.org/2000/svg"
@@ -124,8 +124,12 @@ export default function ScrollToTopButton() {
           />
         </svg>
       ))}
-      {/* Hover text */}
-      <span className="scroll-to-top-hover-text">RETURN TO TOP</span>
+      {/* Multiple copies of hover text positioned around button */}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+        <span key={`text-${index}`} className="scroll-to-top-hover-text" data-text-index={index}>
+          RETURN TO TOP
+        </span>
+      ))}
       </div>
     </button>
   );
