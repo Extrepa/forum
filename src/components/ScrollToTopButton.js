@@ -13,11 +13,16 @@ export default function ScrollToTopButton() {
       const clientHeight = window.innerHeight;
       const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
       
-      setIsVisible(distanceFromBottom < 300);
+      // Only show if page is scrollable and user is near bottom
+      const isScrollable = scrollHeight > clientHeight;
+      setIsVisible(isScrollable && distanceFromBottom < 300);
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial state
+    // Use requestAnimationFrame to check after page is fully rendered
+    requestAnimationFrame(() => {
+      handleScroll();
+    });
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -99,21 +104,46 @@ export default function ScrollToTopButton() {
           </g>
         </g>
       </svg>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        className="scroll-to-top-arrow"
-        aria-hidden="true"
-      >
-        <path
-          d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
-          fill="currentColor"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      {/* Three default arrows */}
+      {[0, 1, 2].map((index) => (
+        <svg
+          key={`arrow-${index}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="scroll-to-top-arrow"
+          data-arrow-index={index}
+          aria-hidden="true"
+        >
+          <path
+            d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ))}
+      {/* Five hover arrows */}
+      {[3, 4, 5, 6, 7].map((index) => (
+        <svg
+          key={`arrow-hover-${index}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="scroll-to-top-arrow scroll-to-top-arrow-hover"
+          data-arrow-index={index}
+          aria-hidden="true"
+        >
+          <path
+            d="M12 4l-8 8h6v8h4v-8h6l-8-8z"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ))}
       </div>
     </button>
   );

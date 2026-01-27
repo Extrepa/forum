@@ -6,6 +6,9 @@ import ScrollToTopButton from '../components/ScrollToTopButton';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
 import { updateUserLastSeen } from '../lib/auth';
+import Username from '../components/Username';
+import { getUsernameColorIndex } from '../lib/usernameColor';
+import { getDb } from '../lib/db';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -26,6 +29,22 @@ export default async function RootLayout({ children }) {
   
   // Split tagline into phrases for responsive wrapping
   const taglinePhrases = strings.footer.tagline.split('. ').filter(p => p.length > 0);
+
+  // Get extrepa user's color preference for footer signature
+  let extrepaColorIndex = null;
+  try {
+    const db = await getDb();
+    const extrepaUser = await db
+      .prepare('SELECT preferred_username_color_index FROM users WHERE username_norm = ?')
+      .bind('extrepa')
+      .first();
+    if (extrepaUser) {
+      extrepaColorIndex = extrepaUser.preferred_username_color_index;
+    }
+  } catch (e) {
+    // Silently fail - will use automatic color
+  }
+  const extrepaDisplayColorIndex = getUsernameColorIndex('extrepa', { preferredColorIndex: extrepaColorIndex });
 
   // Update user's last_seen timestamp to track active browsing
   // Fire and forget - don't await to avoid blocking page rendering
@@ -58,7 +77,7 @@ export default async function RootLayout({ children }) {
                 {/* Center: Signature */}
                 <div className="footer-column footer-column-center">
                   <div className="footer-signature">
-                    Forum crafted by <span className="footer-signature-name">Chriss (Extrepa)</span>
+                    Forum crafted by Chriss (<Username name="extrepa" colorIndex={extrepaDisplayColorIndex} />)
                   </div>
                   <div className="footer-date">
                     Forum opened: <time dateTime="2026-01-01">January 2026</time>

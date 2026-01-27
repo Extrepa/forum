@@ -1815,6 +1815,8 @@ footer {
 
 .footer-tagline-phrase {
   display: block;
+  text-align: center;
+  width: 100%;
 }
 
 /* Rainbow color cycling animations for each tagline phrase */
@@ -1901,15 +1903,15 @@ footer {
 
 /* Different colors for each tagline phrase with rainbow animations */
 .footer-tagline-phrase-0 {
-  animation: tagline-rainbow-0 4s linear infinite;
+  animation: tagline-rainbow-0 8s linear infinite;
 }
 
 .footer-tagline-phrase-1 {
-  animation: tagline-rainbow-1 5s linear infinite;
+  animation: tagline-rainbow-1 10s linear infinite;
 }
 
 .footer-tagline-phrase-2 {
-  animation: tagline-rainbow-2 6s linear infinite;
+  animation: tagline-rainbow-2 12s linear infinite;
 }
 
 /* Individual letter styling */
@@ -2068,6 +2070,8 @@ footer {
 @media (min-width: 640px) {
   .footer-tagline-phrase {
     display: inline;
+    width: auto;
+    text-align: inherit;
   }
 
   .footer-tagline-separator {
@@ -2167,6 +2171,11 @@ footer {
   animation-play-state: paused; /* Pause arrow rotation and glow on hover */
 }
 
+/* Ensure hover arrows also pause on hover */
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover {
+  animation-play-state: paused;
+}
+
 .scroll-to-top-button:hover::before {
   opacity: 1;
 }
@@ -2255,11 +2264,9 @@ footer {
   }
 }
 
-/* Arrow icon in corner */
+/* Arrow icons */
 .scroll-to-top-arrow {
   position: absolute;
-  top: 6px;
-  right: 6px;
   width: 12px;
   height: 12px;
   color: var(--errl-accent);
@@ -2268,6 +2275,65 @@ footer {
   /* Counter-rotate to keep arrow facing up while button spins */
   animation: rotate-button-counter 8s linear infinite, arrowGlowCycle 3s linear infinite;
   transform-origin: center center;
+}
+
+/* Position three default arrows around the button */
+.scroll-to-top-arrow[data-arrow-index="0"] {
+  top: 6px;
+  right: 6px;
+}
+
+.scroll-to-top-arrow[data-arrow-index="1"] {
+  top: 6px;
+  left: 6px;
+}
+
+.scroll-to-top-arrow[data-arrow-index="2"] {
+  bottom: 6px;
+  left: 50%;
+  margin-left: -6px; /* Center horizontally (half of arrow width) */
+}
+
+/* Hover arrows - hidden by default */
+.scroll-to-top-arrow-hover {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  width: 12px;
+  height: 12px;
+}
+
+/* Show and position hover arrows on button hover - positioned outside outline */
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover {
+  opacity: 1;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
+  top: -16px;
+  left: 50%;
+  margin-left: -6px;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
+  bottom: -16px;
+  left: 50%;
+  margin-left: -6px;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
+  top: 50%;
+  left: -16px;
+  margin-top: -6px;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
+  top: 50%;
+  right: -16px;
+  margin-top: -6px;
+}
+
+.scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
+  top: -18px;
+  right: -18px;
 }
 
 @keyframes rotate-button-counter {
@@ -2347,8 +2413,54 @@ footer {
   .scroll-to-top-arrow {
     width: 10px;
     height: 10px;
+  }
+
+  /* Mobile positioning for default arrows */
+  .scroll-to-top-arrow[data-arrow-index="0"] {
     top: 5px;
     right: 5px;
+  }
+
+  .scroll-to-top-arrow[data-arrow-index="1"] {
+    top: 5px;
+    left: 5px;
+  }
+
+  .scroll-to-top-arrow[data-arrow-index="2"] {
+    bottom: 5px;
+    left: 50%;
+    margin-left: -5px;
+  }
+
+  /* Mobile hover arrows */
+  .scroll-to-top-arrow-hover {
+    width: 10px;
+    height: 10px;
+  }
+
+  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="3"] {
+    top: -14px;
+    margin-left: -5px;
+  }
+
+  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="4"] {
+    bottom: -14px;
+    margin-left: -5px;
+  }
+
+  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="5"] {
+    left: -14px;
+    margin-top: -5px;
+  }
+
+  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="6"] {
+    right: -14px;
+    margin-top: -5px;
+  }
+
+  .scroll-to-top-button:hover .scroll-to-top-arrow-hover[data-arrow-index="7"] {
+    top: -16px;
+    right: -16px;
   }
 }
 
