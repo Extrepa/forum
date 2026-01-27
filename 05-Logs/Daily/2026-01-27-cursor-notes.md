@@ -1,5 +1,10 @@
 # Development Notes - January 27, 2026
 
+## Summary
+Fixed project reply image upload functionality, improved feed sorting by activity, and optimized feed layout for both desktop and mobile views.
+
+---
+
 ## Project Reply Image Upload Feature
 
 ### Issues Fixed
@@ -90,66 +95,130 @@
 
 ---
 
-## Feed Mobile Layout Improvements
+## Feed Layout Optimization
 
 ### Issue
 - Inconsistent wrapping behavior on mobile
 - Views/replies/likes were appearing under title/author instead of with date/time
-- Event information and attending lists were wrapping unpredictably
+- Event posts missing post time on mobile
+- Desktop layout needed optimization to keep content in 2 rows
 
-### Solution
+### Final Solution
+
+#### Desktop Layout (≥768px):
+
+**Regular Posts:**
+- **Row 1:** Title + author (left) | Views/Replies/Likes (top right)
+- **Row 2:** Date/time (bottom left) | Last activity (bottom right)
+
+**Event Posts:**
+- **Row 1:** Title + author (left) | Views/Replies/Likes (top right)
+- **Row 2:** Attending list (bottom left) | Last activity (bottom right)
+- Event info (start date/time) shown between rows
+
+#### Mobile Layout (<768px):
+
+**Regular Posts:**
+- **Row 1:** Title + author
+- **Row 2:** Date/time (left) | Views/Replies/Likes (right) - same row, opposite sides
+- **Row 3:** Last activity (bottom right, separate row)
+
+**Event Posts:**
+- **Row 1:** Title + author
+- **Row 2:** Post time (left) | Views/Replies/Likes (right) - same row, opposite sides
+- **Row 3:** Event information (start date/time)
+- **Row 4:** Attending list (left) | Last activity (right)
+
+### Changes Made
 
 #### 1. PostMetaBar Component: `src/components/PostMetaBar.js`
 
-**New Layout Structure:**
-- **Row 1**: Title + "by [author]" (always together, wraps together)
-- **Row 2**: Date/time on left, views/replies/likes on right (same row, wraps together)
-- **Row 3**: Last activity (bottom right, only if present)
+**Layout Structure:**
+- **Row 1:** Title + author (left), Views/Replies/Likes (top right on desktop)
+- **Row 2:** Date/time (left), Views/Replies/Likes (right on mobile), Last activity (right on desktop)
+- **Row 3:** Last activity (mobile only, separate row)
 
-**Changes:**
-- Removed views/replies/likes from top row
-- Moved them to second row alongside date/time
-- Last activity moved to its own row, right-aligned
-- Updated component documentation
+**New Props:**
+- Added `hideDateOnDesktop` prop - when true, hides date on desktop but shows on mobile (for events)
 
-#### 2. Feed Event Handling: `src/app/feed/page.js`
+**CSS Classes:**
+- `.post-meta-stats-desktop` - Stats on top right (desktop only)
+- `.post-meta-stats-mobile` - Stats on right side of date row (mobile only)
+- `.post-meta-last-activity` - Last activity inline on bottom right (desktop only)
+- `.post-meta-last-activity-mobile` - Last activity on separate row (mobile only)
+- `.post-meta-date-mobile-only` - Date hidden on desktop, shown on mobile (for events)
 
-**Event Post Layout:**
-- **Row 1**: Title + author (from PostMetaBar)
-- **Row 2**: Date/time + views/replies/likes (from PostMetaBar)
-- **Row 3**: Event information (calendar icon + start date/time) - separate row
-- **Row 4**: Attending list - separate row (if attendees exist)
-- **Row 5**: Last activity - bottom right (if present)
+**Key Features:**
+- Desktop tries to keep everything in 2 rows
+- Mobile ensures date/time and stats stay on same row
+- Responsive via CSS media queries (768px breakpoint)
 
-**Changes:**
-- Event info moved to its own row (not inline with attending list)
-- Attending list moved to separate row below event info
-- Last activity for events shown separately (not in PostMetaBar for events)
-- Better spacing and wrapping behavior
+#### 2. Feed Page: `src/app/feed/page.js`
+
+**Event Handling:**
+- Passes `hideDateOnDesktop={true}` for events
+- PostMetaBar shows post time + stats row on mobile for events
+- Event info displayed between PostMetaBar and attending list
+- Attending list and last activity on same row (bottom row)
+
+**Sorting:**
+- Changed from sorting by `createdAt` to sorting by `lastActivity`
+- Projects with new replies now move to top of feed
+
+#### 3. Global CSS: `src/app/globals.css`
+
+**Media Queries:**
+- Desktop (≥768px):
+  - Shows `.post-meta-stats-desktop` (stats on top right)
+  - Hides `.post-meta-stats-mobile`
+  - Shows `.post-meta-last-activity` (inline)
+  - Hides `.post-meta-last-activity-mobile`
+  - Hides `.post-meta-date-mobile-only` (for events)
+- Mobile (<768px):
+  - Hides `.post-meta-stats-desktop`
+  - Shows `.post-meta-stats-mobile` (stats with date)
+  - Hides `.post-meta-last-activity`
+  - Shows `.post-meta-last-activity-mobile` (separate row)
+  - Shows `.post-meta-date-mobile-only` (for events)
 
 ---
 
 ## Summary of All Files Modified
 
-1. `src/app/api/projects/[id]/replies/route.js` - Image upload handling, error logging, flexible reply types
+1. `src/app/api/projects/[id]/replies/route.js` - Image upload handling, error logging, flexible reply types, redirect hash fix
 2. `src/components/CollapsibleReplyForm.js` - Made textarea optional when image upload enabled
-3. `src/app/projects/[id]/page.js` - Updated error messages for new error codes
-4. `src/components/ProjectRepliesSection.js` - Added error logging to console
-5. `src/app/feed/page.js` - Fixed sorting by lastActivity, improved event layout
-6. `src/components/PostMetaBar.js` - Restructured layout for consistent mobile wrapping
+3. `src/app/projects/[id]/page.js` - Updated error messages for new error codes (`upload_permission`, `upload_failed`, `missing`)
+4. `src/components/ProjectRepliesSection.js` - Added error logging to browser console
+5. `src/app/feed/page.js` - Fixed sorting by lastActivity, improved event layout, added `hideDateOnDesktop` prop for events
+6. `src/components/PostMetaBar.js` - Complete layout restructure with responsive desktop/mobile layouts, added `hideDateOnDesktop` prop
+7. `src/app/globals.css` - Added CSS media queries for responsive PostMetaBar behavior
 
 ---
 
 ## Testing Checklist
 
+### Project Replies
 - [x] Image-only replies work
 - [x] Text-only replies work  
 - [x] Combined text + image replies work
-- [x] Error messages display correctly
+- [x] Error messages display correctly (permission, upload failure, missing)
+- [x] Error logging works (browser console and server logs)
+
+### Feed Functionality
 - [x] Feed sorts by last activity (projects with new replies move to top)
-- [x] Mobile layout wraps consistently
-- [x] Event posts display correctly with proper row structure
-- [x] Last activity shows in bottom right for all post types
+- [x] Feed calculates `last_activity_at` correctly from project replies
+
+### Feed Layout - Desktop
+- [x] Regular posts: Title/author + stats (row 1), Date + last activity (row 2)
+- [x] Event posts: Title/author + stats (row 1), Attending list + last activity (row 2)
+- [x] Desktop keeps content in 2 rows when possible
+
+### Feed Layout - Mobile
+- [x] Regular posts: Title/author (row 1), Date + stats (row 2), Last activity (row 3)
+- [x] Event posts: Title/author (row 1), Post time + stats (row 2), Event info (row 3), Attending + last activity (row 4)
+- [x] Date/time and stats stay on same row (opposite sides)
+- [x] No duplicate stats or dates
+- [x] Consistent wrapping behavior
 
 ---
 
@@ -161,9 +230,128 @@
 
 ---
 
+---
+
+## Feed Sorting Fix
+
+### Issue
+- Feed was sorting by `createdAt` instead of `lastActivity`
+- Projects with new replies weren't moving to the top of the feed
+
+### Solution
+**File**: `src/app/feed/page.js`
+- Changed sort from: `.sort((a, b) => b.createdAt - a.createdAt)`
+- To: `.sort((a, b) => (b.lastActivity || b.createdAt) - (a.lastActivity || a.createdAt))`
+- Feed already calculates `last_activity_at` correctly using `MAX(project_replies.created_at)`
+- Now properly uses this value for sorting
+
+**Verification:**
+- SQL query already includes: `COALESCE((SELECT MAX(project_replies.created_at) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0), projects.created_at) AS last_activity_at`
+- This value is mapped to `lastActivity` field in feed items
+- Sort now uses `lastActivity` with fallback to `createdAt`
+
+---
+
+## Feed Layout Optimization
+
+### Issue
+- Inconsistent wrapping behavior on mobile
+- Views/replies/likes were appearing under title/author instead of with date/time
+- Event posts missing post time on mobile
+- Desktop layout needed optimization
+
+### Solution
+
+#### Desktop Layout (≥768px):
+**Regular Posts:**
+- **Row 1:** Title + author (left) | Views/Replies/Likes (top right)
+- **Row 2:** Date/time (bottom left) | Last activity (bottom right)
+
+**Event Posts:**
+- **Row 1:** Title + author (left) | Views/Replies/Likes (top right)
+- **Row 2:** Attending list (bottom left) | Last activity (bottom right)
+- Event info shown between rows
+
+#### Mobile Layout (<768px):
+**Regular Posts:**
+- **Row 1:** Title + author
+- **Row 2:** Date/time (left) | Views/Replies/Likes (right) - same row, opposite sides
+- **Row 3:** Last activity (bottom right, separate row)
+
+**Event Posts:**
+- **Row 1:** Title + author
+- **Row 2:** Post time (left) | Views/Replies/Likes (right) - same row, opposite sides
+- **Row 3:** Event information (start date/time)
+- **Row 4:** Attending list (left) | Last activity (right)
+
+### Changes Made
+
+#### 1. PostMetaBar Component: `src/components/PostMetaBar.js`
+
+**New Layout Structure:**
+- **Row 1:** Title + author (left), Views/Replies/Likes (top right on desktop)
+- **Row 2:** Date/time (left), Views/Replies/Likes (right on mobile), Last activity (right on desktop)
+- **Row 3:** Last activity (mobile only, separate row)
+
+**New Props:**
+- Added `hideDateOnDesktop` prop to hide date on desktop while showing on mobile (for events)
+
+**CSS Classes Added:**
+- `.post-meta-stats-desktop` - Shows stats on top right (desktop only)
+- `.post-meta-stats-mobile` - Shows stats on right side of date row (mobile only)
+- `.post-meta-last-activity` - Shows last activity inline on bottom right (desktop only)
+- `.post-meta-last-activity-mobile` - Shows last activity on separate row (mobile only)
+- `.post-meta-date-mobile-only` - Hides date on desktop, shows on mobile (for events)
+
+#### 2. Feed Page: `src/app/feed/page.js`
+
+**Event Handling:**
+- Passes `hideDateOnDesktop={true}` for events so date shows on mobile but not desktop
+- Event info displayed between PostMetaBar and attending list
+- Attending list and last activity on same row (bottom row)
+
+#### 3. Global CSS: `src/app/globals.css`
+
+**Media Queries Added:**
+- Desktop (≥768px): Shows desktop stats, hides mobile stats; shows inline last activity, hides mobile last activity row
+- Mobile (<768px): Hides desktop stats, shows mobile stats; hides inline last activity, shows mobile last activity row
+- Date visibility controlled for events (hidden on desktop, shown on mobile)
+
+---
+
+## Technical Details
+
+### Image Upload Flow
+1. Form submits with `multipart/form-data` encoding
+2. API validates image file (checks for File object with size > 0)
+3. Checks user permissions via `canUploadImages(user, env)`
+4. Uploads to R2 bucket with key: `project-replies/{uuid}-{filename}`
+5. Inserts reply with `image_key` (or falls back if column doesn't exist)
+6. Redirects with error code if any step fails
+
+### Feed Sorting Algorithm
+- Calculates `last_activity_at` using SQL: `MAX(project_replies.created_at)`
+- Falls back to `projects.created_at` if no replies exist
+- Sorts feed items by `lastActivity` descending
+- Projects with recent replies automatically move to top
+
+### Responsive Layout Strategy
+- Uses CSS media queries with 768px breakpoint
+- Desktop: Optimized for 2-row layout
+- Mobile: Allows natural wrapping while maintaining structure
+- Different CSS classes control visibility per breakpoint
+- PostMetaBar handles both layouts with conditional rendering
+
 ## Notes
 
 - All changes are backward compatible (fallbacks for missing columns)
 - Error logging added throughout for easier debugging
 - Mobile-first responsive design improvements
 - Consistent wrapping behavior across all screen sizes
+- Desktop layout optimized to keep content in 2 rows when possible
+- Mobile layout ensures date/time and stats stay on same row
+- Event posts properly show post time on mobile without duplicates
+- Feed automatically updates when new replies are posted
+- Desktop layout optimized to keep content in 2 rows when possible
+- Mobile layout ensures date/time and stats stay on same row
+- Event posts properly show post time on mobile without duplicates
