@@ -2061,6 +2061,7 @@ footer {
   animation: tagline-rainbow-2 12s linear infinite;
   position: relative;
   display: inline-block;
+  text-align: center; /* Ensure content is centered */
 }
 
 /* Errl R expansion effect - simplified: replace entire phrase on hover */
@@ -2145,12 +2146,18 @@ footer {
   font-size: 0;
 }
 
+/* Maintain phrase width during transition to keep centering */
+.footer-tagline-bar:hover .footer-tagline-phrase-2 {
+  min-width: max-content; /* Keep width stable during transition */
+}
+
 /* Show expanded "Keep it Errrrrrrrrrrrrl." on hover */
 .footer-tagline-bar:hover .footer-tagline-phrase-2::after {
   content: 'Keep it Errrrrrrrrrrrrl.';
   position: absolute;
-  left: 0;
+  left: 50%;
   top: 0;
+  transform: translateX(-50%); /* Center the expanded text */
   opacity: 1;
   width: auto;
   overflow: visible;
@@ -2307,7 +2314,6 @@ footer {
   position: absolute;
   right: calc(100% + 12px); /* Position to the left of button, 12px gap */
   top: 50%;
-  transform: translateY(-50%);
   white-space: nowrap;
   font-size: 14px;
   font-weight: 700;
@@ -2316,8 +2322,19 @@ footer {
   pointer-events: none;
   transition: opacity 0.3s ease;
   z-index: 1000;
-  animation: scrollToTopTextColorCycle 3s linear infinite;
+  animation: scrollToTopTextColorCycle 3s linear infinite, scrollToTopTextCounterRotate 8s linear infinite; /* Counter-rotate to stay fixed */
+  transform-origin: center center;
   /* Text shadow will be animated via keyframes */
+}
+
+/* Counter-rotation animation for text to keep it fixed */
+@keyframes scrollToTopTextCounterRotate {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(-360deg);
+  }
 }
 
 .scroll-to-top-button:hover .scroll-to-top-hover-text {
