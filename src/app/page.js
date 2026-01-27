@@ -1572,6 +1572,141 @@ export default async function HomePage({ searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
 
+  // Prepare section cards for alphabetical sorting
+  const sections = [
+    {
+      title: strings.cards.announcements.title,
+      description: strings.cards.announcements.description,
+      count: sectionData?.timeline?.count || 0,
+      recentActivity: sectionData?.timeline?.recent ? {
+        type: 'post',
+        postTitle: sectionData.timeline.recent.title,
+        postAuthor: sectionData.timeline.recent.author,
+        postAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
+        activityAuthor: sectionData.timeline.recent.author,
+        activityAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
+        timeAgo: sectionData.timeline.recent.timeAgo,
+        href: sectionData.timeline.recent.url
+      } : null,
+      href: "/announcements"
+    },
+    {
+      title: strings.cards.general.title,
+      description: strings.cards.general.description,
+      count: sectionData?.forum?.count || 0,
+      recentActivity: sectionData?.forum?.recent || null,
+      href: "/lobby"
+    },
+    {
+      title: strings.cards.events.title,
+      description: strings.cards.events.description,
+      count: sectionData?.events?.count || 0,
+      recentActivity: sectionData?.events?.recent || null,
+      href: "/events"
+    },
+    {
+      title: strings.cards.music.title,
+      description: strings.cards.music.description,
+      count: sectionData?.music?.count || 0,
+      recentActivity: sectionData?.music?.recent || null,
+      href: "/music"
+    },
+    {
+      title: strings.cards.projects.title,
+      description: strings.cards.projects.description,
+      count: sectionData?.projects?.count || 0,
+      recentActivity: sectionData?.projects?.recent || null,
+      href: "/projects"
+    },
+    {
+      title: strings.cards.shitposts.title,
+      description: strings.cards.shitposts.description,
+      count: sectionData?.shitposts?.count || 0,
+      recentActivity: sectionData?.shitposts?.recent ? {
+        type: 'post',
+        postTitle: sectionData.shitposts.recent.title,
+        postAuthor: sectionData.shitposts.recent.author,
+        postAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
+        activityAuthor: sectionData.shitposts.recent.author,
+        activityAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
+        timeAgo: sectionData.shitposts.recent.timeAgo,
+        href: sectionData.shitposts.recent.url
+      } : null,
+      href: "/shitposts"
+    }
+  ];
+
+  // Add conditional sections
+  if (sectionData?.artNostalgia) {
+    sections.push({
+      title: strings.cards.artNostalgia.title,
+      description: strings.cards.artNostalgia.description,
+      count: sectionData.artNostalgia.count || 0,
+      recentActivity: sectionData.artNostalgia.recent ? {
+        type: 'post',
+        postTitle: sectionData.artNostalgia.recent.title || 'Untitled',
+        postAuthor: sectionData.artNostalgia.recent.author,
+        postAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
+        activityAuthor: sectionData.artNostalgia.recent.author,
+        activityAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
+        timeAgo: sectionData.artNostalgia.recent.timeAgo,
+        href: sectionData.artNostalgia.recent.url
+      } : null,
+      href: "/art-nostalgia"
+    });
+  }
+
+  if (sectionData?.bugsRant) {
+    sections.push({
+      title: strings.cards.bugsRant.title,
+      description: strings.cards.bugsRant.description,
+      count: sectionData.bugsRant.count || 0,
+      recentActivity: sectionData.bugsRant.recent ? {
+        type: 'post',
+        postTitle: sectionData.bugsRant.recent.title || 'Untitled',
+        postAuthor: sectionData.bugsRant.recent.author,
+        postAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
+        activityAuthor: sectionData.bugsRant.recent.author,
+        activityAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
+        timeAgo: sectionData.bugsRant.recent.timeAgo,
+        href: sectionData.bugsRant.recent.url
+      } : null,
+      href: "/bugs-rant"
+    });
+  }
+
+  if (hasUsername && sectionData?.devlog !== null) {
+    sections.push({
+      title: strings.cards.devlog.title,
+      description: strings.cards.devlog.description,
+      count: sectionData.devlog?.count || 0,
+      recentActivity: sectionData.devlog?.recent || null,
+      href: "/devlog"
+    });
+  }
+
+  if (hasUsername && sectionData?.loreMemories !== null) {
+    sections.push({
+      title: strings.cards.loreMemories.title,
+      description: strings.cards.loreMemories.description,
+      count: sectionData.loreMemories.count || 0,
+      recentActivity: sectionData.loreMemories.recent ? {
+        type: 'post',
+        postTitle: sectionData.loreMemories.recent.title || 'Untitled',
+        postAuthor: sectionData.loreMemories.recent.author,
+        postAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
+        activityAuthor: sectionData.loreMemories.recent.author,
+        activityAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
+        timeAgo: sectionData.loreMemories.recent.timeAgo,
+        href: sectionData.loreMemories.recent.url
+      } : null,
+      href: "/lore-memories"
+    });
+  }
+
+  // Sort sections alphabetically by title
+  sections.sort((a, b) => a.title.localeCompare(b.title));
+
   return (
     <div className="stack">
       {!hasUsername && (
@@ -1586,149 +1721,18 @@ export default async function HomePage({ searchParams }) {
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">
-              <HomeSectionCard
-                title={strings.cards.announcements.title}
-                description={strings.cards.announcements.description}
-                count={sectionData?.timeline?.count || 0}
-                recentActivity={sectionData?.timeline?.recent ? {
-                  type: 'post',
-                  postTitle: sectionData.timeline.recent.title,
-                  postAuthor: sectionData.timeline.recent.author,
-                  postAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
-                  activityAuthor: sectionData.timeline.recent.author,
-                  activityAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
-                  timeAgo: sectionData.timeline.recent.timeAgo,
-                  href: sectionData.timeline.recent.url
-                } : null}
-                href="/announcements"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              <HomeSectionCard
-                title={strings.cards.general.title}
-                description={strings.cards.general.description}
-                count={sectionData?.forum?.count || 0}
-                recentActivity={sectionData?.forum?.recent || null}
-                href="/lobby"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              <HomeSectionCard
-                title={strings.cards.events.title}
-                description={strings.cards.events.description}
-                count={sectionData?.events?.count || 0}
-                recentActivity={sectionData?.events?.recent || null}
-                href="/events"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              <HomeSectionCard
-                title={strings.cards.music.title}
-                description={strings.cards.music.description}
-                count={sectionData?.music?.count || 0}
-                recentActivity={sectionData?.music?.recent || null}
-                href="/music"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              <HomeSectionCard
-                title={strings.cards.projects.title}
-                description={strings.cards.projects.description}
-                count={sectionData?.projects?.count || 0}
-                recentActivity={sectionData?.projects?.recent || null}
-                href="/projects"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              <HomeSectionCard
-                title={strings.cards.shitposts.title}
-                description={strings.cards.shitposts.description}
-                count={sectionData?.shitposts?.count || 0}
-                recentActivity={sectionData?.shitposts?.recent ? {
-                  type: 'post',
-                  postTitle: sectionData.shitposts.recent.title,
-                  postAuthor: sectionData.shitposts.recent.author,
-                  postAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
-                  activityAuthor: sectionData.shitposts.recent.author,
-                  activityAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
-                  timeAgo: sectionData.shitposts.recent.timeAgo,
-                  href: sectionData.shitposts.recent.url
-                } : null}
-                href="/shitposts"
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-              {sectionData?.artNostalgia && (
+              {sections.map((section) => (
                 <HomeSectionCard
-                  title={strings.cards.artNostalgia.title}
-                  description={strings.cards.artNostalgia.description}
-                  count={sectionData.artNostalgia.count || 0}
-                  recentActivity={sectionData.artNostalgia.recent ? {
-                    type: 'post',
-                    postTitle: sectionData.artNostalgia.recent.title || 'Untitled',
-                    postAuthor: sectionData.artNostalgia.recent.author,
-                    postAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
-                    activityAuthor: sectionData.artNostalgia.recent.author,
-                    activityAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
-                    timeAgo: sectionData.artNostalgia.recent.timeAgo,
-                    href: sectionData.artNostalgia.recent.url
-                  } : null}
-                  href="/art-nostalgia"
+                  key={section.href}
+                  title={section.title}
+                  description={section.description}
+                  count={section.count}
+                  recentActivity={section.recentActivity}
+                  href={section.href}
                   usernameColorMap={usernameColorMap}
                   preferredColors={preferredColors}
                 />
-              )}
-              {sectionData?.bugsRant && (
-                <HomeSectionCard
-                  title={strings.cards.bugsRant.title}
-                  description={strings.cards.bugsRant.description}
-                  count={sectionData.bugsRant.count || 0}
-                  recentActivity={sectionData.bugsRant.recent ? {
-                    type: 'post',
-                    postTitle: sectionData.bugsRant.recent.title || 'Untitled',
-                    postAuthor: sectionData.bugsRant.recent.author,
-                    postAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
-                    activityAuthor: sectionData.bugsRant.recent.author,
-                    activityAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
-                    timeAgo: sectionData.bugsRant.recent.timeAgo,
-                    href: sectionData.bugsRant.recent.url
-                  } : null}
-                  href="/bugs-rant"
-                  usernameColorMap={usernameColorMap}
-                  preferredColors={preferredColors}
-                />
-              )}
-              {hasUsername && sectionData?.devlog !== null && (
-                <HomeSectionCard
-                  title={strings.cards.devlog.title}
-                  description={strings.cards.devlog.description}
-                  count={sectionData.devlog?.count || 0}
-                  recentActivity={sectionData.devlog?.recent || null}
-                  href="/devlog"
-                  usernameColorMap={usernameColorMap}
-                  preferredColors={preferredColors}
-                />
-              )}
-              {hasUsername && sectionData?.loreMemories !== null && (
-                <HomeSectionCard
-                  title={strings.cards.loreMemories.title}
-                  description={strings.cards.loreMemories.description}
-                  count={sectionData.loreMemories.count || 0}
-                  recentActivity={sectionData.loreMemories.recent ? {
-                    type: 'post',
-                    postTitle: sectionData.loreMemories.recent.title || 'Untitled',
-                    postAuthor: sectionData.loreMemories.recent.author,
-                    postAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
-                    activityAuthor: sectionData.loreMemories.recent.author,
-                    activityAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
-                    timeAgo: sectionData.loreMemories.recent.timeAgo,
-                    href: sectionData.loreMemories.recent.url
-                  } : null}
-                  href="/lore-memories"
-                  usernameColorMap={usernameColorMap}
-                  preferredColors={preferredColors}
-                />
-              )}
+              ))}
             </div>
           </section>
         </>
