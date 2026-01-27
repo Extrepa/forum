@@ -549,7 +549,6 @@ export default async function FeedPage() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginTop: '8px',
                         flexWrap: 'wrap',
                         gap: '8px',
                         rowGap: '4px'
