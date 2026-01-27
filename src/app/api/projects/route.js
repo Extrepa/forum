@@ -38,6 +38,7 @@ export async function POST(request) {
   const status = String(formData.get('status') || '').trim();
   const githubUrl = String(formData.get('github_url') || '').trim() || null;
   const demoUrl = String(formData.get('demo_url') || '').trim() || null;
+  const updatesEnabled = formData.get('updates_enabled') === 'on' ? 1 : 0;
 
   if (!title || !description || !status) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -71,9 +72,9 @@ export async function POST(request) {
   const projectId = crypto.randomUUID();
   await db
     .prepare(
-      'INSERT INTO projects (id, author_user_id, title, description, status, github_url, demo_url, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO projects (id, author_user_id, title, description, status, github_url, demo_url, image_key, created_at, updates_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(projectId, user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now())
+    .bind(projectId, user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now(), updatesEnabled)
     .run();
 
   // Create mention notifications

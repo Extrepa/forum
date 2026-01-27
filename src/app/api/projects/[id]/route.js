@@ -58,6 +58,7 @@ export async function POST(request, { params }) {
   const status = String(formData.get('status') || '').trim();
   const githubUrl = String(formData.get('github_url') || '').trim() || null;
   const demoUrl = String(formData.get('demo_url') || '').trim() || null;
+  const updatesEnabled = formData.get('updates_enabled') === 'on' ? 1 : 0;
 
   if (!title || !description || !status) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -90,16 +91,16 @@ export async function POST(request, { params }) {
   if (imageKey) {
     await db
       .prepare(
-        'UPDATE projects SET title = ?, description = ?, status = ?, github_url = ?, demo_url = ?, image_key = ?, updated_at = ? WHERE id = ?'
+        'UPDATE projects SET title = ?, description = ?, status = ?, github_url = ?, demo_url = ?, image_key = ?, updates_enabled = ?, updated_at = ? WHERE id = ?'
       )
-      .bind(title, description, status, githubUrl, demoUrl, imageKey, Date.now(), params.id)
+      .bind(title, description, status, githubUrl, demoUrl, imageKey, updatesEnabled, Date.now(), params.id)
       .run();
   } else {
     await db
       .prepare(
-        'UPDATE projects SET title = ?, description = ?, status = ?, github_url = ?, demo_url = ?, updated_at = ? WHERE id = ?'
+        'UPDATE projects SET title = ?, description = ?, status = ?, github_url = ?, demo_url = ?, updates_enabled = ?, updated_at = ? WHERE id = ?'
       )
-      .bind(title, description, status, githubUrl, demoUrl, Date.now(), params.id)
+      .bind(title, description, status, githubUrl, demoUrl, updatesEnabled, Date.now(), params.id)
       .run();
   }
 

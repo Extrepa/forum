@@ -13,6 +13,7 @@ import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
+import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,6 +72,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 projects.github_url, projects.demo_url, projects.image_key,
                 projects.created_at, projects.updated_at,
                 projects.moved_to_type, projects.moved_to_id,
+                COALESCE(projects.updates_enabled, 0) AS updates_enabled,
                 COALESCE(projects.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -221,6 +223,28 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     !!user.password_hash &&
     (user.id === project.author_user_id || isAdmin);
   const canDelete = canEdit;
+
+  // Fetch project updates if enabled
+  let updates = [];
+  if (project.updates_enabled) {
+    try {
+      const out = await db
+        .prepare(
+          `SELECT id, title, body, created_at, image_key
+           FROM project_updates
+           WHERE project_id = ?
+           ORDER BY created_at DESC`
+        )
+        .bind(id)
+        .all();
+      updates = (out?.results || []).map(u => ({
+        ...u,
+        body_html: renderMarkdown(u.body)
+      }));
+    } catch (e) {
+      console.error('Error fetching project updates:', e);
+    }
+  }
   
   // Check if current user has liked this project
   let userLiked = false;
@@ -505,10 +529,62 @@ export default async function ProjectDetailPage({ params, searchParams }) {
               status: safeProjectStatus,
               github_url: safeProjectGithubUrl,
               demo_url: safeProjectDemoUrl,
-              image_key: safeProjectImageKey
+              image_key: safeProjectImageKey,
+              updates_enabled: project.updates_enabled
             }} />
           </section>
         </div>
+      ) : null}
+
+      {project.updates_enabled ? (
+        <section className="card">
+          <h3 className="section-title">Project Updates</h3>
+          {canEdit ? (
+            <div style={{ marginBottom: '20px' }}>
+              <details>
+                <summary className="muted" style={{ cursor: 'pointer', fontSize: '14px' }}>
+                  Post a new update...
+                </summary>
+                <div style={{ marginTop: '10px' }}>
+                  <ProjectUpdateForm projectId={safeProjectId} />
+                </div>
+              </details>
+            </div>
+          ) : null}
+          
+          {updates.length === 0 ? (
+            <p className="muted" style={{ fontSize: '14px' }}>No updates yet.</p>
+          ) : (
+            <div className="stack" style={{ gap: '24px' }}>
+              {updates.map(update => (
+                <div key={update.id} className="project-update" style={{ 
+                  borderLeft: '2px solid var(--border)', 
+                  paddingLeft: '16px',
+                  paddingBottom: '8px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                    <h4 style={{ margin: 0 }}>{update.title}</h4>
+                    <span className="muted" style={{ fontSize: '12px' }}>
+                      {new Date(update.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {update.image_key && (
+                    <img 
+                      src={`/api/media/${update.image_key}`} 
+                      alt="" 
+                      style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '8px' }} 
+                    />
+                  )}
+                  <div 
+                    className="post-body" 
+                    style={{ fontSize: '14px' }}
+                    dangerouslySetInnerHTML={{ __html: update.body_html }} 
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       ) : null}
 
       <ProjectRepliesSection

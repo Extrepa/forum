@@ -492,3 +492,18 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - Created `sendOutboundNotification` in `src/lib/outboundNotifications.js` as a generic helper for all types.
 - Updated `src/lib/mentions.js` to support outbound delivery with correct context links.
 - Modified multiple API routes to fetch recipient contact info and preferences before triggering `sendOutboundNotification`.
+
+#### 6. Project Updates Feature Opt-in
+- Added `updates_enabled` column to `projects` table (default 0).
+- Added "Enable Project Updates" checkbox to `ProjectForm.js` (create/edit).
+- Activated `ProjectUpdateForm` and "Project Updates" section on `src/app/projects/[id]/page.js` if enabled for that project.
+- Project authors can now post bulleted or markdown updates that trigger notifications to project participants.
+- The feature is opt-in and hidden by default for new projects.
+
+## Final Verification
+- **Database**: All 3 migrations (0042, 0043, 0044) applied locally. Remote migrations pending user execution.
+- **Auth**: `getSessionUser`, `/api/auth/me`, and `notification-prefs` all synchronized with new columns.
+- **UI**: `ClaimUsernameForm` and `ProjectForm` updated and verified for state management and preference saving.
+- **Notifications**: RSVP, Likes, Project Updates, and Mentions verified to check preferences and trigger outbound notifications.
+- **Project Updates**: Opt-in logic verified in API (POST create/update) and UI (detail page rendering).
+- **Code Quality**: Performed `npm run build` and `read_lints` on modified files; no errors found.

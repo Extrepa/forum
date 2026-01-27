@@ -75,6 +75,15 @@ export default function ProjectForm({ projectId, initialData }) {
         <div className="muted">Image (optional)</div>
         <input name="image" type="file" accept="image/*" />
       </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0 12px 0' }}>
+        <input 
+          type="checkbox" 
+          name="updates_enabled" 
+          defaultChecked={!!initialData?.updates_enabled} 
+          style={{ width: 'auto', margin: 0 }}
+        />
+        <span className="muted" style={{ fontSize: '14px' }}>Enable "Project Updates" log for this project</span>
+      </label>
       <label className="text-field">
         <div className="muted">Description</div>
         <div className="formatting-toolbar">
