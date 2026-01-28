@@ -505,7 +505,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           CLOSE
                         </button>
                       </div>
-                      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ flex: '0 0 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
                         <AvatarCustomizer 
                           onSave={handleAvatarSave} 
                           onCancel={() => setIsEditingAvatar(false)}

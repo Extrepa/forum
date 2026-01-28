@@ -488,7 +488,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     <div 
       ref={containerRef}
       className="avatar-customizer-container card" 
-      style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '8px' }}
+      style={{ position: 'relative', width: '100%', height: 'auto', display: 'flex', flexDirection: 'column', padding: '8px', alignSelf: 'flex-start' }}
     >
       <div 
         className="canvas-card" 
@@ -648,9 +648,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               flexDirection: 'column',
               gap: '4px',
               maxHeight: 'calc(100% - 12px)',
-              overflowY: 'auto',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(52, 225, 255, 0.5) rgba(4, 16, 23, 0.4)',
+              overflowY: 'hidden',
               cursor: isDraggingPanel ? 'grabbing' : 'default'
             }}
           >
