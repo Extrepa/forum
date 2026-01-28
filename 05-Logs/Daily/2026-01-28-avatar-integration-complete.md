@@ -99,4 +99,6 @@ Everything specified in the avatar customization plan has been implemented and v
 - **Stroke Scaling**: Removed `non-scaling-stroke` from avatar paths. Strokes now scale proportionally, preventing small username icons from becoming "blobs" when using thick outlines.
 - **Thickness Restriction**: Restricted maximum outline thickness to `10px` (down from `20px`) and updated randomization logic to prefer thinner, cleaner outlines.
 - **Username Alignment**: Reduced the gap between the username avatar and text to `6px` for a tighter, more professional look.
+- **Canvas Rooting & Centering**: Reconfigured the avatar canvas to root from the face's mathematical center (`561.5, 682.5`). Updated the `viewBox` to `75 196 973 973` so the face perfectly fills the square area, ensuring consistent centering in customizer and username icons.
+- **Improved Transform Logic**: Layers now scale and rotate around the face's center point rather than the arbitrary SVG origin, preventing "drift" when adjusting size or orientation.
 

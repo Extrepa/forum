@@ -204,6 +204,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     onSave(svgString, { layers });
   }, [layers, onSave]);
 
+  const cx = 561.5;
+  const cy = 682.5;
+
   const handleLayerChange = useCallback((id, updates, skipHistory = false) => {
     setLayers(prev => {
       const next = prev.map(l => l.id === id ? { ...l, ...updates } : l);
@@ -536,7 +539,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
         <svg
           ref={svgRef}
-          viewBox="0 100 1100 1100"
+          viewBox="75 196 973 973"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
@@ -581,7 +584,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             return (
               <g
                 key={layer.id}
-                transform={`translate(${layer.x}, ${layer.y}) scale(${layer.scale}) rotate(${layer.rotation}, 500, 500)`}
+                transform={`translate(${layer.x}, ${layer.y}) translate(${cx}, ${cy}) scale(${layer.scale}) rotate(${layer.rotation}) translate(${-cx}, ${-cy})`}
                 onMouseDown={(e) => handleMouseDown(e, layer.id)}
                 onContextMenu={(e) => handleContextMenu(e, layer.id)}
                 onDoubleClick={() => randomizeLayer(layer.id)}
