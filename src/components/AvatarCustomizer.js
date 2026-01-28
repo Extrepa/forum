@@ -2,7 +2,24 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-const INITIAL_PALETTE = ['#ffffff', '#00e5ff', '#22d3ee', '#3b82f6', '#60a5fa', '#a78bfa', '#8b5cf6', '#f472b6', '#ec4899', '#fb7185', '#f87171', '#ef4444', '#f97316', '#f59e0b', '#fbbf24', '#fde047', '#c3ff00', '#53f900', '#34d399', '#4ade80', '#86efac', '#bbf7d0', '#fef9c3', '#fde68a', '#facc15', '#fda4af', '#fbcfe8', '#e0e7ff', '#c7d2fe'];
+const INITIAL_PALETTE = [
+  '#ffffff',
+  '#ff1744',
+  '#ff5252',
+  '#ff9100',
+  '#ffea00',
+  '#c6ff00',
+  '#00e676',
+  '#00e5ff',
+  '#00b0ff',
+  '#2962ff',
+  '#7c4dff',
+  '#e040fb',
+  '#ff40d6',
+  '#ff6d00',
+  '#f50057',
+  '#18ffff'
+];
 
 const GRADIENTS = [
   { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-fx)' },
@@ -103,6 +120,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const containerRef = useRef(null);
+  const imageFillInputRef = useRef(null);
 
   // Refs for keyboard handler to avoid stale closures
   const layersRef = useRef(layers);
@@ -488,6 +506,28 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     reader.readAsDataURL(file);
   };
 
+  const handleImageFillImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedLayerId) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      e.target.value = '';
+      return;
+    }
+    const maxSize = 512 * 1024;
+    if (file.size > maxSize) {
+      alert('Image too large. Please use an image under 512KB.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      handleLayerChange(selectedLayerId, { finish: 'image', imageUrl: reader.result });
+      e.target.value = '';
+    };
+    reader.readAsDataURL(file);
+  };
+
   const selectedLayer = layers.find(l => l.id === selectedLayerId);
 
   return (
@@ -595,6 +635,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <stop offset="0%" stopColor="#c3ff00"><animate attributeName="stop-color" values="#c3ff00;#34d399;#c3ff00" dur="1.5s" repeatCount="indefinite" /></stop>
               <stop offset="100%" stopColor="#00ff00"><animate attributeName="stop-color" values="#00ff00;#c3ff00;#00ff00" dur="1.5s" repeatCount="indefinite" /></stop>
             </linearGradient>
+            {layers.filter((layer) => layer.finish === 'image' && layer.imageUrl).map((layer) => (
+              <pattern
+                key={`img-fill-${layer.id}`}
+                id={`img-fill-${layer.id}`}
+                patternUnits="objectBoundingBox"
+                patternContentUnits="objectBoundingBox"
+                width="1"
+                height="1"
+              >
+                <image href={layer.imageUrl} x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+            ))}
           </defs>
           
           {layers.map((layer) => {
@@ -602,7 +654,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             return (
               <g
                 key={layer.id}
-                transform={`translate(${layer.x}, ${layer.y}) translate(${cx}, ${cy}) scale(${layer.scale}) rotate(${layer.rotation}) translate(${-cx}, ${-cy})`}
+                transform={`translate(${layer.x}, ${layer.y}) translate(${cx}, ${cy}) scale(${layer.scale * (layer.flipX || 1)}, ${layer.scale * (layer.flipY || 1)}) rotate(${layer.rotation}) translate(${-cx}, ${-cy})`}
                 onMouseDown={(e) => handleMouseDown(e, layer.id)}
                 onContextMenu={(e) => handleContextMenu(e, layer.id)}
                 onDoubleClick={() => randomizeLayer(layer.id)}
@@ -613,7 +665,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 ) : (
                   <path
                     d={layer.d}
-                    fill={layer.finish === 'gradient' ? layer.gradientUrl : layer.color}
+                    fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? layer.gradientUrl : layer.color)}
                     filter={layer.finish === 'glow' ? 'url(#glow-fx)' : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
                     stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || layer.gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
                     strokeWidth={layer.strokeWidth || 4}
@@ -708,18 +760,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
             {activeControlTab === 'fill' ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '3px', position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '16px', gap: '3px', position: 'relative' }}>
                   {palette.slice(0, 12).map((c, idx) => (
                     <div 
                       key={`${idx}-${c}`} 
-                      onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid' })}
+                      onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid', imageUrl: undefined })}
                       onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
                       title={`Set Fill to ${c} (Right-click to reassign box)`}
                       style={{ 
-                        width: '100%', 
-                        paddingBottom: '100%', 
+                        width: '100%',
+                        height: '100%',
                         background: c, 
-                        borderRadius: '2px', 
+                        borderRadius: '3px', 
                         cursor: 'pointer', 
                         border: selectedLayer.color === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
                       }} 
@@ -738,14 +790,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
                 {selectedLayer.type !== 'import' && (
                   <>
-                    <div style={{ display: 'flex', gap: '4px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
                       {['solid', 'glow', 'glitter'].map(f => (
                         <button
                           key={f}
-                          onClick={() => handleLayerChange(selectedLayer.id, { finish: f })}
+                          onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
                           title={`Apply ${f} finish`}
                           style={{ 
-                            flex: 1, fontSize: '9px', padding: '5px', 
+                            fontSize: '8px', padding: '5px 2px', 
                             background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
                             color: selectedLayer.finish === f ? '#001018' : 'var(--ink)', 
                             border: '1px solid ' + (selectedLayer.finish === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
@@ -756,7 +808,34 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           {f.toUpperCase()}
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        onClick={() => imageFillInputRef.current?.click()}
+                        title="Apply image fill"
+                        style={{
+                          fontSize: '12px',
+                          padding: '4px 0',
+                          background: selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                          color: selectedLayer.finish === 'image' ? '#001018' : 'var(--ink)',
+                          border: '1px solid ' + (selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'),
+                          borderRadius: '999px',
+                          cursor: 'pointer',
+                          minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif',
+                          fontWeight: '600',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        🖼️
+                      </button>
                     </div>
+                    <input
+                      ref={imageFillInputRef}
+                      type="file"
+                      accept="image/*,.gif"
+                      onChange={handleImageFillImport}
+                      style={{ display: 'none' }}
+                    />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
                       {GRADIENTS.map(g => (
                         <button
@@ -829,10 +908,32 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               </button>
                             </div>
                           </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>MIRROR</label>
+                            <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center' }}>FLIP</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Flip horizontal"
+                              >
+                                ⇋
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Flip vertical"
+                              >
+                                ⇵
+                              </button>
+                            </div>
+                          </div>
               </>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '3px', position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '16px', gap: '3px', position: 'relative' }}>
                   {palette.slice(0, 12).map((c, idx) => (
                     <div 
                       key={`${idx}-${c}-outline`} 
@@ -841,9 +942,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                       title={`Set Outline to ${c} (Right-click to reassign box)`}
                       style={{ 
                         width: '100%', 
-                        paddingBottom: '100%', 
+                        height: '100%',
                         background: c, 
-                        borderRadius: '2px', 
+                        borderRadius: '3px', 
                         cursor: 'pointer', 
                         border: selectedLayer.stroke === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
                       }} 
@@ -1003,21 +1104,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             >
               ⟲ RESET
             </button>
-            <label 
-              title="Import Image: Add a custom image layer to your avatar"
+            <button
+              type="button"
+              title="Accessories (coming soon)"
+              disabled
               style={{ 
-                flex: '1 1 auto', minHeight: '24px', padding: '0 8px', background: 'rgba(2, 7, 10, 0.4)', 
-                border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '999px', display: 'flex', 
-                alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', 
-                fontSize: '9px', color: 'var(--ink)', fontWeight: '600', transition: 'all 0.2s ease',
-                fontFamily: '"Space Grotesk", sans-serif', boxShadow: '0 0 12px rgba(52, 225, 255, 0.08)'
+                flex: '1 1 auto', minHeight: '24px', padding: '0 8px', background: 'rgba(255,255,255,0.04)', 
+                border: '1px solid rgba(255,255,255,0.15)', borderRadius: '999px', display: 'flex', 
+                alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'not-allowed', 
+                fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontWeight: '600', transition: 'all 0.2s ease',
+                fontFamily: '"Space Grotesk", sans-serif', boxShadow: 'none'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 18px rgba(52, 225, 255, 0.2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.2)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.08)'; }}
             >
-              🖼️ IMPORT
-              <input type="file" accept="image/*" onChange={handleImportImage} style={{ display: 'none' }} />
-            </label>
+              ✨ ACCESSORIES
+            </button>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button 

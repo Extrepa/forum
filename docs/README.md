@@ -29,5 +29,6 @@ See **`PROJECT-DOCUMENTATION.md`** for detailed organization and quick reference
 
 - **Build Guide**: [`Guide.md`](./Guide.md)
 - **Deployment Workflow**: [`Errl-Forum_GitHub-Cloudflare-Workflow.md`](./Errl-Forum_GitHub-Cloudflare-Workflow.md)
+- **Avatar Customizer Progress**: [`03-Features/avatar-customizer-progress-notes.md`](./03-Features/avatar-customizer-progress-notes.md)
 - **UI Strings**: [`forum-texts/`](./forum-texts/)
 - **Project Documentation**: [`PROJECT-DOCUMENTATION.md`](./PROJECT-DOCUMENTATION.md)
