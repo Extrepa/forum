@@ -32,7 +32,7 @@ export default async function ProfilePage({ params }) {
         <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/profile', label: 'Profile' }]} />
         <section className="card">
           <h2 className="section-title">User not found</h2>
-          <p className="muted">This user doesn't exist in the goo.</p>
+          <p className="muted">This user doesn&apos;t exist in the goo.</p>
         </section>
       </div>
     );

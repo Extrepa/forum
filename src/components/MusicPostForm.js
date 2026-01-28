@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { safeEmbedFromUrl } from '../lib/embeds';
 
 function wrapSelection(textarea, before, after = '') {
@@ -158,7 +159,15 @@ export default function MusicPostForm() {
               </div>
             )}
             {imagePreviewUrl ? (
-              <img src={imagePreviewUrl} alt="" className="post-image" style={{ margin: 0, maxWidth: '100%' }} />
+              <Image
+                src={imagePreviewUrl}
+                alt=""
+                className="post-image"
+                width={1200}
+                height={800}
+                unoptimized
+                style={{ margin: 0, maxWidth: '100%' }}
+              />
             ) : null}
           </div>
         </section>

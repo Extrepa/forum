@@ -1,4 +1,5 @@
 import DevLogForm from '../../../components/DevLogForm';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -423,7 +424,15 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           </div>
         ) : null}
         {log.image_key ? (
-          <img src={`/api/media/${log.image_key}`} alt="" className="post-image" loading="lazy" />
+          <Image
+            src={`/api/media/${log.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
         ) : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(log.body) }} />
         {log.views !== undefined && log.views !== null && (
@@ -569,4 +578,3 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

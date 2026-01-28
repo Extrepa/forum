@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -387,7 +388,15 @@ export default async function EventDetailPage({ params, searchParams }) {
           </span>
         </div>
         {event.image_key ? (
-          <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
+          <Image
+            src={`/api/media/${event.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
         ) : null}
         {event.details ? (
           <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(event.details) }} />
@@ -446,4 +455,3 @@ export default async function EventDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

@@ -12,6 +12,7 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -209,7 +210,17 @@ export default async function ArtDetailPage({ params, searchParams }) {
             Comments locked
           </span>
         ) : null}
-        {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        {post.image_key ? (
+          <Image
+            src={`/api/media/${post.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
+        ) : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
         {post.views !== undefined && post.views !== null && (
           <div style={{ 
@@ -286,4 +297,3 @@ export default async function ArtDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

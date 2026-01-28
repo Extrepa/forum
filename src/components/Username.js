@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { getAvatarUrl } from '../lib/media';
 
@@ -41,14 +42,16 @@ export default function Username({
   return (
     <Link href={profileHref} className={classes} title={title || safeName}>
       {avatarUrl && (
-        <img 
+        <Image 
           src={avatarUrl} 
           alt="" 
           className="username-avatar"
+          width={24}
+          height={24}
+          unoptimized
         />
       )}
       <span>{safeName}</span>
     </Link>
   );
 }
-

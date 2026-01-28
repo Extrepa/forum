@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
@@ -148,11 +149,14 @@ export default function DevLogClient({ logs, notice }) {
                       </span>
                     ) : null}
                     {row.image_key ? (
-                      <img
+                      <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
+                        width={1200}
+                        height={800}
                         loading="lazy"
+                        unoptimized
                         style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
@@ -184,4 +188,3 @@ export default function DevLogClient({ logs, notice }) {
     </div>
   );
 }
-

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -198,7 +199,17 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           showUpdatedAt={true}
           updatedAt={update.updated_at}
         />
-        {update.image_key ? <img src={`/api/media/${update.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        {update.image_key ? (
+          <Image
+            src={`/api/media/${update.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
+        ) : null}
         {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked
@@ -276,4 +287,3 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

@@ -452,11 +452,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px' }}>
                   {user.avatar_key ? (
                     <div style={{ position: 'relative' }}>
-                      <img 
+                      <Image 
                         src={getAvatarUrl(user.avatar_key)} 
                         alt="Current Avatar" 
                         className="username-avatar"
-                        style={{ width: '100px', height: '100px', border: '2px solid var(--accent)' }} 
+                        width={100}
+                        height={100}
+                        style={{ width: '100px', height: '100px', display: 'block' }} 
+                        unoptimized
                       />
                     </div>
                   ) : (

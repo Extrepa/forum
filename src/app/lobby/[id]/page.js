@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -178,7 +179,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     return (
       <div className="card">
         <h2 className="section-title">Thread not found</h2>
-        <p className="muted">This thread doesn't exist in the goo.</p>
+        <p className="muted">This thread doesn&apos;t exist in the goo.</p>
       </div>
     );
   }
@@ -756,7 +757,18 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             Replies locked
           </span>
         ) : null}
-        {safeThreadImageKey ? <img src={`/api/media/${safeThreadImageKey}`} alt="" className="post-image" loading="lazy" style={{ marginTop: '8px' }} /> : null}
+        {safeThreadImageKey ? (
+          <Image
+            src={`/api/media/${safeThreadImageKey}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+            style={{ marginTop: '8px' }}
+          />
+        ) : null}
         <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: threadBodyHtml }} />
         {safeThreadViews !== undefined && safeThreadViews !== null && (
           <div style={{ 
@@ -851,4 +863,3 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     );
   }
 }
-

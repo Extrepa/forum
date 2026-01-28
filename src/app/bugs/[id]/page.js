@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
@@ -214,7 +215,17 @@ export default async function BugDetailPage({ params, searchParams }) {
             Comments locked
           </span>
         ) : null}
-        {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        {post.image_key ? (
+          <Image
+            src={`/api/media/${post.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
+        ) : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
         {post.views !== undefined && post.views !== null && (
           <div style={{ 
@@ -297,4 +308,3 @@ export default async function BugDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

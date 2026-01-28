@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import ProjectForm from '../../../components/ProjectForm';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
@@ -478,11 +479,14 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           </span>
         ) : null}
         {safeProjectImageKey ? (
-          <img
+          <Image
             src={`/api/media/${safeProjectImageKey}`}
             alt=""
             className="post-image"
+            width={1200}
+            height={800}
             loading="lazy"
+            unoptimized
           />
         ) : null}
         <div
@@ -569,10 +573,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     </span>
                   </div>
                   {update.image_key && (
-                    <img 
+                    <Image 
                       src={`/api/media/${update.image_key}`} 
                       alt="" 
-                      style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '8px' }} 
+                      width={1200}
+                      height={800}
+                      unoptimized
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', marginBottom: '8px' }} 
                     />
                   )}
                   <div 
