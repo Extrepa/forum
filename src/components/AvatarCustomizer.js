@@ -22,10 +22,10 @@ const INITIAL_PALETTE = [
 ];
 
 const GRADIENTS = [
-  { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-fx)', preview: 'linear-gradient(90deg, #ff0040, #ffa600, #ffee00, #00f11d, #00a2ff, #6f4dff, #ff00b1)' },
-  { id: 'fire', name: 'Fire', url: 'url(#fire-fx)', preview: 'linear-gradient(180deg, #ff4d00, #ff9e00, #ff0000)' },
-  { id: 'ocean', name: 'Ocean', url: 'url(#ocean-fx)', preview: 'linear-gradient(135deg, #00d4ff, #0055ff, #00ff95)' },
-  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-fx)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' }
+  { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-lr)', preview: 'linear-gradient(90deg, #ff0040, #ffa600, #ffee00, #00f11d, #00a2ff, #6f4dff, #ff00b1)' },
+  { id: 'fire', name: 'Fire', url: 'url(#fire-lr)', preview: 'linear-gradient(180deg, #ff4d00, #ff9e00, #ff0000)' },
+  { id: 'ocean', name: 'Ocean', url: 'url(#ocean-lr)', preview: 'linear-gradient(135deg, #00d4ff, #0055ff, #00ff95)' },
+  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-lr)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' }
 ];
 
 const GRADIENT_DIRECTIONS = [
@@ -206,8 +206,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const color = rand(palette);
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
-      const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
+      const gradientPick = finish === 'gradient' ? rand(GRADIENTS) : null;
+      const gradientUrl = gradientPick ? gradientPick.url : undefined;
+      const gradientId = gradientPick ? gradientPick.id : undefined;
+      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -221,8 +223,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const color = rand(palette);
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
-      const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
+      const gradientPick = finish === 'gradient' ? rand(GRADIENTS) : null;
+      const gradientUrl = gradientPick ? gradientPick.url : undefined;
+      const gradientId = gradientPick ? gradientPick.id : undefined;
+      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -260,7 +264,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const targetIndex = pickingForIndexRef.current ?? pickingForIndex;
     if (targetIndex === 'wheel') {
       if (selectedLayer) {
-        handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: newColor, finish: 'solid' } : { stroke: newColor, strokeFinish: 'solid', strokeGradientUrl: undefined });
+        handleLayerChange(selectedLayer.id, activeControlTab === 'fill'
+          ? { color: newColor, finish: 'solid', gradientId: undefined, gradientDirection: undefined, gradientUrl: undefined }
+          : { stroke: newColor, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
       }
     } else if (targetIndex !== null && targetIndex !== undefined) {
       const nextPalette = [...palette];
@@ -378,6 +384,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     if (layer.gradientId) return layer.gradientId;
     if (layer.gradientUrl) {
       const found = GRADIENTS.find((g) => layer.gradientUrl.includes(g.id));
+      return found?.id;
+    }
+    return null;
+  };
+
+  const getStrokeGradientId = (layer) => {
+    if (layer.strokeGradientId) return layer.strokeGradientId;
+    if (layer.strokeGradientUrl) {
+      const found = GRADIENTS.find((g) => layer.strokeGradientUrl.includes(g.id));
       return found?.id;
     }
     return null;
@@ -720,7 +735,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     d={layer.d}
                     fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? gradientUrl : layer.color)}
                     filter={layer.finish === 'glow' ? `url(#glow-fx-${layer.id})` : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
-                    stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || layer.gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
+                    stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
                     strokeWidth={layer.strokeWidth || 4}
                     style={{ transition: 'fill 0.3s ease' }}
                   />
@@ -903,14 +918,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             fontSize: '12px', 
                             padding: '10px 0', 
                             background: g.preview, 
-                            border: '1px solid ' + (selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                            border: '1px solid ' + (selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
                             borderRadius: '999px', 
                             cursor: 'pointer', 
                             minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: '600',
                             transition: 'all 0.2s ease',
-                            boxShadow: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
+                            boxShadow: selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
                           }}
                         />
                       ))}
@@ -926,7 +941,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 <button
                                   type="button"
                                   onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
-                                  style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                  style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                   title="Decrease glow"
                                 >
                                   −
@@ -934,7 +949,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 <button
                                   type="button"
                                   onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
-                                  style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                  style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                   title="Increase glow"
                                 >
                                   +
@@ -956,7 +971,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                       key={dir.id}
                                       type="button"
                                       onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
-                                      style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
+                                      style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '9px' }}
                                       title={`Gradient ${dir.label}`}
                                     >
                                       {dir.label}
@@ -974,7 +989,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Scale down"
                               >
                                 −
@@ -982,7 +997,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Scale up"
                               >
                                 +
@@ -997,7 +1012,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Rotate left"
                               >
                                 ←
@@ -1005,7 +1020,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Rotate right"
                               >
                                 →
@@ -1019,7 +1034,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Flip horizontal"
                               >
                                 ⇋
@@ -1027,7 +1042,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
-                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                style={{ width: '14px', height: '14px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
                                 title="Flip vertical"
                               >
                                 ⇵
@@ -1113,7 +1128,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     {['solid', 'gradient'].map(f => (
                       <button
                         key={`outline-${f}`}
-                        onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: f === 'gradient' ? (selectedLayer.strokeGradientUrl || GRADIENTS[0]?.url) : undefined })}
+                        onClick={() => {
+                          if (f === 'gradient') {
+                            const nextId = getStrokeGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
+                            const nextDir = selectedLayer.strokeGradientDirection || 'lr';
+                            handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientId: nextId, strokeGradientDirection: nextDir, strokeGradientUrl: `url(#${nextId}-${nextDir})` });
+                            return;
+                          }
+                          handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
+                        }}
                         style={{ 
                           fontSize: '10px', 
                           padding: '4px 0', 
@@ -1133,20 +1156,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                       {GRADIENTS.map(g => (
                         <button
                           key={`outline-${g.id}`}
-                          onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientUrl: g.url })}
+                          onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientId: g.id, strokeGradientDirection: selectedLayer.strokeGradientDirection || 'lr', strokeGradientUrl: `url(#${g.id}-${selectedLayer.strokeGradientDirection || 'lr'})` })}
                           title={`Apply ${g.name} gradient to outline`}
                           style={{ 
                             fontSize: '12px', 
                             padding: '10px 0', 
                             background: g.preview, 
-                            border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                            border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
                             borderRadius: '999px', 
                             cursor: 'pointer', 
                             minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: '600',
                             transition: 'all 0.2s ease',
-                            boxShadow: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
+                            boxShadow: (selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
                           }}
                         />
                       ))}
