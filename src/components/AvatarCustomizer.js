@@ -22,7 +22,7 @@ const INITIAL_LAYERS = [
     strokeWidth: 4,
     x: 0,
     y: 0,
-    scale: 0.8,
+    scale: 1,
     rotation: 0
   },
   {
@@ -35,7 +35,7 @@ const INITIAL_LAYERS = [
     strokeWidth: 4,
     x: 0,
     y: 0,
-    scale: 0.8,
+    scale: 1,
     rotation: 0
   },
   {
@@ -48,7 +48,7 @@ const INITIAL_LAYERS = [
     strokeWidth: 4,
     x: 0,
     y: 0,
-    scale: 0.8,
+    scale: 1,
     rotation: 0
   },
   {
@@ -61,7 +61,7 @@ const INITIAL_LAYERS = [
     strokeWidth: 4,
     x: 0,
     y: 0,
-    scale: 0.8,
+    scale: 1,
     rotation: 0
   }
 ];
@@ -540,11 +540,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
         <svg
           ref={svgRef}
-          viewBox="75 196 973 973"
+          viewBox="70 191 983 983"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', background: '#000', overflow: 'visible' }}
+          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible' }}
           onClick={() => setContextMenu(null)}
         >
           <defs>

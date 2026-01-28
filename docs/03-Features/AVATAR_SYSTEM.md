@@ -10,21 +10,23 @@ A powerful, interactive tool for building avatars using layered SVG components.
 - **Layered Editing**: Move, scale, and rotate individual pieces (Face, Eyes, Mouth, and custom imports).
 - **Styling Options**: 
   - **Fill Tab**: Solid colors, Neon Glow (matching color), Glitter, and multiple **Animated Gradients** (Rainbow, Fire, Ocean, Toxic). Includes **Scale** and **Rotate** controls.
-  - **Outline Tab**: Custom stroke colors and **Thickness** (1px to 20px) controls.
+  - **Outline Tab**: Custom stroke colors and **Thickness** (1px to 10px) controls.
 - **Color Wheel**: Click the bottom-right corner of the palette or **Right-Click** any color box to open a full color wheel and reassign colors.
 - **Import Support**: Upload your own image pieces to layer onto your avatar.
 - **Randomization & Reset**: 
   - **RANDOM**: Assigns random colors, finishes, and outlines to all layers.
   - **RESET**: Restores the default face shapes with a fresh set of random colors.
-  - **Individual**: Double-click any layer to randomize only that piece.
-- **Undo/Redo**: Large, glowing icons for a 50-step history stack.
+  - **Individual**: Double-click any layer or use the **RAND** button in settings to randomize only that piece.
+- **Undo/Redo**: Circular icons for a **99,999-step** history stack.
 - **Precision Controls**: Use arrow keys for fine-tuning position.
-- **Centering**: The default face is perfectly centered within the canvas for better composition.
+- **Draggable Panel**: The settings panel can be dragged anywhere on the canvas.
+- **Centering**: The canvas roots from the face's mathematical center, filling the 1:1 square space perfectly.
 
 ### 2. Global Username Integration (`Username.js`)
 Every username link across the site automatically displays the user's avatar if they have set one.
-- **Consistent Styling**: Circular shape, accent border, and subtle glow.
-- **Optimized Performance**: Small 20x20 display size for lists, with `object-fit: cover` for clarity.
+- **Consistent Styling**: Circular shape with a semi-transparent background for high legibility.
+- **Proportional Outlines**: Strokes scale with the avatar, ensuring clarity at any size.
+- **Display Size**: 24x24 display size for lists, with `object-fit: cover` for clarity.
 
 ### 3. Media Utility (`media.js`)
 Centralized logic for resolving avatar URLs.
@@ -39,18 +41,22 @@ Centralized logic for resolving avatar URLs.
 |-----|--------|
 | `Ctrl+Z` / `Cmd+Z` | Undo |
 | `Ctrl+Y` / `Cmd+Y` / `Ctrl+Shift+Z` | Redo |
+| `Ctrl+S` / `Cmd+S` | Save Avatar |
+| `ESC` | Close Settings Panel |
 | `Arrows` | Move Selected Layer (Shift for 10px steps) |
-| `[` / `]` | Scale Down / Up |
+| `[` / `]` or `+` / `-` | Scale Down / Up |
 | `{` / `}` | Rotate Left / Right |
+| `R` | Randomize Selected Layer |
 | `Backspace` / `Delete` | Delete Selected Layer |
 | `Ctrl+C` / `Ctrl+V` | Copy / Paste Layer |
 | `Ctrl+D` | Duplicate Layer |
 
-### SVG Optimization & Clipping Fixes
-- **ViewBox**: `0 100 1100 1100` ensures headpieces aren't clipped and provides better vertical centering.
-- **Glow Filters**: Extended filter regions (`x="-50%"`, `width="200%"`) prevent neon effects from being cut off at the edges of shapes.
-- **Vector Effect**: `non-scaling-stroke` ensures outlines maintain their specified thickness regardless of the layer's scale.
-- **Overflow**: The SVG uses `overflow: visible` to allow glow and effects to bleed outside the base coordinate system without clipping.
+### SVG Optimization & Centering
+- **ViewBox**: `70 191 983 983` provides a tight crop around the face with 5px padding for strokes.
+- **Mathematical Center**: Components scale and rotate around the center point (`561.5, 682.5`), preventing drift during transforms.
+- **Glow Filters**: Extended filter regions (`x="-50%"`, `width="200%"`) prevent neon effects from being cut off at the edges.
+- **Proportional Scaling**: Strokes scale naturally with layers (no `non-scaling-stroke`), keeping icons legible when shrunk.
+- **Overflow**: The SVG uses `overflow: visible` to allow effects to bleed outside the base coordinate system.
 
 ### Integration Notes
 - **Database**: Avatars are stored as `avatar_key` in the `users` table.
