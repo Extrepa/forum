@@ -672,7 +672,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               border: '1px solid rgba(52, 225, 255, 0.2)', 
               background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', cursor: historyIndex === 0 ? 'default' : 'pointer',
               opacity: historyIndex === 0 ? 0.3 : 1, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: hoverUndo && historyIndex > 0 ? '0 0 15px rgba(52, 225, 255, 0.4)' : '0 0 8px rgba(0,0,0,0.3)',
+              boxShadow: hoverUndo && historyIndex > 0 ? '0 0 12px rgba(52, 225, 255, 0.65)' : '0 0 8px rgba(0,0,0,0.3)',
+              borderColor: hoverUndo && historyIndex > 0 ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)',
+              color: hoverUndo && historyIndex > 0 ? 'var(--accent)' : 'var(--ink)',
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
             }}
@@ -690,7 +692,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               border: '1px solid rgba(52, 225, 255, 0.2)', 
               background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', cursor: historyIndex === history.length - 1 ? 'default' : 'pointer',
               opacity: historyIndex === history.length - 1 ? 0.3 : 1, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: hoverRedo && historyIndex < history.length - 1 ? '0 0 15px rgba(52, 225, 255, 0.4)' : '0 0 8px rgba(0,0,0,0.3)',
+              boxShadow: hoverRedo && historyIndex < history.length - 1 ? '0 0 12px rgba(52, 225, 255, 0.65)' : '0 0 8px rgba(0,0,0,0.3)',
+              borderColor: hoverRedo && historyIndex < history.length - 1 ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)',
+              color: hoverRedo && historyIndex < history.length - 1 ? 'var(--accent)' : 'var(--ink)',
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
             }}
