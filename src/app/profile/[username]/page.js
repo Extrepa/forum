@@ -403,15 +403,23 @@ export default async function ProfilePage({ params }) {
               <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Username Row - same line */}
-              <div>
-                <strong>Username:</strong>{' '}
-                <Username
-                  name={profileUser.username}
-                  colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
-                  avatarKey={profileUser.avatar_key}
-                />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Image
+                src={profileUser.avatar_key ? `/api/media/avatars/${profileUser.avatar_key.split('/').pop()}` : '/icons/errl-face.png'}
+                alt=""
+                className="username-avatar"
+                width={28}
+                height={28}
+                unoptimized
+                style={{ width: '28px', height: '28px' }}
+              />
+              <Username
+                name={profileUser.username}
+                colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+                avatarKey={null}
+                href={null}
+              />
+            </div>
 
               {/* Social Links Display */}
               {profileLinks.length > 0 && (
