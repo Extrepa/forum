@@ -82,7 +82,7 @@ export default function ProjectForm({ projectId, initialData }) {
           defaultChecked={!!initialData?.updates_enabled} 
           style={{ width: 'auto', margin: 0 }}
         />
-        <span className="muted" style={{ fontSize: '14px' }}>Enable "Project Updates" log for this project</span>
+        <span className="muted" style={{ fontSize: '14px' }}>Enable &quot;Project Updates&quot; log for this project</span>
       </label>
       <label className="text-field">
         <div className="muted">Description</div>

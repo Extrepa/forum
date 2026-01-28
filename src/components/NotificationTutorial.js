@@ -53,12 +53,12 @@ export default function NotificationTutorial({ isSignedIn }) {
         <h3 className="section-title" style={{ marginTop: 0 }}>Welcome to Errl Forum!</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
           <p style={{ color: 'var(--muted)' }}>
-            Here's how to get the most out of your experience:
+            Here&apos;s how to get the most out of your experience:
           </p>
           <div>
             <strong style={{ color: 'var(--accent)' }}>🔔 Notifications</strong>
             <p style={{ marginTop: '4px', fontSize: '14px', color: 'var(--muted)' }}>
-              Click the Errl logo in the header to see your notifications. You'll get notified when someone replies to your threads or mentions you.
+              Click the Errl logo in the header to see your notifications. You&apos;ll get notified when someone replies to your threads or mentions you.
             </p>
           </div>
           <div>

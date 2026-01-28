@@ -31,9 +31,6 @@ export function useRotatingPlaceholder(
   const maxMs = opts.maxMs ?? 5000;
   const fadeDuration = 600; // Duration for fade in/out
 
-  // Keep suggestions stable (prevents effect restarts if caller passes new arrays)
-  const stableSuggestions = useMemo(() => suggestions, [suggestions.join(',')]);
-  
   // Pick a random initial placeholder
   const getRandomInitial = (suggestionsList) => {
     if (!suggestionsList || !suggestionsList.length) return '';
@@ -67,16 +64,16 @@ export function useRotatingPlaceholder(
     }
     if (reduced) {
       // Static placeholder when reduced motion is preferred
-      const initial = getRandomInitial(stableSuggestions);
+      const initial = getRandomInitial(suggestions);
       setPlaceholder(initial);
       setOpacity(1);
       return;
     }
-    if (!stableSuggestions.length) return;
+    if (!suggestions.length) return;
 
     // Set initial placeholder to random one (only if not already set)
     if (!lastRef.current) {
-      const initial = getRandomInitial(stableSuggestions);
+      const initial = getRandomInitial(suggestions);
       setPlaceholder(initial);
       lastRef.current = initial;
     }
@@ -88,7 +85,7 @@ export function useRotatingPlaceholder(
       
       // After full fade out, change placeholder
       fadeTimerRef.current = window.setTimeout(() => {
-        const next = pickNext(stableSuggestions, lastRef.current);
+        const next = pickNext(suggestions, lastRef.current);
         lastRef.current = next;
         setPlaceholder(next);
         
@@ -119,7 +116,7 @@ export function useRotatingPlaceholder(
         fadeTimerRef.current = null;
       }
     };
-  }, [isActive, reduced, stableSuggestions, minMs, maxMs, fadeDuration]);
+  }, [isActive, reduced, suggestions, minMs, maxMs, fadeDuration]);
 
   return { placeholder, opacity };
 }

@@ -42,7 +42,7 @@ export default function EventRSVP({ eventId, initialAttending, initialAttendees 
           onChange={toggleRSVP}
           disabled={loading}
         />
-        <span>I'm attending</span>
+        <span>I&apos;m attending</span>
       </label>
       {attendees.length > 0 ? (
         <div className="list">
