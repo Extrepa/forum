@@ -941,7 +941,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 <button
                                   type="button"
                                   onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
-                                  style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                  style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                   title="Decrease glow"
                                 >
                                   −
@@ -949,7 +949,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 <button
                                   type="button"
                                   onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
-                                  style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                  style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                   title="Increase glow"
                                 >
                                   +
@@ -971,7 +971,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                       key={dir.id}
                                       type="button"
                                       onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
-                                      style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                      style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                       title={`Gradient ${dir.label}`}
                                     >
                                       {dir.label}
@@ -989,7 +989,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Scale down"
                               >
                                 −
@@ -997,7 +997,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Scale up"
                               >
                                 +
@@ -1012,7 +1012,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Rotate left"
                               >
                                 ←
@@ -1020,7 +1020,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Rotate right"
                               >
                                 →
@@ -1034,7 +1034,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Flip horizontal"
                               >
                                 ⇋
@@ -1042,7 +1042,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
-                                style={{ width: '12px', height: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto' }}
+                                style={{ width: '12px', height: '12px', minWidth: '12px', maxWidth: '12px', minHeight: '12px', maxHeight: '12px', borderRadius: '3px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
                                 title="Flip vertical"
                               >
                                 ⇵
