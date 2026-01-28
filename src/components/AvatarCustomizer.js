@@ -168,14 +168,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleReset = () => {
-    const baseColors = ['#000000', '#ffffff'];
-    const nextLayers = INITIAL_LAYERS.map((l, index) => {
-      const color = baseColors[index % baseColors.length];
+    const nextLayers = INITIAL_LAYERS.map((l) => {
+      const fillColor = '#000000';
+      const outlineColor = '#ffffff';
       return { 
         ...l, 
-        color, 
+        color: fillColor, 
         finish: 'solid', 
-        stroke: '#000000', 
+        stroke: outlineColor, 
         strokeWidth: 4, 
         gradientUrl: undefined,
         strokeFinish: 'solid', 
