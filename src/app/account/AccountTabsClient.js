@@ -14,6 +14,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [isEditingSocials, setIsEditingSocials] = useState(false);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [newUsername, setNewUsername] = useState(user?.username || '');
   const [usernameStatus, setUsernameStatus] = useState({ type: 'idle', message: null });
@@ -105,7 +106,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   }, [openDropdowns]);
 
-  const handleSave = async (e) => {
+  const handleSaveUsername = async (e) => {
     e?.preventDefault?.();
     const trimmed = (newUsername || '').trim();
     if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) {
@@ -117,25 +118,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
     const usernameChanged = trimmed !== (user?.username || '');
     const colorChanged = selectedColorIndex !== (user?.preferred_username_color_index ?? null);
-    
-    // Check if social links changed (use current stats, not initialStats, to account for background refreshes)
-    const currentLinks = stats?.profileLinks || [];
-    const linksToSave = socialLinks
-      .filter(link => link.url.trim())
-      .map(link => ({ platform: link.platform, url: link.url.trim() }));
-    
-    // Normalize current links to same format
-    const normalizedCurrentLinks = Array.isArray(currentLinks) 
-      ? currentLinks
-          .filter(link => typeof link === 'object' && link.platform && link.url)
-          .map(link => ({ platform: link.platform, url: link.url.trim() }))
-      : [];
-    
-    const linksChanged = JSON.stringify(linksToSave.sort((a, b) => a.platform.localeCompare(b.platform))) !== 
-                         JSON.stringify(normalizedCurrentLinks.sort((a, b) => a.platform.localeCompare(b.platform)));
 
-    if (!usernameChanged && !colorChanged && !linksChanged) {
-      handleCancel();
+    if (!usernameChanged && !colorChanged) {
+      handleCancelUsername();
       return;
     }
 
@@ -160,18 +145,53 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           return;
         }
       }
-      if (linksChanged) {
-        const fd = new FormData();
-        fd.append('links', JSON.stringify(linksToSave));
-        const res = await fetch('/api/account/social-links', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) {
-          setUsernameStatus({ type: 'error', message: data.error || 'Failed to update social links' });
-          return;
-        }
-      }
       setUsernameStatus({ type: 'success', message: 'Profile updated!' });
       setIsEditingUsername(false);
+      setTimeout(() => {
+        setUsernameStatus({ type: 'idle', message: null });
+        router.refresh();
+      }, 1000);
+    } catch (err) {
+      setUsernameStatus({ type: 'error', message: 'Network error. Please try again.' });
+    }
+  };
+
+  const handleSaveSocials = async (e) => {
+    e?.preventDefault?.();
+    setUsernameStatus({ type: 'loading', message: 'Saving...' });
+
+    // Check if social links changed (use current stats, not initialStats, to account for background refreshes)
+    const currentLinks = stats?.profileLinks || [];
+    const linksToSave = socialLinks
+      .filter(link => link.url.trim())
+      .map(link => ({ platform: link.platform, url: link.url.trim() }));
+    
+    // Normalize current links to same format
+    const normalizedCurrentLinks = Array.isArray(currentLinks) 
+      ? currentLinks
+          .filter(link => typeof link === 'object' && link.platform && link.url)
+          .map(link => ({ platform: link.platform, url: link.url.trim() }))
+      : [];
+    
+    const linksChanged = JSON.stringify(linksToSave.sort((a, b) => a.platform.localeCompare(b.platform))) !== 
+                         JSON.stringify(normalizedCurrentLinks.sort((a, b) => a.platform.localeCompare(b.platform)));
+
+    if (!linksChanged) {
+      handleCancelSocials();
+      return;
+    }
+
+    try {
+      const fd = new FormData();
+      fd.append('links', JSON.stringify(linksToSave));
+      const res = await fetch('/api/account/social-links', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setUsernameStatus({ type: 'error', message: data.error || 'Failed to update social links' });
+        return;
+      }
+      setUsernameStatus({ type: 'success', message: 'Social links updated!' });
+      setIsEditingSocials(false);
       setTimeout(() => {
         setUsernameStatus({ type: 'idle', message: null });
         router.refresh();
@@ -200,12 +220,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   };
 
-  const handleCancel = () => {
+  const handleCancelUsername = () => {
     setNewUsername(user?.username || '');
     setSelectedColorIndex(user?.preferred_username_color_index ?? null);
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
     setIsEditingUsername(false);
+  };
+
+  const handleCancelSocials = () => {
+    setUsernameStatus({ type: 'idle', message: null });
+    setColorStatus({ type: 'idle', message: null });
+    setIsEditingSocials(false);
     // Reset social links to original values
     const links = initialStats?.profileLinks || [];
     const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
@@ -430,14 +456,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                minWidth: 0
+                minWidth: 0,
+                position: 'relative',
+                paddingRight: '120px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
                   <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ position: 'absolute', top: '14px', right: '12px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
                     <button
                       type="button"
-                      onClick={() => setIsEditingAvatar(true)}
+                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
                       disabled={isEditingAvatar}
                       style={{
                         borderRadius: '4px',
@@ -459,6 +487,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       type="button"
                       onClick={() => {
                         setIsEditingUsername(true);
+                        setIsEditingSocials(false);
                         setNewUsername(user.username);
                         setSelectedColorIndex(user.preferred_username_color_index ?? null);
                         setUsernameStatus({ type: 'idle', message: null });
@@ -484,25 +513,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <button
                       type="button"
                       onClick={() => {
-                        setIsEditingUsername(true);
+                        setIsEditingSocials(true);
+                        setIsEditingUsername(false);
                         setNewUsername(user.username);
                         setSelectedColorIndex(user.preferred_username_color_index ?? null);
                         setUsernameStatus({ type: 'idle', message: null });
                         setColorStatus({ type: 'idle', message: null });
                       }}
-                      disabled={isEditingUsername}
+                      disabled={isEditingSocials}
                       style={{
                         borderRadius: '4px',
                         border: '1px solid rgba(52, 225, 255, 0.3)',
                         background: 'rgba(2, 7, 10, 0.6)',
                         color: 'var(--accent)',
-                        cursor: isEditingUsername ? 'default' : 'pointer',
+                        cursor: isEditingSocials ? 'default' : 'pointer',
                         fontSize: '12px',
                         transition: 'all 0.2s ease',
                         fontWeight: '500',
                         padding: '2px 8px',
                         lineHeight: '1.2',
-                        opacity: isEditingUsername ? 0.6 : 1
+                        opacity: isEditingSocials ? 0.6 : 1
                       }}
                     >
                       Edit Socials
@@ -693,8 +723,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   
                 </div>
 
-                {/* Social Links Display - only show when NOT editing */}
-                {!isEditingUsername && stats?.profileLinks && stats.profileLinks.length > 0 && (
+                {/* Social Links Display - only show when NOT editing socials */}
+                {!isEditingSocials && stats?.profileLinks && stats.profileLinks.length > 0 && (
                   <div>
                     <strong>Socials:</strong>
                     <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
@@ -764,8 +794,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 )}
 
-                {/* Social Media Links - only show when editing */}
-                {isEditingUsername && (
+                {/* Social Media Links - only show when editing socials */}
+                {isEditingSocials && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
                     <strong style={{ fontSize: '14px' }}>Social Links:</strong>
                     {socialLinks.map((link, index) => (
@@ -876,12 +906,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 )}
 
-                {/* Save / Cancel row - only show when editing */}
-                {isEditingUsername && (
+                {/* Save / Cancel row */}
+                {(isEditingUsername || isEditingSocials) && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
                     <button
                       type="button"
-                      onClick={handleSave}
+                      onClick={isEditingUsername ? handleSaveUsername : handleSaveSocials}
                       disabled={usernameStatus.type === 'loading'}
                       style={{
                         fontSize: '12px',
@@ -900,7 +930,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </button>
                     <button
                       type="button"
-                      onClick={handleCancel}
+                      onClick={isEditingUsername ? handleCancelUsername : handleCancelSocials}
                       disabled={usernameStatus.type === 'loading'}
                       style={{
                         fontSize: '12px',
