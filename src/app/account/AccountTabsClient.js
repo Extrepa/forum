@@ -432,9 +432,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 gap: '12px',
                 minWidth: 0
               }}>
-                <h2 className="section-title" style={{ margin: 0 }}>
-                  <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
-                </h2>
+                <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
                 {/* Custom Avatar */}
                 <div style={{ 
                   padding: isEditingAvatar ? '10px' : 0, 
@@ -930,9 +928,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 gap: '12px',
                 textAlign: 'right'
               }}>
-                <h2 className="section-title" style={{ margin: 0, textAlign: 'right' }}>
-                  <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
-                </h2>
+                <h2 className="section-title" style={{ margin: 0, textAlign: 'right' }}>Stats</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
                   {(() => {
                     // RPG-style rarity color function

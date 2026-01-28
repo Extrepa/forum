@@ -39,8 +39,9 @@ export default function Username({
 
   const avatarUrl = getAvatarUrl(avatarKey);
 
-  const Wrapper = href === null ? 'span' : Link;
-  const wrapperProps = href === null ? {} : { href: profileHref };
+  const disableLink = href === null || href === false;
+  const Wrapper = disableLink ? 'span' : Link;
+  const wrapperProps = disableLink ? {} : { href: profileHref };
 
   return (
     <Wrapper {...wrapperProps} className={classes} title={title || safeName}>
