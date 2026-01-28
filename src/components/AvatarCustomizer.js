@@ -22,10 +22,10 @@ const INITIAL_PALETTE = [
 ];
 
 const GRADIENTS = [
-  { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-fx)' },
-  { id: 'fire', name: 'Fire', url: 'url(#fire-fx)' },
-  { id: 'ocean', name: 'Ocean', url: 'url(#ocean-fx)' },
-  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-fx)' }
+  { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-fx)', preview: 'linear-gradient(90deg, #ff0040, #ffa600, #ffee00, #00f11d, #00a2ff, #6f4dff, #ff00b1)' },
+  { id: 'fire', name: 'Fire', url: 'url(#fire-fx)', preview: 'linear-gradient(180deg, #ff4d00, #ff9e00, #ff0000)' },
+  { id: 'ocean', name: 'Ocean', url: 'url(#ocean-fx)', preview: 'linear-gradient(135deg, #00d4ff, #0055ff, #00ff95)' },
+  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-fx)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' }
 ];
 
 const INITIAL_LAYERS = [
@@ -698,7 +698,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               top: `${panelPos.top}px`,
               right: `${panelPos.right}px`,
               zIndex: 100,
-              width: '190px',
+              width: '210px',
               background: 'var(--errl-panel)',
               backdropFilter: 'blur(16px)',
               borderRadius: '12px',
@@ -710,6 +710,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               gap: '4px',
               maxHeight: 'calc(100% - 12px)',
               overflowY: 'hidden',
+              overflowX: 'hidden',
               cursor: isDraggingPanel ? 'grabbing' : 'default'
             }}
           >
@@ -843,21 +844,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           onClick={() => handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientUrl: g.url })}
                           title={`Apply ${g.name} gradient`}
                           style={{ 
-                            fontSize: '14px', 
-                            padding: '4px 0', 
-                            background: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                            color: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? '#001018' : 'var(--ink)', 
+                            fontSize: '12px', 
+                            padding: '10px 0', 
+                            background: g.preview, 
                             border: '1px solid ' + (selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
                             borderRadius: '999px', 
                             cursor: 'pointer', 
                             minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: '600',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            boxShadow: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
                           }}
-                        >
-                          {g.id === 'rainbow' ? '🌈' : g.id === 'fire' ? '🔥' : g.id === 'ocean' ? '🌊' : '🧪'}
-                        </button>
+                        />
                       ))}
                     </div>
                   </>
@@ -870,7 +869,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Scale down"
                               >
                                 −
@@ -878,7 +877,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Scale up"
                               >
                                 +
@@ -893,7 +892,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Rotate left"
                               >
                                 ←
@@ -901,7 +900,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Rotate right"
                               >
                                 →
@@ -915,7 +914,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Flip horizontal"
                               >
                                 ⇋
@@ -923,13 +922,53 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               <button
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
-                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
                                 title="Flip vertical"
                               >
                                 ⇵
                               </button>
                             </div>
                           </div>
+                  {selectedLayer.id !== 'face' && (
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <button 
+                        onClick={() => handleDuplicate(selectedLayer.id)} 
+                        title="Duplicate (Ctrl+D)" 
+                        style={{ 
+                          flex: 1, fontSize: '10px', padding: '6px', 
+                          background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
+                          color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
+                      >DUP</button>
+                      <button 
+                        onClick={() => randomizeLayer(selectedLayer.id)} 
+                        title="Randomize Layer (R)" 
+                        style={{ 
+                          flex: 1, fontSize: '10px', padding: '6px', 
+                          background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
+                          color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
+                      >RAND</button>
+                      <button 
+                        onClick={() => handleDelete(selectedLayer.id)} 
+                        title="Delete (Del)" 
+                        style={{ 
+                          flex: 1, fontSize: '10px', padding: '6px', 
+                          background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
+                          color: '#ff6b6b', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.15)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
+                      >DEL</button>
+                    </div>
+                  )}
               </>
             ) : (
               <>
@@ -992,21 +1031,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientUrl: g.url })}
                           title={`Apply ${g.name} gradient to outline`}
                           style={{ 
-                            fontSize: '14px', 
-                            padding: '4px 0', 
-                            background: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                            color: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? '#001018' : 'var(--ink)', 
+                            fontSize: '12px', 
+                            padding: '10px 0', 
+                            background: g.preview, 
                             border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
                             borderRadius: '999px', 
                             cursor: 'pointer', 
                             minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: '600',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            boxShadow: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
                           }}
-                        >
-                          {g.id === 'rainbow' ? '🌈' : g.id === 'fire' ? '🔥' : g.id === 'ocean' ? '🌊' : '🧪'}
-                        </button>
+                        />
                       ))}
                     </div>
                   )}
@@ -1022,47 +1059,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               </>
             )}
 
-            {selectedLayer.id !== 'face' && (
-              <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                <button 
-                  onClick={() => handleDuplicate(selectedLayer.id)} 
-                  title="Duplicate (Ctrl+D)" 
-                  style={{ 
-                    flex: 1, fontSize: '10px', padding: '6px', 
-                    background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                    color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
-                    fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
-                >DUP</button>
-                <button 
-                  onClick={() => randomizeLayer(selectedLayer.id)} 
-                  title="Randomize Layer (R)" 
-                  style={{ 
-                    flex: 1, fontSize: '10px', padding: '6px', 
-                    background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                    color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
-                    fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
-                >RAND</button>
-                <button 
-                  onClick={() => handleDelete(selectedLayer.id)} 
-                  title="Delete (Del)" 
-                  style={{ 
-                    flex: 1, fontSize: '10px', padding: '6px', 
-                    background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
-                    color: '#ff6b6b', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
-                    fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
-                >DEL</button>
-              </div>
-            )}
-            
           </div>
         )}
 
