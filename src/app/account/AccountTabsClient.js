@@ -8,6 +8,7 @@ import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
+import { getAvatarUrl } from '../../lib/media';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -451,9 +452,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px' }}>
                   {user.avatar_key ? (
                     <img 
-                      src={`/api/media/avatars/${user.avatar_key.split('/').pop()}`} 
+                      src={getAvatarUrl(user.avatar_key)} 
                       alt="Current Avatar" 
-                      style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid var(--accent)', background: '#000' }} 
+                      className="username-avatar"
+                      style={{ width: '100px', height: '100px' }} 
                     />
                   ) : (
                     <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>

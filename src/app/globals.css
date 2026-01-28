@@ -731,6 +731,7 @@ main {
   background: #000;
   flex-shrink: 0;
   box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
+  object-fit: cover;
 }
 
 .username--0 {

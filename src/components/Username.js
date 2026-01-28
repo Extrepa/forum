@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { getAvatarUrl } from '../lib/media';
 
 export default function Username({
   name,
@@ -35,23 +36,15 @@ export default function Username({
   // Default href to profile page if not provided
   const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
-  const avatarUrl = avatarKey ? `/api/media/avatars/${avatarKey.split('/').pop()}` : null;
+  const avatarUrl = getAvatarUrl(avatarKey);
 
   return (
-    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+    <Link href={profileHref} className={classes} title={title || safeName}>
       {avatarUrl && (
         <img 
           src={avatarUrl} 
           alt="" 
           className="username-avatar"
-          style={{ 
-            width: '20px', 
-            height: '20px', 
-            borderRadius: '50%', 
-            border: '1px solid var(--accent)',
-            background: '#000',
-            flexShrink: 0
-          }} 
         />
       )}
       <span>{safeName}</span>
