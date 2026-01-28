@@ -370,7 +370,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
         <svg
           ref={svgRef}
-          viewBox="0 0 1100 1200"
+          viewBox="0 130 1100 1100"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
@@ -421,7 +421,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 />
               )}
               {selectedLayerId === layer.id && layer.id !== 'face' && (
-                <rect x="0" y="0" width="1100" height="1200" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
+                <rect x="0" y="130" width="1100" height="1100" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
               )}
             </g>
           ))}

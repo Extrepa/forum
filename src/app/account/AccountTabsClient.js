@@ -428,7 +428,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 background: 'rgba(2, 7, 10, 0.4)', 
                 borderRadius: '12px', 
                 border: '1px solid rgba(52, 225, 255, 0.2)',
-                position: 'relative'
+                position: 'relative',
+                minHeight: isEditingAvatar ? '500px' : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'min-height 0.3s ease'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
