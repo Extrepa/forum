@@ -603,6 +603,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const selectedLayer = layers.find(l => l.id === selectedLayerId);
+  const handleSvgMouseMove = (e) => {
+    handleMouseMove(e);
+    setShowHint(e.target === e.currentTarget);
+  };
 
   return (
     <div 
@@ -625,11 +629,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           minHeight: 0,
           boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
         }}
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const relativeY = (e.clientY - rect.top) / rect.height;
-          setShowHint(relativeY > 0.7);
-        }}
+        onMouseMove={() => setShowHint(false)}
         onMouseLeave={() => setShowHint(false)}
       >
         {/* Undo/Redo Floating UI */}
@@ -766,10 +766,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         <svg
           ref={svgRef}
           viewBox="70 191 983 983"
-          onMouseMove={handleMouseMove}
+          onMouseMove={handleSvgMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible', paddingTop: '8px', boxSizing: 'border-box' }}
+          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible', paddingTop: '8px', paddingBottom: '8px', boxSizing: 'border-box' }}
           onClick={(e) => {
             setContextMenu(null);
             if (e.target === e.currentTarget) {
@@ -1302,12 +1302,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             bottom: '8px',
             transform: 'translateX(-50%)',
             textAlign: 'center',
-            fontSize: '9px',
+            fontSize: '8px',
             color: 'var(--muted)',
             textTransform: 'uppercase',
             fontFamily: '"Space Grotesk", sans-serif',
             letterSpacing: '0.1em',
-            lineHeight: '1.4',
+            lineHeight: '1.2',
             opacity: showHint ? 1 : 0,
             transition: 'opacity 0.2s ease',
             pointerEvents: 'none',
@@ -1315,11 +1315,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             background: 'rgba(2, 7, 10, 0.45)',
             borderRadius: '8px',
             border: '1px solid rgba(52, 225, 255, 0.15)',
-            backdropFilter: 'blur(4px)'
+            backdropFilter: 'blur(4px)',
+            maxWidth: '220px'
           }}
         >
-          Drag to move • Arrows for precision • Double‑click to randomize<br/>
-          + / - scale • {'{ }'} rotate • Right‑click to customize
+          Drag to move • Arrows for precision<br/>
+          Double‑click to randomize • Right‑click to customize<br/>
+          + / - scale • {'{ }'} rotate
         </div>
 
         {/* Action Bar */}
