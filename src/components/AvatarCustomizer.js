@@ -934,9 +934,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 )}
 
                           {selectedLayer.finish === 'glow' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
-                              <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>GLOW</label>
-                              <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.glowIntensity ?? 28}</span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px', height: '16px' }}>
+                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>GLOW</label>
+                              <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.glowIntensity ?? 28}</span>
                               <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                                 <button
                                   type="button"
@@ -959,9 +959,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           )}
 
                           {selectedLayer.finish === 'gradient' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
-                              <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>DIR</label>
-                              <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>ANGLE</span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px', height: '16px' }}>
+                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>DIR</label>
+                              <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>ANGLE</span>
                               <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                                 {GRADIENT_DIRECTIONS.map((dir) => {
                                   const activeGradientId = getGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
@@ -982,9 +982,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             </div>
                           )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
-                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>SCALE</label>
-                            <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.scale.toFixed(2)}</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px', height: '16px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>SCALE</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.scale.toFixed(2)}</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
@@ -1005,9 +1005,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             </div>
                           </div>
                           
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
-                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>ROTATE</label>
-                            <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.rotation}°</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px', height: '16px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>ROTATE</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.rotation}°</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
@@ -1027,9 +1027,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               </button>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
-                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>MIRROR</label>
-                            <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>FLIP</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px', height: '16px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>MIRROR</label>
+                            <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>FLIP</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
