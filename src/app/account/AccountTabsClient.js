@@ -429,7 +429,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 borderRadius: '12px', 
                 border: '1px solid rgba(52, 225, 255, 0.2)',
                 position: 'relative',
-                minHeight: isEditingAvatar ? '500px' : 'auto',
+                minHeight: isEditingAvatar ? '600px' : 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'min-height 0.3s ease'

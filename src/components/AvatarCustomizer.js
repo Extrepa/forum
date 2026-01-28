@@ -370,11 +370,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
         <svg
           ref={svgRef}
-          viewBox="0 130 1100 1100"
+          viewBox="0 100 1100 1100"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ width: '100%', height: 'auto', flex: 1, touchAction: 'none', cursor: 'pointer', background: '#000' }}
+          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', background: '#000' }}
           onClick={() => setContextMenu(null)}
         >
           <defs>
@@ -421,7 +421,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 />
               )}
               {selectedLayerId === layer.id && layer.id !== 'face' && (
-                <rect x="0" y="130" width="1100" height="1100" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
+                <rect x="0" y="100" width="1100" height="1100" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
               )}
             </g>
           ))}
