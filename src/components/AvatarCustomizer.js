@@ -168,13 +168,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleReset = () => {
-    const nextLayers = INITIAL_LAYERS.map(l => {
-      const allowGlow = l.type !== 'mouth';
-      const finish = allowGlow && Math.random() < 0.4 ? rand(FINISHES) : 'solid';
-      const color = rand(palette);
-      const stroke = rand(palette);
-      const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
+    const baseColors = ['#000000', '#ffffff'];
+    const nextLayers = INITIAL_LAYERS.map((l, index) => {
+      const color = baseColors[index % baseColors.length];
+      return { 
+        ...l, 
+        color, 
+        finish: 'solid', 
+        stroke: '#000000', 
+        strokeWidth: 4, 
+        gradientUrl: undefined,
+        strokeFinish: 'solid', 
+        strokeGradientUrl: undefined 
+      };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -565,8 +571,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               </feMerge>
             </filter>
             <filter id="glitter-fx">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise" />
-              <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0" result="sparkle" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="2" result="noise">
+                <animate attributeName="baseFrequency" dur="3s" values="0.6;0.9;0.6" repeatCount="indefinite" />
+                <animate attributeName="seed" dur="2.4s" values="1;5;1" repeatCount="indefinite" />
+              </feTurbulence>
+              <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.7 0" result="sparkle" />
               <feComposite in="sparkle" in2="SourceAlpha" operator="in" />
               <feBlend in="SourceGraphic" mode="screen" />
             </filter>
