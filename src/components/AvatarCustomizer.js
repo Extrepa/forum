@@ -161,6 +161,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [hoverRedo, setHoverRedo] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const lastTapRef = useRef(0);
+  const longPressRef = useRef(null);
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -607,6 +609,32 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     handleMouseMove(e);
     setShowHint(e.target === e.currentTarget);
   };
+  const handleTouchStartLayer = (e, id) => {
+    const touch = e.touches?.[0];
+    if (!touch) return;
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    longPressRef.current = setTimeout(() => {
+      setSelectedLayerId(id);
+      setContextMenu({ x: touch.clientX, y: touch.clientY, id });
+    }, 450);
+  };
+
+  const handleTouchEndLayer = (e, id) => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      randomizeLayer(id);
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
+  };
 
   return (
     <div 
@@ -830,6 +858,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 onMouseDown={(e) => handleMouseDown(e, layer.id)}
                 onContextMenu={(e) => handleContextMenu(e, layer.id)}
                 onDoubleClick={() => randomizeLayer(layer.id)}
+                onTouchStart={(e) => handleTouchStartLayer(e, layer.id)}
+                onTouchEnd={(e) => handleTouchEndLayer(e, layer.id)}
                 style={{ cursor: layer.id === 'face' ? 'default' : 'move' }}
               >
                 {layer.type === 'import' ? (
@@ -871,6 +901,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               right: `${panelPos.right}px`,
               zIndex: 100,
               width: '210px',
+              minWidth: '210px',
+              maxWidth: '210px',
               background: 'var(--errl-panel)',
               backdropFilter: 'blur(16px)',
               borderRadius: '12px',
@@ -1299,8 +1331,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '8px',
-            transform: 'translateX(-50%)',
+            top: '52%',
+            transform: 'translate(-50%, -50%)',
             textAlign: 'center',
             fontSize: '8px',
             color: 'var(--muted)',
@@ -1311,17 +1343,17 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             opacity: showHint ? 1 : 0,
             transition: 'opacity 0.2s ease',
             pointerEvents: 'none',
-            padding: '4px 6px',
+            padding: '4px 8px',
             background: 'rgba(2, 7, 10, 0.45)',
             borderRadius: '8px',
             border: '1px solid rgba(52, 225, 255, 0.15)',
             backdropFilter: 'blur(4px)',
-            maxWidth: '220px'
+            width: '260px',
+            maxWidth: '80%'
           }}
         >
-          Drag to move • Arrows for precision<br/>
-          Double‑click to randomize • Right‑click to customize<br/>
-          + / - scale • {'{ }'} rotate
+          Drag to move • Arrows for precision • Double‑click to randomize<br/>
+          + / - scale • {'{ }'} rotate • Right‑click to customize
         </div>
 
         {/* Action Bar */}
