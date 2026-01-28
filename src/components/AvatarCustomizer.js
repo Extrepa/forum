@@ -28,6 +28,48 @@ const GRADIENTS = [
   { id: 'toxic', name: 'Toxic', url: 'url(#toxic-fx)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' }
 ];
 
+const GRADIENT_DIRECTIONS = [
+  { id: 'lr', label: '→', x1: '0%', y1: '0%', x2: '100%', y2: '0%' },
+  { id: 'tb', label: '↓', x1: '0%', y1: '0%', x2: '0%', y2: '100%' },
+  { id: 'diag1', label: '↘', x1: '0%', y1: '0%', x2: '100%', y2: '100%' },
+  { id: 'diag2', label: '↗', x1: '0%', y1: '100%', x2: '100%', y2: '0%' }
+];
+
+const renderGradientStops = (id) => {
+  switch (id) {
+    case 'rainbow':
+      return (
+        <>
+          <stop offset="0%" stopColor="#ff0040"><animate attributeName="stop-color" values="#ff0040;#ffa600;#ffee00;#00f11d;#00a2ff;#6f4dff;#ff00b1;#ff0040" dur="3s" repeatCount="indefinite" /></stop>
+          <stop offset="100%" stopColor="#ff00b1"><animate attributeName="stop-color" values="#ff00b1;#ff0040;#ffa600;#ffee00;#00f11d;#00a2ff;#6f4dff;#ff00b1" dur="3s" repeatCount="indefinite" /></stop>
+        </>
+      );
+    case 'fire':
+      return (
+        <>
+          <stop offset="0%" stopColor="#ff4d00"><animate attributeName="stop-color" values="#ff4d00;#ff9e00;#ff4d00" dur="2s" repeatCount="indefinite" /></stop>
+          <stop offset="100%" stopColor="#ff0000"><animate attributeName="stop-color" values="#ff0000;#ff4d00;#ff0000" dur="2s" repeatCount="indefinite" /></stop>
+        </>
+      );
+    case 'ocean':
+      return (
+        <>
+          <stop offset="0%" stopColor="#00d4ff"><animate attributeName="stop-color" values="#00d4ff;#0055ff;#00d4ff" dur="4s" repeatCount="indefinite" /></stop>
+          <stop offset="100%" stopColor="#00ff95"><animate attributeName="stop-color" values="#00ff95;#00d4ff;#00ff95" dur="4s" repeatCount="indefinite" /></stop>
+        </>
+      );
+    case 'toxic':
+      return (
+        <>
+          <stop offset="0%" stopColor="#c3ff00"><animate attributeName="stop-color" values="#c3ff00;#34d399;#c3ff00" dur="1.5s" repeatCount="indefinite" /></stop>
+          <stop offset="100%" stopColor="#00ff00"><animate attributeName="stop-color" values="#00ff00;#c3ff00;#00ff00" dur="1.5s" repeatCount="indefinite" /></stop>
+        </>
+      );
+    default:
+      return null;
+  }
+};
+
 const INITIAL_LAYERS = [
   {
     id: 'face',
@@ -121,6 +163,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const imageFillInputRef = useRef(null);
+  const lastContextMenuRef = useRef(0);
 
   // Refs for keyboard handler to avoid stale closures
   const layersRef = useRef(layers);
@@ -322,8 +365,22 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const handleContextMenu = (e, id) => {
     e.preventDefault();
     e.stopPropagation();
+    const now = Date.now();
+    if (now - lastContextMenuRef.current < 300) {
+      setPanelPos({ top: 8, right: 8 });
+    }
+    lastContextMenuRef.current = now;
     setSelectedLayerId(id);
     setContextMenu({ x: e.clientX, y: e.clientY, id });
+  };
+
+  const getGradientId = (layer) => {
+    if (layer.gradientId) return layer.gradientId;
+    if (layer.gradientUrl) {
+      const found = GRADIENTS.find((g) => layer.gradientUrl.includes(g.id));
+      return found?.id;
+    }
+    return null;
   };
 
   const getSVGPoint = (e) => {
@@ -602,14 +659,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           onClick={() => setContextMenu(null)}
         >
           <defs>
-            <filter id="glow-fx" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="20" result="blur" />
-              <feComposite in="blur" in2="SourceAlpha" operator="out" result="glow" />
-              <feMerge>
-                <feMergeNode in="glow" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+            {layers.filter((layer) => layer.finish === 'glow').map((layer) => (
+              <filter key={`glow-${layer.id}`} id={`glow-fx-${layer.id}`} x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation={layer.glowIntensity ?? 28} result="blur" />
+                <feComposite in="blur" in2="SourceAlpha" operator="out" result="glow" />
+                <feMerge>
+                  <feMergeNode in="glow" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            ))}
             <filter id="glitter-fx">
               <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="2" result="noise">
                 <animate attributeName="baseFrequency" dur="3s" values="0.6;0.9;0.6" repeatCount="indefinite" />
@@ -619,22 +678,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <feComposite in="sparkle" in2="SourceAlpha" operator="in" />
               <feBlend in="SourceGraphic" mode="screen" />
             </filter>
-            <linearGradient id="rainbow-fx" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ff0040"><animate attributeName="stop-color" values="#ff0040;#ffa600;#ffee00;#00f11d;#00a2ff;#6f4dff;#ff00b1;#ff0040" dur="3s" repeatCount="indefinite" /></stop>
-              <stop offset="100%" stopColor="#ff00b1"><animate attributeName="stop-color" values="#ff00b1;#ff0040;#ffa600;#ffee00;#00f11d;#00a2ff;#6f4dff;#ff00b1" dur="3s" repeatCount="indefinite" /></stop>
-            </linearGradient>
-            <linearGradient id="fire-fx" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#ff4d00"><animate attributeName="stop-color" values="#ff4d00;#ff9e00;#ff4d00" dur="2s" repeatCount="indefinite" /></stop>
-              <stop offset="100%" stopColor="#ff0000"><animate attributeName="stop-color" values="#ff0000;#ff4d00;#ff0000" dur="2s" repeatCount="indefinite" /></stop>
-            </linearGradient>
-            <linearGradient id="ocean-fx" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00d4ff"><animate attributeName="stop-color" values="#00d4ff;#0055ff;#00d4ff" dur="4s" repeatCount="indefinite" /></stop>
-              <stop offset="100%" stopColor="#00ff95"><animate attributeName="stop-color" values="#00ff95;#00d4ff;#00ff95" dur="4s" repeatCount="indefinite" /></stop>
-            </linearGradient>
-            <linearGradient id="toxic-fx" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#c3ff00"><animate attributeName="stop-color" values="#c3ff00;#34d399;#c3ff00" dur="1.5s" repeatCount="indefinite" /></stop>
-              <stop offset="100%" stopColor="#00ff00"><animate attributeName="stop-color" values="#00ff00;#c3ff00;#00ff00" dur="1.5s" repeatCount="indefinite" /></stop>
-            </linearGradient>
+            {GRADIENTS.map((gradient) => (
+              GRADIENT_DIRECTIONS.map((dir) => (
+                <linearGradient key={`${gradient.id}-${dir.id}`} id={`${gradient.id}-${dir.id}`} x1={dir.x1} y1={dir.y1} x2={dir.x2} y2={dir.y2}>
+                  {renderGradientStops(gradient.id)}
+                </linearGradient>
+              ))
+            ))}
             {layers.filter((layer) => layer.finish === 'image' && layer.imageUrl).map((layer) => (
               <pattern
                 key={`img-fill-${layer.id}`}
@@ -651,6 +701,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           
           {layers.map((layer) => {
             const bounds = layer.type === 'import' ? { x: 250, y: 250, width: 500, height: 500 } : getPathBounds(layer.d);
+            const gradientId = getGradientId(layer);
+            const gradientDirection = layer.gradientDirection || 'lr';
+            const gradientUrl = gradientId ? `url(#${gradientId}-${gradientDirection})` : layer.gradientUrl;
             return (
               <g
                 key={layer.id}
@@ -665,8 +718,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 ) : (
                   <path
                     d={layer.d}
-                    fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? layer.gradientUrl : layer.color)}
-                    filter={layer.finish === 'glow' ? 'url(#glow-fx)' : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
+                    fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? gradientUrl : layer.color)}
+                    filter={layer.finish === 'glow' ? `url(#glow-fx-${layer.id})` : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
                     stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || layer.gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
                     strokeWidth={layer.strokeWidth || 4}
                     style={{ transition: 'fill 0.3s ease' }}
@@ -841,7 +894,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                       {GRADIENTS.map(g => (
                         <button
                           key={g.id}
-                          onClick={() => handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientUrl: g.url })}
+                          onClick={() => {
+                            const nextDirection = selectedLayer.gradientDirection || 'lr';
+                            handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientId: g.id, gradientDirection: nextDirection, gradientUrl: `url(#${g.id}-${nextDirection})` });
+                          }}
                           title={`Apply ${g.name} gradient`}
                           style={{ 
                             fontSize: '12px', 
@@ -862,9 +918,58 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   </>
                 )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SCALE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center' }}>{selectedLayer.scale.toFixed(2)}</span>
+                          {selectedLayer.finish === 'glow' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
+                              <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>GLOW</label>
+                              <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.glowIntensity ?? 28}</span>
+                              <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
+                                  style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                  title="Decrease glow"
+                                >
+                                  −
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
+                                  style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '12px' }}
+                                  title="Increase glow"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedLayer.finish === 'gradient' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
+                              <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>DIR</label>
+                              <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>ANGLE</span>
+                              <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                                {GRADIENT_DIRECTIONS.map((dir) => {
+                                  const activeGradientId = getGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
+                                  const activeDirection = selectedLayer.gradientDirection || 'lr';
+                                  return (
+                                    <button
+                                      key={dir.id}
+                                      type="button"
+                                      onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
+                                      style={{ width: '18px', height: '18px', borderRadius: '5px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1, fontSize: '10px' }}
+                                      title={`Gradient ${dir.label}`}
+                                    >
+                                      {dir.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
+                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>SCALE</label>
+                            <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.scale.toFixed(2)}</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
@@ -885,9 +990,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             </div>
                           </div>
                           
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ROTATE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center' }}>{selectedLayer.rotation}°</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
+                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>ROTATE</label>
+                            <span style={{ fontSize: '8px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.rotation}°</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
@@ -907,9 +1012,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               </button>
                             </div>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>MIRROR</label>
-                            <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center' }}>FLIP</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '4px', alignItems: 'center', marginTop: '0px' }}>
+                            <label style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>MIRROR</label>
+                            <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>FLIP</span>
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                               <button
                                 type="button"
