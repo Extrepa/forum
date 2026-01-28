@@ -460,18 +460,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
                 {/* Custom Avatar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                  <div style={{ 
-                    padding: isEditingAvatar ? '10px' : 0, 
-                    borderRadius: '10px', 
-                    border: isEditingAvatar ? '1px solid rgba(52, 225, 255, 0.18)' : 'none',
-                    background: isEditingAvatar ? 'rgba(2, 7, 10, 0.35)' : 'transparent',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    {isEditingAvatar ? null : null}
-                    
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
                       {user.avatar_key ? (
                         <div style={{ position: 'relative' }}>
@@ -490,7 +480,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           No avatar set
                         </div>
                       )}
-                      
                     </div>
                     {!isEditingAvatar && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
@@ -504,30 +493,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           unoptimized
                           style={{ width: '24px', height: '24px' }}
                         />
-                      </div>
-                    )}
-
-                    {isEditingAvatar && (
-                      <div style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        right: 0, 
-                        bottom: 0, 
-                        zIndex: 100, 
-                        background: 'rgba(2, 7, 10, 0.95)',
-                        backdropFilter: 'blur(12px)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '12px'
-                      }}>
-                      <div style={{ flex: '0 0 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                          <AvatarCustomizer 
-                            onSave={handleAvatarSave} 
-                            onCancel={() => setIsEditingAvatar(false)}
-                            initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
-                          />
-                        </div>
                       </div>
                     )}
                   </div>
@@ -547,122 +512,138 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       padding: '2px 8px',
                       lineHeight: '1.2',
                       opacity: isEditingAvatar ? 0.6 : 1,
-                      flex: '0 0 auto'
+                      justifySelf: 'end'
                     }}
                   >
                     Edit Avatar
                   </button>
                 </div>
+                {isEditingAvatar && (
+                  <div style={{ 
+                    width: '100%',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(52, 225, 255, 0.18)',
+                    background: 'rgba(2, 7, 10, 0.55)',
+                    padding: '12px'
+                  }}>
+                    <AvatarCustomizer 
+                      onSave={handleAvatarSave} 
+                      onCancel={() => setIsEditingAvatar(false)}
+                      initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                    />
+                  </div>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%', flex: '1 1 auto' }}>
-                  {/* Username Row */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
-                    {isEditingUsername && (
-                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                        Username
-                      </label>
-                    )}
-                    {!isEditingUsername ? (
-                      <div>
-                        <strong>Username:</strong>{' '}
-                          <Username
-                          name={user.username}
-                          colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                          avatarKey={null}
-                          href={null}
-                        />
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                        <input
-                          type="text"
-                          value={newUsername}
-                          onChange={(e) => setNewUsername(e.target.value)}
-                          placeholder="username"
-                          pattern="[a-z0-9_]{3,20}"
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(52, 225, 255, 0.3)',
-                            background: 'rgba(2, 7, 10, 0.6)',
-                            color: 'var(--ink)',
-                            fontSize: '14px',
-                            minWidth: '120px',
-                            maxWidth: '100%',
-                            flex: '1 1 auto'
-                          }}
-                          autoFocus
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Color Picker Buttons Row */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
-                      {(isEditingUsername ? colorOptions : colorOptions.filter((option) => option.index === (user.preferred_username_color_index ?? null))).map((option) => {
-                        const displayIndex = isEditingUsername ? selectedColorIndex : (user.preferred_username_color_index ?? null);
-                        const isSelected = displayIndex === option.index;
-                        const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                        const size = 18;
-                        return (
-                          <button
-                            key={option.index ?? 'auto'}
-                            type="button"
-                            onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
-                            disabled={disabled}
-                            className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    {/* Username Row */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
+                      {isEditingUsername && (
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>
+                          Username
+                        </label>
+                      )}
+                      {!isEditingUsername ? (
+                        <div>
+                          <strong>Username:</strong>{' '}
+                            <Username
+                            name={user.username}
+                            colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                            avatarKey={null}
+                            href={null}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                          <input
+                            type="text"
+                            value={newUsername}
+                            onChange={(e) => setNewUsername(e.target.value)}
+                            placeholder="username"
+                            pattern="[a-z0-9_]{3,20}"
                             style={{
-                              flex: '0 0 auto',
-                              width: `${size}px`,
-                              height: `${size}px`,
-                              minWidth: `${size}px`,
-                              maxWidth: `${size}px`,
-                              minHeight: `${size}px`,
-                              maxHeight: `${size}px`,
-                              borderRadius: '50%',
-                              border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                              background: option.index === null
-                                ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                                : option.color,
-                              cursor: disabled ? 'default' : 'pointer',
-                              opacity: isEditingUsername ? (disabled ? 0.5 : 1) : 1,
-                              transition: 'all 0.2s ease',
-                              padding: 0,
-                              margin: 0,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxSizing: 'border-box',
-                              boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
-                              lineHeight: 1,
-                              verticalAlign: 'middle'
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid rgba(52, 225, 255, 0.3)',
+                              background: 'rgba(2, 7, 10, 0.6)',
+                              color: 'var(--ink)',
+                              fontSize: '14px',
+                              minWidth: '120px',
+                              maxWidth: '100%',
+                              flex: '1 1 auto'
                             }}
-                            title={option.name}
-                            onMouseEnter={(e) => {
-                              if (isEditingUsername && !disabled) {
-                                e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
-                                e.currentTarget.style.transform = 'scale(1.1)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (isEditingUsername && !disabled) {
-                                e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
-                                e.currentTarget.style.transform = 'scale(1)';
-                              }
-                            }}
-                          >
-                            {option.index === null && (
-                              <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
-                            )}
-                          </button>
-                        );
-                      })}
+                            autoFocus
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Color Picker Buttons Row */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
+                        {(isEditingUsername ? colorOptions : colorOptions.filter((option) => option.index === (user.preferred_username_color_index ?? null))).map((option) => {
+                          const displayIndex = isEditingUsername ? selectedColorIndex : (user.preferred_username_color_index ?? null);
+                          const isSelected = displayIndex === option.index;
+                          const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                          const size = 18;
+                          return (
+                            <button
+                              key={option.index ?? 'auto'}
+                              type="button"
+                              onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
+                              disabled={disabled}
+                              className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
+                              style={{
+                                flex: '0 0 auto',
+                                width: `${size}px`,
+                                height: `${size}px`,
+                                minWidth: `${size}px`,
+                                maxWidth: `${size}px`,
+                                minHeight: `${size}px`,
+                                maxHeight: `${size}px`,
+                                borderRadius: '50%',
+                                border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                                background: option.index === null
+                                  ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                                  : option.color,
+                                cursor: disabled ? 'default' : 'pointer',
+                                opacity: isEditingUsername ? (disabled ? 0.5 : 1) : 1,
+                                transition: 'all 0.2s ease',
+                                padding: 0,
+                                margin: 0,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxSizing: 'border-box',
+                                boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
+                                lineHeight: 1,
+                                verticalAlign: 'middle'
+                              }}
+                              title={option.name}
+                              onMouseEnter={(e) => {
+                                if (isEditingUsername && !disabled) {
+                                  e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
+                                  e.currentTarget.style.transform = 'scale(1.1)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (isEditingUsername && !disabled) {
+                                  e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                }
+                              }}
+                            >
+                              {option.index === null && (
+                                <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -686,201 +667,198 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       padding: '2px 8px',
                       lineHeight: '1.2',
                       opacity: isEditingUsername ? 0.6 : 1,
-                      flex: '0 0 auto'
+                      justifySelf: 'end'
                     }}
                   >
                     Edit Username
                   </button>
                 </div>
 
-                  
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-                {/* Social Links Display - only show when NOT editing socials */}
-                {!isEditingSocials && stats?.profileLinks && stats.profileLinks.length > 0 && (
-                  <div>
-                    <strong>Socials:</strong>
-                    <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                    {stats.profileLinks.map((link) => {
-                      if (typeof link !== 'object' || !link.platform || !link.url) return null;
-                      const platformData = socialPlatforms.find(p => p.value === link.platform);
-                      if (!platformData) return null;
-                      const username = extractUsername(link.platform, link.url);
-                      const isSoundCloud = link.platform === 'soundcloud';
-                      return (
-                        <a
-                          key={link.platform}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            border: isSoundCloud 
-                              ? '1px solid rgba(255, 107, 0, 0.3)' 
-                              : '1px solid rgba(52, 225, 255, 0.3)',
-                            background: isSoundCloud 
-                              ? 'rgba(255, 107, 0, 0.05)' 
-                              : 'rgba(52, 225, 255, 0.05)',
-                            color: 'var(--accent)',
-                            textDecoration: 'none',
-                            fontSize: '13px',
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer',
-                            width: 'fit-content'
-                          }}
-                          title={platformData.label}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = isSoundCloud 
-                              ? 'rgba(255, 107, 0, 0.15)' 
-                              : 'rgba(52, 225, 255, 0.15)';
-                            e.currentTarget.style.borderColor = isSoundCloud 
-                              ? 'rgba(255, 107, 0, 0.6)' 
-                              : 'rgba(52, 225, 255, 0.6)';
-                            e.currentTarget.style.boxShadow = isSoundCloud 
-                              ? '0 0 12px rgba(255, 107, 0, 0.4)' 
-                              : '0 0 12px rgba(52, 225, 255, 0.4)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = isSoundCloud 
-                              ? 'rgba(255, 107, 0, 0.05)' 
-                              : 'rgba(52, 225, 255, 0.05)';
-                            e.currentTarget.style.borderColor = isSoundCloud 
-                              ? 'rgba(255, 107, 0, 0.3)' 
-                              : 'rgba(52, 225, 255, 0.3)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {getPlatformIcon(link.platform)}
-                          </span>
-                          {username && (
-                            <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
-                          )}
-                        </a>
-                      );
-                    })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Social Media Links - only show when editing socials */}
-                {isEditingSocials && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
-                    <strong style={{ fontSize: '14px' }}>Social Links:</strong>
-                    {socialLinks.map((link, index) => (
-                      <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center', position: 'relative' }}>
-                        <div style={{ position: 'relative', flexShrink: 0 }} data-dropdown-container>
-                          <button
-                            type="button"
-                            onClick={() => toggleDropdown(index)}
-                            disabled={usernameStatus.type === 'loading'}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              padding: '6px 8px',
-                              borderRadius: '6px',
-                              border: '1px solid rgba(52, 225, 255, 0.3)',
-                              background: 'rgba(2, 7, 10, 0.6)',
-                              color: 'var(--ink)',
-                              fontSize: '11px',
-                              width: '100px',
-                              cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                              opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
-                              justifyContent: 'space-between'
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flex: 1 }}>
-                              {getPlatformIcon(link.platform)}
-                              <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {socialPlatforms.find(p => p.value === link.platform)?.label || link.platform}
-                              </span>
-                            </span>
-                            <span style={{ fontSize: '9px', opacity: 0.7, flexShrink: 0 }}>▼</span>
-                          </button>
-                          {openDropdowns[index] && (
-                            <div
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    {/* Social Links Display - only show when NOT editing socials */}
+                    {!isEditingSocials && stats?.profileLinks && stats.profileLinks.length > 0 && (
+                      <div>
+                        <strong>Socials:</strong>
+                        <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                        {stats.profileLinks.map((link) => {
+                          if (typeof link !== 'object' || !link.platform || !link.url) return null;
+                          const platformData = socialPlatforms.find(p => p.value === link.platform);
+                          if (!platformData) return null;
+                          const username = extractUsername(link.platform, link.url);
+                          const isSoundCloud = link.platform === 'soundcloud';
+                          return (
+                            <a
+                              key={link.platform}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                zIndex: 1000,
-                                marginTop: '4px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '4px 8px',
                                 borderRadius: '6px',
-                                border: '1px solid rgba(52, 225, 255, 0.3)',
-                                background: 'rgba(2, 7, 10, 0.95)',
-                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                                minWidth: '100px',
-                                overflow: 'hidden'
+                                border: isSoundCloud 
+                                  ? '1px solid rgba(255, 107, 0, 0.3)' 
+                                  : '1px solid rgba(52, 225, 255, 0.3)',
+                                background: isSoundCloud 
+                                  ? 'rgba(255, 107, 0, 0.05)' 
+                                  : 'rgba(52, 225, 255, 0.05)',
+                                color: 'var(--accent)',
+                                textDecoration: 'none',
+                                fontSize: '13px',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer',
+                                width: 'fit-content'
+                              }}
+                              title={platformData.label}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = isSoundCloud 
+                                  ? 'rgba(255, 107, 0, 0.15)' 
+                                  : 'rgba(52, 225, 255, 0.15)';
+                                e.currentTarget.style.borderColor = isSoundCloud 
+                                  ? 'rgba(255, 107, 0, 0.6)' 
+                                  : 'rgba(52, 225, 255, 0.6)';
+                                e.currentTarget.style.boxShadow = isSoundCloud 
+                                  ? '0 0 12px rgba(255, 107, 0, 0.4)' 
+                                  : '0 0 12px rgba(52, 225, 255, 0.4)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = isSoundCloud 
+                                  ? 'rgba(255, 107, 0, 0.05)' 
+                                  : 'rgba(52, 225, 255, 0.05)';
+                                e.currentTarget.style.borderColor = isSoundCloud 
+                                  ? 'rgba(255, 107, 0, 0.3)' 
+                                  : 'rgba(52, 225, 255, 0.3)';
+                                e.currentTarget.style.boxShadow = 'none';
                               }}
                             >
-                              {socialPlatforms.map(platform => (
-                                <button
-                                  key={platform.value}
-                                  type="button"
-                                  onClick={() => {
-                                    handleSocialLinkChange(index, 'platform', platform.value);
-                                    toggleDropdown(index);
-                                  }}
-                                  disabled={usernameStatus.type === 'loading'}
+                              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {getPlatformIcon(link.platform)}
+                              </span>
+                              {username && (
+                                <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
+                              )}
+                            </a>
+                          );
+                        })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Social Media Links - only show when editing socials */}
+                    {isEditingSocials && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                        <strong style={{ fontSize: '14px' }}>Social Links:</strong>
+                        {socialLinks.map((link, index) => (
+                          <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center', position: 'relative' }}>
+                            <div style={{ position: 'relative', flexShrink: 0 }} data-dropdown-container>
+                              <button
+                                type="button"
+                                onClick={() => toggleDropdown(index)}
+                                disabled={usernameStatus.type === 'loading'}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '6px 8px',
+                                  borderRadius: '6px',
+                                  border: '1px solid rgba(52, 225, 255, 0.3)',
+                                  background: 'rgba(2, 7, 10, 0.6)',
+                                  color: 'var(--ink)',
+                                  fontSize: '11px',
+                                  width: '100px',
+                                  cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                                  opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flex: 1 }}>
+                                  {getPlatformIcon(link.platform)}
+                                  <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {socialPlatforms.find(p => p.value === link.platform)?.label || link.platform}
+                                  </span>
+                                </span>
+                                <span style={{ fontSize: '9px', opacity: 0.7, flexShrink: 0 }}>▼</span>
+                              </button>
+                              {openDropdowns[index] && (
+                                <div
                                   style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    width: '100%',
-                                    padding: '6px 8px',
-                                    border: 'none',
-                                    background: link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent',
-                                    color: 'var(--ink)',
-                                    fontSize: '11px',
-                                    cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                                    textAlign: 'left',
-                                    transition: 'background 0.2s ease'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (usernameStatus.type !== 'loading') {
-                                      e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
-                                    }
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent';
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: 0,
+                                    zIndex: 1000,
+                                    marginTop: '4px',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(52, 225, 255, 0.3)',
+                                    background: 'rgba(2, 7, 10, 0.95)',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                    minWidth: '100px',
+                                    overflow: 'hidden'
                                   }}
                                 >
-                                  {getPlatformIcon(platform.value)}
-                                  <span>{platform.label}</span>
-                                </button>
-                              ))}
+                                  {socialPlatforms.map(platform => (
+                                    <button
+                                      key={platform.value}
+                                      type="button"
+                                      onClick={() => {
+                                        handleSocialLinkChange(index, 'platform', platform.value);
+                                        toggleDropdown(index);
+                                      }}
+                                      disabled={usernameStatus.type === 'loading'}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        width: '100%',
+                                        padding: '6px 8px',
+                                        border: 'none',
+                                        background: link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent',
+                                        color: 'var(--ink)',
+                                        fontSize: '11px',
+                                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                                        textAlign: 'left',
+                                        transition: 'background 0.2s ease'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (usernameStatus.type !== 'loading') {
+                                          e.currentTarget.style.background = 'rgba(52, 225, 255, 0.15)';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = link.platform === platform.value ? 'rgba(52, 225, 255, 0.2)' : 'transparent';
+                                      }}
+                                    >
+                                      {getPlatformIcon(platform.value)}
+                                      <span>{platform.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <input
-                          type="url"
-                          value={link.url}
-                          onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
-                          placeholder="https://..."
-                          disabled={usernameStatus.type === 'loading'}
-                          style={{
-                            padding: '6px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid rgba(52, 225, 255, 0.3)',
-                            background: 'rgba(2, 7, 10, 0.6)',
-                            color: 'var(--ink)',
-                            fontSize: '13px',
-                            flex: '1 1 auto',
-                            minWidth: 0
-                          }}
-                        />
+                            <input
+                              type="url"
+                              value={link.url}
+                              onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
+                              placeholder="https://..."
+                              disabled={usernameStatus.type === 'loading'}
+                              style={{
+                                padding: '6px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(52, 225, 255, 0.3)',
+                                background: 'rgba(2, 7, 10, 0.6)',
+                                color: 'var(--ink)',
+                                fontSize: '13px',
+                                flex: '1 1 auto',
+                                minWidth: 0
+                              }}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-                </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -904,7 +882,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       padding: '2px 8px',
                       lineHeight: '1.2',
                       opacity: isEditingSocials ? 0.6 : 1,
-                      flex: '0 0 auto'
+                      justifySelf: 'end'
                     }}
                   >
                     Edit Socials
