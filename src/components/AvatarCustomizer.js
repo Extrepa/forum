@@ -480,7 +480,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     <div 
       ref={containerRef}
       className="avatar-customizer-container card" 
-      style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '20px' }}
+      style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '16px' }}
     >
       <div 
         className="canvas-card" 
@@ -490,7 +490,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           border: '1px solid var(--errl-border)',
           overflow: 'hidden',
           position: 'relative',
-          flex: 1,
+          aspectRatio: '1 / 1',
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,
@@ -498,17 +499,17 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         }}
       >
         {/* Undo/Redo Floating UI */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '8px', zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', gap: '6px', zIndex: 10 }}>
           <button 
             onClick={(e) => { e.stopPropagation(); undo(); }} 
             onMouseEnter={() => setHoverUndo(true)}
             onMouseLeave={() => setHoverUndo(false)}
             disabled={historyIndex === 0}
             style={{ 
-              width: '32px', height: '32px', borderRadius: '50%', 
+              width: '28px', height: '28px', borderRadius: '50%', 
               border: '1px solid rgba(52, 225, 255, 0.2)', 
               background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', cursor: historyIndex === 0 ? 'default' : 'pointer',
-              opacity: historyIndex === 0 ? 0.3 : 1, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: historyIndex === 0 ? 0.3 : 1, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: hoverUndo && historyIndex > 0 ? '0 0 15px rgba(52, 225, 255, 0.4)' : '0 0 8px rgba(0,0,0,0.3)',
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
@@ -523,10 +524,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             onMouseLeave={() => setHoverRedo(false)}
             disabled={historyIndex === history.length - 1}
             style={{ 
-              width: '32px', height: '32px', borderRadius: '50%', 
+              width: '28px', height: '28px', borderRadius: '50%', 
               border: '1px solid rgba(52, 225, 255, 0.2)', 
               background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', cursor: historyIndex === history.length - 1 ? 'default' : 'pointer',
-              opacity: historyIndex === history.length - 1 ? 0.3 : 1, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: historyIndex === history.length - 1 ? 0.3 : 1, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: hoverRedo && historyIndex < history.length - 1 ? '0 0 15px rgba(52, 225, 255, 0.4)' : '0 0 8px rgba(0,0,0,0.3)',
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
@@ -870,15 +871,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         )}
 
         {/* Action Bar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button 
               onClick={handleRandomizeAll}
               title="Randomize All: Assign random colors, finishes, and outlines to everything"
               style={{ 
-                flex: '1 1 auto', minHeight: '42px', borderRadius: '999px', border: '1px solid var(--accent)', 
+                flex: '1 1 auto', minHeight: '36px', borderRadius: '999px', border: '1px solid var(--accent)', 
                 background: 'rgba(52, 225, 255, 0.1)', color: 'var(--accent)', cursor: 'pointer', 
-                fontSize: '13px', fontWeight: '600', letterSpacing: '0.5px',
+                fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px',
                 transition: 'all 0.2s ease', fontFamily: '"Space Grotesk", sans-serif',
                 boxShadow: '0 0 10px rgba(52, 225, 255, 0.15)'
               }}
@@ -891,9 +892,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={handleReset}
               title="Reset to Default: Back to original shapes with new random colors"
               style={{ 
-                flex: '1 1 auto', minHeight: '42px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', 
+                flex: '1 1 auto', minHeight: '36px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', 
                 background: 'rgba(255,255,255,0.05)', color: 'var(--muted)', cursor: 'pointer', 
-                fontSize: '13px', fontWeight: '600', transition: 'all 0.2s ease', fontFamily: '"Space Grotesk", sans-serif'
+                fontSize: '11px', fontWeight: '600', transition: 'all 0.2s ease', fontFamily: '"Space Grotesk", sans-serif'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
@@ -903,10 +904,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <label 
               title="Import Image: Add a custom image layer to your avatar"
               style={{ 
-                flex: '1 1 auto', minHeight: '42px', padding: '0 16px', background: 'rgba(2, 7, 10, 0.4)', 
+                flex: '1 1 auto', minHeight: '36px', padding: '0 12px', background: 'rgba(2, 7, 10, 0.4)', 
                 border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '999px', display: 'flex', 
-                alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', 
-                fontSize: '13px', color: 'var(--ink)', fontWeight: '600', transition: 'all 0.2s ease',
+                alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', 
+                fontSize: '11px', color: 'var(--ink)', fontWeight: '600', transition: 'all 0.2s ease',
                 fontFamily: '"Space Grotesk", sans-serif', boxShadow: '0 0 12px rgba(52, 225, 255, 0.08)'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 18px rgba(52, 225, 255, 0.2)'; }}
@@ -916,7 +917,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <input type="file" accept="image/*" onChange={handleImportImage} style={{ display: 'none' }} />
             </label>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button 
               onClick={() => {
                 const serializer = new XMLSerializer();
@@ -925,9 +926,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               }}
               title="Save Avatar: Apply your changes to your profile"
               style={{ 
-                flex: 2, minHeight: '48px', borderRadius: '999px', border: 'none',
+                flex: 2, minHeight: '42px', borderRadius: '999px', border: 'none',
                 background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.95), rgba(255, 52, 245, 0.95))',
-                color: '#001018', fontWeight: '700', cursor: 'pointer', fontSize: '15px',
+                color: '#001018', fontWeight: '700', cursor: 'pointer', fontSize: '13px',
                 boxShadow: '0 0 20px rgba(52, 225, 255, 0.4)', transition: 'all 0.2s ease',
                 fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.5px'
               }}
@@ -940,9 +941,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={onCancel}
               title="Close: Discard unsaved changes and exit"
               style={{ 
-                flex: 1, minHeight: '48px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.4)',
+                flex: 1, minHeight: '42px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.4)',
                 background: 'rgba(255,0,0,0.1)', color: '#ff6b6b', cursor: 'pointer', 
-                fontSize: '15px', fontWeight: '700', transition: 'all 0.2s ease',
+                fontSize: '13px', fontWeight: '700', transition: 'all 0.2s ease',
                 fontFamily: '"Space Grotesk", sans-serif'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,0,0,0.15)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(255,107,107,0.2)'; }}
