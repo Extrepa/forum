@@ -97,6 +97,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [activeControlTab, setActiveControlTab] = useState('fill'); // 'fill' or 'outline'
   const colorInputRef = useRef(null);
   const [pickingForIndex, setPickingForIndex] = useState(null);
+  const pickingForIndexRef = useRef(null);
   const [hoverUndo, setHoverUndo] = useState(false);
   const [hoverRedo, setHoverRedo] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -136,7 +137,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const randomizeLayer = (id) => {
+  const randomizeLayer = useCallback((id) => {
     const nextLayers = layers.map(l => {
       if (l.id !== id || l.type === 'import') return l;
       const allowGlow = l.type !== 'mouth';
@@ -149,7 +150,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
-  };
+  }, [layers, palette, pushHistory]);
 
   const handleRandomizeAll = () => {
     const nextLayers = layers.map(l => {
@@ -181,21 +182,26 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   const openColorPicker = (index) => {
     setPickingForIndex(index);
-    colorInputRef.current.click();
+    pickingForIndexRef.current = index;
+    if (colorInputRef.current) {
+      colorInputRef.current.click();
+    }
   };
 
   const handleColorChange = (e) => {
     const newColor = e.target.value;
-    if (pickingForIndex === 'wheel') {
+    const targetIndex = pickingForIndexRef.current ?? pickingForIndex;
+    if (targetIndex === 'wheel') {
       if (selectedLayer) {
         handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: newColor, finish: 'solid' } : { stroke: newColor });
       }
-    } else if (pickingForIndex !== null) {
+    } else if (targetIndex !== null && targetIndex !== undefined) {
       const nextPalette = [...palette];
-      nextPalette[pickingForIndex] = newColor;
+      nextPalette[targetIndex] = newColor;
       setPalette(nextPalette);
     }
     setPickingForIndex(null);
+    pickingForIndexRef.current = null;
   };
 
   const handleSave = useCallback(() => {
@@ -251,19 +257,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     pushHistory(nextLayers);
   }, [layers, clipboard, pushHistory]);
 
-  const handleDelete = (id) => {
+  const handleDelete = useCallback((id) => {
     if (id === 'face') return;
     const nextLayers = layers.filter(l => l.id !== id);
     setLayers(nextLayers);
     if (selectedLayerId === id) setSelectedLayerId(null);
     setContextMenu(null);
     pushHistory(nextLayers);
-  };
+  }, [layers, selectedLayerId, pushHistory]);
 
   const handleMouseDown = (e, id) => {
-    if (e.button !== 0 && e.button !== 2) return; // Allow left and right click
+    if (e.button !== 0) return; // Only allow left click for dragging
     setSelectedLayerId(id);
-    if (e.button === 0) setContextMenu(null); // Only clear menu on left click
+    setContextMenu(null);
     if (id === 'face') return;
     setIsDragging(true);
     const point = getSVGPoint(e);
@@ -291,6 +297,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   const handleContextMenu = (e, id) => {
     e.preventDefault();
+    e.stopPropagation();
     setSelectedLayerId(id);
     setContextMenu({ x: e.clientX, y: e.clientY, id });
   };
@@ -413,9 +420,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, handleSave, handleLayerChange, handleCopy, handlePaste, handleDuplicate, contextMenu]);
+  }, [undo, redo, handleSave, handleLayerChange, handleCopy, handlePaste, handleDuplicate, handleDelete, randomizeLayer, contextMenu]);
 
   const handlePanelMouseDown = (e) => {
+    if (e.button !== 0) return; // Only left-click should drag the panel
     if (e.target.closest('button')) return; // Don't drag if clicking close button
     setIsDraggingPanel(true);
     panelDragStart.current = { 
@@ -860,13 +868,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               </div>
             )}
             
-            {/* Hidden Color Input */}
-            <input 
-              type="color" 
-              ref={colorInputRef} 
-              style={{ display: 'none' }} 
-              onChange={handleColorChange} 
-            />
           </div>
         )}
 
@@ -961,6 +962,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       [ ] scale • {'{ }'} rotate • RIGHT-CLICK for settings<br/>
       Double-click piece to randomize
     </div>
+
+    {/* Hidden Color Input (kept in DOM for reliable programmatic open) */}
+    <input 
+      type="color" 
+      ref={colorInputRef} 
+      onChange={handleColorChange} 
+      style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }} 
+      aria-hidden="true"
+      tabIndex={-1}
+    />
   </div>
 );
 }
