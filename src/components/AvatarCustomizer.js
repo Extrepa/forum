@@ -146,7 +146,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
       const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl };
+      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -161,7 +161,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
       const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl };
+      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -174,7 +174,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const color = rand(palette);
       const stroke = rand(palette);
       const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
-      return { ...l, color, finish, stroke, gradientUrl };
+      return { ...l, color, finish, stroke, gradientUrl, strokeFinish: 'solid', strokeGradientUrl: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -193,7 +193,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const targetIndex = pickingForIndexRef.current ?? pickingForIndex;
     if (targetIndex === 'wheel') {
       if (selectedLayer) {
-        handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: newColor, finish: 'solid' } : { stroke: newColor });
+        handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: newColor, finish: 'solid' } : { stroke: newColor, strokeFinish: 'solid', strokeGradientUrl: undefined });
       }
     } else if (targetIndex !== null && targetIndex !== undefined) {
       const nextPalette = [...palette];
@@ -606,7 +606,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     d={layer.d}
                     fill={layer.finish === 'gradient' ? layer.gradientUrl : layer.color}
                     filter={layer.finish === 'glow' ? 'url(#glow-fx)' : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
-                    stroke={layer.stroke || 'var(--line)'}
+                    stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || layer.gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
                     strokeWidth={layer.strokeWidth || 4}
                     style={{ transition: 'fill 0.3s ease' }}
                   />
@@ -775,17 +775,51 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   </>
                 )}
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
                             <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SCALE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.scale.toFixed(2)}</span>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center' }}>{selectedLayer.scale.toFixed(2)}</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Scale down"
+                              >
+                                −
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Scale up"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
-                          <input type="range" min="0.1" max="3" step="0.05" value={selectedLayer.scale} onChange={(e) => handleLayerChange(selectedLayer.id, { scale: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
                             <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ROTATE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.rotation}°</span>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center' }}>{selectedLayer.rotation}°</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Rotate left"
+                              >
+                                ←
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                                title="Rotate right"
+                              >
+                                →
+                              </button>
+                            </div>
                           </div>
-                          <input type="range" min="0" max="360" step="5" value={selectedLayer.rotation} onChange={(e) => handleLayerChange(selectedLayer.id, { rotation: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
               </>
             ) : (
               <>
@@ -793,7 +827,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   {palette.slice(0, 12).map((c, idx) => (
                     <div 
                       key={`${idx}-${c}-outline`} 
-                      onClick={() => handleLayerChange(selectedLayer.id, { stroke: c })}
+                      onClick={() => handleLayerChange(selectedLayer.id, { stroke: c, strokeFinish: 'solid', strokeGradientUrl: undefined })}
                       onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
                       title={`Set Outline to ${c} (Right-click to reassign box)`}
                       style={{ 
@@ -817,12 +851,63 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   />
                 </div>
 
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OUTLINE FINISH</label>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
+                    {['solid', 'gradient'].map(f => (
+                      <button
+                        key={`outline-${f}`}
+                        onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: f === 'gradient' ? (selectedLayer.strokeGradientUrl || GRADIENTS[0]?.url) : undefined })}
+                        style={{ 
+                          fontSize: '10px', 
+                          padding: '4px 0', 
+                          background: (selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                          color: (selectedLayer.strokeFinish || 'solid') === f ? '#001018' : 'var(--ink)', 
+                          border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                          borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {f.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  {(selectedLayer.strokeFinish || 'solid') === 'gradient' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                      {GRADIENTS.map(g => (
+                        <button
+                          key={`outline-${g.id}`}
+                          onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientUrl: g.url })}
+                          title={`Apply ${g.name} gradient to outline`}
+                          style={{ 
+                            fontSize: '14px', 
+                            padding: '4px 0', 
+                            background: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                            color: (selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? '#001018' : 'var(--ink)', 
+                            border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && selectedLayer.strokeGradientUrl === g.url ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                            borderRadius: '999px', 
+                            cursor: 'pointer', 
+                            minHeight: 0,
+                            fontFamily: '"Space Grotesk", sans-serif',
+                            fontWeight: '600',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {g.id === 'rainbow' ? '🌈' : g.id === 'fire' ? '🔥' : g.id === 'ocean' ? '🌊' : '🧪'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
                     <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
                   </div>
-                  <input type="range" min="1" max="10" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
+                  <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
                 </div>
               </>
             )}
@@ -959,7 +1044,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     {/* Hint */}
     <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.1em', lineHeight: '1.4' }}>
       DRAG to move • ARROWS for precision<br/>
-      [ ] scale • {'{ }'} rotate • RIGHT-CLICK for settings<br/>
+      + / - scale • {'{ }'} rotate • RIGHT-CLICK for settings<br/>
       Double-click piece to randomize
     </div>
 
