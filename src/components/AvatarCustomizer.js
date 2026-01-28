@@ -770,7 +770,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible', paddingTop: '8px', boxSizing: 'border-box' }}
-          onClick={() => setContextMenu(null)}
+          onClick={(e) => {
+            setContextMenu(null);
+            if (e.target === e.currentTarget) {
+              setShowHint((prev) => !prev);
+            }
+          }}
         >
           <defs>
             {layers.filter((layer) => layer.finish === 'glow').map((layer) => (
@@ -1292,8 +1297,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         {/* Hint */}
         <div
           style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: '8px',
+            transform: 'translateX(-50%)',
             textAlign: 'center',
-            marginTop: '8px',
             fontSize: '9px',
             color: 'var(--muted)',
             textTransform: 'uppercase',
@@ -1302,7 +1310,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             lineHeight: '1.4',
             opacity: showHint ? 1 : 0,
             transition: 'opacity 0.2s ease',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            padding: '4px 6px',
+            background: 'rgba(2, 7, 10, 0.45)',
+            borderRadius: '8px',
+            border: '1px solid rgba(52, 225, 255, 0.15)',
+            backdropFilter: 'blur(4px)'
           }}
         >
           Drag to move • Arrows for precision • Double‑click to randomize<br/>
