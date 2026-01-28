@@ -470,12 +470,34 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         type="button" 
                         onClick={() => setIsEditingAvatar(true)}
                         className="btn-link"
-                        style={{ fontSize: '12px', color: 'var(--accent)', flex: '0 0 auto' }}
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--accent)',
+                          flex: '0 0 auto',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          fontWeight: '500',
+                          padding: '2px 8px',
+                          lineHeight: '1.2'
+                        }}
                       >
                         edit
                       </button>
                     )}
                   </div>
+                  {!isEditingAvatar && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                      <Username
+                        name={user.username}
+                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                        avatarKey={user.avatar_key}
+                      />
+                    </div>
+                  )}
 
                   {isEditingAvatar && (
                     <div style={{ 
@@ -514,10 +536,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {!isEditingUsername ? (
                       <div>
                         <strong>Username:</strong>{' '}
-                        <Username
+                          <Username
                           name={user.username}
                           colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                          avatarKey={user.avatar_key}
+                          avatarKey={null}
                         />
                       </div>
                     ) : (
