@@ -1028,14 +1028,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               }}
               title="Save Avatar: Apply your changes to your profile"
               style={{ 
-                flex: 2, minHeight: '28px', borderRadius: '999px', border: 'none',
-                background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.95), rgba(255, 52, 245, 0.95))',
-                color: '#001018', fontWeight: '700', cursor: 'pointer', fontSize: '10px',
-                boxShadow: '0 0 20px rgba(52, 225, 255, 0.4)', transition: 'all 0.2s ease',
-                fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.5px'
+                flex: 2,
+                minHeight: '28px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'var(--accent)',
+                color: 'var(--bg)',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Space Grotesk", sans-serif',
+                padding: '6px 12px',
+                whiteSpace: 'nowrap'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 52, 245, 0.5)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 0 20px rgba(52, 225, 255, 0.4)'; }}
             >
               SAVE CHANGES
             </button>
@@ -1043,13 +1049,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={onCancel}
               title="Close: Discard unsaved changes and exit"
               style={{ 
-                flex: 1, minHeight: '28px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.4)',
-                background: 'rgba(255,0,0,0.1)', color: '#ff6b6b', cursor: 'pointer', 
-                fontSize: '10px', fontWeight: '700', transition: 'all 0.2s ease',
-                fontFamily: '"Space Grotesk", sans-serif'
+                flex: 1,
+                minHeight: '28px',
+                borderRadius: '6px',
+                border: '1px solid rgba(52, 225, 255, 0.3)',
+                background: 'transparent',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Space Grotesk", sans-serif',
+                padding: '6px 12px',
+                whiteSpace: 'nowrap'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,0,0,0.15)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(255,107,107,0.2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               CLOSE
             </button>
