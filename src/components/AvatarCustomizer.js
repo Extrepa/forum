@@ -1325,7 +1325,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         </div>
 
         {/* Action Bar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}
+          onMouseEnter={() => setShowHint(false)}
+          onTouchStart={() => setShowHint(false)}
+        >
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
             <button 
               onClick={handleRandomizeAll}
