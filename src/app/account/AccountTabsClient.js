@@ -456,163 +456,107 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                minWidth: 0,
-                position: 'relative',
-                paddingRight: '120px'
+                minWidth: 0
               }}>
-                <div>
-                  <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
-                  <div style={{ position: 'absolute', top: '14px', right: '12px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
-                      disabled={isEditingAvatar}
-                      style={{
-                        borderRadius: '4px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--accent)',
-                        cursor: isEditingAvatar ? 'default' : 'pointer',
-                        fontSize: '12px',
-                        transition: 'all 0.2s ease',
-                        fontWeight: '500',
-                        padding: '2px 8px',
-                        lineHeight: '1.2',
-                        opacity: isEditingAvatar ? 0.6 : 1
-                      }}
-                    >
-                      Edit Avatar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingUsername(true);
-                        setIsEditingSocials(false);
-                        setNewUsername(user.username);
-                        setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                        setUsernameStatus({ type: 'idle', message: null });
-                        setColorStatus({ type: 'idle', message: null });
-                      }}
-                      disabled={isEditingUsername}
-                      style={{
-                        borderRadius: '4px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--accent)',
-                        cursor: isEditingUsername ? 'default' : 'pointer',
-                        fontSize: '12px',
-                        transition: 'all 0.2s ease',
-                        fontWeight: '500',
-                        padding: '2px 8px',
-                        lineHeight: '1.2',
-                        opacity: isEditingUsername ? 0.6 : 1
-                      }}
-                    >
-                      Edit Username
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingSocials(true);
-                        setIsEditingUsername(false);
-                        setNewUsername(user.username);
-                        setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                        setUsernameStatus({ type: 'idle', message: null });
-                        setColorStatus({ type: 'idle', message: null });
-                      }}
-                      disabled={isEditingSocials}
-                      style={{
-                        borderRadius: '4px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--accent)',
-                        cursor: isEditingSocials ? 'default' : 'pointer',
-                        fontSize: '12px',
-                        transition: 'all 0.2s ease',
-                        fontWeight: '500',
-                        padding: '2px 8px',
-                        lineHeight: '1.2',
-                        opacity: isEditingSocials ? 0.6 : 1
-                      }}
-                    >
-                      Edit Socials
-                    </button>
-                  </div>
-                </div>
+                <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
                 {/* Custom Avatar */}
-                <div style={{ 
-                  padding: isEditingAvatar ? '10px' : 0, 
-                  borderRadius: '10px', 
-                  border: isEditingAvatar ? '1px solid rgba(52, 225, 255, 0.18)' : 'none',
-                  background: isEditingAvatar ? 'rgba(2, 7, 10, 0.35)' : 'transparent',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}>
-                  {isEditingAvatar ? null : null}
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
-                    {user.avatar_key ? (
-                      <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ 
+                    padding: isEditingAvatar ? '10px' : 0, 
+                    borderRadius: '10px', 
+                    border: isEditingAvatar ? '1px solid rgba(52, 225, 255, 0.18)' : 'none',
+                    background: isEditingAvatar ? 'rgba(2, 7, 10, 0.35)' : 'transparent',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    {isEditingAvatar ? null : null}
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
+                      {user.avatar_key ? (
+                        <div style={{ position: 'relative' }}>
+                          <Image 
+                            src={getAvatarUrl(user.avatar_key)} 
+                            alt="Current Avatar" 
+                            className="username-avatar"
+                            width={96}
+                            height={96}
+                            style={{ width: '96px', height: '96px', display: 'block' }} 
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
+                          No avatar set
+                        </div>
+                      )}
+                      
+                    </div>
+                    {!isEditingAvatar && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
                         <Image 
                           src={getAvatarUrl(user.avatar_key)} 
-                          alt="Current Avatar" 
+                          alt="Mini avatar preview"
                           className="username-avatar"
-                          width={96}
-                          height={96}
-                          style={{ width: '96px', height: '96px', display: 'block' }} 
+                          width={24}
+                          height={24}
                           unoptimized
+                          style={{ width: '24px', height: '24px' }}
                         />
-                      </div>
-                    ) : (
-                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
-                        No avatar set
                       </div>
                     )}
-                    
-                  </div>
-                  {!isEditingAvatar && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                      <Image 
-                        src={getAvatarUrl(user.avatar_key)} 
-                        alt="Mini avatar preview"
-                        className="username-avatar"
-                        width={24}
-                        height={24}
-                        unoptimized
-                        style={{ width: '24px', height: '24px' }}
-                      />
-                    </div>
-                  )}
 
-                  {isEditingAvatar && (
-                    <div style={{ 
-                      position: 'absolute', 
-                      top: 0, 
-                      left: 0, 
-                      right: 0, 
-                      bottom: 0, 
-                      zIndex: 100, 
-                      background: 'rgba(2, 7, 10, 0.95)',
-                      backdropFilter: 'blur(12px)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      padding: '12px'
-                    }}>
-                    <div style={{ flex: '0 0 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                        <AvatarCustomizer 
-                          onSave={handleAvatarSave} 
-                          onCancel={() => setIsEditingAvatar(false)}
-                          initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
-                        />
+                    {isEditingAvatar && (
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: 0, 
+                        left: 0, 
+                        right: 0, 
+                        bottom: 0, 
+                        zIndex: 100, 
+                        background: 'rgba(2, 7, 10, 0.95)',
+                        backdropFilter: 'blur(12px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: '12px'
+                      }}>
+                      <div style={{ flex: '0 0 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+                          <AvatarCustomizer 
+                            onSave={handleAvatarSave} 
+                            onCancel={() => setIsEditingAvatar(false)}
+                            initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
+                    disabled={isEditingAvatar}
+                    style={{
+                      borderRadius: '4px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--accent)',
+                      cursor: isEditingAvatar ? 'default' : 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s ease',
+                      fontWeight: '500',
+                      padding: '2px 8px',
+                      lineHeight: '1.2',
+                      opacity: isEditingAvatar ? 0.6 : 1,
+                      flex: '0 0 auto'
+                    }}
+                  >
+                    Edit Avatar
+                  </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
-                <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%', flex: '1 1 auto' }}>
                   {/* Username Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
                     {isEditingUsername && (
@@ -717,12 +661,43 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           </button>
                         );
                       })}
-                    </div>
                   </div>
+                </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingUsername(true);
+                      setIsEditingSocials(false);
+                      setNewUsername(user.username);
+                      setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                      setUsernameStatus({ type: 'idle', message: null });
+                      setColorStatus({ type: 'idle', message: null });
+                    }}
+                    disabled={isEditingUsername}
+                    style={{
+                      borderRadius: '4px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--accent)',
+                      cursor: isEditingUsername ? 'default' : 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s ease',
+                      fontWeight: '500',
+                      padding: '2px 8px',
+                      lineHeight: '1.2',
+                      opacity: isEditingUsername ? 0.6 : 1,
+                      flex: '0 0 auto'
+                    }}
+                  >
+                    Edit Username
+                  </button>
+                </div>
 
                   
                 </div>
 
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                 {/* Social Links Display - only show when NOT editing socials */}
                 {!isEditingSocials && stats?.profileLinks && stats.profileLinks.length > 0 && (
                   <div>
@@ -905,6 +880,36 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     ))}
                   </div>
                 )}
+                </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingSocials(true);
+                      setIsEditingUsername(false);
+                      setNewUsername(user.username);
+                      setSelectedColorIndex(user.preferred_username_color_index ?? null);
+                      setUsernameStatus({ type: 'idle', message: null });
+                      setColorStatus({ type: 'idle', message: null });
+                    }}
+                    disabled={isEditingSocials}
+                    style={{
+                      borderRadius: '4px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--accent)',
+                      cursor: isEditingSocials ? 'default' : 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s ease',
+                      fontWeight: '500',
+                      padding: '2px 8px',
+                      lineHeight: '1.2',
+                      opacity: isEditingSocials ? 0.6 : 1,
+                      flex: '0 0 auto'
+                    }}
+                  >
+                    Edit Socials
+                  </button>
+                </div>
 
                 {/* Save / Cancel row */}
                 {(isEditingUsername || isEditingSocials) && (
