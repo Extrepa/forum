@@ -466,29 +466,38 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     right: 0, 
                     bottom: 0, 
                     zIndex: 10000, 
-                    background: 'rgba(0,0,0,0.95)',
+                    background: 'rgba(0,0,0,0.8)',
+                    backdropFilter: 'blur(8px)',
                     display: 'flex',
-                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     padding: '20px'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', maxWidth: '1000px', margin: '0 auto 20px auto', width: '100%' }}>
-                      <h2 style={{ margin: 0 }}>Customize Your Errl Face</h2>
-                      <button 
-                        type="button" 
-                        onClick={() => setIsEditingAvatar(false)}
-                        style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px' }}
-                      >
-                        Close
-                      </button>
-                    </div>
-                    <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center' }}>
-                      <div style={{ width: '100%', maxWidth: '1000px' }}>
-                        <AvatarCustomizer 
-                          onSave={handleAvatarSave} 
-                          onCancel={() => setIsEditingAvatar(false)}
-                          initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
-                        />
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '400px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--accent)' }}>Custom Errl Face</h2>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsEditingAvatar(false)}
+                          style={{ padding: '4px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          Close
+                        </button>
                       </div>
+                      <AvatarCustomizer 
+                        onSave={handleAvatarSave} 
+                        onCancel={() => setIsEditingAvatar(false)}
+                        initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                      />
                     </div>
                   </div>
                 )}
