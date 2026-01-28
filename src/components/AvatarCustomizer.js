@@ -160,6 +160,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [hoverUndo, setHoverUndo] = useState(false);
   const [hoverRedo, setHoverRedo] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -624,6 +625,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           minHeight: 0,
           boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
         }}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const relativeY = (e.clientY - rect.top) / rect.height;
+          setShowHint(relativeY > 0.7);
+        }}
+        onMouseLeave={() => setShowHint(false)}
       >
         {/* Undo/Redo Floating UI */}
         <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', gap: '6px', zIndex: 10 }}>
@@ -672,15 +679,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             position: 'absolute',
             top: '10px',
             right: '10px',
-            width: '20px',
-            height: '20px',
+            width: '16px',
+            height: '16px',
             borderRadius: '50%',
-            border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(2, 7, 10, 0.4)',
-            color: 'rgba(255,255,255,0.55)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: 'rgba(2, 7, 10, 0.2)',
+            color: 'rgba(255,255,255,0.35)',
             cursor: 'pointer',
-            fontSize: '12px',
-            lineHeight: '20px',
+            fontSize: '11px',
+            lineHeight: '16px',
             padding: 0,
             display: 'flex',
             alignItems: 'center',
@@ -692,11 +699,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             e.currentTarget.style.color = 'var(--accent)';
             e.currentTarget.style.borderColor = 'var(--accent)';
             e.currentTarget.style.boxShadow = '0 0 10px rgba(52, 225, 255, 0.6)';
+            e.currentTarget.style.background = 'rgba(2, 7, 10, 0.5)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'rgba(255,255,255,0.55)';
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.35)';
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
             e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.background = 'rgba(2, 7, 10, 0.2)';
           }}
         >
           ?
@@ -738,7 +747,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span>• Click a piece, then right‑click it for settings.</span>
+              <span>• Click a piece, then right‑click to customize.</span>
               <span>• Fill: solid, glow, glitter, gradient, or image fill.</span>
               <span>• Outline: solid or gradient, with adjustable thickness.</span>
               <span>• Scale, rotate, mirror, and tweak glow/gradient direction.</span>
@@ -1275,20 +1284,34 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         )}
 
         {/* Hint */}
-        <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '0.1em', lineHeight: '1.4' }}>
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: '8px',
+            fontSize: '9px',
+            color: 'var(--muted)',
+            textTransform: 'uppercase',
+            fontFamily: '"Space Grotesk", sans-serif',
+            letterSpacing: '0.1em',
+            lineHeight: '1.4',
+            opacity: showHint ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+            pointerEvents: 'none'
+          }}
+        >
           Drag to move • Arrows for precision<br/>
-          + / - scale • {'{ }'} rotate • Right-click for settings<br/>
+          + / - scale • {'{ }'} rotate • Right-click to customize<br/>
           Double-click piece to randomize
         </div>
 
         {/* Action Bar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
             <button 
               onClick={handleRandomizeAll}
               title="Randomize All: Assign random colors, finishes, and outlines to everything"
               style={{ 
-                flex: '1 1 auto', minHeight: '24px', borderRadius: '999px', border: '1px solid var(--accent)', 
+                flex: '1 1 0', minWidth: 0, minHeight: '24px', borderRadius: '999px', border: '1px solid var(--accent)', 
                 background: 'rgba(52, 225, 255, 0.1)', color: 'var(--accent)', cursor: 'pointer', 
                 fontSize: '9px', fontWeight: '600', letterSpacing: '0.3px',
                 transition: 'all 0.2s ease', fontFamily: '"Space Grotesk", sans-serif',
@@ -1303,7 +1326,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={handleReset}
               title="Reset to Default: Back to original shapes with new random colors"
               style={{ 
-                flex: '1 1 auto', minHeight: '24px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.35)', 
+                flex: '1 1 0', minWidth: 0, minHeight: '24px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.35)', 
                 background: 'rgba(255, 80, 80, 0.08)', color: '#ff9a9a', cursor: 'pointer', 
                 fontSize: '9px', fontWeight: '600', transition: 'all 0.2s ease', fontFamily: '"Space Grotesk", sans-serif'
               }}
@@ -1317,7 +1340,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               title="Accessories (coming soon)"
               disabled
               style={{ 
-                flex: '1 1 auto', minHeight: '24px', padding: '0 8px', background: 'rgba(255,255,255,0.03)', 
+                flex: '1 1 0', minWidth: 0, minHeight: '24px', padding: '0 8px', background: 'rgba(255,255,255,0.03)', 
                 border: '1px solid rgba(255,255,255,0.12)', borderRadius: '999px', display: 'flex', 
                 flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: '0px', cursor: 'not-allowed', 
