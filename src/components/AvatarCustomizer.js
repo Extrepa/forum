@@ -693,7 +693,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.2s ease',
-            zIndex: 10
+            zIndex: 10,
+            minWidth: '16px',
+            maxWidth: '16px',
+            minHeight: '16px',
+            maxHeight: '16px',
+            boxSizing: 'border-box',
+            flex: '0 0 auto'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--accent)';
@@ -763,7 +769,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible' }}
+          style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible', paddingTop: '8px', boxSizing: 'border-box' }}
           onClick={() => setContextMenu(null)}
         >
           <defs>
@@ -1299,9 +1305,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             pointerEvents: 'none'
           }}
         >
-          Drag to move • Arrows for precision<br/>
-          + / - scale • {'{ }'} rotate • Right-click to customize<br/>
-          Double-click piece to randomize
+          Drag to move • Arrows for precision • Double‑click to randomize<br/>
+          + / - scale • {'{ }'} rotate • Right‑click to customize
         </div>
 
         {/* Action Bar */}
