@@ -420,94 +420,102 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           {/* Two Column Layout */}
           <div className="account-columns" style={{ marginBottom: '24px' }}>
-            {/* Left Column: Username, Color, and Social Links */}
+            {/* Left Column: Profile Card */}
             <div className="account-col">
-              {/* Custom Avatar Card */}
               <div style={{ 
-                marginBottom: '24px', 
                 padding: '16px', 
                 background: 'rgba(2, 7, 10, 0.4)', 
                 borderRadius: '12px', 
                 border: '1px solid rgba(52, 225, 255, 0.2)',
-                position: 'relative',
-                minHeight: isEditingAvatar ? '600px' : 'auto',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'min-height 0.3s ease'
+                gap: '12px',
+                minWidth: 0
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
-                  {!isEditingAvatar && (
-                    <button 
-                      type="button" 
-                      onClick={() => setIsEditingAvatar(true)}
-                      className="btn-link"
-                      style={{ fontSize: '12px', color: 'var(--accent)' }}
-                    >
-                      edit
-                    </button>
-                  )}
-                </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px' }}>
-                  {user.avatar_key ? (
-                    <div style={{ position: 'relative' }}>
-                      <Image 
-                        src={getAvatarUrl(user.avatar_key)} 
-                        alt="Current Avatar" 
-                        className="username-avatar"
-                        width={100}
-                        height={100}
-                        style={{ width: '100px', height: '100px', display: 'block' }} 
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
-                      No avatar set
-                    </div>
-                  )}
-                </div>
-
-                {isEditingAvatar && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    right: 0, 
-                    bottom: 0, 
-                    zIndex: 100, 
-                    background: 'rgba(2, 7, 10, 0.95)',
-                    backdropFilter: 'blur(12px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '12px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <h2 style={{ margin: 0, fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
+                <h2 className="section-title" style={{ margin: 0 }}>
+                  <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
+                </h2>
+                {/* Custom Avatar */}
+                <div style={{ 
+                  padding: '10px', 
+                  borderRadius: '10px', 
+                  border: '1px solid rgba(52, 225, 255, 0.18)',
+                  background: 'rgba(2, 7, 10, 0.35)',
+                  position: 'relative',
+                  minHeight: isEditingAvatar ? '520px' : 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'min-height 0.3s ease'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '12px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
+                    {!isEditingAvatar && (
                       <button 
                         type="button" 
-                        onClick={() => setIsEditingAvatar(false)}
-                        style={{ padding: '2px 8px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px', color: 'var(--muted)', fontSize: '10px', cursor: 'pointer' }}
+                        onClick={() => setIsEditingAvatar(true)}
+                        className="btn-link"
+                        style={{ fontSize: '12px', color: 'var(--accent)' }}
                       >
-                        CLOSE
+                        edit
                       </button>
-                    </div>
-                    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <AvatarCustomizer 
-                        onSave={handleAvatarSave} 
-                        onCancel={() => setIsEditingAvatar(false)}
-                        initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
-                      />
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '96px' }}>
+                    {user.avatar_key ? (
+                      <div style={{ position: 'relative' }}>
+                        <Image 
+                          src={getAvatarUrl(user.avatar_key)} 
+                          alt="Current Avatar" 
+                          className="username-avatar"
+                          width={96}
+                          height={96}
+                          style={{ width: '96px', height: '96px', display: 'block' }} 
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
+                        No avatar set
+                      </div>
+                    )}
+                  </div>
 
-              <h2 className="section-title" style={{ marginBottom: '4px' }}>
-                <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
+                  {isEditingAvatar && (
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: 0, 
+                      left: 0, 
+                      right: 0, 
+                      bottom: 0, 
+                      zIndex: 100, 
+                      background: 'rgba(2, 7, 10, 0.95)',
+                      backdropFilter: 'blur(12px)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <h2 style={{ margin: 0, fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsEditingAvatar(false)}
+                          style={{ padding: '2px 8px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px', color: 'var(--muted)', fontSize: '10px', cursor: 'pointer' }}
+                        >
+                          CLOSE
+                        </button>
+                      </div>
+                      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <AvatarCustomizer 
+                          onSave={handleAvatarSave} 
+                          onCancel={() => setIsEditingAvatar(false)}
+                          initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
                 <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
                   {/* Username Row */}
@@ -893,51 +901,63 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               </div>
             </div>
+            </div>
 
-            {/* Right Column: Stats */}
+            {/* Right Column: Stats Card */}
             <div className="account-col">
-              <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>
-                <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
-                {(() => {
-                  // RPG-style rarity color function
-                  const getRarityColor = (value) => {
-                    if (value === 0) return 'var(--muted)';
-                    if (value < 10) return 'var(--accent)'; // Common - cyan
-                    if (value < 100) return '#00f5a0'; // Uncommon - green
-                    if (value < 1000) return '#5b8def'; // Rare - blue
-                    return '#b794f6'; // Epic - purple
-                  };
+              <div style={{ 
+                padding: '16px', 
+                background: 'rgba(2, 7, 10, 0.4)', 
+                borderRadius: '12px', 
+                border: '1px solid rgba(52, 225, 255, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                textAlign: 'right'
+              }}>
+                <h2 className="section-title" style={{ margin: 0, textAlign: 'right' }}>
+                  <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
+                  {(() => {
+                    // RPG-style rarity color function
+                    const getRarityColor = (value) => {
+                      if (value === 0) return 'var(--muted)';
+                      if (value < 10) return 'var(--accent)'; // Common - cyan
+                      if (value < 100) return '#00f5a0'; // Uncommon - green
+                      if (value < 1000) return '#5b8def'; // Rare - blue
+                      return '#b794f6'; // Epic - purple
+                    };
 
-                  return (
-                    <>
-                      <div>
-                        <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
-                        <span style={{ color: 'var(--accent)' }}>
-                          <span className="date-only-mobile">{formatDate(stats.joinDate)}</span>
-                          <span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
-                        <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
-                      </div>
-                      <div>
-                        <span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span>
-                        <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
-                      </div>
-                      <div>
-                        <span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
-                        <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
-                      </div>
-                      <div>
-                        <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
-                        <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
-                      </div>
-                    </>
-                  );
-                })()}
+                    return (
+                      <>
+                        <div>
+                          <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
+                          <span style={{ color: 'var(--accent)' }}>
+                            <span className="date-only-mobile">{formatDate(stats.joinDate)}</span>
+                            <span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
+                        </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
           </div>
