@@ -325,16 +325,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const selectedLayer = layers.find(l => l.id === selectedLayerId);
 
   return (
-    <div className="avatar-customizer-container" style={{ position: 'relative', width: '320px', margin: '0 auto' }}>
+    <div className="avatar-customizer-container" style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div 
         className="canvas-card" 
         style={{ 
           background: 'rgba(2, 7, 10, 0.6)', 
-          borderRadius: '16px', 
+          borderRadius: '12px', 
           border: '1px solid rgba(52, 225, 255, 0.2)',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          position: 'relative'
+          position: 'relative',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0
         }}
       >
         {/* Undo/Redo Floating UI */}
@@ -367,11 +370,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
         <svg
           ref={svgRef}
-          viewBox="0 0 1000 1000"
+          viewBox="0 0 1100 1200"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ width: '100%', height: '320px', touchAction: 'none', cursor: 'pointer', background: '#000' }}
+          style={{ width: '100%', height: 'auto', flex: 1, touchAction: 'none', cursor: 'pointer', background: '#000' }}
           onClick={() => setContextMenu(null)}
         >
           <defs>
@@ -418,46 +421,48 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 />
               )}
               {selectedLayerId === layer.id && layer.id !== 'face' && (
-                <rect x="0" y="0" width="1000" height="1000" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
+                <rect x="0" y="0" width="1100" height="1200" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="20,20" />
               )}
             </g>
           ))}
         </svg>
 
         {/* Action Bar */}
-        <div style={{ display: 'flex', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)' }}>
-          <button 
-            onClick={handleRandomizeAll}
-            title="Randomize All"
-            style={{ flex: 1, padding: '12px', background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '18px' }}
-          >
-            🎲
-          </button>
-          <label 
-            title="Import Piece"
-            style={{ flex: 1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}
-          >
-            🖼️
-            <input type="file" accept="image/*" onChange={handleImportImage} style={{ display: 'none' }} />
-          </label>
-          <button 
-            onClick={() => {
-              const serializer = new XMLSerializer();
-              const svgString = serializer.serializeToString(svgRef.current);
-              onSave(svgString, { layers });
-            }}
-            title="Save Avatar"
-            style={{ flex: 2, padding: '12px', background: 'var(--accent)', color: '#000', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            SAVE
-          </button>
-          <button 
-            onClick={onCancel}
-            title="Cancel"
-            style={{ flex: 1, padding: '12px', background: 'rgba(255,0,0,0.1)', border: 'none', color: '#ff6b6b', cursor: 'pointer' }}
-          >
-            ✕
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)' }}>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button 
+              onClick={handleRandomizeAll}
+              title="Randomize All"
+              style={{ flex: 1, padding: '6px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '4px', color: 'var(--accent)', cursor: 'pointer', fontSize: '14px' }}
+            >
+              🎲
+            </button>
+            <label 
+              title="Import Piece"
+              style={{ flex: 1, padding: '6px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px' }}
+            >
+              🖼️
+              <input type="file" accept="image/*" onChange={handleImportImage} style={{ display: 'none' }} />
+            </label>
+            <button 
+              onClick={() => {
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svgRef.current);
+                onSave(svgString, { layers });
+              }}
+              title="Save Avatar"
+              style={{ flex: 3, padding: '6px', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+            >
+              SAVE
+            </button>
+            <button 
+              onClick={onCancel}
+              title="Cancel"
+              style={{ flex: 1, padding: '6px', background: 'rgba(255,0,0,0.1)', border: 'none', borderRadius: '4px', color: '#ff6b6b', cursor: 'pointer', fontSize: '12px' }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       </div>
 

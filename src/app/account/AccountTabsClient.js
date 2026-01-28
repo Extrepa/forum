@@ -460,43 +460,29 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
                 {isEditingAvatar && (
                   <div style={{ 
-                    position: 'fixed', 
+                    position: 'absolute', 
                     top: 0, 
                     left: 0, 
                     right: 0, 
                     bottom: 0, 
-                    zIndex: 10000, 
-                    background: 'rgba(0,0,0,0.7)',
+                    zIndex: 100, 
+                    background: 'rgba(2, 7, 10, 0.95)',
                     backdropFilter: 'blur(12px)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '20px'
+                    flexDirection: 'column',
+                    padding: '12px'
                   }}>
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ 
-                        width: '360px',
-                        background: 'rgba(2, 7, 10, 0.8)',
-                        borderRadius: '20px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        padding: '20px',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2 style={{ margin: 0, fontSize: '16px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
-                        <button 
-                          type="button" 
-                          onClick={() => setIsEditingAvatar(false)}
-                          style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '11px', cursor: 'pointer' }}
-                        >
-                          CLOSE
-                        </button>
-                      </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <h2 style={{ margin: 0, fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsEditingAvatar(false)}
+                        style={{ padding: '2px 8px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px', color: 'var(--muted)', fontSize: '10px', cursor: 'pointer' }}
+                      >
+                        CLOSE
+                      </button>
+                    </div>
+                    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <AvatarCustomizer 
                         onSave={handleAvatarSave} 
                         onCancel={() => setIsEditingAvatar(false)}
