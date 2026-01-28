@@ -394,11 +394,20 @@ export default async function ProfilePage({ params }) {
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
-      <section className="card">
-        {/* Two Column Layout */}
-        <div className="account-columns" style={{ marginBottom: '24px' }}>
+        <section className="card" style={{ paddingTop: '16px' }}>
+          {/* Two Column Layout */}
+          <div className="account-columns" style={{ marginBottom: '24px' }}>
           {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
+            <div style={{ 
+              padding: '16px', 
+              background: 'rgba(2, 7, 10, 0.4)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(52, 225, 255, 0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
             <h2 className="section-title" style={{ marginBottom: '4px' }}>
               <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
             </h2>
@@ -470,10 +479,21 @@ export default async function ProfilePage({ params }) {
                 </div>
               )}
             </div>
+            </div>
           </div>
 
           {/* Right Column: Stats */}
           <div className="account-col">
+            <div style={{ 
+              padding: '16px', 
+              background: 'rgba(2, 7, 10, 0.4)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(52, 225, 255, 0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              textAlign: 'right'
+            }}>
             <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>
               <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
             </h2>
@@ -516,6 +536,7 @@ export default async function ProfilePage({ params }) {
                   </>
                 );
               })()}
+            </div>
             </div>
           </div>
         </div>
