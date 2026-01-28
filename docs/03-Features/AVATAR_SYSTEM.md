@@ -9,14 +9,17 @@ The avatar system allows users to create, customize, and display unique avatars 
 A powerful, interactive tool for building avatars using layered SVG components.
 - **Layered Editing**: Move, scale, and rotate individual pieces (Face, Eyes, Mouth, and custom imports).
 - **Styling Options**: 
-  - **Fill**: Solid colors, Neon Glow (rainbow), and Glitter effects.
-  - **Outline**: Custom stroke colors and thickness (1px to 20px).
+  - **Fill Tab**: Solid colors, Neon Glow (rainbow), and Glitter effects. Includes **Scale** and **Rotate** controls.
+  - **Outline Tab**: Custom stroke colors and **Thickness** (1px to 20px) controls.
+- **Color Wheel**: Click the bottom-right corner of the palette or **Right-Click** any color box to open a full color wheel and reassign colors.
 - **Import Support**: Upload your own image pieces to layer onto your avatar.
-- **Randomization**: 
-  - **Global**: The "🎲 RANDOM" button assigns random properties to all layers.
+- **Randomization & Reset**: 
+  - **RANDOM**: Assigns random colors, finishes, and outlines to all layers.
+  - **RESET**: Restores the default face shapes with a fresh set of random colors.
   - **Individual**: Double-click any layer to randomize only that piece.
-- **Undo/Redo**: 50-step history for easy experimentation.
+- **Undo/Redo**: Large, glowing icons for a 50-step history stack.
 - **Precision Controls**: Use arrow keys for fine-tuning position.
+- **Centering**: The default face is perfectly centered within the canvas for better composition.
 
 ### 2. Global Username Integration (`Username.js`)
 Every username link across the site automatically displays the user's avatar if they have set one.

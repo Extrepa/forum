@@ -58,12 +58,20 @@ Finalized avatar integration across the platform, including global username disp
 
 Everything specified in the avatar customization plan has been implemented and verified.
 
-## Final Refinements (Post-Integration Review)
-- **UI Consolidation**: Merged redundant context menus into a single, robust "Settings" side panel.
-- **Enhanced Affordance**: 
-  - Updated the randomization button to "🎲 RANDOM".
-  - Updated the import button to "🖼️ IMPORT" for better visibility.
-  - Added descriptive `title` tooltips to all customization controls.
-- **Clipping Fixes**: Applied `overflow: visible` to the SVG and verified filter regions to ensure neon glows and oversized pieces aren't clipped.
-- **Documentation**: Created `docs/03-Features/AVATAR_SYSTEM.md` as a comprehensive guide for users and developers.
+## Final Refinements & UI Polishing (January 28, 2026 - Evening Update)
+- **Canvas Centering**: Re-calculated and applied precise `x` and `y` offsets to `INITIAL_LAYERS` to ensure the face is perfectly centered within the `0 100 1100 1100` viewBox.
+- **Settings Panel Logic**: 
+  - Separated **Fill** and **Outline** tabs to eliminate control interference.
+  - **Fill Tab**: Controls scale, rotation, fill color, and finishes.
+  - **Outline Tab**: Controls outline color and thickness.
+- **Advanced Color Controls**:
+  - Integrated a **Color Wheel** trigger (bottom-right of palette) for custom hex selection.
+  - Added **Right-Click** support on palette boxes to reassign individual slots for the session.
+- **UI/UX Freshening**:
+  - Consolidated settings panel into a tighter, more condensed layout.
+  - Upgraded **Undo/Redo** icons (larger) and buttons (circular, borderless, hover-glow effect).
+  - Added a **RESET** button to restore original shapes with fresh random colors.
+  - Updated all action buttons to use the **ClaimUsernameForm** style (gradient background, 999px border-radius, consistent shadows).
+- **Tooltips & Descriptions**: Added descriptive `title` attributes to all controls and updated the interaction hint text at the bottom for better clarity.
+- **Documentation**: Updated `docs/03-Features/AVATAR_SYSTEM.md` to reflect the latest UI changes and new features.
 

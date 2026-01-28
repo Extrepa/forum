@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+const INITIAL_PALETTE = ['#ffffff', '#00e5ff', '#22d3ee', '#3b82f6', '#60a5fa', '#a78bfa', '#8b5cf6', '#f472b6', '#ec4899', '#fb7185', '#f87171', '#ef4444', '#f97316', '#f59e0b', '#fbbf24', '#fde047', '#c3ff00', '#53f900', '#34d399', '#4ade80', '#86efac', '#bbf7d0', '#fef9c3', '#fde68a', '#facc15', '#fda4af', '#fbcfe8', '#e0e7ff', '#c7d2fe'];
+
 const INITIAL_LAYERS = [
   {
     id: 'face',
@@ -11,8 +13,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 6,
-    x: 50,
-    y: -50,
+    x: -11.5,
+    y: -32.5,
     scale: 0.8,
     rotation: 0
   },
@@ -24,8 +26,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 6,
-    x: 50,
-    y: -50,
+    x: -11.5,
+    y: -32.5,
     scale: 0.8,
     rotation: 0
   },
@@ -37,8 +39,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 6,
-    x: 50,
-    y: -50,
+    x: -11.5,
+    y: -32.5,
     scale: 0.8,
     rotation: 0
   },
@@ -50,14 +52,14 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 6,
-    x: 50,
-    y: -50,
+    x: -11.5,
+    y: -32.5,
     scale: 0.8,
     rotation: 0
   }
 ];
 
-const PALETTE = ['#ffffff', '#00e5ff', '#22d3ee', '#3b82f6', '#60a5fa', '#a78bfa', '#8b5cf6', '#f472b6', '#ec4899', '#fb7185', '#f87171', '#ef4444', '#f97316', '#f59e0b', '#fbbf24', '#fde047', '#c3ff00', '#53f900', '#34d399', '#4ade80', '#86efac', '#bbf7d0', '#fef9c3', '#fde68a', '#facc15', '#fda4af', '#fbcfe8', '#e0e7ff', '#c7d2fe'];
+const PALETTE = INITIAL_PALETTE; // Kept for logic compatibility
 const FINISHES = ['solid', 'glow', 'glitter'];
 
 function getPathBounds(d) {
@@ -81,7 +83,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [clipboard, setClipboard] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
+  const [palette, setPalette] = useState(INITIAL_PALETTE);
   const [activeControlTab, setActiveControlTab] = useState('fill'); // 'fill' or 'outline'
+  const colorInputRef = useRef(null);
+  const [pickingForIndex, setPickingForIndex] = useState(null);
+  const [hoverUndo, setHoverUndo] = useState(false);
+  const [hoverRedo, setHoverRedo] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -132,13 +139,44 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       if (l.type === 'import') return l;
       const allowGlow = l.type !== 'mouth';
       const finish = allowGlow && Math.random() < 0.4 ? rand(FINISHES) : 'solid';
-      const color = finish === 'glow' ? '#ffffff' : rand(PALETTE);
-      const stroke = rand(PALETTE);
+      const color = finish === 'glow' ? '#ffffff' : rand(palette);
+      const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 8) + 2;
       return { ...l, color, finish, stroke, strokeWidth };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
+  };
+
+  const handleReset = () => {
+    const nextLayers = INITIAL_LAYERS.map(l => {
+      const allowGlow = l.type !== 'mouth';
+      const finish = allowGlow && Math.random() < 0.4 ? rand(FINISHES) : 'solid';
+      const color = finish === 'glow' ? '#ffffff' : rand(palette);
+      const stroke = rand(palette);
+      return { ...l, color, finish, stroke };
+    });
+    setLayers(nextLayers);
+    pushHistory(nextLayers);
+  };
+
+  const openColorPicker = (index) => {
+    setPickingForIndex(index);
+    colorInputRef.current.click();
+  };
+
+  const handleColorChange = (e) => {
+    const newColor = e.target.value;
+    if (pickingForIndex === 'wheel') {
+      if (selectedLayer) {
+        handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: newColor, finish: 'solid' } : { stroke: newColor });
+      }
+    } else if (pickingForIndex !== null) {
+      const nextPalette = [...palette];
+      nextPalette[pickingForIndex] = newColor;
+      setPalette(nextPalette);
+    }
+    setPickingForIndex(null);
   };
 
   const handleLayerChange = (id, updates, skipHistory = false) => {
@@ -368,14 +406,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         }}
       >
         {/* Undo/Redo Floating UI */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '4px', zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '8px', zIndex: 10 }}>
           <button 
             onClick={(e) => { e.stopPropagation(); undo(); }} 
+            onMouseEnter={() => setHoverUndo(true)}
+            onMouseLeave={() => setHoverUndo(false)}
             disabled={historyIndex === 0}
             style={{ 
-              width: '24px', height: '24px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', 
-              background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: historyIndex === 0 ? 'default' : 'pointer',
-              opacity: historyIndex === 0 ? 0.3 : 1, fontSize: '12px'
+              width: '32px', height: '32px', borderRadius: '50%', border: 'none', 
+              background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: historyIndex === 0 ? 'default' : 'pointer',
+              opacity: historyIndex === 0 ? 0.3 : 1, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: hoverUndo && historyIndex > 0 ? '0 0 15px var(--accent)' : 'none',
+              transition: 'all 0.2s ease'
             }}
             title="Undo (Ctrl+Z)"
           >
@@ -383,11 +425,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); redo(); }} 
+            onMouseEnter={() => setHoverRedo(true)}
+            onMouseLeave={() => setHoverRedo(false)}
             disabled={historyIndex === history.length - 1}
             style={{ 
-              width: '24px', height: '24px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', 
-              background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: historyIndex === history.length - 1 ? 'default' : 'pointer',
-              opacity: historyIndex === history.length - 1 ? 0.3 : 1, fontSize: '12px'
+              width: '32px', height: '32px', borderRadius: '50%', border: 'none', 
+              background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: historyIndex === history.length - 1 ? 'default' : 'pointer',
+              opacity: historyIndex === history.length - 1 ? 0.3 : 1, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: hoverRedo && historyIndex < history.length - 1 ? '0 0 15px var(--accent)' : 'none',
+              transition: 'all 0.2s ease'
             }}
             title="Redo (Ctrl+Y)"
           >
@@ -475,141 +521,223 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               right: '8px',
               zIndex: 100,
               width: '180px',
-              background: 'rgba(2, 7, 10, 0.9)',
-              backdropFilter: 'blur(8px)',
+              background: 'rgba(2, 7, 10, 0.95)',
+              backdropFilter: 'blur(12px)',
               borderRadius: '8px',
               border: '1px solid var(--accent)',
-              padding: '10px',
+              padding: '8px',
               boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px',
-              maxHeight: 'calc(100% - 100px)',
+              gap: '6px',
+              maxHeight: 'calc(100% - 110px)',
               overflowY: 'auto'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
               <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase' }}>
                 {selectedLayer.type} Settings
               </span>
-              <button onClick={() => setContextMenu(null)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+              <button onClick={() => setContextMenu(null)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '12px', padding: 0, minHeight: 0 }}>✕</button>
             </div>
 
             {selectedLayer.type !== 'import' && (
-              <>
-                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', padding: '2px' }}>
-                  <button 
-                    onClick={() => setActiveControlTab('fill')}
-                    title="Edit Fill Color and Finish"
-                    style={{ flex: 1, fontSize: '9px', padding: '4px', border: 'none', borderRadius: '3px', background: activeControlTab === 'fill' ? 'var(--accent)' : 'transparent', color: activeControlTab === 'fill' ? '#000' : '#fff', cursor: 'pointer' }}
-                  >FILL</button>
-                  <button 
-                    onClick={() => setActiveControlTab('outline')}
-                    title="Edit Outline (Stroke) Color"
-                    style={{ flex: 1, fontSize: '9px', padding: '4px', border: 'none', borderRadius: '3px', background: activeControlTab === 'outline' ? 'var(--accent)' : 'transparent', color: activeControlTab === 'outline' ? '#000' : '#fff', cursor: 'pointer' }}
-                  >OUTLINE</button>
-                </div>
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', padding: '2px' }}>
+                <button 
+                  onClick={() => setActiveControlTab('fill')}
+                  title="Edit Fill Color and Finish"
+                  style={{ flex: 1, fontSize: '9px', padding: '4px', border: 'none', borderRadius: '3px', background: activeControlTab === 'fill' ? 'var(--accent)' : 'transparent', color: activeControlTab === 'fill' ? '#000' : '#fff', cursor: 'pointer', minHeight: 0 }}
+                >FILL</button>
+                <button 
+                  onClick={() => setActiveControlTab('outline')}
+                  title="Edit Outline (Stroke) Color"
+                  style={{ flex: 1, fontSize: '9px', padding: '4px', border: 'none', borderRadius: '3px', background: activeControlTab === 'outline' ? 'var(--accent)' : 'transparent', color: activeControlTab === 'outline' ? '#000' : '#fff', cursor: 'pointer', minHeight: 0 }}
+                >OUTLINE</button>
+              </div>
+            )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '3px' }}>
-                  {PALETTE.slice(0, 12).map(c => (
+            {activeControlTab === 'fill' ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '3px', position: 'relative' }}>
+                  {palette.slice(0, 12).map((c, idx) => (
                     <div 
-                      key={c} 
-                      onClick={() => handleLayerChange(selectedLayer.id, activeControlTab === 'fill' ? { color: c, finish: 'solid' } : { stroke: c })}
-                      title={activeControlTab === 'fill' ? `Set Fill to ${c}` : `Set Outline to ${c}`}
+                      key={`${idx}-${c}`} 
+                      onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid' })}
+                      onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
+                      title={`Set Fill to ${c} (Right-click to reassign box)`}
                       style={{ 
                         width: '100%', 
                         paddingBottom: '100%', 
                         background: c, 
                         borderRadius: '2px', 
                         cursor: 'pointer', 
-                        border: (activeControlTab === 'fill' ? selectedLayer.color === c : selectedLayer.stroke === c) ? '1px solid #fff' : 'none' 
+                        border: selectedLayer.color === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
                       }} 
                     />
                   ))}
+                  <div 
+                    onClick={() => openColorPicker('wheel')}
+                    title="Custom Fill Color Wheel"
+                    style={{ 
+                      position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', 
+                      background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
+                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 1
+                    }}
+                  />
                 </div>
-                
-                {activeControlTab === 'fill' && (
+
+                {selectedLayer.type !== 'import' && (
                   <div style={{ display: 'flex', gap: '3px' }}>
                     {FINISHES.map(f => (
                       <button
                         key={f}
                         onClick={() => handleLayerChange(selectedLayer.id, { finish: f })}
                         title={`Apply ${f} finish`}
-                        style={{ flex: 1, fontSize: '8px', padding: '3px', background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.1)', color: selectedLayer.finish === f ? '#000' : '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                        style={{ flex: 1, fontSize: '8px', padding: '3px', background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.1)', color: selectedLayer.finish === f ? '#000' : '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', minHeight: 0 }}
                       >
                         {f.toUpperCase()}
                       </button>
                     ))}
                   </div>
                 )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '8px', color: 'var(--muted)' }}>SCALE</label>
+                    <span style={{ fontSize: '8px', color: 'var(--accent)' }}>{selectedLayer.scale.toFixed(2)}</span>
+                  </div>
+                  <input type="range" min="0.1" max="3" step="0.05" value={selectedLayer.scale} onChange={(e) => handleLayerChange(selectedLayer.id, { scale: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '10px' }} />
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                    <label style={{ fontSize: '8px', color: 'var(--muted)' }}>ROTATE</label>
+                    <span style={{ fontSize: '8px', color: 'var(--accent)' }}>{selectedLayer.rotation}°</span>
+                  </div>
+                  <input type="range" min="0" max="360" step="5" value={selectedLayer.rotation} onChange={(e) => handleLayerChange(selectedLayer.id, { rotation: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '10px' }} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '3px', position: 'relative' }}>
+                  {palette.slice(0, 12).map((c, idx) => (
+                    <div 
+                      key={`${idx}-${c}-outline`} 
+                      onClick={() => handleLayerChange(selectedLayer.id, { stroke: c })}
+                      onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
+                      title={`Set Outline to ${c} (Right-click to reassign box)`}
+                      style={{ 
+                        width: '100%', 
+                        paddingBottom: '100%', 
+                        background: c, 
+                        borderRadius: '2px', 
+                        cursor: 'pointer', 
+                        border: selectedLayer.stroke === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
+                      }} 
+                    />
+                  ))}
+                  <div 
+                    onClick={() => openColorPicker('wheel')}
+                    title="Custom Outline Color Wheel"
+                    style={{ 
+                      position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', 
+                      background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
+                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 1
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '8px', color: 'var(--muted)' }}>THICKNESS</label>
+                    <span style={{ fontSize: '8px', color: 'var(--accent)' }}>{selectedLayer.strokeWidth || 4}px</span>
+                  </div>
+                  <input type="range" min="1" max="20" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '10px' }} />
+                </div>
               </>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <label style={{ fontSize: '9px', color: 'var(--muted)' }} title="Resize this piece">SCALE</label>
-                <span style={{ fontSize: '9px', color: 'var(--accent)' }}>{selectedLayer.scale.toFixed(2)}</span>
-              </div>
-              <input type="range" min="0.1" max="3" step="0.1" value={selectedLayer.scale} onChange={(e) => handleLayerChange(selectedLayer.id, { scale: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px' }} />
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <label style={{ fontSize: '9px', color: 'var(--muted)' }} title="Rotate this piece">ROTATE</label>
-                <span style={{ fontSize: '9px', color: 'var(--accent)' }}>{selectedLayer.rotation}°</span>
-              </div>
-              <input type="range" min="0" max="360" step="5" value={selectedLayer.rotation} onChange={(e) => handleLayerChange(selectedLayer.id, { rotation: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px' }} />
-
-              {selectedLayer.type !== 'import' && (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <label style={{ fontSize: '9px', color: 'var(--muted)' }} title="Thickness of the outline">OUTLINE</label>
-                    <span style={{ fontSize: '9px', color: 'var(--accent)' }}>{selectedLayer.strokeWidth || 4}px</span>
-                  </div>
-                  <input type="range" min="1" max="20" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px' }} />
-                </>
-              )}
-            </div>
-
             {selectedLayer.id !== 'face' && (
               <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
-                <button onClick={() => handleDuplicate(selectedLayer.id)} title="Duplicate this piece (Ctrl+D)" style={{ flex: 1, fontSize: '9px', padding: '5px', background: 'rgba(52, 225, 255, 0.1)', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: '4px', cursor: 'pointer' }}>DUP</button>
-                <button onClick={() => handleDelete(selectedLayer.id)} title="Delete this piece (Backspace)" style={{ flex: 1, fontSize: '9px', padding: '5px', background: 'rgba(255,0,0,0.1)', border: '1px solid #ff6b6b', color: '#ff6b6b', borderRadius: '4px', cursor: 'pointer' }}>DEL</button>
+                <button onClick={() => handleDuplicate(selectedLayer.id)} title="Duplicate (Ctrl+D)" style={{ flex: 1, fontSize: '8px', padding: '4px', background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', color: 'var(--accent)', borderRadius: '4px', cursor: 'pointer', minHeight: 0 }}>DUP</button>
+                <button onClick={() => handleDelete(selectedLayer.id)} title="Delete (Del)" style={{ flex: 1, fontSize: '8px', padding: '4px', background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', color: '#ff6b6b', borderRadius: '4px', cursor: 'pointer', minHeight: 0 }}>DEL</button>
               </div>
             )}
+            
+            {/* Hidden Color Input */}
+            <input 
+              type="color" 
+              ref={colorInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleColorChange} 
+            />
           </div>
         )}
 
         {/* Action Bar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.6)' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button 
               onClick={handleRandomizeAll}
-              title="Randomize All Layers (Assign random colors, finishes, and outlines)"
-              style={{ flex: 1.5, padding: '6px', background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.4)', borderRadius: '4px', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+              title="Randomize All: Assign random colors, finishes, and outlines to everything"
+              className="customizer-btn"
+              style={{ 
+                flex: '1 1 auto', minHeight: '40px', borderRadius: '999px', border: 'none', 
+                background: 'rgba(52, 225, 255, 0.15)', color: 'var(--accent)', cursor: 'pointer', 
+                fontSize: '12px', fontWeight: 'bold', boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
+                transition: 'all 0.2s ease'
+              }}
             >
               🎲 RANDOM
             </button>
+            <button 
+              onClick={handleReset}
+              title="Reset to Default: Back to original shapes with new random colors"
+              className="customizer-btn"
+              style={{ 
+                flex: '1 1 auto', minHeight: '40px', borderRadius: '999px', border: 'none', 
+                background: 'rgba(255,255,255,0.05)', color: 'var(--muted)', cursor: 'pointer', 
+                fontSize: '12px', fontWeight: 'bold', transition: 'all 0.2s ease'
+              }}
+            >
+              ⟲ RESET
+            </button>
             <label 
-              title="Import Image Piece (Add a custom image layer to your avatar)"
-              style={{ flex: 1.5, padding: '6px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}
+              title="Import Image: Add a custom image layer to your avatar"
+              style={{ 
+                flex: '1 1 auto', minHeight: '40px', padding: '0 12px', background: 'rgba(255,255,255,0.05)', 
+                border: '1px solid rgba(52, 225, 255, 0.2)', borderRadius: '999px', display: 'flex', 
+                alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', 
+                fontSize: '12px', color: 'var(--muted)', fontWeight: 'bold', transition: 'all 0.2s ease'
+              }}
             >
               🖼️ IMPORT
               <input type="file" accept="image/*" onChange={handleImportImage} style={{ display: 'none' }} />
             </label>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button 
               onClick={() => {
                 const serializer = new XMLSerializer();
                 const svgString = serializer.serializeToString(svgRef.current);
                 onSave(svgString, { layers });
               }}
-              title="Save Avatar"
-              style={{ flex: 3, padding: '6px', background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              title="Save Avatar: Apply your changes to your profile"
+              style={{ 
+                flex: 2, minHeight: '44px', borderRadius: '999px', border: 'none',
+                background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                color: '#001018', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px',
+                boxShadow: '0 0 18px rgba(52, 225, 255, 0.45)', transition: 'all 0.2s ease'
+              }}
             >
-              SAVE
+              SAVE CHANGES
             </button>
             <button 
               onClick={onCancel}
-              title="Cancel"
-              style={{ flex: 1, padding: '6px', background: 'rgba(255,0,0,0.1)', border: 'none', borderRadius: '4px', color: '#ff6b6b', cursor: 'pointer', fontSize: '12px' }}
+              title="Close: Discard unsaved changes and exit"
+              style={{ 
+                flex: 1, minHeight: '44px', borderRadius: '999px', border: 'none',
+                background: 'rgba(255,0,0,0.15)', color: '#ff6b6b', cursor: 'pointer', 
+                fontSize: '14px', fontWeight: 'bold', transition: 'all 0.2s ease'
+              }}
             >
               CLOSE
             </button>
