@@ -445,21 +445,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
-                  {isEditingAvatar ? (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <h3 style={{ margin: 0, fontSize: '12px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
-                      <button 
-                        type="button" 
-                        onClick={() => setIsEditingAvatar(false)}
-                        className="btn-link"
-                        style={{ fontSize: '12px', color: 'var(--accent)' }}
-                      >
-                        close
-                      </button>
-                    </div>
-                  ) : null}
+                  {isEditingAvatar ? null : null}
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
                     {user.avatar_key ? (
                       <div style={{ position: 'relative' }}>
                         <Image 
@@ -482,7 +470,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         type="button" 
                         onClick={() => setIsEditingAvatar(true)}
                         className="btn-link"
-                        style={{ fontSize: '12px', color: 'var(--accent)' }}
+                        style={{ fontSize: '12px', color: 'var(--accent)', flex: '0 0 auto' }}
                       >
                         edit
                       </button>
@@ -503,16 +491,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       flexDirection: 'column',
                       padding: '12px'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h2 style={{ margin: 0, fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
-                        <button 
-                          type="button" 
-                          onClick={() => setIsEditingAvatar(false)}
-                          style={{ padding: '2px 8px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px', color: 'var(--muted)', fontSize: '10px', cursor: 'pointer' }}
-                        >
-                          CLOSE
-                        </button>
-                      </div>
                     <div style={{ flex: '0 0 auto', minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
                         <AvatarCustomizer 
                           onSave={handleAvatarSave} 
