@@ -61,6 +61,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [history, setHistory] = useState([initialState?.layers || INITIAL_LAYERS]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedLayerId, setSelectedLayerId] = useState(null);
+  const [clipboard, setClipboard] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -123,7 +124,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     if (!skipHistory) pushHistory(nextLayers);
   };
 
-  const handleDuplicate = (id) => {
+  const handleDuplicate = useCallback((id) => {
     const layer = layers.find(l => l.id === id);
     if (!layer || layer.type === 'face') return;
     const newLayer = {
@@ -137,7 +138,27 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setSelectedLayerId(newLayer.id);
     setContextMenu(null);
     pushHistory(nextLayers);
-  };
+  }, [layers, pushHistory]);
+
+  const handleCopy = useCallback(() => {
+    const layer = layers.find(l => l.id === selectedLayerId);
+    if (!layer || layer.type === 'face') return;
+    setClipboard({ ...layer });
+  }, [layers, selectedLayerId]);
+
+  const handlePaste = useCallback(() => {
+    if (!clipboard) return;
+    const newLayer = {
+      ...clipboard,
+      id: `${clipboard.type}-${Date.now()}`,
+      x: clipboard.x + 20,
+      y: clipboard.y + 20
+    };
+    const nextLayers = [...layers, newLayer];
+    setLayers(nextLayers);
+    setSelectedLayerId(newLayer.id);
+    pushHistory(nextLayers);
+  }, [layers, clipboard, pushHistory]);
 
   const handleDelete = (id) => {
     if (id === 'face') return;
@@ -251,6 +272,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           e.preventDefault();
           handleDelete(selectedLayerId);
           break;
+        case 'c':
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            handleCopy();
+          }
+          break;
+        case 'v':
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            handlePaste();
+          }
+          break;
         case 'd':
           if (e.metaKey || e.ctrlKey) {
             e.preventDefault();
@@ -262,7 +295,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedLayerId, layers, undo, redo]);
+  }, [selectedLayerId, layers, undo, redo, handleCopy, handlePaste, handleDuplicate]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
