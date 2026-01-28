@@ -480,8 +480,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
                           fontWeight: '500',
-                          padding: '2px 8px',
-                          lineHeight: '1.2'
+                          padding: 0,
+                          height: 'auto',
+                          lineHeight: '1.2',
+                          minHeight: 0
                         }}
                       >
                         edit
@@ -491,10 +493,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   {!isEditingAvatar && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                       <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                      <Username
-                        name={user.username}
-                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                        avatarKey={user.avatar_key}
+                      <Image 
+                        src={getAvatarUrl(user.avatar_key)} 
+                        alt="Mini avatar preview"
+                        className="username-avatar"
+                        width={24}
+                        height={24}
+                        unoptimized
+                        style={{ width: '24px', height: '24px' }}
                       />
                     </div>
                   )}
@@ -540,6 +546,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           name={user.username}
                           colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
                           avatarKey={null}
+                          href={null}
                         />
                       </div>
                     ) : (

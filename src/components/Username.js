@@ -39,8 +39,11 @@ export default function Username({
 
   const avatarUrl = getAvatarUrl(avatarKey);
 
+  const Wrapper = href === null ? 'span' : Link;
+  const wrapperProps = href === null ? {} : { href: profileHref };
+
   return (
-    <Link href={profileHref} className={classes} title={title || safeName}>
+    <Wrapper {...wrapperProps} className={classes} title={title || safeName}>
       {avatarUrl && (
         <Image 
           src={avatarUrl} 
@@ -52,6 +55,6 @@ export default function Username({
         />
       )}
       <span>{safeName}</span>
-    </Link>
+    </Wrapper>
   );
 }
