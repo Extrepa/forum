@@ -19,9 +19,9 @@ const INITIAL_LAYERS = [
     color: '#00e5ff',
     finish: 'solid',
     stroke: '#e5eef7',
-    strokeWidth: 6,
-    x: -11.5,
-    y: -32.5,
+    strokeWidth: 4,
+    x: 0,
+    y: 0,
     scale: 0.8,
     rotation: 0
   },
@@ -32,9 +32,9 @@ const INITIAL_LAYERS = [
     color: '#0a0a0a',
     finish: 'solid',
     stroke: '#e5eef7',
-    strokeWidth: 6,
-    x: -11.5,
-    y: -32.5,
+    strokeWidth: 4,
+    x: 0,
+    y: 0,
     scale: 0.8,
     rotation: 0
   },
@@ -45,9 +45,9 @@ const INITIAL_LAYERS = [
     color: '#0a0a0a',
     finish: 'solid',
     stroke: '#e5eef7',
-    strokeWidth: 6,
-    x: -11.5,
-    y: -32.5,
+    strokeWidth: 4,
+    x: 0,
+    y: 0,
     scale: 0.8,
     rotation: 0
   },
@@ -58,9 +58,9 @@ const INITIAL_LAYERS = [
     color: '#0a0a0a',
     finish: 'solid',
     stroke: '#e5eef7',
-    strokeWidth: 6,
-    x: -11.5,
-    y: -32.5,
+    strokeWidth: 4,
+    x: 0,
+    y: 0,
     scale: 0.8,
     rotation: 0
   }
@@ -90,6 +90,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [clipboard, setClipboard] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
+  const [panelPos, setPanelPos] = useState({ top: 8, right: 8 });
+  const [isDraggingPanel, setIsDraggingPanel] = useState(false);
+  const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialRight: 8 });
   const [palette, setPalette] = useState(INITIAL_PALETTE);
   const [activeControlTab, setActiveControlTab] = useState('fill'); // 'fill' or 'outline'
   const colorInputRef = useRef(null);
@@ -100,11 +103,17 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Refs for keyboard handler to avoid stale closures
+  const layersRef = useRef(layers);
+  useEffect(() => { layersRef.current = layers; }, [layers]);
+  const selectedLayerIdRef = useRef(selectedLayerId);
+  useEffect(() => { selectedLayerIdRef.current = selectedLayerId; }, [selectedLayerId]);
+
   const pushHistory = useCallback((newLayers) => {
     const nextHistory = history.slice(0, historyIndex + 1);
     nextHistory.push(newLayers);
     // Keep last 50 steps
-    if (nextHistory.length > 50) nextHistory.shift();
+    if (nextHistory.length > 99999) nextHistory.shift();
     setHistory(nextHistory);
     setHistoryIndex(nextHistory.length - 1);
   }, [history, historyIndex]);
@@ -134,7 +143,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const finish = allowGlow && Math.random() < 0.4 ? rand(FINISHES) : 'solid';
       const color = rand(palette);
       const stroke = rand(palette);
-      const strokeWidth = Math.floor(Math.random() * 8) + 2;
+      const strokeWidth = Math.floor(Math.random() * 6) + 2;
       const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
       return { ...l, color, finish, stroke, strokeWidth, gradientUrl };
     });
@@ -149,7 +158,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const finish = allowGlow && Math.random() < 0.4 ? rand(FINISHES) : 'solid';
       const color = rand(palette);
       const stroke = rand(palette);
-      const strokeWidth = Math.floor(Math.random() * 8) + 2;
+      const strokeWidth = Math.floor(Math.random() * 6) + 2;
       const gradientUrl = finish === 'gradient' ? rand(GRADIENTS).url : undefined;
       return { ...l, color, finish, stroke, strokeWidth, gradientUrl };
     });
@@ -189,11 +198,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setPickingForIndex(null);
   };
 
-  const handleLayerChange = (id, updates, skipHistory = false) => {
-    const nextLayers = layers.map(l => l.id === id ? { ...l, ...updates } : l);
-    setLayers(nextLayers);
-    if (!skipHistory) pushHistory(nextLayers);
-  };
+  const handleSave = useCallback(() => {
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svgRef.current);
+    onSave(svgString, { layers });
+  }, [layers, onSave]);
+
+  const handleLayerChange = useCallback((id, updates, skipHistory = false) => {
+    setLayers(prev => {
+      const next = prev.map(l => l.id === id ? { ...l, ...updates } : l);
+      if (!skipHistory) pushHistory(next);
+      return next;
+    });
+  }, [pushHistory]);
 
   const handleDuplicate = useCallback((id) => {
     const layer = layers.find(l => l.id === id);
@@ -241,14 +258,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleMouseDown = (e, id) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 && e.button !== 2) return; // Allow left and right click
     setSelectedLayerId(id);
-    setContextMenu(null);
+    if (e.button === 0) setContextMenu(null); // Only clear menu on left click
     if (id === 'face') return;
     setIsDragging(true);
     const point = getSVGPoint(e);
     const layer = layers.find(l => l.id === id);
-    dragStart.current = { x: point.x - layer.x, y: point.y - layer.y };
+    if (layer) {
+      dragStart.current = { x: point.x - layer.x, y: point.y - layer.y };
+    }
   };
 
   const handleMouseMove = (e) => {
@@ -284,13 +303,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (contextMenu) return; // Ignore keys when advanced menu is open
-      
-      const step = e.shiftKey ? 10 : 2;
-      const scaleStep = 0.05;
-      const rotateStep = 5;
-
-      // Undo/Redo
+      // Global shortcuts
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();
         if (e.shiftKey) redo();
@@ -302,46 +315,77 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         redo();
         return;
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setContextMenu(null);
+        return;
+      }
 
-      if (!selectedLayerId || selectedLayerId === 'face') return;
+      // Selected layer shortcuts
+      const selId = selectedLayerIdRef.current;
+      if (!selId || selId === 'face') return;
+      if (contextMenu) return; // Only allow movement/transform when settings panel is closed or specifically focused
+
+      const currentLayers = layersRef.current;
+      const layer = currentLayers.find(l => l.id === selId);
+      if (!layer) return;
+
+      const step = e.shiftKey ? 10 : 2;
+      const scaleStep = 0.05;
+      const rotateStep = 5;
 
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { y: layers.find(l => l.id === selectedLayerId).y - step });
+          handleLayerChange(selId, { y: layer.y - step });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { y: layers.find(l => l.id === selectedLayerId).y + step });
+          handleLayerChange(selId, { y: layer.y + step });
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { x: layers.find(l => l.id === selectedLayerId).x - step });
+          handleLayerChange(selId, { x: layer.x - step });
           break;
         case 'ArrowRight':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { x: layers.find(l => l.id === selectedLayerId).x + step });
+          handleLayerChange(selId, { x: layer.x + step });
           break;
         case '[':
+        case '-':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { scale: Math.max(0.1, layers.find(l => l.id === selectedLayerId).scale - scaleStep) });
+          handleLayerChange(selId, { scale: Math.max(0.1, layer.scale - scaleStep) });
           break;
         case ']':
+        case '=':
+        case '+':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { scale: layers.find(l => l.id === selectedLayerId).scale + scaleStep });
+          handleLayerChange(selId, { scale: layer.scale + scaleStep });
           break;
         case '{':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { rotation: (layers.find(l => l.id === selectedLayerId).rotation - rotateStep + 360) % 360 });
+          handleLayerChange(selId, { rotation: (layer.rotation - rotateStep + 360) % 360 });
           break;
         case '}':
           e.preventDefault();
-          handleLayerChange(selectedLayerId, { rotation: (layers.find(l => l.id === selectedLayerId).rotation + rotateStep) % 360 });
+          handleLayerChange(selId, { rotation: (layer.rotation + rotateStep) % 360 });
+          break;
+        case 'r':
+        case 'R':
+          if (!e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            randomizeLayer(selId);
+          }
           break;
         case 'Backspace':
         case 'Delete':
           e.preventDefault();
-          handleDelete(selectedLayerId);
+          handleDelete(selId);
           break;
         case 'c':
           if (e.metaKey || e.ctrlKey) {
@@ -358,7 +402,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         case 'd':
           if (e.metaKey || e.ctrlKey) {
             e.preventDefault();
-            handleDuplicate(selectedLayerId);
+            handleDuplicate(selId);
           }
           break;
       }
@@ -366,7 +410,41 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedLayerId, layers, undo, redo, handleCopy, handlePaste, handleDuplicate]);
+  }, [undo, redo, handleSave, handleLayerChange, handleCopy, handlePaste, handleDuplicate, contextMenu]);
+
+  const handlePanelMouseDown = (e) => {
+    if (e.target.closest('button')) return; // Don't drag if clicking close button
+    setIsDraggingPanel(true);
+    panelDragStart.current = { 
+      x: e.clientX, 
+      y: e.clientY, 
+      initialTop: panelPos.top, 
+      initialRight: panelPos.right 
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDraggingPanel) {
+        const dx = e.clientX - panelDragStart.current.x;
+        const dy = e.clientY - panelDragStart.current.y;
+        setPanelPos({
+          top: panelDragStart.current.initialTop + dy,
+          right: panelDragStart.current.initialRight - dx
+        });
+      }
+    };
+    const handleMouseUp = () => setIsDraggingPanel(false);
+
+    if (isDraggingPanel) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingPanel]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
@@ -518,7 +596,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     filter={layer.finish === 'glow' ? 'url(#glow-fx)' : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
                     stroke={layer.stroke || 'var(--line)'}
                     strokeWidth={layer.strokeWidth || 4}
-                    vectorEffect="non-scaling-stroke"
                     style={{ transition: 'fill 0.3s ease' }}
                   />
                 )}
@@ -545,25 +622,37 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             className="card"
             style={{
               position: 'absolute',
-              top: '8px',
-              right: '8px',
+              top: `${panelPos.top}px`,
+              right: `${panelPos.right}px`,
               zIndex: 100,
               width: '190px',
               background: 'var(--errl-panel)',
               backdropFilter: 'blur(16px)',
               borderRadius: '12px',
               border: '1px solid var(--accent)',
-              padding: '12px',
+              padding: '10px',
               boxShadow: 'var(--shadow)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px',
+              gap: '6px',
               maxHeight: 'calc(100% - 110px)',
-              overflowY: 'auto'
+              overflowY: 'auto',
+              cursor: isDraggingPanel ? 'grabbing' : 'default'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
+            <div 
+              onMouseDown={handlePanelMouseDown}
+              style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '2px',
+                cursor: 'grab',
+                paddingBottom: '4px',
+                borderBottom: '1px solid rgba(52, 225, 255, 0.1)'
+              }}
+            >
+              <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
                 {selectedLayer.type} Settings
               </span>
               <button onClick={() => setContextMenu(null)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '14px', padding: 0, minHeight: 0, boxShadow: 'none' }}>✕</button>
@@ -654,7 +743,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           onClick={() => handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientUrl: g.url })}
                           title={`Apply ${g.name} gradient`}
                           style={{ 
-                            fontSize: '8px', 
+                            fontSize: '14px', 
                             padding: '4px 0', 
                             background: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
                             color: selectedLayer.finish === 'gradient' && selectedLayer.gradientUrl === g.url ? '#001018' : 'var(--ink)', 
@@ -662,32 +751,29 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             borderRadius: '999px', 
                             cursor: 'pointer', 
                             minHeight: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
                             fontFamily: '"Space Grotesk", sans-serif',
                             fontWeight: '600',
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          {g.name.toUpperCase()}
+                          {g.id === 'rainbow' ? '🌈' : g.id === 'fire' ? '🔥' : g.id === 'ocean' ? '🌊' : '🧪'}
                         </button>
                       ))}
                     </div>
                   </>
                 )}
 
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SCALE</label>
-                            <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.scale.toFixed(2)}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SCALE</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.scale.toFixed(2)}</span>
                           </div>
-                          <input type="range" min="0.1" max="3" step="0.05" value={selectedLayer.scale} onChange={(e) => handleLayerChange(selectedLayer.id, { scale: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px', cursor: 'pointer' }} />
+                          <input type="range" min="0.1" max="3" step="0.05" value={selectedLayer.scale} onChange={(e) => handleLayerChange(selectedLayer.id, { scale: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                            <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ROTATE</label>
-                            <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.rotation}°</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ROTATE</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.rotation}°</span>
                           </div>
-                          <input type="range" min="0" max="360" step="5" value={selectedLayer.rotation} onChange={(e) => handleLayerChange(selectedLayer.id, { rotation: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px', cursor: 'pointer' }} />
+                          <input type="range" min="0" max="360" step="5" value={selectedLayer.rotation} onChange={(e) => handleLayerChange(selectedLayer.id, { rotation: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
               </>
             ) : (
               <>
@@ -719,12 +805,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
-                    <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
+                    <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
+                    <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
                   </div>
-                  <input type="range" min="1" max="20" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '12px', cursor: 'pointer' }} />
+                  <input type="range" min="1" max="10" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
                 </div>
               </>
             )}
@@ -743,6 +829,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
                 >DUP</button>
+                <button 
+                  onClick={() => randomizeLayer(selectedLayer.id)} 
+                  title="Randomize Layer (R)" 
+                  style={{ 
+                    flex: 1, fontSize: '10px', padding: '6px', 
+                    background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
+                    color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                    fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
+                >RAND</button>
                 <button 
                   onClick={() => handleDelete(selectedLayer.id)} 
                   title="Delete (Del)" 

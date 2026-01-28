@@ -75,14 +75,28 @@ Everything specified in the avatar customization plan has been implemented and v
 - **Tooltips & Descriptions**: Added descriptive `title` attributes to all controls and updated the interaction hint text at the bottom for better clarity.
 - **Documentation**: Updated `docs/03-Features/AVATAR_SYSTEM.md` to reflect the latest UI changes and new features.
 
-## Specialized Glow & Gradients Update (January 28, 2026 - Late Update)
-- **Glow Refinement**: The "GLOW" finish now applies a glow effect matching the chosen fill color, rather than forcing a rainbow gradient.
-- **Animated Gradients**: Added a dedicated row of animated gradient buttons:
-  - **Rainbow**: The classic cycling spectrum.
-  - **Fire**: Pulsating oranges and reds.
-  - **Ocean**: Deep blues and teals.
-  - **Toxic**: Vibrant lime and emerald greens.
-- **Randomization Logic**: Updated `RANDOM` and `RESET` logic to include these new gradients and handle the color-specific glow correctly.
-- **UI Organization**: Grouped the standard finishes (SOLID, GLOW, GLITTER) and the new animated gradients into distinct control rows for better clarity.
-- **Documentation**: Updated `AVATAR_SYSTEM.md` with descriptions for the new gradient options.
+## Final Polish & Keyboard Enhancements (January 28, 2026 - Final)
+- **Draggable Settings Panel**: The avatar layer settings popout can now be dragged around the canvas by its header, allowing for unobstructed views while editing.
+- **Enhanced Keyboard Controls**: 
+  - Added `ESC` to quickly close the settings panel.
+  - Added `R` to randomize the currently selected layer.
+  - Added `+/-` (and `[` / `]`) for precise scaling of layers.
+  - Added `Ctrl+S` (or `Cmd+S`) to save the avatar from anywhere.
+- **UI Compaction**:
+  - Reduced unnecessary padding and spacing within the settings panel for a "squished" and more focused layout.
+  - Replaced text labels for animated gradients (Rainbow, Fire, Ocean, Toxic) with intuitive emojis (🌈, 🔥, 🌊, 🧪) to save space.
+  - Tightened the gap between scale/rotation labels and their respective values/sliders.
+- **Performance & Stability**:
+  - Increased the **Undo History** limit to 99,999 steps to allow for virtually infinite experimentation.
+  - Implemented stable state refs for the keyboard event handler to prevent stale closures and ensure reliable shortcut behavior.
+- **Interaction Improvements**:
+  - Enabled dragging of avatar layers using both left and right mouse buttons.
+  - Fixed color wheel button and palette box reassignment via right-click to ensure full functionality.
+  - Cleaned up the avatar preview logic in the Account tab for better visual consistency.
+
+## Final Polish & Visual Fixes (January 28, 2026 - Final Addendum)
+- **Centering Fix**: Reset default layer offsets to `x: 0, y: 0` to ensure avatars are perfectly centered in all views.
+- **Stroke Scaling**: Removed `non-scaling-stroke` from avatar paths. Strokes now scale proportionally, preventing small username icons from becoming "blobs" when using thick outlines.
+- **Thickness Restriction**: Restricted maximum outline thickness to `10px` (down from `20px`) and updated randomization logic to prefer thinner, cleaner outlines.
+- **Username Alignment**: Reduced the gap between the username avatar and text to `6px` for a tighter, more professional look.
 

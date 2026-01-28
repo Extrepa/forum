@@ -451,12 +451,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px' }}>
                   {user.avatar_key ? (
-                    <img 
-                      src={getAvatarUrl(user.avatar_key)} 
-                      alt="Current Avatar" 
-                      className="username-avatar"
-                      style={{ width: '100px', height: '100px' }} 
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <img 
+                        src={getAvatarUrl(user.avatar_key)} 
+                        alt="Current Avatar" 
+                        className="username-avatar"
+                        style={{ width: '100px', height: '100px', border: '2px solid var(--accent)' }} 
+                      />
+                    </div>
                   ) : (
                     <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
                       No avatar set
