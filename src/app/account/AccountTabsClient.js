@@ -466,8 +466,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     right: 0, 
                     bottom: 0, 
                     zIndex: 10000, 
-                    background: 'rgba(0,0,0,0.8)',
-                    backdropFilter: 'blur(8px)',
+                    background: 'rgba(0,0,0,0.7)',
+                    backdropFilter: 'blur(12px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -476,21 +476,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       style={{ 
-                        width: '100%', 
-                        maxWidth: '400px',
+                        width: '360px',
+                        background: 'rgba(2, 7, 10, 0.8)',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        padding: '20px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '20px'
+                        gap: '16px'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--accent)' }}>Custom Errl Face</h2>
+                        <h2 style={{ margin: 0, fontSize: '16px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar Customizer</h2>
                         <button 
                           type="button" 
                           onClick={() => setIsEditingAvatar(false)}
-                          style={{ padding: '4px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '12px', cursor: 'pointer' }}
+                          style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '11px', cursor: 'pointer' }}
                         >
-                          Close
+                          CLOSE
                         </button>
                       </div>
                       <AvatarCustomizer 
