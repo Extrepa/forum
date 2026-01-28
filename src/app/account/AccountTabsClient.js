@@ -442,7 +442,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   border: '1px solid rgba(52, 225, 255, 0.18)',
                   background: 'rgba(2, 7, 10, 0.35)',
                   position: 'relative',
-                  minHeight: isEditingAvatar ? '520px' : 'auto',
+                  minHeight: isEditingAvatar ? '620px' : 'auto',
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'min-height 0.3s ease'
