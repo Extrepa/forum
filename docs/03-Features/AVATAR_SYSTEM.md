@@ -9,7 +9,7 @@ The avatar system allows users to create, customize, and display unique avatars 
 A powerful, interactive tool for building avatars using layered SVG components.
 - **Layered Editing**: Move, scale, and rotate individual pieces (Face, Eyes, Mouth, and custom imports).
 - **Styling Options**: 
-  - **Fill Tab**: Solid colors, Neon Glow (rainbow), and Glitter effects. Includes **Scale** and **Rotate** controls.
+  - **Fill Tab**: Solid colors, Neon Glow (matching color), Glitter, and multiple **Animated Gradients** (Rainbow, Fire, Ocean, Toxic). Includes **Scale** and **Rotate** controls.
   - **Outline Tab**: Custom stroke colors and **Thickness** (1px to 20px) controls.
 - **Color Wheel**: Click the bottom-right corner of the palette or **Right-Click** any color box to open a full color wheel and reassign colors.
 - **Import Support**: Upload your own image pieces to layer onto your avatar.

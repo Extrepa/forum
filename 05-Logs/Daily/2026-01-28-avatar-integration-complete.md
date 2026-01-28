@@ -75,3 +75,14 @@ Everything specified in the avatar customization plan has been implemented and v
 - **Tooltips & Descriptions**: Added descriptive `title` attributes to all controls and updated the interaction hint text at the bottom for better clarity.
 - **Documentation**: Updated `docs/03-Features/AVATAR_SYSTEM.md` to reflect the latest UI changes and new features.
 
+## Specialized Glow & Gradients Update (January 28, 2026 - Late Update)
+- **Glow Refinement**: The "GLOW" finish now applies a glow effect matching the chosen fill color, rather than forcing a rainbow gradient.
+- **Animated Gradients**: Added a dedicated row of animated gradient buttons:
+  - **Rainbow**: The classic cycling spectrum.
+  - **Fire**: Pulsating oranges and reds.
+  - **Ocean**: Deep blues and teals.
+  - **Toxic**: Vibrant lime and emerald greens.
+- **Randomization Logic**: Updated `RANDOM` and `RESET` logic to include these new gradients and handle the color-specific glow correctly.
+- **UI Organization**: Grouped the standard finishes (SOLID, GLOW, GLITTER) and the new animated gradients into distinct control rows for better clarity.
+- **Documentation**: Updated `AVATAR_SYSTEM.md` with descriptions for the new gradient options.
+
