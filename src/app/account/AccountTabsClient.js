@@ -437,31 +437,29 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </h2>
                 {/* Custom Avatar */}
                 <div style={{ 
-                  padding: '10px', 
+                  padding: isEditingAvatar ? '10px' : 0, 
                   borderRadius: '10px', 
-                  border: '1px solid rgba(52, 225, 255, 0.18)',
-                  background: 'rgba(2, 7, 10, 0.35)',
+                  border: isEditingAvatar ? '1px solid rgba(52, 225, 255, 0.18)' : 'none',
+                  background: isEditingAvatar ? 'rgba(2, 7, 10, 0.35)' : 'transparent',
                   position: 'relative',
-                  minHeight: isEditingAvatar ? '680px' : 'auto',
                   display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'min-height 0.3s ease'
+                  flexDirection: 'column'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h3 style={{ margin: 0, fontSize: '12px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
-                    {!isEditingAvatar && (
+                  {isEditingAvatar ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <h3 style={{ margin: 0, fontSize: '12px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Custom Avatar</h3>
                       <button 
                         type="button" 
-                        onClick={() => setIsEditingAvatar(true)}
+                        onClick={() => setIsEditingAvatar(false)}
                         className="btn-link"
                         style={{ fontSize: '12px', color: 'var(--accent)' }}
                       >
-                        edit
+                        close
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                   
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '96px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px' }}>
                     {user.avatar_key ? (
                       <div style={{ position: 'relative' }}>
                         <Image 
@@ -478,6 +476,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
                         No avatar set
                       </div>
+                    )}
+                    {!isEditingAvatar && (
+                      <button 
+                        type="button" 
+                        onClick={() => setIsEditingAvatar(true)}
+                        className="btn-link"
+                        style={{ fontSize: '12px', color: 'var(--accent)' }}
+                      >
+                        edit
+                      </button>
                     )}
                   </div>
 
