@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getSessionUser } from '../lib/auth';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
 
@@ -15,12 +16,11 @@ export default async function NotFound() {
         <p className="muted">{strings.search.noResults}</p>
         {easterEgg ? <p className="muted">{easterEgg}</p> : null}
         <p>
-          <a href="/" style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}>
+          <Link href="/" style={{ color: 'var(--errl-accent-3)', textDecoration: 'none' }}>
             Back to the portal
-          </a>
+          </Link>
         </p>
       </section>
     </div>
   );
 }
-
