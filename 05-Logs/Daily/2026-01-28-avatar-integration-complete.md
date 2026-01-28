@@ -103,4 +103,3 @@ Everything specified in the avatar customization plan has been implemented and v
 - **Username Icon Optimization**: Removed the secondary blue border and glow from small username avatars, allowing the user's custom outline to be the primary border. Increased icon size from `20px` to `24px` and set a semi-transparent black background for better contrast and legibility across different themes.
 - **UI Compaction & Canvas Priority**: Reduced the padding of the main customizer container and the sizing of all action buttons (Save, Random, Reset, Import) to prioritize canvas space. Condensed the settings panel even further and enforced a strict `1:1` square aspect ratio on the canvas for perfect centering.
 - **Improved Transform Logic**: Layers now scale and rotate around the face's center point rather than the arbitrary SVG origin, preventing "drift" when adjusting size or orientation.
-
