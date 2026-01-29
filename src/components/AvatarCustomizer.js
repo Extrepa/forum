@@ -154,7 +154,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [panelPos, setPanelPos] = useState({ top: 8, left: 8 });
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialLeft: 8 });
-  const [palette, setPalette] = useState(INITIAL_PALETTE);
+  const [palette, setPalette] = useState(() => [...INITIAL_PALETTE]);
   const [activeControlTab, setActiveControlTab] = useState('fill'); // 'fill' or 'outline'
   const colorInputRef = useRef(null);
   const [pickingForIndex, setPickingForIndex] = useState(null);
@@ -247,18 +247,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleReset = () => {
+    setPalette([...INITIAL_PALETTE]);
     const nextLayers = INITIAL_LAYERS.map((l) => {
-      const fillColor = '#000000';
-      const outlineColor = '#ffffff';
+      const fillColor = l.color || '#000000';
+      const outlineColor = l.stroke || '#ffffff';
       return { 
         ...l, 
         color: fillColor, 
-        finish: 'solid', 
+        finish: l.finish || 'solid', 
         stroke: outlineColor, 
-        strokeWidth: 4, 
-        gradientUrl: undefined,
-        strokeFinish: 'solid', 
-        strokeGradientUrl: undefined 
+        strokeWidth: l.strokeWidth || 4, 
+        gradientUrl: l.gradientUrl,
+        gradientId: l.gradientId,
+        strokeFinish: l.strokeFinish || 'solid', 
+        strokeGradientUrl: l.strokeGradientUrl 
       };
     });
     setLayers(nextLayers);
