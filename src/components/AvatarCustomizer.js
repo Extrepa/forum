@@ -168,6 +168,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const panelRef = useRef(null);
   const imageFillInputRef = useRef(null);
   const lastContextMenuRef = useRef(0);
 
@@ -386,22 +387,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setContextMenu({ x: e.clientX, y: e.clientY, id });
   };
 
-  const clampPanelToCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const canvasWidth = canvas.clientWidth || 0;
-    const canvasHeight = canvas.clientHeight || 0;
-    const nextWidth = Math.min(190, Math.max(150, Math.floor(canvasWidth - 32)));
-    setPanelWidth(nextWidth);
+  const clampPanelToViewport = useCallback(() => {
+    const viewportWidth = window.innerWidth || 0;
+    const viewportHeight = window.innerHeight || 0;
+    setPanelWidth(190);
+    const panelHeight = panelRef.current?.offsetHeight || 0;
     setPanelPos((prev) => {
-      const maxRight = Math.max(8, canvasWidth - nextWidth - 8);
+      const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
       const nextRight = Math.min(Math.max(prev.right, 8), maxRight);
-      const maxTop = Math.max(8, canvasHeight - 8);
+      const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
       if (prev.right === nextRight && prev.top === nextTop) return prev;
       return { ...prev, right: nextRight, top: nextTop };
     });
-  }, []);
+  }, [panelWidth]);
 
   const getGradientId = (layer) => {
     if (layer.gradientId) return layer.gradientId;
@@ -440,17 +439,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   useEffect(() => {
-    clampPanelToCanvas();
-    const canvas = canvasRef.current;
-    if (!canvas || typeof ResizeObserver === 'undefined') {
-      const handleResize = () => clampPanelToCanvas();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-    const observer = new ResizeObserver(() => clampPanelToCanvas());
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, [clampPanelToCanvas, contextMenu]);
+    if (!contextMenu) return;
+    clampPanelToViewport();
+    const handleResize = () => clampPanelToViewport();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [clampPanelToViewport, contextMenu]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -594,13 +588,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       if (isDraggingPanel) {
         const dx = e.clientX - panelDragStart.current.x;
         const dy = e.clientY - panelDragStart.current.y;
-        const canvas = canvasRef.current;
-        const canvasWidth = canvas?.clientWidth || 0;
-        const canvasHeight = canvas?.clientHeight || 0;
+        const viewportWidth = window.innerWidth || 0;
+        const viewportHeight = window.innerHeight || 0;
+        const panelHeight = panelRef.current?.offsetHeight || 0;
         const nextTop = panelDragStart.current.initialTop + dy;
         const nextRight = panelDragStart.current.initialRight - dx;
-        const maxRight = Math.max(8, canvasWidth - panelWidth - 8);
-        const maxTop = Math.max(8, canvasHeight - 8);
+        const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
+        const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
         setPanelPos({
           top: Math.min(Math.max(nextTop, 8), maxTop),
           right: Math.min(Math.max(nextRight, 8), maxRight)
@@ -614,13 +608,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       e.preventDefault();
       const dx = touch.clientX - panelDragStart.current.x;
       const dy = touch.clientY - panelDragStart.current.y;
-      const canvas = canvasRef.current;
-      const canvasWidth = canvas?.clientWidth || 0;
-      const canvasHeight = canvas?.clientHeight || 0;
+      const viewportWidth = window.innerWidth || 0;
+      const viewportHeight = window.innerHeight || 0;
+      const panelHeight = panelRef.current?.offsetHeight || 0;
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextRight = panelDragStart.current.initialRight - dx;
-      const maxRight = Math.max(8, canvasWidth - panelWidth - 8);
-      const maxTop = Math.max(8, canvasHeight - 8);
+      const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
+      const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       setPanelPos({
         top: Math.min(Math.max(nextTop, 8), maxTop),
         right: Math.min(Math.max(nextRight, 8), maxRight)
@@ -1040,8 +1034,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         {contextMenu && selectedLayer && (
           <div 
             className="card avatar-customizer-panel"
+            ref={panelRef}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               top: `${panelPos.top}px`,
               right: `${panelPos.right}px`,
               zIndex: 100,
