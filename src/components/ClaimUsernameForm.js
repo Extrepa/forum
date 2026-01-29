@@ -176,7 +176,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [setLoreEnabled]);
 
   const refreshMe = async () => {
     try {
@@ -859,7 +859,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               {mode === 'login' ? (
                 <>
-                  If you have an account, please sign in to the right. If you do not, please click "Create an account" below.
+                  If you have an account, please sign in to the right. If you do not, please click &quot;Create an account&quot; below.
                 </>
               ) : (
                 <>

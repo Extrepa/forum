@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -56,6 +57,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 COALESCE(events.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                 COALESCE(events.is_locked, 0) AS is_locked
          FROM events
@@ -73,6 +75,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                   events.created_at, events.image_key,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
+                  users.avatar_key AS author_avatar_key,
                   0 AS like_count,
                   COALESCE(events.is_locked, 0) AS is_locked
            FROM events
@@ -82,6 +85,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         .bind(id)
         .first();
       if (event) {
+        event.author_avatar_key = event.author_avatar_key || null;
         event.moved_to_id = null;
         event.moved_to_type = null;
         event.is_locked = event.is_locked ?? 0;
@@ -95,6 +99,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                     events.created_at, events.image_key,
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
+                    users.avatar_key AS author_avatar_key,
                     0 AS like_count,
                     0 AS is_locked
              FROM events
@@ -104,6 +109,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           .bind(id)
           .first();
         if (event) {
+          event.author_avatar_key = event.author_avatar_key || null;
           event.moved_to_id = null;
           event.moved_to_type = null;
           event.is_locked = 0;
@@ -347,6 +353,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           author={event.author_name}
           authorColorIndex={usernameColorMap.get(event.author_name)}
           authorPreferredColorIndex={event.author_color_preference !== null && event.author_color_preference !== undefined ? Number(event.author_color_preference) : null}
+          authorAvatarKey={event.author_avatar_key}
           createdAt={event.created_at}
           likeButton={user ? (
             <LikeButton 
@@ -387,7 +394,15 @@ export default async function EventDetailPage({ params, searchParams }) {
           </span>
         </div>
         {event.image_key ? (
-          <img src={`/api/media/${event.image_key}`} alt="" className="post-image" loading="lazy" />
+          <Image
+            src={`/api/media/${event.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
         ) : null}
         {event.details ? (
           <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(event.details) }} />
@@ -446,4 +461,3 @@ export default async function EventDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

@@ -137,7 +137,7 @@ export default function EventCommentsSection({
               checked={attending}
               onChange={handleAttendingChange}
             />
-            <span style={{ fontSize: '14px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>I'm attending</span>
+            <span style={{ fontSize: '14px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>I&apos;m attending</span>
           </label>
         ) : null}
       </div>

@@ -64,7 +64,7 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
     <div className="search-results-popover" ref={popoverRef}>
       <div className="search-results-header">
         <span className="search-results-count">
-          {results.length} result{results.length === 1 ? '' : 's'} for "{query}"
+          {results.length} result{results.length === 1 ? '' : 's'} for &quot;{query}&quot;
         </span>
       </div>
       <div className="search-results-list">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatDateTime } from '../lib/dates';
@@ -100,9 +101,12 @@ export default function ProjectRepliesSection({
           <div className="post-body" dangerouslySetInnerHTML={{ __html: r.body_html || r.body }} />
           {r.image_key && (
             <div style={{ marginTop: '12px' }}>
-              <img
+              <Image
                 src={`/api/media/${r.image_key}`}
                 alt="Reply attachment"
+                width={1200}
+                height={800}
+                unoptimized
                 style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }}
               />
             </div>
@@ -181,7 +185,7 @@ export default function ProjectRepliesSection({
         )
       ) : (
         <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
-          Replies aren't enabled yet (database updates still applying).
+          Replies aren&apos;t enabled yet (database updates still applying).
         </div>
       )}
     </section>

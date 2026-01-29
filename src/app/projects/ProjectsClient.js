@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
@@ -87,11 +88,14 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                       showTitleLink={false}
                     />
                     {!condensed && row.image_key ? (
-                      <img
+                      <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""
                         className="post-image"
+                        width={1200}
+                        height={800}
                         loading="lazy"
+                        unoptimized
                         style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
@@ -67,7 +68,16 @@ export default function ArtNostalgiaClient({ posts, notice }) {
                       {p.is_private ? ' · Members-only' : ''}
                     </span>
                     {!condensed && p.image_key ? (
-                      <img src={`/api/media/${p.image_key}`} alt="" className="post-image" loading="lazy" style={{ marginTop: '8px' }} />
+                    <Image
+                      src={`/api/media/${p.image_key}`}
+                      alt=""
+                      className="post-image"
+                      width={1200}
+                      height={800}
+                      loading="lazy"
+                      unoptimized
+                      style={{ marginTop: '8px' }}
+                    />
                     ) : null}
                     {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                   </a>

@@ -1,4 +1,5 @@
 import DevLogForm from '../../../components/DevLogForm';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -90,6 +91,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 COALESCE(dev_logs.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
@@ -106,6 +108,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   dev_logs.created_at, dev_logs.updated_at,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
+                  users.avatar_key AS author_avatar_key,
                   0 AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
@@ -114,6 +117,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         .bind(id)
         .first();
       if (log) {
+        log.author_avatar_key = log.author_avatar_key || null;
         log.is_locked = 0;
         log.moved_to_id = null;
         log.moved_to_type = null;
@@ -130,6 +134,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     dev_logs.created_at, dev_logs.updated_at,
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
+                    users.avatar_key AS author_avatar_key,
                     0 AS like_count
              FROM dev_logs
              JOIN users ON users.id = dev_logs.author_user_id
@@ -138,6 +143,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           .bind(id)
           .first();
         if (log) {
+          log.author_avatar_key = log.author_avatar_key || null;
           log.is_locked = 0;
           log.moved_to_id = null;
           log.moved_to_type = null;
@@ -386,6 +392,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           author={log.author_name}
           authorColorIndex={usernameColorMap.get(log.author_name)}
           authorPreferredColorIndex={log.author_color_preference !== null && log.author_color_preference !== undefined ? log.author_color_preference : null}
+          authorAvatarKey={log.author_avatar_key}
           createdAt={log.created_at}
           likeButton={user ? (
             <LikeButton 
@@ -423,7 +430,15 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           </div>
         ) : null}
         {log.image_key ? (
-          <img src={`/api/media/${log.image_key}`} alt="" className="post-image" loading="lazy" />
+          <Image
+            src={`/api/media/${log.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
         ) : null}
         <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(log.body) }} />
         {log.views !== undefined && log.views !== null && (
@@ -569,4 +584,3 @@ export default async function DevLogDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

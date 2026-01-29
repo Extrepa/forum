@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -58,6 +59,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 COALESCE(music_posts.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
@@ -82,6 +84,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   music_posts.type, music_posts.tags, music_posts.image_key,
                   music_posts.created_at, users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
+                  users.avatar_key AS author_avatar_key,
                   (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                   (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                   0 AS like_count,
@@ -94,6 +97,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
         .bind(id)
         .first();
       if (post) {
+        post.author_avatar_key = post.author_avatar_key || null;
         post.moved_to_id = null;
         post.moved_to_type = null;
         post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
@@ -108,6 +112,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     music_posts.type, music_posts.tags, music_posts.image_key,
                     music_posts.created_at, users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
+                    users.avatar_key AS author_avatar_key,
                     (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                     (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                     0 AS like_count,
@@ -120,6 +125,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           .bind(id)
           .first();
         if (post) {
+          post.author_avatar_key = post.author_avatar_key || null;
           post.moved_to_id = null;
           post.moved_to_type = null;
           post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
@@ -323,6 +329,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           author={post.author_name}
           authorColorIndex={usernameColorMap.get(post.author_name)}
           authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          authorAvatarKey={post.author_avatar_key}
           createdAt={post.created_at}
           likeButton={user ? (
             <LikeButton 
@@ -355,7 +362,14 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </div>
         ) : null}
         {post.image_key ? (
-          <img src={`/api/media/${post.image_key}`} alt="" className="post-image" />
+          <Image
+            src={`/api/media/${post.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            unoptimized
+          />
         ) : null}
         {post.body ? (
           <div
@@ -398,8 +412,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
           <label style={{ flex: '1 1 auto', minWidth: '200px' }}>
             <div className="muted">Your rating (1-5)</div>
             <select name="rating" defaultValue="5" style={{ width: '100%' }}>
-              <option value="1">1 - I didn't have time to listen</option>
-              <option value="2">2 - I'm not really my style</option>
+              <option value="1">1 - I didn&apos;t have time to listen</option>
+              <option value="2">2 - I&apos;m not really my style</option>
               <option value="3">3 - I vibe with it</option>
               <option value="4">4 - I love it</option>
               <option value="5">5 - This is my new personality</option>

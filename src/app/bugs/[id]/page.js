@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
@@ -41,6 +42,7 @@ export default async function BugDetailPage({ params, searchParams }) {
                 COALESCE(posts.is_locked, 0) AS is_locked,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
@@ -194,6 +196,7 @@ export default async function BugDetailPage({ params, searchParams }) {
           author={post.author_name}
           authorColorIndex={usernameColorMap.get(post.author_name) ?? getUsernameColorIndex(post.author_name, { preferredColorIndex: post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null })}
           authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          authorAvatarKey={post.author_avatar_key}
           createdAt={post.created_at}
           likeButton={
             <LikeButton 
@@ -214,7 +217,17 @@ export default async function BugDetailPage({ params, searchParams }) {
             Comments locked
           </span>
         ) : null}
-        {post.image_key ? <img src={`/api/media/${post.image_key}`} alt="" className="post-image" loading="lazy" /> : null}
+        {post.image_key ? (
+          <Image
+            src={`/api/media/${post.image_key}`}
+            alt=""
+            className="post-image"
+            width={1200}
+            height={800}
+            loading="lazy"
+            unoptimized
+          />
+        ) : null}
         {post.body ? <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }} /> : null}
         {post.views !== undefined && post.views !== null && (
           <div style={{ 
@@ -297,4 +310,3 @@ export default async function BugDetailPage({ params, searchParams }) {
     </div>
   );
 }
-

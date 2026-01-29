@@ -1,7 +1,11 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { getAvatarUrl } from '../lib/media';
+import UserPopover from './UserPopover';
 
 export default function Username({
   name,
@@ -13,7 +17,19 @@ export default function Username({
   className = '',
   title,
   href,
+  avatarKey,
+  style,
 }) {
+  const [showPopover, setShowPopover] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
+  const [isTouch, setIsTouch] = useState(false);
+  const anchorRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsTouch(window.matchMedia('(hover: none)').matches);
+  }, []);
+
   const safeName = String(name || '').trim();
   if (!safeName) return null;
 
@@ -34,10 +50,66 @@ export default function Username({
   // Default href to profile page if not provided
   const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
+  const avatarUrl = getAvatarUrl(avatarKey);
+
+  const disableLink = href === null || href === false;
+
+  const handleMouseEnter = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+    setShowPopover(true);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setShowPopover(false);
+    }, 200); // 200ms delay to allow moving to popover
+    setHoverTimeout(timeout);
+  };
+
+  const handleClick = () => {
+    if (!isTouch) return;
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+    setShowPopover(prev => !prev);
+  };
+
   return (
-    <Link href={profileHref} className={classes} title={title || safeName} style={{ textDecoration: 'none' }}>
-      {safeName}
-    </Link>
+    <span 
+      style={{ position: 'relative', display: 'inline-block' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+    >
+      <span 
+        ref={anchorRef}
+        className={classes} 
+        title={title || safeName} 
+        style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
+      >
+        {avatarUrl && (
+          <Image 
+            src={avatarUrl} 
+            alt="" 
+            className="username-avatar"
+            width={24}
+            height={24}
+            unoptimized
+          />
+        )}
+        <span>{safeName}</span>
+      </span>
+
+      {showPopover && (
+        <UserPopover 
+          username={safeName} 
+          avatarKey={avatarKey} 
+          onClose={() => setShowPopover(false)}
+          anchorRef={anchorRef}
+        />
+      )}
+    </span>
   );
 }
-

@@ -4,7 +4,7 @@ main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
-# D1 database binding
+# Production (Default)
 [[d1_databases]]
 binding = "DB"
 database_name = "errl_forum_db"
@@ -14,13 +14,15 @@ database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
 binding = "UPLOADS"
 bucket_name = "errl-forum-uploads"
 
+# Preview Environment
 [env.preview]
 name = "errl-portal-forum-preview"
-[[d1_databases]]
+
+[[env.preview.d1_databases]]
 binding = "DB"
 database_name = "errl_forum_db"
 database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
 
-[[r2_buckets]]
+[[env.preview.r2_buckets]]
 binding = "UPLOADS"
 bucket_name = "errl-forum-uploads"

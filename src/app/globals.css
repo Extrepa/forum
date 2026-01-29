@@ -13,6 +13,17 @@
   --errl-accent-3: #f5ffb7;
   --errl-accent-4: #00f5a0;
   --errl-accent-soft: #0d3344;
+  --username-0: #34E1FF;
+  --username-1: #FF34F5;
+  --username-2: #FFFF00;
+  --username-3: #00FF41;
+  --username-4: #FF6B00;
+  --username-5: #B026FF;
+  --username-6: #00D9FF;
+  --username-7: #CCFF00;
+  --role-admin: #FF34F5;
+  --role-mod: #34E1FF;
+  --role-user: #F5FFB7;
 
   --bg: var(--errl-bg);
   --bg-accent: var(--errl-bg-alt);
@@ -718,46 +729,64 @@ main {
   letter-spacing: 0.2px;
   overflow-wrap: break-word;
   word-break: break-word;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.username > span {
+  color: inherit;
+  text-shadow: inherit;
+}
+
+.username-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: center;
 }
 
 .username--0 {
-  color: #34E1FF !important;
-  text-shadow: 0 0 8px rgba(52, 225, 255, 0.6), 0 0 16px rgba(52, 225, 255, 0.4), 0 0 24px rgba(52, 225, 255, 0.2) !important;
+  color: #34E1FF;
+  text-shadow: 0 0 8px rgba(52, 225, 255, 0.6), 0 0 16px rgba(52, 225, 255, 0.4), 0 0 24px rgba(52, 225, 255, 0.2);
 }
 
 .username--1 {
-  color: #FF34F5 !important;
-  text-shadow: 0 0 8px rgba(255, 52, 245, 0.6), 0 0 16px rgba(255, 52, 245, 0.4), 0 0 24px rgba(255, 52, 245, 0.2) !important;
+  color: #FF34F5;
+  text-shadow: 0 0 8px rgba(255, 52, 245, 0.6), 0 0 16px rgba(255, 52, 245, 0.4), 0 0 24px rgba(255, 52, 245, 0.2);
 }
 
 .username--2 {
-  color: #FFFF00 !important;
-  text-shadow: 0 0 8px rgba(255, 255, 0, 0.6), 0 0 16px rgba(255, 255, 0, 0.4), 0 0 24px rgba(255, 255, 0, 0.2) !important;
+  color: #FFFF00;
+  text-shadow: 0 0 8px rgba(255, 255, 0, 0.6), 0 0 16px rgba(255, 255, 0, 0.4), 0 0 24px rgba(255, 255, 0, 0.2);
 }
 
 .username--3 {
-  color: #00FF41 !important;
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 16px rgba(0, 255, 65, 0.4), 0 0 24px rgba(0, 255, 65, 0.2) !important;
+  color: #00FF41;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 16px rgba(0, 255, 65, 0.4), 0 0 24px rgba(0, 255, 65, 0.2);
 }
 
 .username--4 {
-  color: #FF6B00 !important;
-  text-shadow: 0 0 8px rgba(255, 107, 0, 0.6), 0 0 16px rgba(255, 107, 0, 0.4), 0 0 24px rgba(255, 107, 0, 0.2) !important;
+  color: #FF6B00;
+  text-shadow: 0 0 8px rgba(255, 107, 0, 0.6), 0 0 16px rgba(255, 107, 0, 0.4), 0 0 24px rgba(255, 107, 0, 0.2);
 }
 
 .username--5 {
-  color: #B026FF !important;
-  text-shadow: 0 0 8px rgba(176, 38, 255, 0.6), 0 0 16px rgba(176, 38, 255, 0.4), 0 0 24px rgba(176, 38, 255, 0.2) !important;
+  color: #B026FF;
+  text-shadow: 0 0 8px rgba(176, 38, 255, 0.6), 0 0 16px rgba(176, 38, 255, 0.4), 0 0 24px rgba(176, 38, 255, 0.2);
 }
 
 .username--6 {
-  color: #00D9FF !important;
-  text-shadow: 0 0 8px rgba(0, 217, 255, 0.6), 0 0 16px rgba(0, 217, 255, 0.4), 0 0 24px rgba(0, 217, 255, 0.2) !important;
+  color: #00D9FF;
+  text-shadow: 0 0 8px rgba(0, 217, 255, 0.6), 0 0 16px rgba(0, 217, 255, 0.4), 0 0 24px rgba(0, 217, 255, 0.2);
 }
 
 .username--7 {
-  color: #CCFF00 !important;
-  text-shadow: 0 0 8px rgba(204, 255, 0, 0.6), 0 0 16px rgba(204, 255, 0, 0.4), 0 0 24px rgba(204, 255, 0, 0.2) !important;
+  color: #CCFF00;
+  text-shadow: 0 0 8px rgba(204, 255, 0, 0.6), 0 0 16px rgba(204, 255, 0, 0.4), 0 0 24px rgba(204, 255, 0, 0.2);
 }
 
 .stack {
@@ -1371,6 +1400,25 @@ button:hover {
   background: rgba(52, 225, 255, 0.5);
 }
 
+.avatar-customizer-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.avatar-customizer-panel::-webkit-scrollbar-track {
+  background: rgba(4, 16, 23, 0.45);
+  border-radius: 999px;
+}
+
+.avatar-customizer-panel::-webkit-scrollbar-thumb {
+  background: rgba(52, 225, 255, 0.5);
+  border-radius: 999px;
+  border: 2px solid rgba(4, 16, 23, 0.45);
+}
+
+.avatar-customizer-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 225, 255, 0.7);
+}
+
 .list-divider {
   height: 1px;
   background: rgba(52, 225, 255, 0.22);
@@ -1548,7 +1596,7 @@ a.list-item:hover {
 
 /* Username link hover */
 .username:hover {
-  text-decoration: underline;
+  text-decoration: none;
   opacity: 0.9;
 }
 
@@ -3929,9 +3977,16 @@ header::before {
   }
 
   /* Card containing auth form should use full width on mobile */
-  .card {
+  .card:not(.avatar-customizer-panel) {
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  /* Username popover should not stretch to full width on mobile */
+  .user-popover.card {
+    width: max-content !important;
+    max-width: calc(100vw - 32px) !important;
+    min-width: min(120px, calc(100vw - 32px)) !important;
   }
   
   /* Ensure auth form container and all children use full width */
@@ -3949,12 +4004,11 @@ header::before {
 
   /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
-  .notifications-popover-errl {
-    /* Keep original 380px width - don't shrink unless viewport is smaller */
-    width: 380px !important;
-    max-width: 380px !important;
-    /* Only shrink if viewport is actually smaller than 380px */
-    min-width: min(380px, calc(100vw - 16px)) !important;
+  .notifications-popover-errl.notifications-popover {
+    /* Override fixed width to allow shrinking, but ensure it doesn't get too small */
+    width: fit-content !important;
+    max-width: calc(100vw - 32px) !important;
+    min-width: min(120px, calc(100vw - 32px)) !important; /* Add a min-width for mobile */
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -3971,58 +4025,65 @@ header::before {
   /* On mobile, use fixed positioning to ensure it stays in viewport */
   @media (max-width: 640px) {
     .notifications-popover,
-    .notifications-popover-errl {
-      /* Use fixed positioning relative to viewport */
-      position: fixed !important;
-      /* Calculate right position: align to logo but ensure 8px margin from viewport edge */
-      /* Logo is typically near right edge, so we'll position from viewport right */
-      right: 8px !important;
+    .notifications-popover-errl.notifications-popover {
+      /* Keep original absolute positioning, but ensure it doesn't go off-screen */
+      position: absolute !important;
+      /* Align to the right of the anchor, or center if it helps */
+      right: 0 !important; 
       left: auto !important;
+      transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: min(380px, calc(100vw - 16px)) !important;
-      max-width: min(380px, calc(100vw - 16px)) !important;
-      transform: none !important;
-      /* Calculate top position based on logo position - will be handled by JS or keep relative */
-      top: auto !important;
+      width: fit-content !important;
+      max-width: calc(100vw - 32px) !important;
+      min-width: min(120px, calc(100vw - 32px)) !important;
+      /* Ensure high z-index */
+      z-index: 9999 !important;
+      margin: 0 !important;
+    }
+    
+    /* Remove backdrop if it was added */
+    .notifications-popover-errl.notifications-popover::before {
+      display: none !important;
     }
   }
   
   /* On very small screens where 380px doesn't fit, shrink it */
   @media (max-width: 396px) {
-    .notifications-popover,
-    .notifications-popover-errl {
+  .notifications-popover,
+  .notifications-popover-errl.notifications-popover {
       width: calc(100vw - 16px) !important;
       max-width: calc(100vw - 16px) !important;
+      min-width: min(120px, calc(100vw - 16px)) !important;
     }
   }
   
   /* Prevent content from being compressed - ensure proper text wrapping */
   .notifications-popover > div,
-  .notifications-popover-errl > div {
+  .notifications-popover-errl.notifications-popover > div {
     min-width: 0 !important;
   }
   
   /* Ensure buttons don't get squished */
   .notifications-popover button,
-  .notifications-popover-errl button {
+  .notifications-popover-errl.notifications-popover button {
     white-space: nowrap !important;
     flex-shrink: 0 !important;
   }
   
   /* Ensure header buttons container doesn't wrap too aggressively */
   .notifications-popover > div:first-child,
-  .notifications-popover-errl > div:first-child {
+  .notifications-popover-errl.notifications-popover > div:first-child {
     gap: 8px !important;
   }
   
   .notifications-popover > div:first-child > div:last-child,
-  .notifications-popover-errl > div:first-child > div:last-child {
+  .notifications-popover-errl.notifications-popover > div:first-child > div:last-child {
     flex-shrink: 0 !important;
   }
   
   /* Ensure content inside notifications popover doesn't overflow */
   .notifications-popover *,
-  .notifications-popover-errl * {
+  .notifications-popover-errl.notifications-popover * {
     max-width: 100% !important;
     box-sizing: border-box !important;
     word-wrap: break-word !important;
@@ -4031,7 +4092,7 @@ header::before {
   
   /* Ensure buttons in notifications popover fit but don't stretch */
   .notifications-popover button,
-  .notifications-popover-errl button {
+  .notifications-popover-errl.notifications-popover button {
     white-space: normal !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
@@ -4042,7 +4103,7 @@ header::before {
   
   /* Ensure footer container doesn't overflow */
   .notifications-popover > div:last-child,
-  .notifications-popover-errl > div:last-child {
+  .notifications-popover-errl.notifications-popover > div:last-child {
     flex-wrap: wrap !important;
     gap: 6px !important;
     min-width: 0 !important;
@@ -4050,7 +4111,7 @@ header::before {
   
   /* Footer left button group */
   .notifications-popover > div:last-child > div:first-child,
-  .notifications-popover-errl > div:last-child > div:first-child {
+  .notifications-popover-errl.notifications-popover > div:last-child > div:first-child {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     display: flex !important;
@@ -4060,7 +4121,7 @@ header::before {
   
   /* Footer buttons - keep them small, don't stretch */
   .notifications-popover > div:last-child button,
-  .notifications-popover-errl > div:last-child button {
+  .notifications-popover-errl.notifications-popover > div:last-child button {
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: 0 !important;
@@ -4071,7 +4132,7 @@ header::before {
   
   /* Close button should stay small on the right */
   .notifications-popover > div:last-child > button:last-child,
-  .notifications-popover-errl > div:last-child > button:last-child {
+  .notifications-popover-errl.notifications-popover > div:last-child > button:last-child {
     flex: 0 0 auto !important;
     width: auto !important;
     margin-left: auto !important;

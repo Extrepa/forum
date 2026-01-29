@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import ProjectForm from '../../../components/ProjectForm';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
@@ -76,6 +77,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 COALESCE(projects.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                 COALESCE(projects.is_locked, 0) AS is_locked
          FROM projects
@@ -95,6 +97,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   COALESCE(projects.views, 0) AS views,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
+                  users.avatar_key AS author_avatar_key,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                   COALESCE(projects.is_locked, 0) AS is_locked
            FROM projects
@@ -104,6 +107,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         .bind(id)
         .first();
       if (project) {
+        project.author_avatar_key = project.author_avatar_key || null;
         project.moved_to_id = null;
         project.moved_to_type = null;
         project.is_locked = project.is_locked ?? 0;
@@ -119,6 +123,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     COALESCE(projects.views, 0) AS views,
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
+                    users.avatar_key AS author_avatar_key,
                     (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                     0 AS is_locked
              FROM projects
@@ -128,6 +133,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           .bind(id)
           .first();
         if (project) {
+          project.author_avatar_key = project.author_avatar_key || null;
           project.moved_to_id = null;
           project.moved_to_type = null;
           project.is_locked = 0;
@@ -460,6 +466,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           author={safeProjectAuthorName}
           authorColorIndex={usernameColorMap.get(safeProjectAuthorName) ?? 0}
           authorPreferredColorIndex={project?.author_color_preference !== null && project?.author_color_preference !== undefined ? Number(project.author_color_preference) : null}
+          authorAvatarKey={project?.author_avatar_key}
           createdAt={safeProjectCreatedAt}
           likeButton={user ? (
             <LikeButton 
@@ -478,11 +485,14 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           </span>
         ) : null}
         {safeProjectImageKey ? (
-          <img
+          <Image
             src={`/api/media/${safeProjectImageKey}`}
             alt=""
             className="post-image"
+            width={1200}
+            height={800}
             loading="lazy"
+            unoptimized
           />
         ) : null}
         <div
@@ -569,10 +579,13 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     </span>
                   </div>
                   {update.image_key && (
-                    <img 
+                    <Image 
                       src={`/api/media/${update.image_key}`} 
                       alt="" 
-                      style={{ maxWidth: '100%', borderRadius: '4px', marginBottom: '8px' }} 
+                      width={1200}
+                      height={800}
+                      unoptimized
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', marginBottom: '8px' }} 
                     />
                   )}
                   <div 

@@ -3,6 +3,17 @@
 ## Summary
 Fixed project reply image upload functionality, improved feed sorting by activity, and optimized feed layout for both desktop and mobile views.
 
+## Avatar Customizer Implementation (Feat)
+- Created branch `feat/avatar-customizer` (renamed from `brainstorm/avatar-customizer`).
+- Added migration `0046_add_user_avatar.sql` to add `avatar_key` and `avatar_state` to `users` table.
+- Implemented `AvatarCustomizer.js` with multi-layer support, drag-and-drop, image import, and randomization.
+- Created `/api/account/avatar` API route for R2 storage and database updates.
+- Integrated avatar display into `Username.js` and profile pages.
+- **Migration Applied**: Successfully applied `0046_add_user_avatar.sql` to the D1 database (local and remote).
+- **Wrangler Config**: Cleaned up `wrangler.toml` to fix duplicate binding errors.
+- **Test Build**: Successfully completed `npm run build` without errors.
+- **Ready for Deploy**: Branch is ready for deploy preview.
+
 ---
 
 ## Project Reply Image Upload Feature
@@ -557,6 +568,41 @@ Integrated outbound notifications (Email via Resend and SMS via Twilio) across a
 - [x] Migration 0045 created and integrated into backend/frontend.
 - [x] All pending migrations (0044, 0045) applied to both local and remote (D1) databases.
 - [x] Clean build and no linter errors.
+
+## Avatar Customizer Implementation (Feat) - Final Review & Refinements
+- **Containment Fix**: The Avatar Customizer is now fully contained within the "Custom Avatar" card on the Profile tab.
+- **Dynamic Height**: The parent card now expands (min-height: 600px) when editing to ensure the interface isn't clipped.
+- **SVG ViewBox Optimization**: Updated `viewBox` from `0 130 1100 1100` to `0 100 1100 1100` to prevent head-clipping and provide better vertical centering.
+- **Responsive Scaling**: SVG now uses `height: 100%` and `flex: 1` to scale correctly within the available space in the card.
+- **Keyboard Shortcuts**: Added support for:
+  - Arrows: Move selected layer
+  - `[` / `]`: Scale selected layer
+  - `{` / `}`: Rotate selected layer
+  - `Backspace` / `Delete`: Delete selected layer
+  - `Ctrl/Cmd + Z`: Undo
+  - `Ctrl/Cmd + Y` or `Ctrl/Cmd + Shift + Z`: Redo
+  - `Ctrl/Cmd + C`: Copy
+  - `Ctrl/Cmd + V`: Paste
+  - `Ctrl/Cmd + D`: Duplicate
+- **Undo/Redo History**: Implemented a 50-step history buffer for all customization actions.
+- **Outline Width Control**: Added a slider in the right-click advanced menu to adjust stroke width (1px - 20px) for SVG layers.
+- **Action Bar condensation**: Buttons (Randomize, Import, Save, Cancel) are now condensed into a single row for better fit in small containers.
+- **Database & Storage**: Confirmed migration `0046_add_user_avatar.sql` is applied and `wrangler.toml` environment isolation is working.
+
+---
+
+## Testing Checklist - Avatar Customizer
+- [x] Open Profile tab and click "Edit" on Custom Avatar card.
+- [x] Verify the customizer appears as an overlay inside the card (not full screen).
+- [x] Verify the face is fully visible and not clipped at the top/bottom.
+- [x] Test dragging layers (eyes, mouth).
+- [x] Test double-click to randomize a single layer.
+- [x] Test right-click to open advanced menu (Color, Finish, Scale, Rotate, Outline Width, Duplicate, Delete).
+- [x] Test keyboard shortcuts (Arrows, Scale, Rotate, Undo/Redo, Copy/Paste).
+- [x] Test "Randomize All" button (🎲).
+- [x] Test "Import Piece" button (🖼️) with a local image.
+- [x] Test "Save" and verify the avatar updates on the profile and next to the username.
+- [x] Verify avatar persists after page refresh (loads from R2/D1).
 
 Everything set up for today has been completed and verified.
 

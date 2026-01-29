@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -114,11 +115,14 @@ export default function SearchClient({ query: initialQuery, results }) {
                         </div>
                       </div>
                       {result.image_key && (
-                        <img
+                        <Image
                           src={`/api/media/${result.image_key}`}
                           alt=""
                           className="post-image"
+                          width={1200}
+                          height={800}
                           loading="lazy"
+                          unoptimized
                           style={{ maxHeight: '200px', width: 'auto', marginBottom: '8px' }}
                         />
                       )}

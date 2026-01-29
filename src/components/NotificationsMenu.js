@@ -85,7 +85,7 @@ export default function NotificationsMenu({
     const d = new Date();
     const seed = (d.getDate() + d.getMonth() * 31 + (currentUsername || '').length) % ERL_TAGLINES.length;
     return ERL_TAGLINES[Math.abs(seed)] || ERL_TAGLINES[0];
-  }, [open, currentUsername]);
+  }, [currentUsername]);
 
   // Fetch current user's username and color preference
   useEffect(() => {
@@ -583,4 +583,3 @@ export default function NotificationsMenu({
     </>
   );
 }
-

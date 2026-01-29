@@ -7,6 +7,7 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
+import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ export default async function ProfilePage({ params }) {
   
   // Get user by username
   const profileUser = await db
-    .prepare('SELECT id, username, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views FROM users WHERE username_norm = ?')
+    .prepare('SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?')
     .bind(username.toLowerCase())
     .first();
 
@@ -32,7 +33,7 @@ export default async function ProfilePage({ params }) {
         <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/profile', label: 'Profile' }]} />
         <section className="card">
           <h2 className="section-title">User not found</h2>
-          <p className="muted">This user doesn't exist in the goo.</p>
+          <p className="muted">This user doesn&apos;t exist in the goo.</p>
         </section>
       </div>
     );
@@ -44,6 +45,26 @@ export default async function ProfilePage({ params }) {
   if (isOwnProfile) {
     redirect('/account?tab=profile');
   }
+
+  const colorIndex = getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index });
+  const USERNAME_COLORS = [
+    '#34E1FF', // 0: Cyan
+    '#FF34F5', // 1: Pink
+    '#FFFF00', // 2: Yellow
+    '#00FF41', // 3: Green
+    '#FF6B00', // 4: Orange
+    '#B026FF', // 5: Purple
+    '#00D9FF', // 6: Blue
+    '#CCFF00', // 7: Lime
+  ];
+  const userColor = USERNAME_COLORS[colorIndex] || USERNAME_COLORS[0];
+  const role = profileUser.role || 'user';
+  const roleLabel = role === 'admin' ? 'Admin' : role === 'mod' ? 'Mod' : 'Errl Portal Resident';
+  const roleColor = role === 'admin'
+    ? 'var(--role-admin)'
+    : role === 'mod'
+      ? 'var(--role-mod)'
+      : 'var(--role-user)';
 
   // Increment profile views (only when viewed by someone else)
   try {
@@ -394,22 +415,59 @@ export default async function ProfilePage({ params }) {
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
-      <section className="card">
-        {/* Two Column Layout */}
-        <div className="account-columns" style={{ marginBottom: '24px' }}>
+        <section className="card" style={{ paddingTop: '16px' }}>
+          {/* Two Column Layout */}
+          <div className="account-columns" style={{ marginBottom: '24px' }}>
           {/* Left Column: Username, Color, and Social Links */}
           <div className="account-col">
-            <h2 className="section-title" style={{ marginBottom: '4px' }}>
-              <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Profile</span>
-            </h2>
+            <div style={{ 
+              padding: '16px', 
+              background: 'rgba(2, 7, 10, 0.4)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(52, 225, 255, 0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+            <h2 className="section-title" style={{ marginBottom: '4px' }}>Profile</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Username Row - same line */}
-              <div>
-                <strong>Username:</strong>{' '}
-                <Username
-                  name={profileUser.username}
-                  colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+              {/* Profile Header with Big Avatar */}
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginBottom: '8px',
+                padding: '0'
+              }}>
+                <ProfileAvatarHero 
+                  avatarKey={profileUser.avatar_key} 
+                  userColor={userColor} 
                 />
+                
+                <div style={{ textAlign: 'center' }}>
+                  <Username
+                    name={profileUser.username}
+                    colorIndex={colorIndex}
+                    href={null}
+                    style={{ 
+                      fontSize: '32px', 
+                      fontWeight: '800',
+                      letterSpacing: '-0.02em',
+                      textShadow: `0 0 20px ${userColor}44`
+                    }}
+                  />
+                  <div style={{ 
+                    marginTop: '2px', 
+                    color: roleColor,
+                    textShadow: '0 0 10px currentColor',
+                    fontSize: '14px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em'
+                  }}>
+                    {roleLabel}
+                  </div>
+                </div>
               </div>
 
               {/* Social Links Display */}
@@ -461,13 +519,22 @@ export default async function ProfilePage({ params }) {
                 </div>
               )}
             </div>
+            </div>
           </div>
 
           {/* Right Column: Stats */}
           <div className="account-col">
-            <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>
-              <span style={{ textDecoration: 'underline', textDecorationColor: '#ff34f5', textDecorationThickness: '1px', textUnderlineOffset: '4px', textShadow: '0 0 3px rgba(255, 52, 245, 0.3)' }}>Stats</span>
-            </h2>
+            <div style={{ 
+              padding: '16px', 
+              background: 'rgba(2, 7, 10, 0.4)', 
+              borderRadius: '12px', 
+              border: '1px solid rgba(52, 225, 255, 0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              textAlign: 'right'
+            }}>
+            <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>Stats</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
               {(() => {
                 // RPG-style rarity color function
@@ -507,6 +574,7 @@ export default async function ProfilePage({ params }) {
                   </>
                 );
               })()}
+            </div>
             </div>
           </div>
         </div>

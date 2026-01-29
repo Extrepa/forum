@@ -122,7 +122,6 @@ export async function POST(request, { params }) {
     }
   }
 
-  // eslint-disable-next-line @next/next/no-server-date-in-client-component
   // Safe: API routes are server-only, Date.now() does not cause hydration mismatches
   const now = Date.now();
   try {
@@ -244,4 +243,3 @@ export async function POST(request, { params }) {
   }
   return NextResponse.redirect(finalRedirectUrl, 303);
 }
-

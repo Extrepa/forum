@@ -7,6 +7,7 @@ import AccountTabsClient from './AccountTabsClient';
 export const dynamic = 'force-dynamic';
 
 export default async function AccountPage({ searchParams }) {
+  const params = await searchParams;
   const user = await getSessionUser();
   const db = await getDb();
 
@@ -279,7 +280,7 @@ export default async function AccountPage({ searchParams }) {
     }
   }
 
-  const activeTab = searchParams?.tab || 'profile';
+  const activeTab = params?.tab || 'profile';
 
   return (
     <div className="stack">
