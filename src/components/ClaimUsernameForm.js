@@ -898,13 +898,24 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   return (
     <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
       <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
-        <div style={{ flex: '0 0 25%', minWidth: '200px', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
+        <div style={{ flex: '1 1 50%', minWidth: 0, paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
           <div style={{ position: 'sticky', top: '20px' }}>
             <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               {mode === 'login' ? (
                 <>
-                  If you have an account, please sign in to the right. If you do not, please click &quot;Create an account&quot; below.
+                  Welcome to the Errl Forum.
+                  <br />
+                  <br />
+                  Errl is a creative space I built for people who value music, art, community, and intentional connection — online and off.
+                  <br />
+                  <br />
+                  This forum exists to share projects, events, ideas, and inspiration without algorithms, pressure, or noise. It pulls from early-internet creativity and renegade culture, shaped into something slower and more thoughtful.
+                  <br />
+                  <br />
+                  If you found your way here through someone you trust, you’re welcome to explore.
+                  <br />
+                  <span style={{ color: 'var(--errl-accent-3)', fontWeight: 600 }}>Errl has layers.</span>
                 </>
               ) : (
                 <>
@@ -917,7 +928,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             </p>
           </div>
         </div>
-        <div style={{ flex: '1', minWidth: 0, width: '100%', maxWidth: '100%' }}>
+        <div style={{ flex: '1 1 50%', minWidth: 0, width: '100%', maxWidth: '100%' }}>
           {mode === 'login' ? (
             <>
               <h3 className="section-title" style={{ marginBottom: '20px' }}>Sign in</h3>
