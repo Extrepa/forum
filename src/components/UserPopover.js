@@ -5,24 +5,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
 
-export default function UserPopover({ username, avatarKey, colorIndex, onClose, anchorRef }) {
+export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
-  const [userInfo, setUserInfo] = useState(avatarKey ? { username, avatar_key: avatarKey } : null);
-  const [loading, setLoading] = useState(!avatarKey);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!avatarKey) {
-      fetch(`/api/user/${encodeURIComponent(username)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) {
-            setUserInfo(data);
-          }
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
-  }, [username, avatarKey]);
+    // Always fetch user info to ensure we have role and preferred_username_color_index
+    fetch(`/api/user/${encodeURIComponent(username)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setUserInfo(data);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [username]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -81,7 +80,7 @@ export default function UserPopover({ username, avatarKey, colorIndex, onClose, 
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              border: `2px solid var(--username-${colorIndex || 0})`,
+              border: `2px solid var(--username-${userInfo?.preferred_username_color_index || 0})`,
               background: 'rgba(0,0,0,0.3)'
             }}
           />
@@ -89,7 +88,7 @@ export default function UserPopover({ username, avatarKey, colorIndex, onClose, 
       )}
 
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${colorIndex || 0})` }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})` }}>
           {username}
         </div>
         {userInfo?.role && (

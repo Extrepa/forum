@@ -80,7 +80,6 @@ export default function Username({
         <UserPopover 
           username={safeName} 
           avatarKey={avatarKey} 
-          colorIndex={idx}
           onClose={() => setShowPopover(false)}
           anchorRef={anchorRef}
         />
