@@ -41,5 +41,6 @@
     - Added `viewportWidth` state and a `useEffect` to track window resizing.
     - Dynamically set `placement` and `middleware` in `useFloating` based on `viewportWidth`, including `crossAxis(0)` for horizontal centering on small screens and `padding: 16` for `shift`.
     - Removed manual `handleClickOutside` `useEffect` and integrated `useClickOutside` from Floating UI for robust click-outside-to-close functionality.
+    - **Removed incorrect `crossAxis` import and `crossAxis(0)` middleware usage from Floating UI configuration.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.

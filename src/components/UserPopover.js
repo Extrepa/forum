@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift, autoUpdate, crossAxis, useClickOutside } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, autoUpdate, useClickOutside } from '@floating-ui/react';
 import { createPortal } from 'react-dom';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
@@ -30,8 +30,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       offset(4), // 4px offset from the anchor
       flip(),    // Flips to other sides if top-end doesn't fit
       shift({ padding: 16 }), // Add padding to shift to keep it 16px from edges
-      viewportWidth <= 640 && crossAxis(0), // Center horizontally on small screens
-    ].filter(Boolean), // Filter out falsey values if middleware is conditional
+    ],
     elements: {
       reference: anchorRef.current,
     },
