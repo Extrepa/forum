@@ -4009,31 +4009,23 @@ header::before {
   @media (max-width: 640px) {
     .notifications-popover,
     .notifications-popover-errl {
-      /* Use fixed positioning relative to viewport */
-      position: fixed !important;
-      /* Center horizontally */
-      left: 50% !important;
-      transform: translateX(-50%) !important;
-      right: auto !important;
+      /* Keep original absolute positioning, but ensure it doesn't go off-screen */
+      position: absolute !important;
+      /* Align to the right of the anchor, or center if it helps */
+      right: 0 !important; 
+      left: auto !important;
+      transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: min(380px, calc(100vw - 32px)) !important;
-      max-width: min(380px, calc(100vw - 32px)) !important;
-      /* Center vertically or position nicely */
-      top: 50% !important;
-      transform: translate(-50%, -50%) !important;
+      width: min(380px, calc(100vw - 16px)) !important;
+      max-width: min(380px, calc(100vw - 16px)) !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;
     }
     
-    /* Ensure backdrop for fixed popover on mobile */
+    /* Remove backdrop if it was added */
     .notifications-popover-errl::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: -1;
-      backdrop-filter: blur(4px);
+      display: none !important;
     }
   }
   
