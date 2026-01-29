@@ -8,6 +8,7 @@ import { getUsernameColorIndex } from '../../lib/usernameColor';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
+import { getAvatarUrl } from '../../lib/media';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -467,14 +468,51 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 minWidth: 0
               }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
-                {/* Custom Avatar Hidden on Account Page */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: '12px' }}>
+                {/* Custom Avatar */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '40px', flexWrap: 'wrap' }}>
-                      <p className="muted" style={{ margin: 0, fontSize: '13px' }}>
-                        Avatars are currently only visible on your public profile.
-                      </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
+                      {user.avatar_key ? (
+                        <div style={{ position: 'relative' }}>
+                          <Image
+                            src={getAvatarUrl(user.avatar_key)}
+                            alt="Current Avatar"
+                            width={96}
+                            height={96}
+                            unoptimized
+                            style={{
+                              width: '96px',
+                              height: '96px',
+                              display: 'block',
+                              borderRadius: '50%',
+                              background: 'rgba(0,0,0,0.5)'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
+                          No avatar set
+                        </div>
+                      )}
                     </div>
+                    {!isEditingAvatar && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                        <Image
+                          src={getAvatarUrl(user.avatar_key)}
+                          alt="Mini avatar preview"
+                          width={24}
+                          height={24}
+                          unoptimized
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.5)'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                   <button
                     type="button"
