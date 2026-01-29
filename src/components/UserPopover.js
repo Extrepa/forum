@@ -17,7 +17,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       .then(data => {
         if (!data.error) {
           setUserInfo(data);
-          console.log("UserPopover: fetched userInfo", data);
         }
         setLoading(false);
       })
@@ -48,7 +47,9 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         top: 'calc(100% + 8px)',
         left: '0',
         zIndex: 1000,
-        width: '140px',
+        minWidth: '140px',
+        width: 'max-content',
+        maxWidth: '200px',
         padding: '12px',
         background: 'var(--errl-panel)',
         // Removed explicit border, borderRadius, boxShadow since .card class handles it
@@ -89,7 +90,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       )}
 
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})` }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0}) !important` }}>
           {username}
         </div>
         {userInfo?.role && (
