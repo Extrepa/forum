@@ -46,6 +46,7 @@
     - Re-inserted the `useEffect` for fetching user data with `console.log` and `console.error` statements.
     - Updated `useFloating` middleware to use `autoPlacement` with `crossAxis: true` and `padding: 16` for improved responsive positioning on small viewports.
     - Further refined `useFloating` middleware: Added `alignment: 'center'` to `autoPlacement` for small viewports and `crossAxis: true` to `shift` to explicitly enforce horizontal centering.
-    - **Fixed `ReferenceError: autoPlacement is not defined` by adding `autoPlacement` to the import statement.**
+    - Fixed `ReferenceError: autoPlacement is not defined` by adding `autoPlacement` to the import statement.
+    - **Adjusted Floating UI middleware to conditionally use `autoPlacement` with `allowedPlacements: ['bottom', 'top']` and `shift` with `crossAxis: true` for mobile (`viewportWidth <= 640`), and `flip()` for desktop, to address positioning and sizing regressions.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
