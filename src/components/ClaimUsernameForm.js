@@ -961,12 +961,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                     <label htmlFor="login-identifier" className="muted">Email or username</label>
                     <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted)' }}>
+                      Remember me
                       <input
                         type="checkbox"
                         checked={rememberLogin}
                         onChange={(event) => setRememberLogin(event.target.checked)}
                       />
-                      Remember me
                     </label>
                   </div>
                   <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
