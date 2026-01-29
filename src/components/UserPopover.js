@@ -107,7 +107,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: viewportWidth <= 640 ? '100%' : 'max-content',
+        width: viewportWidth <= 640 ? 'fit-content' : 'max-content',
         minWidth: viewportWidth <= 640 ? '120px' : undefined,
         maxWidth: 'calc(100vw - 32px)',
         padding: '12px',
@@ -132,7 +132,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       {loading ? (
         <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
       ) : (
-        <div style={{ position: 'relative', width: '64px', height: '64px', maxWidth: '100%' }}>
+        <div style={{ position: 'relative', width: '64px', height: '64px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
           <Image
             src={avatarUrl}
             alt={username}
@@ -150,13 +150,13 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         </div>
       )}
 
-      <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%' }}>
+      <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
         {console.log('UserPopover: UserInfo for color debug:', userInfo)}
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})`, wordBreak: 'break-word', maxWidth: '100%' }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: userInfo ? `var(--username-${userInfo.preferred_username_color_index || 0})` : 'var(--muted)', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word', maxWidth: '100%' }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
             {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
           </div>
         )}

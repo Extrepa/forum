@@ -51,7 +51,8 @@
     - Completely rewrote `src/components/UserPopover.js` to remove all Floating UI dependencies, re-implement custom positioning logic (favoring "above and right" for desktop, and centered bottom/top for mobile), and re-implement manual `mousedown` event listener for click-outside-to-close.
     - Modified `UserPopover.js` to conditionally set `width: '100%'` (for mobile) with `minWidth: '120px'` and `maxWidth: 'calc(100vw - 32px)'`, and applied `word-break: break-word` to text elements, and `maxWidth: '100%'` to internal content to ensure proper wrapping and width constraints.
     - Removed the `useEffect` block for click-outside-to-close from `src/components/UserPopover.js` as it is not needed for a hover-triggered popover.
-    - **Added `console.log('UserPopover: UserInfo for color debug:', userInfo)` before username rendering to debug color issue.**
+    - Added `console.log('UserPopover: UserInfo for color debug:', userInfo)` before username rendering to debug color issue.
+    - **Modified `UserPopover.js` to refine mobile width control by setting `width: 'fit-content'`, `minWidth: '120px'`, and `maxWidth: 'calc(100vw - 32px)'` (without `!important`). Also made the username `color` conditional on `userInfo` being available, falling back to `var(--muted)`.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
     - Updated `src/components/Username.js` to use `onMouseEnter` and `onMouseLeave` for triggering the popover, with a `hoverTimeout` to manage the close delay.
