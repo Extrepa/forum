@@ -150,6 +150,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [panelPos, setPanelPos] = useState({ top: 8, right: 8 });
+  const [panelWidth, setPanelWidth] = useState(190);
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialRight: 8 });
   const [palette, setPalette] = useState(INITIAL_PALETTE);
@@ -166,6 +167,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const dragStart = useRef({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const containerRef = useRef(null);
+  const canvasRef = useRef(null);
   const imageFillInputRef = useRef(null);
   const lastContextMenuRef = useRef(0);
 
@@ -384,6 +386,23 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setContextMenu({ x: e.clientX, y: e.clientY, id });
   };
 
+  const clampPanelToCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const canvasWidth = canvas.clientWidth || 0;
+    const canvasHeight = canvas.clientHeight || 0;
+    const nextWidth = Math.max(150, Math.min(190, Math.floor(canvasWidth * 0.62)));
+    setPanelWidth(nextWidth);
+    setPanelPos((prev) => {
+      const maxRight = Math.max(8, canvasWidth - nextWidth - 8);
+      const nextRight = Math.min(Math.max(prev.right, 8), maxRight);
+      const maxTop = Math.max(8, canvasHeight - 8);
+      const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
+      if (prev.right === nextRight && prev.top === nextTop) return prev;
+      return { ...prev, right: nextRight, top: nextTop };
+    });
+  }, []);
+
   const getGradientId = (layer) => {
     if (layer.gradientId) return layer.gradientId;
     if (layer.gradientUrl) {
@@ -410,6 +429,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     pt.y = e.clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   };
+
+  useEffect(() => {
+    clampPanelToCanvas();
+    const handleResize = () => clampPanelToCanvas();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [clampPanelToCanvas, contextMenu]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -636,6 +662,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     lastTapRef.current = now;
   };
 
+  const wheelColor = selectedLayer
+    ? (activeControlTab === 'fill' ? (selectedLayer.color || '#ffffff') : (selectedLayer.stroke || '#ffffff'))
+    : '#ffffff';
+
+  const applyWheelColor = (newColor) => {
+    if (!selectedLayer) return;
+    if (activeControlTab === 'fill') {
+      handleLayerChange(selectedLayer.id, { color: newColor, finish: 'solid', gradientId: undefined, gradientDirection: undefined, gradientUrl: undefined, imageUrl: undefined });
+      return;
+    }
+    handleLayerChange(selectedLayer.id, { stroke: newColor, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -668,6 +707,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           minHeight: 0,
           boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
         }}
+        ref={canvasRef}
         onMouseMove={() => setShowHint(false)}
         onMouseLeave={() => setShowHint(false)}
       >
@@ -916,9 +956,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               top: `${panelPos.top}px`,
               right: `${panelPos.right}px`,
               zIndex: 100,
-              width: '190px',
-              minWidth: '190px',
-              maxWidth: '190px',
+              width: `${panelWidth}px`,
+              minWidth: `${panelWidth}px`,
+              maxWidth: `${panelWidth}px`,
               background: 'var(--errl-panel)',
               backdropFilter: 'blur(16px)',
               borderRadius: '12px',
@@ -930,7 +970,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               gap: '4px',
               maxHeight: 'calc(100% - 12px)',
               overflowY: 'hidden',
-              overflowX: 'hidden',
+              overflowX: 'visible',
               cursor: isDraggingPanel ? 'grabbing' : 'default'
             }}
           >
@@ -999,14 +1039,21 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     />
                   ))}
                   <div 
-                    onClick={() => openColorPicker('wheel')}
                     title="Custom Fill Color Wheel"
                     style={{ 
-                      position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', 
+                      position: 'absolute', bottom: '2px', right: '2px', width: '14px', height: '14px', 
                       background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
-                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 1
+                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
                     }}
-                  />
+                  >
+                    <input
+                      type="color"
+                      value={wheelColor}
+                      onChange={(e) => applyWheelColor(e.target.value)}
+                      title="Pick a custom fill color"
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                    />
+                  </div>
                 </div>
 
                 {selectedLayer.type !== 'import' && (
@@ -1262,14 +1309,21 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     />
                   ))}
                   <div 
-                    onClick={() => openColorPicker('wheel')}
                     title="Custom Outline Color Wheel"
                     style={{ 
-                      position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', 
+                      position: 'absolute', bottom: '2px', right: '2px', width: '14px', height: '14px', 
                       background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
-                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 1
+                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
                     }}
-                  />
+                  >
+                    <input
+                      type="color"
+                      value={wheelColor}
+                      onChange={(e) => applyWheelColor(e.target.value)}
+                      title="Pick a custom outline color"
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                    />
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
