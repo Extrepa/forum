@@ -640,14 +640,24 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     <div 
       ref={containerRef}
       className="avatar-customizer-container card" 
-      style={{ position: 'relative', width: '100%', height: 'auto', display: 'flex', flexDirection: 'column', padding: '8px', alignSelf: 'flex-start' }}
+      style={{ 
+        position: 'relative',
+        width: '100%',
+        height: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '8px',
+        alignSelf: 'flex-start',
+        borderRadius: '12px',
+        boxSizing: 'border-box'
+      }}
     >
       <div 
         className="canvas-card" 
         style={{ 
           background: 'rgba(2, 7, 10, 0.4)', 
           borderRadius: '12px', 
-          border: '1px solid var(--errl-border)',
+          border: 'none',
           overflowX: 'auto',
           overflowY: 'hidden',
           position: 'relative',
@@ -732,7 +742,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             minHeight: '16px',
             maxHeight: '16px',
             boxSizing: 'border-box',
-            flex: '0 0 auto'
+            flex: '0 0 auto',
+            boxShadow: 'none'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--accent)';

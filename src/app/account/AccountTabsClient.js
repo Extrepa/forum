@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -36,6 +36,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }));
   });
   const [openDropdowns, setOpenDropdowns] = useState({});
+  const avatarInitialState = useMemo(() => {
+    if (!user?.avatar_state) return null;
+    try {
+      return JSON.parse(user.avatar_state);
+    } catch (error) {
+      console.warn('Failed to parse avatar_state', error);
+      return null;
+    }
+  }, [user?.avatar_state]);
 
   const handleTabChange = (tab) => {
     router.push(`/account?tab=${tab}`, { scroll: false });
@@ -522,7 +531,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <AvatarCustomizer 
                     onSave={handleAvatarSave} 
                     onCancel={() => setIsEditingAvatar(false)}
-                    initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                    initialState={avatarInitialState}
+                    key={user?.avatar_state || 'avatar-empty'}
                   />
                 )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
