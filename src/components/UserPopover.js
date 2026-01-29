@@ -9,9 +9,9 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
 
   useEffect(() => {
-    // Always fetch user info to ensure we have role and preferred_username_color_index
     fetch(`/api/user/${encodeURIComponent(username)}`)
       .then(res => res.json())
       .then(data => {
@@ -24,16 +24,43 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   }, [username]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target) && 
-          anchorRef.current && !anchorRef.current.contains(event.target)) {
-        onClose();
+    if (!anchorRef.current || !popoverRef.current) return;
+
+    const calculatePosition = () => {
+      const anchorRect = anchorRef.current.getBoundingClientRect();
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let newLeft = anchorRect.left;
+      let newTop = anchorRect.bottom + 8; // 8px below the anchor
+
+      // Adjust if popover overflows right side of viewport
+      if (newLeft + popoverRect.width > viewportWidth - 16) { // 16px padding from right edge
+        newLeft = viewportWidth - popoverRect.width - 16;
       }
+      // Ensure it doesn't go off the left side either
+      if (newLeft < 16) { // 16px padding from left edge
+        newLeft = 16;
+      }
+
+      // Adjust if popover overflows bottom of viewport
+      if (newTop + popoverRect.height > viewportHeight - 16) {
+        // Try to position above the anchor if it overflows below
+        newTop = anchorRect.top - popoverRect.height - 8; // 8px above the anchor
+        // If it still overflows above, position at the top with some padding
+        if (newTop < 16) {
+          newTop = 16;
+        }
+      }
+
+      setPopoverPosition({ left: newLeft, top: newTop });
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose, anchorRef]);
+    calculatePosition();
+    window.addEventListener('resize', calculatePosition);
+    return () => window.removeEventListener('resize', calculatePosition);
+  }, [anchorRef, onClose]);
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
@@ -43,10 +70,10 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       ref={popoverRef}
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
-        position: 'absolute',
-        top: 'calc(100% + 8px)',
-        left: '0',
-        zIndex: 1000,
+        position: 'fixed',
+        top: popoverPosition.top,
+        left: popoverPosition.left,
+        zIndex: 9999,
         minWidth: '140px',
         width: 'max-content',
         maxWidth: '200px',
