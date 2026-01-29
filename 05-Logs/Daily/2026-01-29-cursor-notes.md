@@ -48,7 +48,8 @@
     - Further refined `useFloating` middleware: Added `alignment: 'center'` to `autoPlacement` for small viewports and `crossAxis: true` to `shift` to explicitly enforce horizontal centering.
     - Fixed `ReferenceError: autoPlacement is not defined` by adding `autoPlacement` to the import statement.
     - Adjusted Floating UI middleware to conditionally use `autoPlacement` with `allowedPlacements: ['bottom', 'top']` and `shift` with `crossAxis: true` for mobile (`viewportWidth <= 640`), and `flip()` for desktop, to address positioning and sizing regressions.
-    - **Completely rewrote `src/components/UserPopover.js` to remove all Floating UI dependencies, re-implement custom positioning logic (favoring "above and right" for desktop, and centered bottom/top for mobile), and re-implement manual `mousedown` event listener for click-outside-to-close.**
+    - Completely rewrote `src/components/UserPopover.js` to remove all Floating UI dependencies, re-implement custom positioning logic (favoring "above and right" for desktop, and centered bottom/top for mobile), and re-implement manual `mousedown` event listener for click-outside-to-close.
+    - **Modified `UserPopover.js` to conditionally set `width: 'fit-content'` and `minWidth: '120px'` for mobile viewports, and applied `word-break: break-word` to text elements within the popover to ensure proper wrapping.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
-    - **Updated `src/components/Username.js` to use `onMouseEnter` and `onMouseLeave` for triggering the popover, with a `hoverTimeout` to manage the close delay.**
+    - Updated `src/components/Username.js` to use `onMouseEnter` and `onMouseLeave` for triggering the popover, with a `hoverTimeout` to manage the close delay.

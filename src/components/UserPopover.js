@@ -122,7 +122,8 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: 'max-content',
+        width: viewportWidth <= 640 ? 'fit-content' : 'max-content',
+        minWidth: viewportWidth <= 640 ? '120px' : undefined,
         maxWidth: 'calc(100vw - 32px)',
         padding: '12px',
         background: 'var(--errl-panel)',
@@ -164,12 +165,12 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         </div>
       )}
 
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})` }}>
+      <div style={{ textAlign: 'center', wordBreak: 'break-word' }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})`, wordBreak: 'break-word' }}>
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word' }}>
             {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
           </div>
         )}
