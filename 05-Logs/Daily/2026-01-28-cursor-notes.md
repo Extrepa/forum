@@ -37,7 +37,7 @@
 - **Reset Confirmation**: Added a confirmation step to the "Restore Factory Defaults" (Reset) button to prevent accidental purging of custom progress.
 
 #### 6. Profile Page Enhancements
-- **Minimalist Hero Avatar**: Removed the decorative container/box from the hero avatar to focus purely on the face, centered prominently above the username.
+- **Parallax Hero Avatar**: Implemented a new `ProfileAvatarHero` client component that adds a subtle parallax effect. The face and its background aura move independently based on mouse position, giving the "Neural Representation" a sense of depth and life.
 - **Dynamic Background Aura**: Added a subtle radial gradient (aura) behind the avatar that dynamically matches the user's chosen username color, creating a cohesive visual identity.
 - **Tightened Layout**: Optimized vertical spacing by reducing paddings above the avatar, between the face and username, and below the user role for a more compact and impactful header.
 - **Integrated Layout**: Refined the profile layout to remove the nested box, allowing the avatar and large username to flow naturally between the "Profile" title and "Socials" links for a cleaner, more integrated look.

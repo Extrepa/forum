@@ -7,6 +7,7 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
+import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
 import { getAvatarUrl } from '../../../lib/media';
 
 export const dynamic = 'force-dynamic';
@@ -433,30 +434,10 @@ export default async function ProfilePage({ params }) {
                 marginBottom: '8px',
                 padding: '0'
               }}>
-                <div style={{ 
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '180px',
-                  height: '180px',
-                  borderRadius: '50%',
-                  background: `radial-gradient(circle, ${userColor}33 0%, transparent 70%)`
-                }}>
-                  <Image
-                    src={getAvatarUrl(profileUser.avatar_key) || '/icons/errl-face.png'}
-                    alt=""
-                    width={160}
-                    height={160}
-                    unoptimized
-                    style={{
-                      width: '160px',
-                      height: '160px',
-                      display: 'block',
-                      filter: `drop-shadow(0 0 10px ${userColor}44)`
-                    }}
-                  />
-                </div>
+                <ProfileAvatarHero 
+                  avatarKey={profileUser.avatar_key} 
+                  userColor={userColor} 
+                />
                 
                 <div style={{ textAlign: 'center' }}>
                   <Username
