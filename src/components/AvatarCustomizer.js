@@ -1344,21 +1344,22 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={() => setContextMenu(null)} 
               style={{ 
                 marginLeft: 'auto',
-                width: '32px',
-                height: '16px',
-                borderRadius: '4px',
+                width: '22px',
+                height: '12px',
+                borderRadius: '3px',
                 background: 'rgba(2, 7, 10, 0.4)',
                 border: '1px solid rgba(52, 225, 255, 0.2)',
                 color: 'var(--muted)',
                 cursor: 'pointer',
-                fontSize: '10px',
+                fontSize: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: 0,
                 lineHeight: 1,
                 boxShadow: 'none',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                minHeight: 0
               }}
               onMouseEnter={(e) => {
                 e.target.style.background = 'rgba(255, 50, 50, 0.2)';
