@@ -518,6 +518,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     type="button"
                     onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
                     disabled={isEditingAvatar}
+                    title="Modify your neural representation"
                     style={{
                       borderRadius: '999px',
                       border: 'none',
@@ -679,6 +680,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       setColorStatus({ type: 'idle', message: null });
                     }}
                     disabled={isEditingUsername}
+                    title="Change your network identifier"
                     style={{
                       borderRadius: '999px',
                       border: 'none',
@@ -907,6 +909,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       setColorStatus({ type: 'idle', message: null });
                     }}
                     disabled={isEditingSocials}
+                    title="Update your external frequency links"
                     style={{
                       borderRadius: '999px',
                       border: 'none',

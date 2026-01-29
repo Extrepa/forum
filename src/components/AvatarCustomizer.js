@@ -836,7 +836,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
             }}
-            title="Undo (Ctrl+Z)"
+            title="Rewind (Ctrl+Z)"
           >
             ⟲
           </button>
@@ -856,7 +856,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               transition: 'all 0.2s ease',
               padding: 0, minHeight: 0
             }}
-            title="Redo (Ctrl+Y)"
+            title="Fast-Forward (Ctrl+Y)"
           >
             ⟳
           </button>
@@ -864,7 +864,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         <button
           type="button"
           onClick={() => setIsHelpOpen((prev) => !prev)}
-          title="Help"
+          title="System Manual"
           style={{
             position: 'absolute',
             top: '10px',
@@ -930,6 +930,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <button
                 type="button"
                 onClick={() => setIsHelpOpen(false)}
+                title="Close Manual"
                 style={{
                   border: 'none',
                   background: 'transparent',
@@ -1080,7 +1081,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
             <button 
               onClick={handleRandomizeAll}
-              title="Randomize All: Assign random colors, finishes, and outlines to everything"
+              title="Chaos Protocol: Randomize everything"
               style={{ 
                 flex: '1 1 0', minWidth: 0, minHeight: '24px', borderRadius: '999px', border: '1px solid var(--accent)', 
                 background: 'rgba(52, 225, 255, 0.1)', color: 'var(--accent)', cursor: 'pointer', 
@@ -1095,7 +1096,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             </button>
             <button 
               onClick={handleReset}
-              title="Reset to Default: Back to original shapes with new random colors"
+              title="Factory Restore: Default shapes, fresh colors"
               style={{ 
                 flex: '1 1 0', minWidth: 0, minHeight: '24px', borderRadius: '999px', border: '1px solid rgba(255,107,107,0.35)', 
                 background: 'rgba(255, 80, 80, 0.08)', color: '#ff9a9a', cursor: 'pointer', 
@@ -1108,7 +1109,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             </button>
             <button
               type="button"
-              title="Accessories (coming soon)"
+              title="Tech Upgrade (Coming Soon)"
               disabled
               style={{ 
                 flex: '1 1 0', minWidth: 0, minHeight: '24px', padding: '0 8px', background: 'rgba(255,255,255,0.03)', 
@@ -1221,7 +1222,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
-              title="Save Avatar: Apply your changes to your profile"
+              title="Upload Profile: Sync changes to the network"
               style={{ 
                 flex: 2,
                 minHeight: '28px',
@@ -1251,7 +1252,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             </button>
             <button 
               onClick={onCancel}
-              title="Close: Discard unsaved changes and exit"
+              title="Abort: Exit without saving"
               style={{ 
                 flex: 1,
                 minHeight: '28px',
@@ -1365,6 +1366,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             </span>
             <button 
               onClick={() => setContextMenu(null)} 
+              title="Dismiss Interface"
               style={{ 
                 marginLeft: 'auto',
                 width: '22px',
@@ -1403,7 +1405,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '999px', padding: '2px', border: '1px solid rgba(52, 225, 255, 0.1)' }}>
               <button 
                 onClick={() => setActiveControlTab('fill')}
-                title="Edit Fill Color and Finish"
+                title="Surface Texture & Hue"
                 style={{ 
                   flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
                   background: activeControlTab === 'fill' ? 'var(--accent)' : 'transparent', 
@@ -1414,7 +1416,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               >FILL</button>
               <button 
                 onClick={() => setActiveControlTab('outline')}
-                title="Edit Outline (Stroke) Color"
+                title="Frame & Border"
                 style={{ 
                   flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
                   background: activeControlTab === 'outline' ? 'var(--accent)' : 'transparent', 
@@ -1434,7 +1436,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     key={`${idx}-${c}`} 
                     onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid', imageUrl: undefined })}
                     onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
-                    title={`Set Fill to ${c} (Right-click to reassign box)`}
+                    title={`Apply Color ${c} (Right-click to remap palette)`}
                     style={{ 
                       width: '100%',
                       height: '100%',
@@ -1446,7 +1448,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   />
                 ))}
                 <div 
-                  title="Custom Fill Color Wheel"
+                  title="Spectrum Core"
                   style={{ 
                     position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
                     background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
@@ -1457,7 +1459,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     type="color"
                     value={wheelColor}
                     onChange={(e) => applyWheelColor(e.target.value)}
-                    title="Pick a custom fill color"
+                    title="Extract Custom Hue"
                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
                   />
                 </div>
@@ -1470,7 +1472,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                       <button
                         key={f}
                         onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
-                        title={`Apply ${f} finish`}
+                        title={`Apply ${f.toUpperCase()} Surface`}
                         style={{ 
                           fontSize: '9px', padding: '8px 2px', 
                           background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
@@ -1486,7 +1488,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     <button
                       type="button"
                       onClick={() => imageFillInputRef.current?.click()}
-                      title="Apply image fill"
+                      title="Inject Custom Texture"
                       style={{
                         fontSize: '14px',
                         padding: '6px 0',
@@ -1519,7 +1521,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           const nextDirection = selectedLayer.gradientDirection || 'lr';
                           handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientId: g.id, gradientDirection: nextDirection, gradientUrl: `url(#${g.id}-${nextDirection})` });
                         }}
-                        title={`Apply ${g.name} gradient`}
+                        title={`Stream ${g.name.toUpperCase()} Pulse`}
                         style={{ 
                           fontSize: '12px', 
                           padding: '12px 0', 
@@ -1548,7 +1550,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
                                 style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Decrease glow"
+                                title="Dim Emission"
                               >
                                 −
                               </button>
@@ -1556,7 +1558,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 type="button"
                                 onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
                                 style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Increase glow"
+                                title="Boost Emission"
                               >
                                 +
                               </button>
@@ -1578,7 +1580,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                     type="button"
                                     onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
                                     style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                    title={`Gradient ${dir.label}`}
+                                    title={`Pulse Direction: ${dir.label}`}
                                   >
                                     {dir.label}
                                   </button>
@@ -1596,7 +1598,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Scale down"
+                              title="Compress"
                             >
                               −
                             </button>
@@ -1604,7 +1606,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Scale up"
+                              title="Expand"
                             >
                               +
                             </button>
@@ -1619,7 +1621,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Rotate left"
+                              title="Shift Left"
                             >
                               ←
                             </button>
@@ -1627,7 +1629,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Rotate right"
+                              title="Shift Right"
                             >
                               →
                             </button>
@@ -1641,7 +1643,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Flip horizontal"
+                              title="Mirror X"
                             >
                               ⇋
                             </button>
@@ -1649,7 +1651,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                               type="button"
                               onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
                               style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                              title="Flip vertical"
+                              title="Mirror Y"
                             >
                               ⇵
                             </button>
@@ -1659,7 +1661,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                     <button 
                       onClick={() => handleDuplicate(selectedLayer.id)} 
-                      title="Duplicate (Ctrl+D)" 
+                      title="Clone (Ctrl+D)" 
                       style={{ 
                         flex: 1, fontSize: '10px', padding: '8px 4px', 
                         background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
@@ -1671,7 +1673,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     >DUP</button>
                     <button 
                       onClick={() => randomizeLayer(selectedLayer.id)} 
-                      title="Randomize Layer (R)" 
+                      title="Mutate (R)" 
                       style={{ 
                         flex: 1, fontSize: '10px', padding: '8px 4px', 
                         background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
@@ -1683,7 +1685,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     >RAND</button>
                     <button 
                       onClick={() => handleDelete(selectedLayer.id)} 
-                      title="Delete (Del)" 
+                      title="Purge (Del)" 
                       style={{ 
                         flex: 1, fontSize: '10px', padding: '8px 4px', 
                         background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
@@ -1704,7 +1706,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     key={`${idx}-${c}-outline`} 
                     onClick={() => handleLayerChange(selectedLayer.id, { stroke: c, strokeFinish: 'solid', strokeGradientUrl: undefined })}
                     onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
-                    title={`Set Outline to ${c} (Right-click to reassign box)`}
+                    title={`Frame Color ${c} (Right-click to remap)`}
                     style={{ 
                       width: '100%', 
                       height: '100%',
@@ -1716,7 +1718,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   />
                 ))}
                 <div 
-                  title="Custom Outline Color Wheel"
+                  title="Frame Spectrum"
                   style={{ 
                     position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
                     background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
@@ -1727,7 +1729,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     type="color"
                     value={wheelColor}
                     onChange={(e) => applyWheelColor(e.target.value)}
-                    title="Pick a custom outline color"
+                    title="Extract Border Hue"
                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
                   />
                 </div>
@@ -1750,6 +1752,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         }
                         handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
                       }}
+                      title={`Apply ${f.toUpperCase()} to Frame`}
                       style={{ 
                         fontSize: '10px', 
                         padding: '4px 0', 
@@ -1770,7 +1773,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                       <button
                         key={`outline-${g.id}`}
                         onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientId: g.id, strokeGradientDirection: selectedLayer.strokeGradientDirection || 'lr', strokeGradientUrl: `url(#${g.id}-${selectedLayer.strokeGradientDirection || 'lr'})` })}
-                        title={`Apply ${g.name} gradient to outline`}
+                        title={`Stream ${g.name.toUpperCase()} to Frame`}
                         style={{ 
                           fontSize: '12px', 
                           padding: '10px 0', 
@@ -1795,7 +1798,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
                   <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
                 </div>
-                <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
+                <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} title="Adjust Frame Thickness" style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
               </div>
             </>
           )}
