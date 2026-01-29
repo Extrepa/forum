@@ -1,8 +1,10 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import ArtClient from './ArtClient';
 import { redirect } from 'next/navigation';
@@ -14,12 +16,15 @@ export default async function ArtPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
 
   let results = [];
   let dbUnavailable = false;
+  const hiddenFilter = showHidden ? '' : 'AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)';
 
   try {
     const out = await db
@@ -34,6 +39,8 @@ export default async function ArtPage({ searchParams }) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'art'
+           ${hiddenFilter}
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            AND (${isSignedIn ? '1=1' : 'posts.is_private = 0'})
          ORDER BY posts.created_at DESC
          LIMIT 50`
@@ -114,25 +121,27 @@ export default async function ArtPage({ searchParams }) {
       <PageTopRow
         items={[{ href: '/', label: 'Home' }, { href: '/art', label: 'Art' }]}
         right={
-          <NewPostModalButton label="New Art" title="New Art Post" disabled={!canCreate} variant="wide">
-            <GenericPostForm
-              action="/api/posts"
-              type="art"
-              titleLabel="Title (optional)"
-              titlePlaceholder="Untitled"
-              bodyLabel="Caption (optional)"
-              bodyPlaceholder="Add a caption (optional)"
-              buttonLabel="Post"
-              showImage={true}
-              requireImage={true}
-              titleRequired={false}
-              bodyRequired={false}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Art" title="New Art Post" disabled={!canCreate} variant="wide">
+              <GenericPostForm
+                action="/api/posts"
+                type="art"
+                titleLabel="Title (optional)"
+                titlePlaceholder="Untitled"
+                bodyLabel="Caption (optional)"
+                bodyPlaceholder="Add a caption (optional)"
+                buttonLabel="Post"
+                showImage={true}
+                requireImage={true}
+                titleRequired={false}
+                bodyRequired={false}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <ArtClient posts={posts} notice={notice} isSignedIn={isSignedIn} />
     </>
   );
 }
-

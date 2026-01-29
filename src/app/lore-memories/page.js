@@ -1,8 +1,10 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import LoreMemoriesClient from './LoreMemoriesClient';
 import { redirect } from 'next/navigation';
@@ -14,11 +16,14 @@ export default async function LoreMemoriesPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
 
   const db = await getDb();
   let results = [];
   let dbUnavailable = false;
+  const hiddenFilter = showHidden ? '' : 'AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -32,6 +37,8 @@ export default async function LoreMemoriesPage({ searchParams }) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type IN ('lore', 'memories')
+           ${hiddenFilter}
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
          ORDER BY posts.created_at DESC
          LIMIT 50`
       )
@@ -103,22 +110,25 @@ export default async function LoreMemoriesPage({ searchParams }) {
       <PageTopRow
         items={[{ href: '/', label: 'Home' }, { href: '/lore-memories', label: 'Lore & Memories' }]}
         right={
-          <NewPostModalButton label="New Post" title="New Lore or Memory Post" disabled={!canCreate} variant="wide">
-            <GenericPostForm
-              action="/api/posts"
-              allowedTypes={['lore', 'memories']}
-              titleLabel="Title (optional)"
-              titlePlaceholder="Optional title"
-              bodyLabel="Lore or Memory"
-              bodyPlaceholder="Write the lore or share the memory..."
-              buttonLabel="Post"
-              showImage={true}
-              requireImage={false}
-              titleRequired={false}
-              bodyRequired={true}
-              showPrivateToggle={false}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Post" title="New Lore or Memory Post" disabled={!canCreate} variant="wide">
+              <GenericPostForm
+                action="/api/posts"
+                allowedTypes={['lore', 'memories']}
+                titleLabel="Title (optional)"
+                titlePlaceholder="Optional title"
+                bodyLabel="Lore or Memory"
+                bodyPlaceholder="Write the lore or share the memory..."
+                buttonLabel="Post"
+                showImage={true}
+                requireImage={false}
+                titleRequired={false}
+                bodyRequired={true}
+                showPrivateToggle={false}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <LoreMemoriesClient posts={posts} notice={notice} />

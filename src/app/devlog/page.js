@@ -6,6 +6,7 @@ import { getSessionUser } from '../../lib/auth';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import DevLogForm from '../../components/DevLogForm';
 import { redirect } from 'next/navigation';
 
@@ -17,10 +18,12 @@ export default async function DevLogPage({ searchParams }) {
     redirect('/');
   }
   const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
 
   const db = await getDb();
   let results = [];
   let dbUnavailable = false;
+  const hiddenFilter = showHidden ? '' : 'AND (dev_logs.is_hidden = 0 OR dev_logs.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -35,6 +38,9 @@ export default async function DevLogPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
+         WHERE 1 = 1
+           ${hiddenFilter}
+           AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
          ORDER BY dev_logs.created_at DESC
          LIMIT 50`
       )
@@ -148,9 +154,12 @@ export default async function DevLogPage({ searchParams }) {
         ]}
         right={
           isAdmin ? (
-            <NewPostModalButton label="New Development Post" title="New Development Post" variant="wide">
-              <DevLogForm />
-            </NewPostModalButton>
+            <>
+              <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} />
+              <NewPostModalButton label="New Development Post" title="New Development Post" variant="wide">
+                <DevLogForm />
+              </NewPostModalButton>
+            </>
           ) : null
         }
       />
@@ -158,4 +167,3 @@ export default async function DevLogPage({ searchParams }) {
     </>
   );
 }
-

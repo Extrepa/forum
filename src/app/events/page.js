@@ -2,8 +2,10 @@ import EventsClient from './EventsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
 import { redirect } from 'next/navigation';
 
@@ -14,9 +16,12 @@ export default async function EventsPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   
   let results = [];
+  const hiddenFilter = showHidden ? '' : 'AND (events.is_hidden = 0 OR events.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -31,6 +36,8 @@ export default async function EventsPage({ searchParams }) {
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
+           ${hiddenFilter}
+           AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
          ORDER BY events.starts_at ASC
          LIMIT 50`
       )
@@ -49,9 +56,9 @@ export default async function EventsPage({ searchParams }) {
                   (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                   COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
-           FROM events
-           JOIN users ON users.id = events.author_user_id
-           ORDER BY events.starts_at ASC
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         ORDER BY events.starts_at ASC
            LIMIT 50`
         )
         .all();
@@ -154,17 +161,20 @@ export default async function EventsPage({ searchParams }) {
           { href: '/events', label: 'Events' },
         ]}
         right={
-          <NewPostModalButton label="Add Event" title="Add Event" disabled={!canCreate}>
-            <PostForm
-              action="/api/events"
-              titleLabel="Event title"
-              bodyLabel="Details (optional)"
-              buttonLabel="Add Event"
-              showDate
-              bodyRequired={false}
-              showImage={true}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="Add Event" title="Add Event" disabled={!canCreate}>
+              <PostForm
+                action="/api/events"
+                titleLabel="Event title"
+                bodyLabel="Details (optional)"
+                buttonLabel="Add Event"
+                showDate
+                bodyRequired={false}
+                showImage={true}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <EventsClient events={events} notice={notice} />

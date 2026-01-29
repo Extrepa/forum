@@ -42,6 +42,8 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
           url = `/api/devlog/${postId}/delete`;
         } else if (postType === 'post') {
           url = `/api/posts/${postId}/delete`;
+        } else if (postType === 'timeline') {
+          url = `/api/timeline/${postId}/delete`;
         } else {
           alert('Delete not yet implemented for this post type');
           setIsDeleting(false);
@@ -75,6 +77,8 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
             } else if (postType === 'post') {
               // For posts, redirect to lore-memories (covers lore, memories, and other post types)
               router.push('/lore-memories');
+            } else if (postType === 'timeline') {
+              router.push('/announcements');
             } else {
               router.refresh();
             }
@@ -103,6 +107,10 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
         style={{ 
           fontSize: '12px', 
           padding: '4px 8px',
+          minHeight: '44px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           background: 'rgba(255, 52, 52, 0.1)',
           borderColor: 'rgba(255, 52, 52, 0.3)',
           color: '#ff6b6b'

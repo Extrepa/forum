@@ -1,8 +1,10 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import MemoriesClient from './MemoriesClient';
 import { redirect } from 'next/navigation';
@@ -14,11 +16,14 @@ export default async function MemoriesPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
 
   const db = await getDb();
   let results = [];
   let dbUnavailable = false;
+  const hiddenFilter = showHidden ? '' : 'AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -32,6 +37,8 @@ export default async function MemoriesPage({ searchParams }) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'memories'
+           ${hiddenFilter}
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
          ORDER BY posts.created_at DESC
          LIMIT 50`
       )
@@ -103,26 +110,28 @@ export default async function MemoriesPage({ searchParams }) {
       <PageTopRow
         items={[{ href: '/', label: 'Home' }, { href: '/memories', label: 'Memories' }]}
         right={
-          <NewPostModalButton label="New Memory" title="New Memories Post" disabled={!canCreate} variant="wide">
-            <GenericPostForm
-              action="/api/posts"
-              type="memories"
-              titleLabel="Title (optional)"
-              titlePlaceholder="Optional title"
-              bodyLabel="Memory"
-              bodyPlaceholder="Share the history..."
-              buttonLabel="Post"
-              showImage={false}
-              titleRequired={false}
-              bodyRequired={true}
-              showPrivateToggle={true}
-              defaultPrivate={false}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Memory" title="New Memories Post" disabled={!canCreate} variant="wide">
+              <GenericPostForm
+                action="/api/posts"
+                type="memories"
+                titleLabel="Title (optional)"
+                titlePlaceholder="Optional title"
+                bodyLabel="Memory"
+                bodyPlaceholder="Share the history..."
+                buttonLabel="Post"
+                showImage={false}
+                titleRequired={false}
+                bodyRequired={true}
+                showPrivateToggle={true}
+                defaultPrivate={false}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <MemoriesClient posts={posts} notice={notice} />
     </>
   );
 }
-

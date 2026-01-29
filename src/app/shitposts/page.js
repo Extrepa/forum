@@ -1,8 +1,10 @@
 import ShitpostsClient from './ShitpostsClient';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
 import { redirect } from 'next/navigation';
 
@@ -13,8 +15,11 @@ export default async function ShitpostsPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   let results = [];
+  const hiddenFilter = showHidden ? '' : 'AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -30,6 +35,8 @@ export default async function ShitpostsPage({ searchParams }) {
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.image_key IS NOT NULL
            AND forum_threads.moved_to_id IS NULL
+           ${hiddenFilter}
+           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
          ORDER BY forum_threads.created_at DESC
          LIMIT 50`
       )
@@ -153,16 +160,19 @@ export default async function ShitpostsPage({ searchParams }) {
           { href: '/shitposts', label: 'Shitposts' },
         ]}
         right={
-          <NewPostModalButton label="New Shitpost" title="New Shitpost" disabled={!canCreate}>
-            <PostForm
-              action="/api/shitposts"
-              titleLabel="Title (optional)"
-              bodyLabel="Post whatever you want"
-              buttonLabel="Post"
-              titleRequired={false}
-              showImage={true}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Shitpost" title="New Shitpost" disabled={!canCreate}>
+              <PostForm
+                action="/api/shitposts"
+                titleLabel="Title (optional)"
+                bodyLabel="Post whatever you want"
+                buttonLabel="Post"
+                titleRequired={false}
+                showImage={true}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <ShitpostsClient posts={results} notice={notice} />

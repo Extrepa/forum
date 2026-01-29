@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
-export default function SearchBar() {
+export default function SearchBar({ disabled = false }) {
   const router = useRouter();
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
@@ -31,6 +31,9 @@ export default function SearchBar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (disabled) {
+      return;
+    }
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
       setQuery('');
@@ -42,7 +45,10 @@ export default function SearchBar() {
     <div className="header-search-container" ref={formRef}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          setIsOpen(!isOpen);
+        }}
         className="header-search-toggle"
         aria-label="Search"
         title="Search"

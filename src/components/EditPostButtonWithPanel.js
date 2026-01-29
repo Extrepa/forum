@@ -29,6 +29,7 @@ export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', pan
     padding: '4px 8px',
     minWidth: '56px',
     maxWidth: '80px',
+    minHeight: '44px',
     lineHeight: 1.2,
     display: 'inline-flex',
     flexDirection: 'column',

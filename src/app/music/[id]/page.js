@@ -8,6 +8,7 @@ import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
+import HidePostButton from '../../../components/HidePostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -64,6 +65,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
                 COALESCE(music_posts.is_locked, 0) AS is_locked,
+                COALESCE(music_posts.is_hidden, 0) AS is_hidden,
+                COALESCE(music_posts.is_deleted, 0) AS is_deleted,
                 music_posts.embed_style
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
@@ -89,6 +92,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                   0 AS like_count,
                   COALESCE(music_posts.is_locked, 0) AS is_locked,
+                  COALESCE(music_posts.is_hidden, 0) AS is_hidden,
+                  COALESCE(music_posts.is_deleted, 0) AS is_deleted,
                   music_posts.embed_style
            FROM music_posts
            JOIN users ON users.id = music_posts.author_user_id
@@ -96,13 +101,15 @@ export default async function MusicDetailPage({ params, searchParams }) {
         )
         .bind(id)
         .first();
-      if (post) {
-        post.author_avatar_key = post.author_avatar_key || null;
-        post.moved_to_id = null;
-        post.moved_to_type = null;
-        post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
-        post.is_locked = post.is_locked ?? 0;
-      }
+        if (post) {
+          post.author_avatar_key = post.author_avatar_key || null;
+          post.moved_to_id = null;
+          post.moved_to_type = null;
+          post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
+          post.is_locked = post.is_locked ?? 0;
+          post.is_hidden = post.is_hidden ?? 0;
+          post.is_deleted = post.is_deleted ?? 0;
+        }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
       try {
@@ -117,6 +124,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                     0 AS like_count,
                     0 AS is_locked,
+                    0 AS is_hidden,
+                    0 AS is_deleted,
                     music_posts.embed_style
              FROM music_posts
              JOIN users ON users.id = music_posts.author_user_id
@@ -130,6 +139,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
           post.moved_to_type = null;
           post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
           post.is_locked = 0;
+          post.is_hidden = 0;
+          post.is_deleted = 0;
         }
       } catch (e3) {
         post = null;
@@ -206,6 +217,28 @@ export default async function MusicDetailPage({ params, searchParams }) {
   const isAdmin = isAdminUser(user);
   const canEdit = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
   const canDelete = canEdit;
+  const canToggleLock = isAdmin;
+  const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
+  const isHidden = post.is_hidden ? Boolean(post.is_hidden) : false;
+  const isDeleted = post.is_deleted ? Boolean(post.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This music post does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This music post does not exist.</p>
+      </section>
+    );
+  }
   const embed = safeEmbedFromUrl(post.type, post.url, post.embed_style || 'auto');
   const tags = post.tags ? post.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [];
   
@@ -276,9 +309,10 @@ export default async function MusicDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
+            {canToggleLock ? (
               <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={post.is_locked ? '0' : '1'} />
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                 <button
                   type="submit"
                   className="button"
@@ -298,13 +332,13 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{post.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
                     <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -313,7 +347,20 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 {canDelete ? (
                   <DeletePostButton 
                     postId={id} 
-                    postType="music_post"
+                    postType="music"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
+              <>
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-music-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={id} 
+                    postType="music"
                   />
                 ) : null}
               </>
@@ -340,7 +387,12 @@ export default async function MusicDetailPage({ params, searchParams }) {
             />
           ) : null}
         />
-        {post.is_locked ? (
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
+        {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked
           </span>
@@ -465,7 +517,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             })
           )}
         </div>
-        {post.is_locked ? (
+        {isLocked ? (
           <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this post.</p>
         ) : (
           <div style={{ marginTop: '12px' }}>

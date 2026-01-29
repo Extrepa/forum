@@ -61,6 +61,8 @@ export default async function FeedPage() {
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.moved_to_id IS NULL
+         AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+         AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
        ORDER BY timeline_updates.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -89,6 +91,8 @@ export default async function FeedPage() {
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.moved_to_id IS NULL
+         AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
+         AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
        ORDER BY forum_threads.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -119,6 +123,8 @@ export default async function FeedPage() {
        FROM events
        JOIN users ON users.id = events.author_user_id
        WHERE events.moved_to_id IS NULL
+         AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
+         AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
        ORDER BY events.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -149,6 +155,8 @@ export default async function FeedPage() {
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        WHERE music_posts.moved_to_id IS NULL
+         AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+         AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
        ORDER BY music_posts.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -177,6 +185,8 @@ export default async function FeedPage() {
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        WHERE projects.moved_to_id IS NULL
+         AND (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
+         AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
        ORDER BY projects.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -207,6 +217,8 @@ export default async function FeedPage() {
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+             AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
+             AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
              AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
            ORDER BY posts.created_at DESC
            LIMIT ${limitPerType}`,

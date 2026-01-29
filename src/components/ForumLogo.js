@@ -10,7 +10,8 @@ export default function ForumLogo({
   as = 'link', // link | button
   onActivate,
   badgeCount = 0,
-  ariaLabel
+  ariaLabel,
+  disabled = false
 }) {
   const [isClicked, setIsClicked] = useState(false);
   // Initialize with a fixed value to avoid hydration mismatch
@@ -86,6 +87,10 @@ export default function ForumLogo({
         isButton ? 'forum-logo-button' : ''
       }`}
       onClick={(e) => {
+        if (disabled) {
+          e.preventDefault();
+          return;
+        }
         if (isButton) {
           e.preventDefault();
         }

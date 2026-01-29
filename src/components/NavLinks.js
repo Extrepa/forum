@@ -39,6 +39,10 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   };
 
   const handleLinkClick = (e, href) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      return;
+    }
     // For "more" variant links, ensure navigation happens
     if (variant === 'more') {
       e.preventDefault();

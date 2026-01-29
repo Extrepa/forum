@@ -3,7 +3,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import { renderMarkdown } from '../../../lib/markdown';
 import { formatDateTime } from '../../../lib/dates';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -12,6 +12,10 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
+import PostEditForm from '../../../components/PostEditForm';
+import HidePostButton from '../../../components/HidePostButton';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
@@ -40,6 +44,8 @@ export default async function ArtDetailPage({ params, searchParams }) {
                 posts.created_at, posts.updated_at,
                 COALESCE(posts.views, 0) AS views,
                 COALESCE(posts.is_locked, 0) AS is_locked,
+                COALESCE(posts.is_hidden, 0) AS is_hidden,
+                COALESCE(posts.is_deleted, 0) AS is_deleted,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 users.avatar_key AS author_avatar_key,
@@ -96,8 +102,30 @@ export default async function ArtDetailPage({ params, searchParams }) {
     );
   }
 
-  const canToggleLock = !!user && !!user.password_hash && (String(user.id) === String(post.author_user_id) || isAdmin);
+  const canEdit = !!user && !!user.password_hash && (String(user.id) === String(post.author_user_id) || isAdmin);
+  const canDelete = canEdit;
+  const canToggleLock = isAdmin;
   const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
+  const isHidden = post.is_hidden ? Boolean(post.is_hidden) : false;
+  const isDeleted = post.is_deleted ? Boolean(post.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This post does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This post does not exist.</p>
+      </section>
+    );
+  }
 
   // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [
@@ -131,6 +159,24 @@ export default async function ArtDetailPage({ params, searchParams }) {
   }
 
   const error = searchParams?.error;
+  const editNotice =
+    error === 'claim'
+      ? 'Log in to post.'
+      : error === 'unauthorized'
+      ? 'Only the post author can edit this.'
+      : error === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : error === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : error === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : error === 'missing'
+      ? 'Title and body are required.'
+      : error === 'notfound'
+      ? 'This post does not exist.'
+      : error === 'missing_image'
+      ? 'Art requires an image.'
+      : null;
   const commentNotice =
     error === 'claim'
       ? 'Log in to post.'
@@ -144,44 +190,57 @@ export default async function ArtDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/art', label: 'Art' },
           { href: `/art/${post.id}`, label: post.title || 'Untitled' },
         ]}
+        right={
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={post.id} postType="post" initialHidden={isHidden} /> : null}
+            {canToggleLock ? (
+              <form action={`/api/posts/${post.id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '6px 10px',
+                    minWidth: '90px',
+                    minHeight: '44px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                  </span>
+                </button>
+              </form>
+            ) : null}
+            {isAdmin ? (
+              <>
+                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-post-panel" />
+                {canDelete ? <DeletePostButton postId={post.id} postType="post" /> : null}
+              </>
+            ) : canEdit ? (
+              <>
+                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-post-panel" />
+                {canDelete ? <DeletePostButton postId={post.id} postType="post" /> : null}
+              </>
+            ) : null}
+          </div>
+        }
       />
-
-      {isAdmin ? (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-          <form action={`/api/posts/${post.id}/lock`} method="post" style={{ margin: 0 }}>
-            <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-            <button
-              type="submit"
-              className="button"
-              style={{
-                fontSize: '12px',
-                padding: '6px 10px',
-                minWidth: '90px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: 1.2,
-                whiteSpace: 'normal',
-                wordBreak: 'break-word',
-                boxSizing: 'border-box',
-              }}
-            >
-              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-              </span>
-            </button>
-          </form>
-        </div>
-      ) : null}
 
       <ViewTracker contentType="posts" contentId={post.id} />
       
@@ -205,6 +264,11 @@ export default async function ArtDetailPage({ params, searchParams }) {
         {post.is_private ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Members-only
+          </span>
+        ) : null}
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
           </span>
         ) : null}
         {isLocked ? (
@@ -238,6 +302,28 @@ export default async function ArtDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
+
+      {canEdit ? (
+        <div id="edit-post-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Post</h3>
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <PostEditForm
+              action={`/api/posts/${id}`}
+              initialData={{
+                title: String(post.title || ''),
+                body: String(post.body || ''),
+                is_private: post.is_private ? 1 : 0,
+                image_key: post.image_key ? String(post.image_key) : null
+              }}
+              titleLabel="Title"
+              bodyLabel="Body"
+              buttonLabel="Update Post"
+              showImage={true}
+            />
+          </section>
+        </div>
+      ) : null}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>

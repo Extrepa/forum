@@ -21,6 +21,26 @@ export default async function SessionBadge() {
     .first();
 
   if (!user) {
+    try {
+      const adminUser = await db
+        .prepare(
+          'SELECT users.username, users.preferred_username_color_index FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?'
+        )
+        .bind(token)
+        .first();
+      if (adminUser) {
+        return (
+          <div className="muted">
+            Posting as <Username 
+              name={adminUser.username} 
+              colorIndex={getUsernameColorIndex(adminUser.username, { preferredColorIndex: adminUser.preferred_username_color_index })} 
+            />
+          </div>
+        );
+      }
+    } catch (error) {
+      // Ignore if admin_sessions table doesn't exist yet.
+    }
     return <div className="muted">Guest reader</div>;
   }
 

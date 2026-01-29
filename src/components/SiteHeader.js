@@ -19,6 +19,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const pathname = usePathname();
   const router = useRouter();
   const detail = isDetailPath(pathname);
+  const navDisabled = !isSignedIn;
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -44,6 +45,16 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     setSearchQuery('');
     setSearchResults([]);
   }, [pathname]);
+
+  useEffect(() => {
+    if (navDisabled) {
+      setMenuOpen(false);
+      setMoreOpen(false);
+      setSearchMode(false);
+      setSearchQuery('');
+      setSearchResults([]);
+    }
+  }, [navDisabled]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
@@ -111,6 +122,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   }, [searchQuery, searchMode, performSearch]);
 
   const handleSearchClick = () => {
+    if (navDisabled) {
+      return;
+    }
     setSearchMode(true);
     setMenuOpen(false);
     setTimeout(() => {
@@ -126,6 +140,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    if (navDisabled) {
+      return;
+    }
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       handleSearchClose();
@@ -154,6 +171,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             <h1 
               className="forum-title"
               onClick={() => {
+                if (navDisabled) return;
                 setTitleClicked(true);
                 setTimeout(() => {
                   router.push('/');
@@ -162,7 +180,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               }}
               style={{ 
                 animation: titleClicked ? 'gooey-click 0.3s ease' : undefined,
-                cursor: 'pointer'
+                cursor: navDisabled ? 'default' : 'pointer'
               }}
             >
               Errl Forum
@@ -170,7 +188,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             <p className="forum-description">{subtitle}</p>
           </div>
         </div>
-        <NotificationsLogoTrigger />
+        <NotificationsLogoTrigger enabled={!navDisabled} />
       </div>
 
       <div className="header-nav-section">
@@ -182,7 +200,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           <button
             type="button"
             className="icon-button nav-more-toggle"
-            onClick={() => setMoreOpen((v) => !v)}
+            onClick={() => {
+              if (navDisabled) return;
+              setMoreOpen((v) => !v);
+            }}
             aria-label="More pages"
             aria-expanded={moreOpen ? 'true' : 'false'}
             title="More"
@@ -201,7 +222,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <SearchBar />
+          <SearchBar disabled={navDisabled} />
         </div>
       </div>
 
@@ -241,6 +262,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               type="button"
               className="nav-menu-button"
               onClick={() => {
+                if (navDisabled) return;
                 setMenuOpen((v) => !v);
                 setSearchMode(false);
               }}
@@ -292,4 +314,3 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     </header>
   );
 }
-
