@@ -8,3 +8,4 @@
 - Renamed branch to `feat/update-signin-intro`.
 - Updated intro text in `src/components/ClaimUsernameForm.js` to "This forum is built for people who grew up".
 - Reduced the bottom padding of the last line of the intro text.
+- Adjusted the flex properties of the intro text and sign-in form sections to achieve a 50/50 split and allow for stacking on smaller viewports.
