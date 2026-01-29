@@ -9,6 +9,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
 
   useEffect(() => {
     fetch(`/api/user/${encodeURIComponent(username)}`)
@@ -21,6 +22,51 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       })
       .catch(() => setLoading(false));
   }, [username]);
+
+  useEffect(() => {
+    if (!anchorRef.current || !popoverRef.current) return;
+
+    const calculatePosition = () => {
+      const anchorRect = anchorRef.current.getBoundingClientRect();
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let newLeft, newTop;
+
+      // Default to "above and right" of the anchor
+      let candidateLeft = anchorRect.right + 4; // 4px offset to the right
+      let candidateTop = anchorRect.top - 4 - popoverRect.height; // 4px offset above
+
+      // Prioritize "above and right" if it fits
+      if (candidateTop >= 16 && candidateLeft + popoverRect.width <= viewportWidth - 16) {
+        newLeft = candidateLeft;
+        newTop = candidateTop;
+      }
+      // If "above and right" doesn't fit, try "below and right"
+      else if (anchorRect.bottom + 4 + popoverRect.height <= viewportHeight - 16 && candidateLeft + popoverRect.width <= viewportWidth - 16) {
+        newLeft = candidateLeft;
+        newTop = anchorRect.bottom + 4;
+      }
+      // Fallback: Default to "above and right" and let clamping handle it
+      else {
+        newLeft = candidateLeft;
+        newTop = candidateTop;
+      }
+
+      // Final clamping for horizontal position
+      newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
+
+      // Final clamping for vertical position
+      newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
+
+      setPopoverPosition({ left: newLeft, top: newTop });
+    };
+
+    calculatePosition();
+    window.addEventListener('resize', calculatePosition);
+    return () => window.removeEventListener('resize', calculatePosition);
+  }, [anchorRef, onClose, popoverRef]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -45,9 +91,8 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
         position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)', // Centers the popover
+        top: popoverPosition.top,
+        left: popoverPosition.left,
         zIndex: 9999,
         width: 'max-content',
         padding: '12px',

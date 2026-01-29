@@ -25,5 +25,8 @@
     - Removed the `useEffect` hook containing the `calculatePosition` function to eliminate complex positioning logic.
     - Removed the `popoverPosition` state.
     - Set the popover's `style` to `top: '50%'`, `left: '50%'`, and `transform: 'translate(-50%, -50%)'` to center it on the screen.
+    - Re-introduced `popoverPosition` state.
+    - Re-introduced the `useEffect` for `calculatePosition` with new logic to default to "above and right", then "below and right", with clamping.
+    - Reverted popover's inline `style` to use `top: popoverPosition.top` and `left: popoverPosition.left`, removing `transform`.
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
