@@ -17,9 +17,9 @@
 - **Header Refinement**: Compacted the panel header and redesigned the "X" button (`22x12px`) to stay within the text height.
 
 #### 2. Advanced Dragging & Positioning
-- **Decoupled from Container**: Refactored `positionPanelAtPoint` and `handleMove` to use `position: absolute` with viewport-relative clamping.
-- **Freedom of Movement**: The panel can now be dragged anywhere on the visible page, even outside the avatar canvas boundaries, without snapping back.
-- **Accurate Placement**: Fixed a bug where the panel appeared at random spots; it now opens precisely at the touch/click location.
+- **Portal & Fixed Positioning**: Migrated the settings panel to a React Portal (`document.body`) and switched to `position: fixed`. This completely decouples it from the container's layout, preventing the panel from stretching the document or creating "blank space" when dragged to the edges.
+- **Freedom of Movement**: The panel can now be dragged anywhere on the visible viewport without any "snapping" or page-stretching side effects.
+- **Accurate Placement**: Position logic now uses pure viewport coordinates, making initial opening and dragging behavior much more robust.
 - **Scroll Prevention**: Added `touchAction: 'none'` and `e.preventDefault()` to ensure page scrolling is locked while dragging the panel header on mobile.
 
 #### 3. UX & Help System
