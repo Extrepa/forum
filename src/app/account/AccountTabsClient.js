@@ -519,18 +519,31 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
                     disabled={isEditingAvatar}
                     style={{
-                      borderRadius: '4px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
-                      color: 'var(--accent)',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                      color: '#001018',
                       cursor: isEditingAvatar ? 'default' : 'pointer',
                       fontSize: '12px',
                       transition: 'all 0.2s ease',
-                      fontWeight: '500',
-                      padding: '2px 8px',
+                      fontWeight: '600',
+                      padding: '2px 10px',
                       lineHeight: '1.2',
                       opacity: isEditingAvatar ? 0.6 : 1,
-                      justifySelf: 'end'
+                      justifySelf: 'end',
+                      boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isEditingAvatar) {
+                        e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isEditingAvatar) {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
+                      }
                     }}
                   >
                     Edit Avatar
@@ -667,18 +680,31 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     }}
                     disabled={isEditingUsername}
                     style={{
-                      borderRadius: '4px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
-                      color: 'var(--accent)',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                      color: '#001018',
                       cursor: isEditingUsername ? 'default' : 'pointer',
                       fontSize: '12px',
                       transition: 'all 0.2s ease',
-                      fontWeight: '500',
-                      padding: '2px 8px',
+                      fontWeight: '600',
+                      padding: '2px 10px',
                       lineHeight: '1.2',
                       opacity: isEditingUsername ? 0.6 : 1,
-                      justifySelf: 'end'
+                      justifySelf: 'end',
+                      boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isEditingUsername) {
+                        e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isEditingUsername) {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
+                      }
                     }}
                   >
                     Edit Username
@@ -882,18 +908,31 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     }}
                     disabled={isEditingSocials}
                     style={{
-                      borderRadius: '4px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
-                      color: 'var(--accent)',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                      color: '#001018',
                       cursor: isEditingSocials ? 'default' : 'pointer',
                       fontSize: '12px',
                       transition: 'all 0.2s ease',
-                      fontWeight: '500',
-                      padding: '2px 8px',
+                      fontWeight: '600',
+                      padding: '2px 10px',
                       lineHeight: '1.2',
                       opacity: isEditingSocials ? 0.6 : 1,
-                      justifySelf: 'end'
+                      justifySelf: 'end',
+                      boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isEditingSocials) {
+                        e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isEditingSocials) {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
+                      }
                     }}
                   >
                     Edit Socials
