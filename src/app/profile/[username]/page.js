@@ -46,6 +46,19 @@ export default async function ProfilePage({ params }) {
     redirect('/account?tab=profile');
   }
 
+  const colorIndex = getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index });
+  const USERNAME_COLORS = [
+    '#34E1FF', // 0: Cyan
+    '#FF34F5', // 1: Pink
+    '#FFFF00', // 2: Yellow
+    '#00FF41', // 3: Green
+    '#FF6B00', // 4: Orange
+    '#B026FF', // 5: Purple
+    '#00D9FF', // 6: Blue
+    '#CCFF00', // 7: Lime
+  ];
+  const userColor = USERNAME_COLORS[colorIndex] || USERNAME_COLORS[0];
+
   // Increment profile views (only when viewed by someone else)
   try {
     await db
@@ -420,7 +433,16 @@ export default async function ProfilePage({ params }) {
                 marginBottom: '20px',
                 padding: '8px 0'
               }}>
-                <div style={{ position: 'relative' }}>
+                <div style={{ 
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '50%',
+                  background: `radial-gradient(circle, ${userColor}33 0%, transparent 70%)`
+                }}>
                   <Image
                     src={getAvatarUrl(profileUser.avatar_key) || '/icons/errl-face.png'}
                     alt=""
@@ -430,12 +452,8 @@ export default async function ProfilePage({ params }) {
                     style={{
                       width: '160px',
                       height: '160px',
-                      borderRadius: '24px',
-                      background: 'rgba(0,0,0,0.6)',
-                      border: '2px solid var(--accent)',
-                      padding: '12px',
-                      boxShadow: '0 0 30px rgba(52, 225, 255, 0.2)',
-                      display: 'block'
+                      display: 'block',
+                      filter: `drop-shadow(0 0 10px ${userColor}44)`
                     }}
                   />
                 </div>
@@ -443,14 +461,14 @@ export default async function ProfilePage({ params }) {
                 <div style={{ textAlign: 'center' }}>
                   <Username
                     name={profileUser.username}
-                    colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+                    colorIndex={colorIndex}
                     avatarKey={null} // Explicitly null to prevent small avatar inside Username
                     href={null}
                     style={{ 
                       fontSize: '32px', 
                       fontWeight: '800',
                       letterSpacing: '-0.02em',
-                      textShadow: '0 0 20px rgba(52, 225, 255, 0.3)'
+                      textShadow: `0 0 20px ${userColor}44`
                     }}
                   />
                   <div style={{ 

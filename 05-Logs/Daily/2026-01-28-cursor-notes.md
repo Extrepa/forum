@@ -37,9 +37,10 @@
 - **Reset Confirmation**: Added a confirmation step to the "Restore Factory Defaults" (Reset) button to prevent accidental purging of custom progress.
 
 #### 6. Profile Page Enhancements
-- **Hero Avatar Display**: Replaced the small 24px inline avatar with a prominent 160px "Hero" version positioned centrally above the username.
+- **Minimalist Hero Avatar**: Removed the decorative container/box from the hero avatar to focus purely on the face, centered prominently above the username.
+- **Dynamic Background Aura**: Added a subtle radial gradient (aura) behind the avatar that dynamically matches the user's chosen username color, creating a cohesive visual identity.
 - **Integrated Layout**: Refined the profile layout to remove the nested box, allowing the avatar and large username to flow naturally between the "Profile" title and "Socials" links for a cleaner, more integrated look.
-- **Prominent Username**: Increased the profile username font size to 32px with heavy weights and text shadows for better hierarchy.
+- **Prominent Username & Role**: Increased the profile username font size to 32px with heavy weights and text shadows that also match the user's signature color, followed by the "Errl Portal Resident" role for a clear visual hierarchy.
 - **Clean Layout**: Explicitly suppressed the small avatar inside the `Username` component on profile pages to prevent redundancy.
 
 ## Feature Capability Audit: Avatar System
