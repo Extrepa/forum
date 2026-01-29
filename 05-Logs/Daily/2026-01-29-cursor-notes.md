@@ -45,6 +45,7 @@
     - Removed incorrect `useClickOutside` import and its usage. Reverted to manual `useEffect` for click-outside-to-close.
     - Re-inserted the `useEffect` for fetching user data with `console.log` and `console.error` statements.
     - Updated `useFloating` middleware to use `autoPlacement` with `crossAxis: true` and `padding: 16` for improved responsive positioning on small viewports.
-    - **Further refined `useFloating` middleware: Added `alignment: 'center'` to `autoPlacement` for small viewports and `crossAxis: true` to `shift` to explicitly enforce horizontal centering.**
+    - Further refined `useFloating` middleware: Added `alignment: 'center'` to `autoPlacement` for small viewports and `crossAxis: true` to `shift` to explicitly enforce horizontal centering.
+    - **Fixed `ReferenceError: autoPlacement is not defined` by adding `autoPlacement` to the import statement.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.

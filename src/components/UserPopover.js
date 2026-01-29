@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, autoUpdate, autoPlacement } from '@floating-ui/react';
 import { createPortal } from 'react-dom';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
