@@ -39,6 +39,10 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
   };
 
   const handleLinkClick = (e, href) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      return;
+    }
     // For "more" variant links, ensure navigation happens
     if (variant === 'more') {
       e.preventDefault();
@@ -59,9 +63,12 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
       {links.map((link) => (
         <a
           key={link.href}
-          href={link.href}
+          href={isSignedIn ? link.href : '#'}
           className={isActive(link.href) ? 'active' : ''}
+          aria-disabled={!isSignedIn ? 'true' : undefined}
+          data-disabled={!isSignedIn ? 'true' : undefined}
           onClick={(e) => handleLinkClick(e, link.href)}
+          tabIndex={!isSignedIn ? -1 : undefined}
         >
           {link.label}
         </a>

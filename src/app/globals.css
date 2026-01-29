@@ -673,6 +673,27 @@ nav a {
   flex-shrink: 0; /* Prevent nav buttons from shrinking */
 }
 
+nav a[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.forum-logo-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.header-search-toggle:disabled,
+.nav-menu-button:disabled,
+.nav-more-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .nav-more-toggle {
   flex: 0 0 auto;
 }

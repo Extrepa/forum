@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import ForumLogo from './ForumLogo';
 import NotificationsMenu from './NotificationsMenu';
 
-export default function NotificationsLogoTrigger() {
+export default function NotificationsLogoTrigger({ enabled = true }) {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [items, setItems] = useState([]);
@@ -29,6 +29,9 @@ export default function NotificationsLogoTrigger() {
   };
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     let mounted = true;
     const run = async () => {
       if (!mounted) return;
@@ -41,7 +44,7 @@ export default function NotificationsLogoTrigger() {
       clearInterval(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enabled]);
 
   const markRead = async (id) => {
     try {
@@ -103,26 +106,29 @@ export default function NotificationsLogoTrigger() {
         as="button"
         badgeCount={unreadCount}
         ariaLabel={title}
+        disabled={!enabled}
         onActivate={async () => {
+          if (!enabled) return;
           const next = !open;
           setOpen(next);
           if (next) await refresh();
         }}
       />
 
-      <NotificationsMenu
-        open={open}
-        onClose={() => setOpen(false)}
-        unreadCount={unreadCount}
-        items={items}
-        status={status}
-        onRefresh={refresh}
-        onMarkRead={markRead}
-        onMarkAllRead={markAllRead}
-        onClearAll={clearAll}
-        anchor="right"
-      />
+      {enabled ? (
+        <NotificationsMenu
+          open={open}
+          onClose={() => setOpen(false)}
+          unreadCount={unreadCount}
+          items={items}
+          status={status}
+          onRefresh={refresh}
+          onMarkRead={markRead}
+          onMarkAllRead={markAllRead}
+          onClearAll={clearAll}
+          anchor="right"
+        />
+      ) : null}
     </div>
   );
 }
-

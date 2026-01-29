@@ -10,7 +10,8 @@ export default function ForumLogo({
   as = 'link', // link | button
   onActivate,
   badgeCount = 0,
-  ariaLabel
+  ariaLabel,
+  disabled = false
 }) {
   const [isClicked, setIsClicked] = useState(false);
   // Initialize with a fixed value to avoid hydration mismatch
@@ -82,10 +83,16 @@ export default function ForumLogo({
     <Element
       {...(isButton ? { type: 'button' } : { href })}
       aria-label={getLinkAriaLabel()}
+      aria-disabled={disabled ? 'true' : undefined}
+      {...(isButton && disabled ? { disabled: true } : {})}
       className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''} ${
         isButton ? 'forum-logo-button' : ''
-      }`}
+      } ${disabled ? 'forum-logo-disabled' : ''}`}
       onClick={(e) => {
+        if (disabled) {
+          e.preventDefault();
+          return;
+        }
         if (isButton) {
           e.preventDefault();
         }

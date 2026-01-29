@@ -13,9 +13,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage({ params }) {
   const currentUser = await getSessionUser();
-  if (!currentUser) {
-    redirect('/');
-  }
   const db = await getDb();
   
   // Decode username from URL
@@ -54,7 +51,7 @@ export default async function ProfilePage({ params }) {
   const isOwnProfile = currentUser?.id === profileUser.id;
 
   // If viewing own profile, redirect to account page
-  if (isOwnProfile) {
+  if (currentUser && isOwnProfile) {
     redirect('/account?tab=profile');
   }
 
