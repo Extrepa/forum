@@ -1,15 +1,13 @@
-'use client';
-
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
+import { useFloating, offset, flip, shift } from '@floating-ui/react';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
 
   useEffect(() => {
     fetch(`/api/user/${encodeURIComponent(username)}`)
@@ -23,50 +21,17 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       .catch(() => setLoading(false));
   }, [username]);
 
-  useEffect(() => {
-    if (!anchorRef.current || !popoverRef.current) return;
-
-    const calculatePosition = () => {
-      const anchorRect = anchorRef.current.getBoundingClientRect();
-      const popoverRect = popoverRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let newLeft, newTop;
-
-      // Default to "above and right" of the anchor
-      let candidateLeft = anchorRect.right + 4; // 4px offset to the right
-      let candidateTop = anchorRect.top - 4 - popoverRect.height; // 4px offset above
-
-      // Prioritize "above and right" if it fits
-      if (candidateTop >= 16 && candidateLeft + popoverRect.width <= viewportWidth - 16) {
-        newLeft = candidateLeft;
-        newTop = candidateTop;
-      }
-      // If "above and right" doesn't fit, try "below and right"
-      else if (anchorRect.bottom + 4 + popoverRect.height <= viewportHeight - 16 && candidateLeft + popoverRect.width <= viewportWidth - 16) {
-        newLeft = candidateLeft;
-        newTop = anchorRect.bottom + 4;
-      }
-      // Fallback: Default to "above and right" and let clamping handle it
-      else {
-        newLeft = candidateLeft;
-        newTop = candidateTop;
-      }
-
-      // Final clamping for horizontal position
-      newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
-
-      // Final clamping for vertical position
-      newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
-
-      setPopoverPosition({ left: newLeft, top: newTop });
-    };
-
-    calculatePosition();
-    window.addEventListener('resize', calculatePosition);
-    return () => window.removeEventListener('resize', calculatePosition);
-  }, [anchorRef, onClose, popoverRef]);
+  const { refs, floatingStyles } = useFloating({
+    placement: 'top-end', // Default to top-end (above and to the right)
+    middleware: [
+      offset(4), // 4px offset from the anchor
+      flip(),    // Flips to other sides if top-end doesn't fit
+      shift(),   // Shifts along the reference to prevent overflow
+    ],
+    elements: {
+      reference: anchorRef.current, // Use the passed anchorRef as the reference
+    },
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -87,12 +52,11 @@ export default function UserPopover({ username, onClose, anchorRef }) {
 
   return (
     <div 
-      ref={popoverRef}
+      ref={refs.setFloating} // Assign Floating UI's floating ref
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
-        position: 'fixed',
-        top: popoverPosition.top,
-        left: popoverPosition.left,
+        ...floatingStyles, // Apply Floating UI's calculated styles
+        position: 'absolute', // Floating UI works best with absolute positioning
         zIndex: 9999,
         width: 'max-content',
         padding: '12px',
@@ -146,10 +110,10 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         <Link 
           href={profileHref}
           onClick={onClose}
-          style={{ 
-            fontSize: '11px', 
-            color: 'var(--accent)', 
-            marginTop: userInfo?.role ? '0px' : '4px', 
+          style={{
+            fontSize: '11px',
+            color: 'var(--accent)',
+            marginTop: userInfo?.role ? '0px' : '4px',
             display: 'block',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',

@@ -28,5 +28,6 @@
     - Re-introduced `popoverPosition` state.
     - Re-introduced the `useEffect` for `calculatePosition` with new logic to default to "above and right", then "below and right", with clamping.
     - Reverted popover's inline `style` to use `top: popoverPosition.top` and `left: popoverPosition.left`, removing `transform`.
+    - **Integrated Floating UI** for popover positioning, replacing custom logic with `useFloating`, `offset`, `flip`, and `shift` middleware. The popover's `position` style has been changed from `fixed` to `absolute`.
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.

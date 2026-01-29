@@ -12,6 +12,7 @@
     "deploy:full": "./deploy.sh"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.17",
     "marked": "^12.0.2",
     "next": "15.5.9",
     "react": "18.3.1",
