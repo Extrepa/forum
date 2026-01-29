@@ -1477,7 +1477,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   const cxB = (minX + maxX) / 2;
                   const cyB = (minY + maxY) / 2;
                   const size = Math.max(maxX - minX, maxY - minY) + 40;
-                  return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
+                  const yBias = size * 0.06;
+                  return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2 - yBias).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
                 };
                 svgClone.setAttribute('viewBox', computeSceneViewBox());
                 const svgString = serializer.serializeToString(svgClone);
