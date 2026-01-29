@@ -112,13 +112,13 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   return createPortal(
     <div
       ref={popoverRef}
-      className="card notifications-popover-errl"
+      className="card notifications-popover-errl user-popover"
       style={{
         position: 'fixed',
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: viewportWidth <= 640 ? 'fit-content' : 'max-content',
+        width: viewportWidth <= 640 ? 'max-content' : 'max-content',
         minWidth: viewportWidth <= 640 ? '120px' : undefined,
         maxWidth: 'calc(100vw - 32px)',
         padding: '12px',

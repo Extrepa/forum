@@ -3970,6 +3970,13 @@ header::before {
     width: 100% !important;
     max-width: 100% !important;
   }
+
+  /* Username popover should not stretch to full width on mobile */
+  .user-popover.card {
+    width: max-content !important;
+    max-width: calc(100vw - 32px) !important;
+    min-width: min(120px, calc(100vw - 32px)) !important;
+  }
   
   /* Ensure auth form container and all children use full width */
   .auth-form-container,
