@@ -632,6 +632,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const onMouseMove = (e) => handleMove(e.clientX, e.clientY);
     const onTouchMove = (e) => {
       if (e.touches?.[0]) {
+        if (e.cancelable) e.preventDefault();
         handleMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
@@ -1329,7 +1330,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               borderBottom: '1px solid rgba(52, 225, 255, 0.1)',
               position: 'relative',
               cursor: isDraggingPanel ? 'grabbing' : 'grab',
-              gap: '6px'
+              gap: '6px',
+              touchAction: 'none'
             }}
           >
             <span style={{ fontSize: '12px', color: 'rgba(52, 225, 255, 0.6)', letterSpacing: '1px', lineHeight: 1, marginTop: '-1px' }}>
@@ -1341,20 +1343,32 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <button 
               onClick={() => setContextMenu(null)} 
               style={{ 
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '18px',
-                height: '18px',
-                borderRadius: '6px',
-                background: 'rgba(2, 7, 10, 0.6)',
-                border: '1px solid rgba(52, 225, 255, 0.25)',
+                marginLeft: 'auto',
+                width: '32px',
+                height: '16px',
+                borderRadius: '4px',
+                background: 'rgba(2, 7, 10, 0.4)',
+                border: '1px solid rgba(52, 225, 255, 0.2)',
                 color: 'var(--muted)',
                 cursor: 'pointer',
-                fontSize: '12px',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 padding: 0,
-                lineHeight: '16px',
-                boxShadow: 'none'
+                lineHeight: 1,
+                boxShadow: 'none',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 50, 50, 0.2)';
+                e.target.style.borderColor = 'rgba(255, 50, 50, 0.4)';
+                e.target.style.color = '#ff8888';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(2, 7, 10, 0.4)';
+                e.target.style.borderColor = 'rgba(52, 225, 255, 0.2)';
+                e.target.style.color = 'var(--muted)';
               }}
             >
               ✕
