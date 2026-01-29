@@ -1433,9 +1433,53 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 svgClone.setAttribute('width', '1024');
                 svgClone.setAttribute('height', '1024');
                 svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                if (!svgClone.getAttribute('viewBox')) {
-                  svgClone.setAttribute('viewBox', '70 191 983 983');
-                }
+                const computeSceneViewBox = () => {
+                  let minX = Infinity;
+                  let minY = Infinity;
+                  let maxX = -Infinity;
+                  let maxY = -Infinity;
+                  const applyTransform = (x, y, layer) => {
+                    const sx = (layer.scale || 1) * (layer.flipX || 1);
+                    const sy = (layer.scale || 1) * (layer.flipY || 1);
+                    const rad = ((layer.rotation || 0) * Math.PI) / 180;
+                    let tx = x - cx;
+                    let ty = y - cy;
+                    tx *= sx;
+                    ty *= sy;
+                    const rx = tx * Math.cos(rad) - ty * Math.sin(rad);
+                    const ry = tx * Math.sin(rad) + ty * Math.cos(rad);
+                    return {
+                      x: rx + cx + (layer.x || 0),
+                      y: ry + cy + (layer.y || 0)
+                    };
+                  };
+                  layers.forEach((layer) => {
+                    const bounds = layer.type === 'import'
+                      ? { x: 250, y: 250, width: 500, height: 500 }
+                      : getPathBounds(layer.d);
+                    const corners = [
+                      { x: bounds.x, y: bounds.y },
+                      { x: bounds.x + bounds.width, y: bounds.y },
+                      { x: bounds.x, y: bounds.y + bounds.height },
+                      { x: bounds.x + bounds.width, y: bounds.y + bounds.height }
+                    ];
+                    corners.forEach((pt) => {
+                      const t = applyTransform(pt.x, pt.y, layer);
+                      minX = Math.min(minX, t.x);
+                      minY = Math.min(minY, t.y);
+                      maxX = Math.max(maxX, t.x);
+                      maxY = Math.max(maxY, t.y);
+                    });
+                  });
+                  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+                    return '70 191 983 983';
+                  }
+                  const cxB = (minX + maxX) / 2;
+                  const cyB = (minY + maxY) / 2;
+                  const size = Math.max(maxX - minX, maxY - minY) + 40;
+                  return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
+                };
+                svgClone.setAttribute('viewBox', computeSceneViewBox());
                 const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
