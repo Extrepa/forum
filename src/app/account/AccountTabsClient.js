@@ -1047,6 +1047,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
                           <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
                         </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span>
+                        </div>
                       </>
                     );
                   })()}

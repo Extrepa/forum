@@ -12,6 +12,7 @@ export default async function AccountPage({ searchParams }) {
   const db = await getDb();
 
   let stats = null;
+  let userInfo = null;
   if (user) {
     try {
       // Get post count from all post types
@@ -212,11 +213,18 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .all();
 
-      // Get user info including profile links
-      const userInfo = await db
-        .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
-        .bind(user.id)
-        .first();
+      // Get user info including profile links (graceful fallback if new columns aren't present)
+      try {
+        userInfo = await db
+          .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes FROM users WHERE id = ?')
+          .bind(user.id)
+          .first();
+      } catch (e) {
+        userInfo = await db
+          .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
+          .bind(user.id)
+          .first();
+      }
 
       // Merge and sort recent activity
       const allPosts = [
@@ -264,6 +272,7 @@ export default async function AccountPage({ searchParams }) {
         recentActivity: allActivity,
         profileLinks,
         profileViews: userInfo?.profile_views || 0,
+        timeSpentMinutes: userInfo?.time_spent_minutes || 0,
       };
     } catch (e) {
       // Fallback if queries fail
@@ -276,6 +285,7 @@ export default async function AccountPage({ searchParams }) {
         recentActivity: [],
         profileLinks: [],
         profileViews: userInfo?.profile_views || 0,
+        timeSpentMinutes: userInfo?.time_spent_minutes || 0,
       };
     }
   }

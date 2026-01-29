@@ -210,10 +210,18 @@ export async function GET() {
       .bind(user.id)
       .all();
 
-    const userInfo = await db
-      .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
-      .bind(user.id)
-      .first();
+    let userInfo = null;
+    try {
+      userInfo = await db
+        .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes FROM users WHERE id = ?')
+        .bind(user.id)
+        .first();
+    } catch (e) {
+      userInfo = await db
+        .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
+        .bind(user.id)
+        .first();
+    }
 
     // Merge and sort recent activity
     const allPosts = [
@@ -261,6 +269,7 @@ export async function GET() {
       recentActivity: allActivity,
       profileLinks,
       profileViews: userInfo?.profile_views || 0,
+      timeSpentMinutes: userInfo?.time_spent_minutes || 0,
     });
   } catch (e) {
     return NextResponse.json({
@@ -272,6 +281,7 @@ export async function GET() {
       recentActivity: [],
       profileLinks: [],
       profileViews: 0,
+      timeSpentMinutes: 0,
     });
   }
 }
