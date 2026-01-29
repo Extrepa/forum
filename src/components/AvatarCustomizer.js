@@ -1477,10 +1477,33 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   const cxB = (minX + maxX) / 2;
                   const cyB = (minY + maxY) / 2;
                   const size = Math.max(maxX - minX, maxY - minY) + 40;
-                  const yBias = size * 0.06;
-                  return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2 - yBias).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
+                  return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
                 };
-                svgClone.setAttribute('viewBox', computeSceneViewBox());
+                const computeDomBBox = () => {
+                  try {
+                    const temp = document.createElement('div');
+                    temp.style.position = 'absolute';
+                    temp.style.left = '-9999px';
+                    temp.style.top = '-9999px';
+                    temp.style.width = '0';
+                    temp.style.height = '0';
+                    temp.style.overflow = 'hidden';
+                    document.body.appendChild(temp);
+                    temp.appendChild(svgClone);
+                    const bbox = svgClone.getBBox();
+                    document.body.removeChild(temp);
+                    if (!bbox || bbox.width === 0 || bbox.height === 0) {
+                      return null;
+                    }
+                    const size = Math.max(bbox.width, bbox.height) + 40;
+                    const cxB = bbox.x + bbox.width / 2;
+                    const cyB = bbox.y + bbox.height / 2;
+                    return `${(cxB - size / 2).toFixed(2)} ${(cyB - size / 2).toFixed(2)} ${size.toFixed(2)} ${size.toFixed(2)}`;
+                  } catch (e) {
+                    return null;
+                  }
+                };
+                svgClone.setAttribute('viewBox', computeDomBBox() || computeSceneViewBox());
                 const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
