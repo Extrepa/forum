@@ -1016,11 +1016,16 @@ textarea {
 
 .post-body {
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .post-body a {
   color: var(--errl-accent);
   text-decoration: underline;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .post-body h2,
@@ -1047,7 +1052,11 @@ textarea {
   border-radius: 12px;
   border: 1px solid rgba(52, 225, 255, 0.25);
   background: rgba(2, 7, 10, 0.75);
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .post-body code {
@@ -1057,12 +1066,15 @@ textarea {
   border: 1px solid rgba(52, 225, 255, 0.18);
   border-radius: 8px;
   padding: 1px 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .post-body pre code {
   background: transparent;
   border: 0;
   padding: 0;
+  white-space: pre-wrap;
 }
 
 .post-body mark {
