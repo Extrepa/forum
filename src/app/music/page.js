@@ -34,6 +34,8 @@ export default async function MusicPage({ searchParams }) {
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
+           AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+           AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
          ORDER BY music_posts.created_at DESC
          LIMIT 50`
       )
@@ -55,6 +57,8 @@ export default async function MusicPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
+         WHERE (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+           AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
          ORDER BY music_posts.created_at DESC
          LIMIT 50`
       )

@@ -35,6 +35,8 @@ export default async function DevLogPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
+         WHERE (dev_logs.is_hidden = 0 OR dev_logs.is_hidden IS NULL)
+           AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
          ORDER BY dev_logs.created_at DESC
          LIMIT 50`
       )
@@ -56,6 +58,8 @@ export default async function DevLogPage({ searchParams }) {
                   COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
+           WHERE (dev_logs.is_hidden = 0 OR dev_logs.is_hidden IS NULL)
+             AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
            ORDER BY dev_logs.created_at DESC
            LIMIT 50`
         )
@@ -158,4 +162,3 @@ export default async function DevLogPage({ searchParams }) {
     </>
   );
 }
-

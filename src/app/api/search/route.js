@@ -29,6 +29,8 @@ export async function GET(request) {
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.moved_to_id IS NULL
+           AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
+           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
            AND (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
          ORDER BY forum_threads.created_at DESC
          LIMIT 20`
@@ -46,7 +48,9 @@ export async function GET(request) {
                   (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
            FROM forum_threads
            JOIN users ON users.id = forum_threads.author_user_id
-           WHERE (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
+           WHERE (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
+             AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+             AND (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
            ORDER BY forum_threads.created_at DESC
            LIMIT 20`
         )
@@ -69,6 +73,8 @@ export async function GET(request) {
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          WHERE timeline_updates.moved_to_id IS NULL
+           AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+           AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
            AND (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
          ORDER BY timeline_updates.created_at DESC
          LIMIT 20`
@@ -85,7 +91,9 @@ export async function GET(request) {
                   users.username AS author_name
            FROM timeline_updates
            JOIN users ON users.id = timeline_updates.author_user_id
-           WHERE (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
+           WHERE (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+             AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
+             AND (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
            ORDER BY timeline_updates.created_at DESC
            LIMIT 20`
         )
@@ -108,6 +116,8 @@ export async function GET(request) {
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
+           AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
+           AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
            AND (events.title LIKE ? OR events.details LIKE ?)
          ORDER BY events.created_at DESC
          LIMIT 20`
@@ -124,7 +134,9 @@ export async function GET(request) {
                   users.username AS author_name
            FROM events
            JOIN users ON users.id = events.author_user_id
-           WHERE (events.title LIKE ? OR events.details LIKE ?)
+           WHERE (events.is_hidden = 0 OR events.is_hidden IS NULL)
+             AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+             AND (events.title LIKE ? OR events.details LIKE ?)
            ORDER BY events.created_at DESC
            LIMIT 20`
         )
@@ -147,6 +159,8 @@ export async function GET(request) {
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
+           AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+           AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
            AND (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
          ORDER BY music_posts.created_at DESC
          LIMIT 20`
@@ -163,7 +177,9 @@ export async function GET(request) {
                   music_posts.created_at, users.username AS author_name
            FROM music_posts
            JOIN users ON users.id = music_posts.author_user_id
-           WHERE (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
+           WHERE (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+             AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+             AND (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
            ORDER BY music_posts.created_at DESC
            LIMIT 20`
         )
@@ -186,6 +202,8 @@ export async function GET(request) {
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.moved_to_id IS NULL
+           AND (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
+           AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
            AND (projects.title LIKE ? OR projects.description LIKE ?)
          ORDER BY projects.created_at DESC
          LIMIT 20`
@@ -202,7 +220,9 @@ export async function GET(request) {
                   projects.created_at, users.username AS author_name
            FROM projects
            JOIN users ON users.id = projects.author_user_id
-           WHERE (projects.title LIKE ? OR projects.description LIKE ?)
+           WHERE (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
+             AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+             AND (projects.title LIKE ? OR projects.description LIKE ?)
            ORDER BY projects.created_at DESC
            LIMIT 20`
         )
@@ -228,6 +248,8 @@ export async function GET(request) {
          WHERE forum_replies.body LIKE ?
            AND forum_replies.is_deleted = 0
            AND forum_threads.moved_to_id IS NULL
+           AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
+           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
          ORDER BY forum_replies.created_at DESC
          LIMIT 20`
       )
@@ -245,6 +267,8 @@ export async function GET(request) {
            JOIN users ON users.id = forum_replies.author_user_id
            JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
            WHERE forum_replies.body LIKE ? AND forum_replies.is_deleted = 0
+             AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
+             AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
            ORDER BY forum_replies.created_at DESC
            LIMIT 20`
         )
@@ -266,6 +290,8 @@ export async function GET(request) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE (posts.title LIKE ? OR posts.body LIKE ?)
+           AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
          ORDER BY posts.created_at DESC
          LIMIT 20`

@@ -4,7 +4,7 @@ import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
-import Breadcrumbs from '../../../components/Breadcrumbs';
+import PageTopRow from '../../../components/PageTopRow';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -13,6 +13,10 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import DeletePostButton from '../../../components/DeletePostButton';
+import PostForm from '../../../components/PostForm';
+import HidePostButton from '../../../components/HidePostButton';
 import { formatDateTime } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +58,8 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               timeline_updates.author_user_id,
               COALESCE(timeline_updates.views, 0) AS views,
               COALESCE(timeline_updates.is_locked, 0) AS is_locked,
+              COALESCE(timeline_updates.is_hidden, 0) AS is_hidden,
+              COALESCE(timeline_updates.is_deleted, 0) AS is_deleted,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
               users.avatar_key AS author_avatar_key,
@@ -79,6 +85,31 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     if (to) {
       redirect(to);
     }
+  }
+
+  const canEdit = !!user && !!user.password_hash && (user.id === update.author_user_id || isAdmin);
+  const canDelete = canEdit;
+  const canToggleLock = isAdmin;
+  const isLocked = update.is_locked ? Boolean(update.is_locked) : false;
+  const isHidden = update.is_hidden ? Boolean(update.is_hidden) : false;
+  const isDeleted = update.is_deleted ? Boolean(update.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This announcement does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This announcement does not exist.</p>
+      </section>
+    );
   }
 
   const { results: comments } = await db
@@ -126,10 +157,23 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   
   const usernameColorMap = assignUniqueColorsForPage(allUsernames, preferredColors);
 
-  const canToggleLock = !!user && !!user.password_hash && (user.id === update.author_user_id || isAdmin);
-  const isLocked = update.is_locked ? Boolean(update.is_locked) : false;
-
   const error = searchParams?.error;
+  const editNotice =
+    error === 'claim'
+      ? 'Log in to post.'
+      : error === 'unauthorized'
+      ? 'Only the post author can edit this.'
+      : error === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : error === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : error === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : error === 'missing'
+      ? 'Body is required.'
+      : error === 'notfound'
+      ? 'This announcement does not exist.'
+      : null;
   const commentNotice =
     error === 'claim'
       ? 'Log in to post.'
@@ -141,44 +185,57 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
+      <PageTopRow
         items={[
           { href: '/', label: 'Home' },
           { href: '/announcements', label: 'Announcements' },
           { href: `/announcements/${update.id}`, label: update.title || 'Update' }
         ]}
+        right={
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {canToggleLock ? (
+              <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                <button
+                  type="submit"
+                  className="button"
+                  style={{
+                    fontSize: '12px',
+                    padding: '6px 10px',
+                    minWidth: '90px',
+                    minHeight: '44px',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1.2,
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                  </span>
+                </button>
+              </form>
+            ) : null}
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} />
+                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-announcement-panel" />
+                {canDelete ? <DeletePostButton postId={update.id} postType="timeline" /> : null}
+              </>
+            ) : canEdit ? (
+              <>
+                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-announcement-panel" />
+                {canDelete ? <DeletePostButton postId={update.id} postType="timeline" /> : null}
+              </>
+            ) : null}
+          </div>
+        }
       />
-
-      {isAdmin ? (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-          <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
-            <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-            <button
-              type="submit"
-              className="button"
-              style={{
-                fontSize: '12px',
-                padding: '6px 10px',
-                minWidth: '90px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: 1.2,
-                whiteSpace: 'normal',
-                wordBreak: 'break-word',
-                boxSizing: 'border-box',
-              }}
-            >
-              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-              </span>
-            </button>
-          </form>
-        </div>
-      ) : null}
 
       <ViewTracker contentType="timeline" contentId={update.id} />
       
@@ -212,6 +269,11 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             unoptimized
           />
         ) : null}
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
         {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked
@@ -232,6 +294,27 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
+
+      {canEdit ? (
+        <div id="edit-announcement-panel" style={{ display: 'none' }}>
+          <section className="card">
+            <h3 className="section-title">Edit Announcement</h3>
+            {editNotice ? <div className="notice">{editNotice}</div> : null}
+            <PostForm
+              action={`/api/timeline/${update.id}`}
+              titleLabel="Title"
+              bodyLabel="Update"
+              buttonLabel="Update Announcement"
+              titleRequired={false}
+              showImage={true}
+              initialData={{
+                title: String(update.title || ''),
+                body: String(update.body || '')
+              }}
+            />
+          </section>
+        </div>
+      ) : null}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>

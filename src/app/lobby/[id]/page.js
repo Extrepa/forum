@@ -12,6 +12,7 @@ import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import HidePostButton from '../../../components/HidePostButton';
 import { isAdminUser } from '../../../lib/admin';
 import PostHeader from '../../../components/PostHeader';
 import ThreadViewTracker from '../../../components/ThreadViewTracker';
@@ -94,6 +95,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     const query = `
       SELECT forum_threads.id, forum_threads.title, forum_threads.body,
              forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+             COALESCE(forum_threads.is_hidden, 0) AS is_hidden,
+             COALESCE(forum_threads.is_deleted, 0) AS is_deleted,
              forum_threads.moved_to_type, forum_threads.moved_to_id,
              COALESCE(forum_threads.views, 0) AS views,
              COALESCE(users.username, 'Deleted User') AS author_name,
@@ -115,6 +118,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_id = thread.moved_to_id || null;
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
+        thread.is_hidden = thread.is_hidden ?? 0;
+        thread.is_deleted = thread.is_deleted ?? 0;
         // #region agent log
         log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
         // #endregion
@@ -130,6 +135,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           .prepare(
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                    COALESCE(forum_threads.is_hidden, 0) AS is_hidden,
+                    COALESCE(forum_threads.is_deleted, 0) AS is_deleted,
                     COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
@@ -144,6 +151,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           thread.author_avatar_key = thread.author_avatar_key || null;
           thread.moved_to_id = thread.moved_to_id || null;
           thread.moved_to_type = thread.moved_to_type || null;
+          thread.is_hidden = thread.is_hidden ?? 0;
+          thread.is_deleted = thread.is_deleted ?? 0;
         }
       } catch (e2) {
         // Final fallback: remove is_deleted filter in case column doesn't exist
@@ -152,6 +161,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             .prepare(
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+                    0 AS is_hidden,
+                    0 AS is_deleted,
                     COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
@@ -167,6 +178,8 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             thread.author_avatar_key = thread.author_avatar_key || null;
             thread.moved_to_id = thread.moved_to_id || null;
             thread.moved_to_type = thread.moved_to_type || null;
+            thread.is_hidden = thread.is_hidden ?? 0;
+            thread.is_deleted = thread.is_deleted ?? 0;
           }
         } catch (e3) {
           console.error('Error fetching thread (final fallback):', e3, { threadId: id });
@@ -438,9 +451,29 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     }
   }
   const isAdmin = isAdminUser(viewer);
-  const canToggleLock = !!viewer && thread && thread.id && (viewer.id === thread.author_user_id || isAdmin);
+  const canToggleLock = isAdmin;
   const canEdit = !!viewer && thread && thread.id && !!viewer.password_hash && (viewer.id === thread.author_user_id || isAdmin);
   const canDelete = canEdit;
+  const isHidden = thread?.is_hidden ? Boolean(thread.is_hidden) : false;
+  const isDeleted = thread?.is_deleted ? Boolean(thread.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This thread does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This thread does not exist.</p>
+      </section>
+    );
+  }
   
   // Check if current user has liked this thread
   let userLiked = false;
@@ -689,7 +722,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {canToggleLock ? (
               <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />
                 <button
@@ -717,7 +750,21 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} />
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-thread-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={safeThreadId} 
+                    postType="thread"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -753,6 +800,11 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             />
           ) : null}
         />
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
         {safeThreadIsLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Replies locked

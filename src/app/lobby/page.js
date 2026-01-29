@@ -39,7 +39,7 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
       ) AS last_post_author
     FROM forum_threads
     JOIN users ON users.id = forum_threads.author_user_id
-    ${whereClause.includes('WHERE') ? whereClause.replace(/WHERE\s+/i, 'WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND ') : `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) ${whereClause}`}
+    ${whereClause.includes('WHERE') ? whereClause.replace(/WHERE\s+/i, 'WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) AND ') : `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) ${whereClause}`}
     ORDER BY ${orderBy}
     LIMIT ${limit}
   `;
@@ -130,22 +130,22 @@ async function getThreadsWithMetadata(db, whereClause, orderBy, limit = 50, user
       // Simplify: just check basic conditions, skip moved_to_id check if column doesn't exist
       if (safeWhereClause.includes("users.role = 'admin'")) {
         // Announcements query - just check role, skip moved_to_id check
-        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND users.role = 'admin'`;
+        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) AND users.role = 'admin'`;
       } else if (safeWhereClause.includes('is_pinned = 1')) {
         // Stickies query - check pinned, exclude admin
-        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND forum_threads.is_pinned = 1 AND users.role != 'admin'`;
+        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) AND forum_threads.is_pinned = 1 AND users.role != 'admin'`;
       } else {
         // Normal threads - check not pinned, not admin
-        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND forum_threads.is_pinned = 0 AND users.role != 'admin'`;
+        safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) AND forum_threads.is_pinned = 0 AND users.role != 'admin'`;
       }
       hasWhere = true;
     } else if (!hasWhere) {
       // Add is_deleted check if no WHERE clause exists
-      safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) ${safeWhereClause}`;
+      safeWhereClause = `WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) ${safeWhereClause}`;
       hasWhere = true;
     } else {
       // Add is_deleted check to existing WHERE clause
-      safeWhereClause = safeWhereClause.replace('WHERE', 'WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND');
+      safeWhereClause = safeWhereClause.replace('WHERE', 'WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL) AND');
     }
     
     // Use created_at for ordering in fallback (last_activity_at might not work)
@@ -364,4 +364,3 @@ export default async function LobbyPage({ searchParams }) {
     </>
   );
 }
-

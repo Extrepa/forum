@@ -33,6 +33,8 @@ export default async function BugsPage({ searchParams }) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'bugs'
+           AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            AND (${isSignedIn ? '1=1' : 'posts.is_private = 0'})
          ORDER BY posts.created_at DESC
          LIMIT 50`
@@ -134,4 +136,3 @@ export default async function BugsPage({ searchParams }) {
     </>
   );
 }
-

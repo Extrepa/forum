@@ -31,6 +31,8 @@ export default async function AnnouncementsPage({ searchParams }) {
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          WHERE timeline_updates.moved_to_id IS NULL
+           AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+           AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
          ORDER BY timeline_updates.created_at DESC
          LIMIT 50`
       )
@@ -49,6 +51,8 @@ export default async function AnnouncementsPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM timeline_comments WHERE update_id = timeline_updates.id AND is_deleted = 0), timeline_updates.created_at) AS last_activity_at
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+           AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
          ORDER BY timeline_updates.created_at DESC
          LIMIT 50`
       )
@@ -141,4 +145,3 @@ export default async function AnnouncementsPage({ searchParams }) {
     </>
   );
 }
-

@@ -7,6 +7,7 @@ import PageTopRow from '../../../components/PageTopRow';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostEditForm from '../../../components/PostEditForm';
+import HidePostButton from '../../../components/HidePostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -39,8 +40,10 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
                 posts.created_at, posts.updated_at,
-                COALESCE(posts.views, 0) AS views,
-                COALESCE(posts.is_locked, 0) AS is_locked,
+              COALESCE(posts.views, 0) AS views,
+              COALESCE(posts.is_locked, 0) AS is_locked,
+              COALESCE(posts.is_hidden, 0) AS is_hidden,
+              COALESCE(posts.is_deleted, 0) AS is_deleted,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 users.avatar_key AS author_avatar_key,
@@ -130,8 +133,28 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
   const isAdmin = isAdminUser(user);
   const canEdit = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
   const canDelete = canEdit;
-  const canToggleLock = !!user && !!user.password_hash && (user.id === post.author_user_id || isAdmin);
+  const canToggleLock = isAdmin;
   const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
+  const isHidden = post.is_hidden ? Boolean(post.is_hidden) : false;
+  const isDeleted = post.is_deleted ? Boolean(post.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This post does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This post does not exist.</p>
+      </section>
+    );
+  }
 
   const error = searchParams?.error;
   const editNotice =
@@ -172,7 +195,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {canToggleLock ? (
               <form action={`/api/posts/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                 <button
@@ -200,7 +223,21 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={id} postType="post" initialHidden={isHidden} />
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-post-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={id} 
+                    postType="post"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -241,6 +278,11 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
           {post.type === 'lore' ? 'Lore' : 'Memories'}
           {post.is_private ? ' · Members-only' : ''}
         </span>
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
         {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked

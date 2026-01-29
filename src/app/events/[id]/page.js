@@ -7,6 +7,7 @@ import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
+import HidePostButton from '../../../components/HidePostButton';
 import PostForm from '../../../components/PostForm';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
@@ -59,7 +60,9 @@ export default async function EventDetailPage({ params, searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
-                COALESCE(events.is_locked, 0) AS is_locked
+                COALESCE(events.is_locked, 0) AS is_locked,
+                COALESCE(events.is_hidden, 0) AS is_hidden,
+                COALESCE(events.is_deleted, 0) AS is_deleted
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
@@ -77,7 +80,9 @@ export default async function EventDetailPage({ params, searchParams }) {
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
                   0 AS like_count,
-                  COALESCE(events.is_locked, 0) AS is_locked
+                  COALESCE(events.is_locked, 0) AS is_locked,
+                  COALESCE(events.is_hidden, 0) AS is_hidden,
+                  COALESCE(events.is_deleted, 0) AS is_deleted
            FROM events
            JOIN users ON users.id = events.author_user_id
            WHERE events.id = ? AND (events.is_deleted = 0 OR events.is_deleted IS NULL)`
@@ -89,6 +94,8 @@ export default async function EventDetailPage({ params, searchParams }) {
         event.moved_to_id = null;
         event.moved_to_type = null;
         event.is_locked = event.is_locked ?? 0;
+        event.is_hidden = event.is_hidden ?? 0;
+        event.is_deleted = event.is_deleted ?? 0;
       }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
@@ -101,7 +108,9 @@ export default async function EventDetailPage({ params, searchParams }) {
                     users.preferred_username_color_index AS author_color_preference,
                     users.avatar_key AS author_avatar_key,
                     0 AS like_count,
-                    0 AS is_locked
+                    0 AS is_locked,
+                    0 AS is_hidden,
+                    0 AS is_deleted
              FROM events
              JOIN users ON users.id = events.author_user_id
              WHERE events.id = ?`
@@ -289,6 +298,29 @@ export default async function EventDetailPage({ params, searchParams }) {
       ? 'This event does not exist.'
       : null;
 
+  const canToggleLock = isAdmin;
+  const isLocked = event.is_locked ? Boolean(event.is_locked) : false;
+  const isHidden = event.is_hidden ? Boolean(event.is_hidden) : false;
+  const isDeleted = event.is_deleted ? Boolean(event.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This event does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This event does not exist.</p>
+      </section>
+    );
+  }
+
   return (
     <div className="stack">
       <PageTopRow
@@ -299,9 +331,9 @@ export default async function EventDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {canToggleLock ? (
               <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={event.is_locked ? '0' : '1'} />
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                 <button
                   type="submit"
                   className="button"
@@ -321,13 +353,27 @@ export default async function EventDetailPage({ params, searchParams }) {
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{event.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
                     <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={id} postType="event" initialHidden={isHidden} />
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-event-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={id} 
+                    postType="event"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -364,6 +410,11 @@ export default async function EventDetailPage({ params, searchParams }) {
             />
           ) : null}
         />
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
         {event.is_locked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked

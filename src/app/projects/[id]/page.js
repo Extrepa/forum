@@ -11,6 +11,7 @@ import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/u
 import LikeButton from '../../../components/LikeButton';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import HidePostButton from '../../../components/HidePostButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
@@ -79,7 +80,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
-                COALESCE(projects.is_locked, 0) AS is_locked
+                COALESCE(projects.is_locked, 0) AS is_locked,
+                COALESCE(projects.is_hidden, 0) AS is_hidden,
+                COALESCE(projects.is_deleted, 0) AS is_deleted
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
@@ -99,7 +102,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
-                  COALESCE(projects.is_locked, 0) AS is_locked
+                  COALESCE(projects.is_locked, 0) AS is_locked,
+                  COALESCE(projects.is_hidden, 0) AS is_hidden,
+                  COALESCE(projects.is_deleted, 0) AS is_deleted
            FROM projects
            JOIN users ON users.id = projects.author_user_id
            WHERE projects.id = ? AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)`
@@ -111,6 +116,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         project.moved_to_id = null;
         project.moved_to_type = null;
         project.is_locked = project.is_locked ?? 0;
+        project.is_hidden = project.is_hidden ?? 0;
+        project.is_deleted = project.is_deleted ?? 0;
       }
     } catch (e2) {
       // Final fallback: remove is_deleted filter in case column doesn't exist
@@ -125,7 +132,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     users.preferred_username_color_index AS author_color_preference,
                     users.avatar_key AS author_avatar_key,
                     (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
-                    0 AS is_locked
+                    0 AS is_locked,
+                    0 AS is_hidden,
+                    0 AS is_deleted
              FROM projects
              JOIN users ON users.id = projects.author_user_id
              WHERE projects.id = ?`
@@ -137,6 +146,8 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           project.moved_to_id = null;
           project.moved_to_type = null;
           project.is_locked = 0;
+          project.is_hidden = 0;
+          project.is_deleted = 0;
         }
       } catch (e3) {
         project = null;
@@ -229,6 +240,28 @@ export default async function ProjectDetailPage({ params, searchParams }) {
     !!user.password_hash &&
     (user.id === project.author_user_id || isAdmin);
   const canDelete = canEdit;
+  const canToggleLock = isAdmin;
+  const isLocked = project.is_locked ? Boolean(project.is_locked) : false;
+  const isHidden = project.is_hidden ? Boolean(project.is_hidden) : false;
+  const isDeleted = project.is_deleted ? Boolean(project.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This project does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This project does not exist.</p>
+      </section>
+    );
+  }
 
   // Fetch project updates if enabled
   let updates = [];
@@ -413,9 +446,9 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {canToggleLock ? (
               <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={project.is_locked ? '0' : '1'} />
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                 <button
                   type="submit"
                   className="button"
@@ -435,13 +468,27 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{project.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
                     <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} />
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-project-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={safeProjectId} 
+                    postType="project"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -479,7 +526,12 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           showUpdatedAt={true}
           updatedAt={safeProjectUpdatedAt}
         />
-        {project.is_locked ? (
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
+        {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked
           </span>
@@ -607,7 +659,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         isAdmin={isAdmin}
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
-        isLocked={project.is_locked}
+        isLocked={isLocked}
         repliesEnabled={repliesEnabled}
       />
     </div>

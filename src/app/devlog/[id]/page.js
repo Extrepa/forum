@@ -11,6 +11,7 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
+import HidePostButton from '../../../components/HidePostButton';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import PostHeader from '../../../components/PostHeader';
@@ -85,6 +86,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       .prepare(
         `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                 dev_logs.is_locked,
+                COALESCE(dev_logs.is_hidden, 0) AS is_hidden,
+                COALESCE(dev_logs.is_deleted, 0) AS is_deleted,
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
                 dev_logs.github_url, dev_logs.demo_url, dev_logs.links,
@@ -109,6 +112,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
+                  COALESCE(dev_logs.is_hidden, 0) AS is_hidden,
+                  COALESCE(dev_logs.is_deleted, 0) AS is_deleted,
                   0 AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
@@ -119,6 +124,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       if (log) {
         log.author_avatar_key = log.author_avatar_key || null;
         log.is_locked = 0;
+        log.is_hidden = log.is_hidden ?? 0;
+        log.is_deleted = log.is_deleted ?? 0;
         log.moved_to_id = null;
         log.moved_to_type = null;
         log.github_url = null;
@@ -135,6 +142,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
                     users.avatar_key AS author_avatar_key,
+                    0 AS is_hidden,
+                    0 AS is_deleted,
                     0 AS like_count
              FROM dev_logs
              JOIN users ON users.id = dev_logs.author_user_id
@@ -145,6 +154,8 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         if (log) {
           log.author_avatar_key = log.author_avatar_key || null;
           log.is_locked = 0;
+          log.is_hidden = 0;
+          log.is_deleted = 0;
           log.moved_to_id = null;
           log.moved_to_type = null;
           log.github_url = null;
@@ -255,12 +266,34 @@ export default async function DevLogDetailPage({ params, searchParams }) {
       ? 'Log in to post.'
       : null;
 
-  const canComment = !log.is_locked && !!user && !!user.password_hash;
+  const isLocked = log.is_locked ? Boolean(log.is_locked) : false;
+  const canComment = !isLocked && !!user && !!user.password_hash;
   const canEdit =
     !!user &&
     !!user.password_hash &&
     (isAdmin || user.id === log.author_user_id);
   const canDelete = canEdit;
+  const canToggleLock = isAdmin;
+  const isHidden = log.is_hidden ? Boolean(log.is_hidden) : false;
+  const isDeleted = log.is_deleted ? Boolean(log.is_deleted) : false;
+
+  if (isDeleted) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This dev log post does not exist.</p>
+      </section>
+    );
+  }
+
+  if (isHidden && !canEdit) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This dev log post does not exist.</p>
+      </section>
+    );
+  }
   
   // Check if current user has liked this log
   let userLiked = false;
@@ -338,9 +371,9 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? (
+            {canToggleLock ? (
               <form action={`/api/devlog/${id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={log.is_locked ? '0' : '1'} />
+                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                 <button
                   type="submit"
                   className="button"
@@ -360,13 +393,27 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{log.is_locked ? 'Unlock' : 'Lock'}</span>
+                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
                     <span style={{ whiteSpace: 'nowrap' }}>comments</span>
                   </span>
                 </button>
               </form>
             ) : null}
-            {canEdit ? (
+            {isAdmin ? (
+              <>
+                <HidePostButton postId={id} postType="devlog" initialHidden={isHidden} />
+                <EditPostButtonWithPanel 
+                  buttonLabel="Edit Post" 
+                  panelId="edit-devlog-panel"
+                />
+                {canDelete ? (
+                  <DeletePostButton 
+                    postId={id} 
+                    postType="devlog"
+                  />
+                ) : null}
+              </>
+            ) : canEdit ? (
               <>
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
@@ -405,7 +452,12 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           showUpdatedAt={true}
           updatedAt={log.updated_at}
         />
-        {log.is_locked ? (
+        {isHidden ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Hidden
+          </span>
+        ) : null}
+        {isLocked ? (
           <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
             Comments locked
           </span>
@@ -573,7 +625,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           </div>
         ) : (
           <p className="muted">
-            {log.is_locked
+            {isLocked
               ? 'Comments are locked for this post.'
               : !user
               ? 'Log in to post.'
