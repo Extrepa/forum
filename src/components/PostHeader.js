@@ -40,23 +40,25 @@ export default function PostHeader({
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="section-title" style={{ marginBottom: '8px', wordBreak: 'break-word' }}>{title}</h2>
-          <div className="list-meta">
+          <div className="list-meta" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
             <Username 
               name={author} 
               colorIndex={authorColorIndex}
               preferredColorIndex={authorPreferredColorIndex}
-              avatarKey={authorAvatarKey} // Pass avatarKey to Username
+              avatarKey={authorAvatarKey} 
+              style={{ verticalAlign: 'middle' }} // Apply vertical-align
             />
             {createdAt && (
               <>
-                {' · '}
-                <span suppressHydrationWarning>{formatDateTime(createdAt)}</span>
+                <span style={{ verticalAlign: 'middle' }}>·</span>
+                <span suppressHydrationWarning style={{ verticalAlign: 'middle' }}>{formatDateTime(createdAt)}</span>
               </>
             )}
             {showUpdatedAt && updatedAt && updatedAt !== createdAt && (
               <>
-                {' · Updated '}
-                <span suppressHydrationWarning>{formatDateTime(updatedAt)}</span>
+                <span style={{ verticalAlign: 'middle' }}>·</span>
+                <span style={{ verticalAlign: 'middle' }}>Updated</span>
+                <span suppressHydrationWarning style={{ verticalAlign: 'middle' }}>{formatDateTime(updatedAt)}</span>
               </>
             )}
           </div>
