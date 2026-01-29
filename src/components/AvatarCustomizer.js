@@ -149,10 +149,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [clipboard, setClipboard] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
-  const [panelPos, setPanelPos] = useState({ top: 8, right: 8 });
-  const [panelWidth, setPanelWidth] = useState(190);
+  const [panelPos, setPanelPos] = useState({ top: 8, left: 8 });
+  const panelWidth = 190;
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
-  const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialRight: 8 });
+  const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialLeft: 8 });
   const [palette, setPalette] = useState(INITIAL_PALETTE);
   const [activeControlTab, setActiveControlTab] = useState('fill'); // 'fill' or 'outline'
   const colorInputRef = useRef(null);
@@ -380,7 +380,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     e.stopPropagation();
     const now = Date.now();
     if (now - lastContextMenuRef.current < 300) {
-      setPanelPos({ top: 8, right: 8 });
+      const viewportWidth = window.innerWidth || 0;
+      setPanelPos({ top: 8, left: Math.max(8, viewportWidth - panelWidth - 16) });
     }
     lastContextMenuRef.current = now;
     setSelectedLayerId(id);
@@ -390,17 +391,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const clampPanelToViewport = useCallback(() => {
     const viewportWidth = window.innerWidth || 0;
     const viewportHeight = window.innerHeight || 0;
-    setPanelWidth(190);
     const panelHeight = panelRef.current?.offsetHeight || 0;
     setPanelPos((prev) => {
-      const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
-      const nextRight = Math.min(Math.max(prev.right, 8), maxRight);
+      const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
+      const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
       const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
-      if (prev.right === nextRight && prev.top === nextTop) return prev;
-      return { ...prev, right: nextRight, top: nextTop };
+      if (prev.left === nextLeft && prev.top === nextTop) return prev;
+      return { ...prev, left: nextLeft, top: nextTop };
     });
-  }, [panelWidth]);
+  }, []);
 
   const getGradientId = (layer) => {
     if (layer.gradientId) return layer.gradientId;
@@ -440,6 +440,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   useEffect(() => {
     if (!contextMenu) return;
+    const viewportWidth = window.innerWidth || 0;
+    setPanelPos((prev) => ({
+      ...prev,
+      left: Math.max(8, viewportWidth - panelWidth - 16)
+    }));
     clampPanelToViewport();
     const handleResize = () => clampPanelToViewport();
     window.addEventListener('resize', handleResize);
@@ -565,7 +570,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       x: e.clientX, 
       y: e.clientY, 
       initialTop: panelPos.top, 
-      initialRight: panelPos.right 
+      initialLeft: panelPos.left 
     };
   };
 
@@ -579,7 +584,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       x: touch.clientX, 
       y: touch.clientY, 
       initialTop: panelPos.top, 
-      initialRight: panelPos.right 
+      initialLeft: panelPos.left 
     };
   };
 
@@ -592,12 +597,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         const viewportHeight = window.innerHeight || 0;
         const panelHeight = panelRef.current?.offsetHeight || 0;
         const nextTop = panelDragStart.current.initialTop + dy;
-        const nextRight = panelDragStart.current.initialRight - dx;
-        const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
+        const nextLeft = panelDragStart.current.initialLeft + dx;
+        const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
         const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
         setPanelPos({
           top: Math.min(Math.max(nextTop, 8), maxTop),
-          right: Math.min(Math.max(nextRight, 8), maxRight)
+          left: Math.min(Math.max(nextLeft, 8), maxLeft)
         });
       }
     };
@@ -612,12 +617,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const viewportHeight = window.innerHeight || 0;
       const panelHeight = panelRef.current?.offsetHeight || 0;
       const nextTop = panelDragStart.current.initialTop + dy;
-      const nextRight = panelDragStart.current.initialRight - dx;
-      const maxRight = Math.max(8, viewportWidth - panelWidth - 8);
+      const nextLeft = panelDragStart.current.initialLeft + dx;
+      const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
       const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       setPanelPos({
         top: Math.min(Math.max(nextTop, 8), maxTop),
-        right: Math.min(Math.max(nextRight, 8), maxRight)
+        left: Math.min(Math.max(nextLeft, 8), maxLeft)
       });
     };
     const handleMouseUp = () => setIsDraggingPanel(false);
@@ -634,7 +639,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleMouseUp);
     };
-  }, [isDraggingPanel, panelWidth]);
+  }, [isDraggingPanel]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
@@ -1038,7 +1043,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             style={{
               position: 'fixed',
               top: `${panelPos.top}px`,
-              right: `${panelPos.right}px`,
+              left: `${panelPos.left}px`,
               zIndex: 100,
               width: `${panelWidth}px`,
               minWidth: `${panelWidth}px`,
@@ -1052,8 +1057,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
-              maxHeight: 'calc(100% - 12px)',
-              overflowY: 'hidden',
+              maxHeight: 'calc(100vh - 16px)',
+              overflowY: 'auto',
               overflowX: 'visible',
               cursor: isDraggingPanel ? 'grabbing' : 'default'
             }}
