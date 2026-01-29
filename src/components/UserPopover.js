@@ -17,6 +17,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       .then(data => {
         if (!data.error) {
           setUserInfo(data);
+          console.log("UserPopover: fetched userInfo", data);
         }
         setLoading(false);
       })

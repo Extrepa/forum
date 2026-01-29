@@ -723,6 +723,11 @@ main {
   gap: 6px;
 }
 
+.username > span {
+  color: inherit;
+  text-shadow: inherit;
+}
+
 .username-avatar {
   width: 24px;
   height: 24px;
@@ -734,43 +739,43 @@ main {
 }
 
 .username--0 {
-  color: #34E1FF !important;
-  text-shadow: 0 0 8px rgba(52, 225, 255, 0.6), 0 0 16px rgba(52, 225, 255, 0.4), 0 0 24px rgba(52, 225, 255, 0.2) !important;
+  color: #34E1FF;
+  text-shadow: 0 0 8px rgba(52, 225, 255, 0.6), 0 0 16px rgba(52, 225, 255, 0.4), 0 0 24px rgba(52, 225, 255, 0.2);
 }
 
 .username--1 {
-  color: #FF34F5 !important;
-  text-shadow: 0 0 8px rgba(255, 52, 245, 0.6), 0 0 16px rgba(255, 52, 245, 0.4), 0 0 24px rgba(255, 52, 245, 0.2) !important;
+  color: #FF34F5;
+  text-shadow: 0 0 8px rgba(255, 52, 245, 0.6), 0 0 16px rgba(255, 52, 245, 0.4), 0 0 24px rgba(255, 52, 245, 0.2);
 }
 
 .username--2 {
-  color: #FFFF00 !important;
-  text-shadow: 0 0 8px rgba(255, 255, 0, 0.6), 0 0 16px rgba(255, 255, 0, 0.4), 0 0 24px rgba(255, 255, 0, 0.2) !important;
+  color: #FFFF00;
+  text-shadow: 0 0 8px rgba(255, 255, 0, 0.6), 0 0 16px rgba(255, 255, 0, 0.4), 0 0 24px rgba(255, 255, 0, 0.2);
 }
 
 .username--3 {
-  color: #00FF41 !important;
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 16px rgba(0, 255, 65, 0.4), 0 0 24px rgba(0, 255, 65, 0.2) !important;
+  color: #00FF41;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 16px rgba(0, 255, 65, 0.4), 0 0 24px rgba(0, 255, 65, 0.2);
 }
 
 .username--4 {
-  color: #FF6B00 !important;
-  text-shadow: 0 0 8px rgba(255, 107, 0, 0.6), 0 0 16px rgba(255, 107, 0, 0.4), 0 0 24px rgba(255, 107, 0, 0.2) !important;
+  color: #FF6B00;
+  text-shadow: 0 0 8px rgba(255, 107, 0, 0.6), 0 0 16px rgba(255, 107, 0, 0.4), 0 0 24px rgba(255, 107, 0, 0.2);
 }
 
 .username--5 {
-  color: #B026FF !important;
-  text-shadow: 0 0 8px rgba(176, 38, 255, 0.6), 0 0 16px rgba(176, 38, 255, 0.4), 0 0 24px rgba(176, 38, 255, 0.2) !important;
+  color: #B026FF;
+  text-shadow: 0 0 8px rgba(176, 38, 255, 0.6), 0 0 16px rgba(176, 38, 255, 0.4), 0 0 24px rgba(176, 38, 255, 0.2);
 }
 
 .username--6 {
-  color: #00D9FF !important;
-  text-shadow: 0 0 8px rgba(0, 217, 255, 0.6), 0 0 16px rgba(0, 217, 255, 0.4), 0 0 24px rgba(0, 217, 255, 0.2) !important;
+  color: #00D9FF;
+  text-shadow: 0 0 8px rgba(0, 217, 255, 0.6), 0 0 16px rgba(0, 217, 255, 0.4), 0 0 24px rgba(0, 217, 255, 0.2);
 }
 
 .username--7 {
-  color: #CCFF00 !important;
-  text-shadow: 0 0 8px rgba(204, 255, 0, 0.6), 0 0 16px rgba(204, 255, 0, 0.4), 0 0 24px rgba(204, 255, 0, 0.2) !important;
+  color: #CCFF00;
+  text-shadow: 0 0 8px rgba(204, 255, 0, 0.6), 0 0 16px rgba(204, 255, 0, 0.4), 0 0 24px rgba(204, 255, 0, 0.2);
 }
 
 .stack {
