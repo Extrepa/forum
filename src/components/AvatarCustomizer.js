@@ -275,12 +275,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       if (typeof index === 'number' && palette[index]) {
         colorInputRef.current.value = palette[index];
       }
-      // Use setTimeout to ensure the click happens after any state updates or event propagation
-      setTimeout(() => {
-        if (colorInputRef.current) {
-          colorInputRef.current.click();
-        }
-      }, 0);
+      colorInputRef.current.click();
     }
   };
 
@@ -1446,23 +1441,17 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
                 {palette.slice(0, 12).map((c, idx) => (
-                  <button 
+                  <div 
                     key={`${idx}-${c}`} 
-                    type="button"
                     onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid', imageUrl: undefined })}
-                    onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); openColorPicker(idx); }}
-                    title={`Apply Color ${c} (Right-click to remap palette)`}
+                    title={`Apply Color ${c}`}
                     style={{ 
                       width: '100%',
                       height: '100%',
                       background: c, 
                       borderRadius: '3px', 
                       cursor: 'pointer', 
-                      border: selectedLayer.color === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)',
-                      padding: 0,
-                      outline: 'none',
-                      appearance: 'none',
-                      WebkitAppearance: 'none'
+                      border: selectedLayer.color === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
                     }} 
                   />
                 ))}
@@ -1721,23 +1710,17 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
                 {palette.slice(0, 12).map((c, idx) => (
-                  <button 
+                  <div 
                     key={`${idx}-${c}-outline`} 
-                    type="button"
                     onClick={() => handleLayerChange(selectedLayer.id, { stroke: c, strokeFinish: 'solid', strokeGradientUrl: undefined })}
-                    onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); openColorPicker(idx); }}
-                    title={`Frame Color ${c} (Right-click to remap)`}
+                    title={`Frame Color ${c}`}
                     style={{ 
                       width: '100%', 
                       height: '100%',
                       background: c, 
                       borderRadius: '3px', 
                       cursor: 'pointer', 
-                      border: selectedLayer.stroke === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)',
-                      padding: 0,
-                      outline: 'none',
-                      appearance: 'none',
-                      WebkitAppearance: 'none'
+                      border: selectedLayer.stroke === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
                     }} 
                   />
                 ))}
@@ -1836,7 +1819,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       type="color" 
       ref={colorInputRef} 
       onInput={handleColorChange} 
-      style={{ position: 'fixed', bottom: 0, right: 0, opacity: 0, width: '1px', height: '1px', zIndex: -1, pointerEvents: 'auto' }} 
+      style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }} 
       aria-hidden="true"
       tabIndex={-1}
     />
