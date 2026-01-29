@@ -391,7 +391,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     if (!canvas) return;
     const canvasWidth = canvas.clientWidth || 0;
     const canvasHeight = canvas.clientHeight || 0;
-    const nextWidth = Math.max(150, Math.min(190, Math.floor(canvasWidth * 0.62)));
+    const nextWidth = Math.max(120, Math.min(190, Math.floor(canvasWidth * 0.6)));
     setPanelWidth(nextWidth);
     setPanelPos((prev) => {
       const maxRight = Math.max(8, canvasWidth - nextWidth - 8);
@@ -432,9 +432,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   useEffect(() => {
     clampPanelToCanvas();
-    const handleResize = () => clampPanelToCanvas();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const canvas = canvasRef.current;
+    if (!canvas || typeof ResizeObserver === 'undefined') {
+      const handleResize = () => clampPanelToCanvas();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+    const observer = new ResizeObserver(() => clampPanelToCanvas());
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, [clampPanelToCanvas, contextMenu]);
 
   useEffect(() => {
@@ -565,9 +571,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       if (isDraggingPanel) {
         const dx = e.clientX - panelDragStart.current.x;
         const dy = e.clientY - panelDragStart.current.y;
+        const canvas = canvasRef.current;
+        const canvasWidth = canvas?.clientWidth || 0;
+        const canvasHeight = canvas?.clientHeight || 0;
+        const nextTop = panelDragStart.current.initialTop + dy;
+        const nextRight = panelDragStart.current.initialRight - dx;
+        const maxRight = Math.max(8, canvasWidth - panelWidth - 8);
+        const maxTop = Math.max(8, canvasHeight - 8);
         setPanelPos({
-          top: panelDragStart.current.initialTop + dy,
-          right: panelDragStart.current.initialRight - dx
+          top: Math.min(Math.max(nextTop, 8), maxTop),
+          right: Math.min(Math.max(nextRight, 8), maxRight)
         });
       }
     };
