@@ -40,18 +40,17 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       // Try positioning below the anchor
       if (anchorRect.bottom + 8 + popoverRect.height <= viewportHeight - 16) {
         newTop = anchorRect.bottom + 8;
-        newLeft = centeredLeft;
       }
       // Try positioning above the anchor
       else if (anchorRect.top - 8 - popoverRect.height >= 16) {
         newTop = anchorRect.top - 8 - popoverRect.height;
-        newLeft = centeredLeft;
       }
-      // Fallback: If neither above nor below fits well, place below and let clamping handle it
+      // Default to below if neither fits perfectly, clamping will adjust
       else {
-        newTop = anchorRect.bottom + 8; // Default to below
-        newLeft = centeredLeft;
+        newTop = anchorRect.bottom + 8;
       }
+
+      newLeft = centeredLeft;
 
       // Final clamping for horizontal position
       newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
@@ -95,6 +94,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         left: popoverPosition.left,
         zIndex: 9999,
         width: 'max-content',
+        maxWidth: 'calc(100vw - 32px)', // Ensures it doesn't overflow on small screens
         padding: '12px',
         background: 'var(--errl-panel)',
         // Removed explicit border, borderRadius, boxShadow since .card class handles it
