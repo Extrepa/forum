@@ -1429,9 +1429,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               onClick={() => {
                 const serializer = new XMLSerializer();
                 const svgClone = svgRef.current.cloneNode(true);
+                svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                 svgClone.setAttribute('width', '1024');
                 svgClone.setAttribute('height', '1024');
                 svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                if (!svgClone.getAttribute('viewBox')) {
+                  svgClone.setAttribute('viewBox', '70 191 983 983');
+                }
                 const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
