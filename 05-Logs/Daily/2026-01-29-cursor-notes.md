@@ -22,5 +22,8 @@
     - Removed `maxWidth: 'calc(100vw - 32px)'` from the popover's inline styles.
     - Reduced the vertical offset from `8px` to `4px` in `calculatePosition`.
     - Simplified `calculatePosition` to always apply clamping, first attempting to place below the anchor, then above if necessary.
+    - Removed the `useEffect` hook containing the `calculatePosition` function to eliminate complex positioning logic.
+    - Removed the `popoverPosition` state.
+    - Set the popover's `style` to `top: '50%'`, `left: '50%'`, and `transform: 'translate(-50%, -50%)'` to center it on the screen.
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.

@@ -9,7 +9,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
 
   useEffect(() => {
     fetch(`/api/user/${encodeURIComponent(username)}`)
@@ -22,37 +21,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       })
       .catch(() => setLoading(false));
   }, [username]);
-
-  useEffect(() => {
-    if (!anchorRef.current || !popoverRef.current) return;
-
-    const calculatePosition = () => {
-      const anchorRect = anchorRef.current.getBoundingClientRect();
-      const popoverRect = popoverRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let newLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
-      let newTop = anchorRect.bottom + 4; // Default to below with a small offset
-
-      // Clamp horizontal position
-      newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
-
-      // Check if popover goes off-screen below, and if so, try above
-      if (newTop + popoverRect.height > viewportHeight - 16 && anchorRect.top - 4 - popoverRect.height >= 16) {
-        newTop = anchorRect.top - 4 - popoverRect.height;
-      }
-
-      // Clamp vertical position (ensures it's never off-screen)
-      newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
-
-      setPopoverPosition({ left: newLeft, top: newTop });
-    };
-
-    calculatePosition();
-    window.addEventListener('resize', calculatePosition);
-    return () => window.removeEventListener('resize', calculatePosition);
-  }, [anchorRef, onClose, popoverRef]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,8 +45,9 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
         position: 'fixed',
-        top: popoverPosition.top,
-        left: popoverPosition.left,
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)', // Centers the popover
         zIndex: 9999,
         width: 'max-content',
         padding: '12px',
