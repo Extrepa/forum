@@ -902,7 +902,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
           <div style={{ position: 'sticky', top: '20px' }}>
             <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '24px', color: 'var(--accent)' }}>Welcome to the Errl Forum</h4>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-              Errl is built by people who grew up checking forums, profiles, and pages on purpose — not scrolling endlessly, but actually arriving somewhere.
+              This forum is built for people who grew up checking forums, profiles, and pages on purpose — not scrolling endlessly, but actually arriving somewhere.
             </p>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               Here, you can share projects, music, art, events, and ideas without algorithms shaping the experience. It’s early-internet energy with renegade roots and a creative future in mind.
@@ -910,7 +910,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               If you found your way here through a friend, a show, a late-night conversation, or a random link — chances are you belong here.
             </p>
-            <p className="muted" style={{ fontSize: '18px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-4)', fontWeight: 'bold' }}>
+            <p className="muted" style={{ fontSize: '18px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-4)', fontWeight: 'bold', marginBottom: '12px' }}>
               Take your time. Dive in. Errl’s got layers.
             </p>
           </div>
