@@ -900,20 +900,18 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ flex: '0 0 25%', minWidth: '200px', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
           <div style={{ position: 'sticky', top: '20px' }}>
-            <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '18px' }}>Welcome to the Errl Forum</h4>
+            <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '24px', color: 'var(--accent)' }}>Welcome to the Errl Forum</h4>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-              {mode === 'login' ? (
-                <>
-                  If you have an account, please sign in to the right. If you do not, please click &quot;Create an account&quot; below.
-                </>
-              ) : (
-                <>
-                  Join the community! Create your account to start posting, commenting, and connecting with other Errl members.
-                </>
-              )}
+              Errl is built by people who grew up checking forums, profiles, and pages on purpose — not scrolling endlessly, but actually arriving somewhere.
             </p>
-            <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
-              Born on an overhead projector, mixing oil and water and light—a spark of awe brought to life.
+            <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+              Here, you can share projects, music, art, events, and ideas without algorithms shaping the experience. It’s early-internet energy with renegade roots and a creative future in mind.
+            </p>
+            <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+              If you found your way here through a friend, a show, a late-night conversation, or a random link — chances are you belong here.
+            </p>
+            <p className="muted" style={{ fontSize: '18px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-4)', fontWeight: 'bold' }}>
+              Take your time. Dive in. Errl’s got layers.
             </p>
           </div>
         </div>
