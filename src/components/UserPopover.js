@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
@@ -31,6 +31,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     elements: {
       reference: anchorRef.current, // Use the passed anchorRef as the reference
     },
+    whileElementsMounted: autoUpdate, // Add this line
   });
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
         ...floatingStyles, // Apply Floating UI's calculated styles
-        position: 'absolute', // Floating UI works best with absolute positioning
+        position: 'fixed', // Change back to fixed
         zIndex: 9999,
         width: 'max-content',
         padding: '12px',
