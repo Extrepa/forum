@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { getAvatarUrl } from '../lib/media';
+import UserPopover from './UserPopover';
 
 export default function Username({
   name,
@@ -18,6 +20,9 @@ export default function Username({
   avatarKey,
   style,
 }) {
+  const [showPopover, setShowPopover] = useState(false);
+  const anchorRef = useRef(null);
+
   const safeName = String(name || '').trim();
   if (!safeName) return null;
 
@@ -41,22 +46,46 @@ export default function Username({
   const avatarUrl = getAvatarUrl(avatarKey);
 
   const disableLink = href === null || href === false;
-  const Wrapper = disableLink ? 'span' : Link;
-  const wrapperProps = disableLink ? {} : { href: profileHref };
+
+  const handleClick = (e) => {
+    if (disableLink) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setShowPopover(!showPopover);
+  };
 
   return (
-    <Wrapper {...wrapperProps} className={classes} title={title || safeName} style={style}>
-      {avatarUrl && (
-        <Image 
-          src={avatarUrl} 
-          alt="" 
-          className="username-avatar"
-          width={24}
-          height={24}
-          unoptimized
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <span 
+        ref={anchorRef}
+        onClick={handleClick}
+        className={classes} 
+        title={title || safeName} 
+        style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
+      >
+        {avatarUrl && (
+          <Image 
+            src={avatarUrl} 
+            alt="" 
+            className="username-avatar"
+            width={24}
+            height={24}
+            unoptimized
+          />
+        )}
+        <span>{safeName}</span>
+      </span>
+
+      {showPopover && (
+        <UserPopover 
+          username={safeName} 
+          avatarKey={avatarKey} 
+          colorIndex={idx}
+          onClose={() => setShowPopover(false)}
+          anchorRef={anchorRef}
         />
       )}
-      <span>{safeName}</span>
-    </Wrapper>
+    </span>
   );
 }
+

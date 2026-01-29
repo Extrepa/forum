@@ -91,25 +91,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     
     const isEditing = resolvedSearchParams?.edit === 'true';
     let thread = null;
+    const query = `
+      SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+             forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
+             forum_threads.moved_to_type, forum_threads.moved_to_id,
+             COALESCE(forum_threads.views, 0) AS views,
+             COALESCE(users.username, 'Deleted User') AS author_name,
+             users.preferred_username_color_index AS author_color_preference,
+             users.avatar_key AS author_avatar_key,
+             (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
+      FROM forum_threads
+      LEFT JOIN users ON users.id = forum_threads.author_user_id
+      WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+    `;
+    
     try {
-      // #region agent log
-      log('lobby/[id]/page.js:76', 'Before thread query', {threadId:id}, 'A');
-      // #endregion
-      thread = await db
-        .prepare(
-          `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-                  forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
-                  forum_threads.moved_to_type, forum_threads.moved_to_id,
-                  COALESCE(forum_threads.views, 0) AS views,
-                  COALESCE(users.username, 'Deleted User') AS author_name,
-                  users.preferred_username_color_index AS author_color_preference,
-                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id) AS like_count
-           FROM forum_threads
-           LEFT JOIN users ON users.id = forum_threads.author_user_id
-           WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
-        )
-        .bind(id)
-        .first();
+    thread = await db.prepare(query).bind(id).first();
       // #region agent log
       log('lobby/[id]/page.js:88', 'After thread query', {threadId:id,hasThread:!!thread,threadKeys:thread?Object.keys(thread):[]}, 'A');
       // #endregion
@@ -144,6 +141,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           .bind(id)
           .first();
         if (thread) {
+          thread.author_avatar_key = thread.author_avatar_key || null;
           thread.moved_to_id = thread.moved_to_id || null;
           thread.moved_to_type = thread.moved_to_type || null;
         }
@@ -157,14 +155,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                     COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
+                    users.avatar_key AS author_avatar_key,
                     COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count
              FROM forum_threads
              LEFT JOIN users ON users.id = forum_threads.author_user_id
-             WHERE forum_threads.id = ? AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`
+             WHERE forum_threads.id = ?`
             )
             .bind(id)
             .first();
           if (thread) {
+            thread.author_avatar_key = thread.author_avatar_key || null;
             thread.moved_to_id = thread.moved_to_id || null;
             thread.moved_to_type = thread.moved_to_type || null;
           }
@@ -742,6 +742,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           author={safeAuthorName}
           authorColorIndex={usernameColorMap.get(safeAuthorName) ?? 0}
           authorPreferredColorIndex={thread?.author_color_preference !== null && thread?.author_color_preference !== undefined ? Number(thread.author_color_preference) : null}
+          authorAvatarKey={thread?.author_avatar_key}
           createdAt={safeThreadCreatedAt}
           likeButton={viewer ? (
             <LikeButton 
@@ -850,10 +851,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
     </div>
   );
   } catch (error) {
-    // #region agent log
-    const log = (loc, msg, data, hyp) => console.error(`[DEBUG ${hyp||'ALL'}] ${loc}: ${msg}`, JSON.stringify(data||{}));
-    log('lobby/[id]/page.js:575', 'Top-level catch error', {threadId:id,errorMessage:error?.message,errorStack:error?.stack,errorName:error?.name}, 'ALL');
-    // #endregion
     console.error('Error loading lobby thread:', error, { threadId: id, errorMessage: error.message, errorStack: error.stack });
     return (
       <div className="card">

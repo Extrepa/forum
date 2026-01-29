@@ -79,7 +79,7 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
         animation: !isHovering ? 'floatingFace 6s ease-in-out infinite' : 'none'
       }}>
         <Image
-          src={getAvatarUrl(avatarKey) || '/icons/errl-face.png'}
+          src={getAvatarUrl(avatarKey)}
           alt=""
           width={160}
           height={160}

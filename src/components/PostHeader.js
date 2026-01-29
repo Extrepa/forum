@@ -20,6 +20,7 @@ export default function PostHeader({
   author,
   authorColorIndex,
   authorPreferredColorIndex,
+  authorAvatarKey, // Added authorAvatarKey
   createdAt,
   likeButton,
   className = '',
@@ -44,6 +45,7 @@ export default function PostHeader({
               name={author} 
               colorIndex={authorColorIndex}
               preferredColorIndex={authorPreferredColorIndex}
+              avatarKey={authorAvatarKey} // Pass avatarKey to Username
             />
             {createdAt && (
               <>

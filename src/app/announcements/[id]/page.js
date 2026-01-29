@@ -56,6 +56,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               COALESCE(timeline_updates.is_locked, 0) AS is_locked,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
+              users.avatar_key AS author_avatar_key,
               (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
@@ -187,6 +188,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           author={update.author_name}
           authorColorIndex={usernameColorMap.get(update.author_name)}
           authorPreferredColorIndex={update.author_color_preference !== null && update.author_color_preference !== undefined ? Number(update.author_color_preference) : null}
+          authorAvatarKey={update.author_avatar_key}
           createdAt={update.created_at}
           likeButton={
             <LikeButton 

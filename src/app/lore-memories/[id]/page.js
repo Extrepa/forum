@@ -43,6 +43,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                 COALESCE(posts.is_locked, 0) AS is_locked,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
@@ -225,6 +226,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
           author={post.author_name}
           authorColorIndex={usernameColorMap.get(post.author_name)}
           authorPreferredColorIndex={post.author_color_preference !== null && post.author_color_preference !== undefined ? Number(post.author_color_preference) : null}
+          authorAvatarKey={post.author_avatar_key}
           createdAt={post.created_at}
           likeButton={
             <LikeButton 

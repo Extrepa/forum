@@ -1,105 +1,73 @@
 # Development Notes - January 28, 2026
 
 ## Summary
-Finalized avatar integration across the platform, including global username display, refined account previews, and enhanced customization logic.
+Finalized avatar integration across the platform, including global username display, refined account previews, and enhanced customization logic. Implemented site-wide avatar visibility in post headers and interactive mini-profile popovers for all username clicks.
 
-## Avatar Integration Finalization
+## Site-Wide Avatar & Profile Preview Implementation
+
+### 1. Post Header Avatar Integration
+- **File**: `src/components/PostHeader.js`
+- **Changes**:
+  - Added `authorAvatarKey` prop.
+  - Passes `authorAvatarKey` to the `Username` component to display the avatar next to the name.
+- **Pages Updated**: Updated 13 detail pages (Lobby, Devlog, Music, Projects, Announcements, Events, Art, Bugs, Rant, Nostalgia, Memories, Lore, Lore-Memories) to fetch `users.avatar_key` and pass it to `PostHeader`.
+- **Visibility Policy**: Avatars are explicitly enabled for post headers but remain disabled (null `avatarKey`) for replies, comments, feeds, and the home page to maintain the requested focus.
+
+### 2. Mini Profile Preview Popover
+- **New Component**: `src/components/UserPopover.js`
+- **New API Route**: `src/app/api/user/[username]/route.js`
+- **Changes**:
+  - Clicking any username now opens a "mini profile preview" instead of immediate navigation.
+  - The popover displays the user's custom avatar, their username in their selected color, and a "View Profile" link.
+  - If the `avatarKey` isn't immediately available (e.g., in a comment), the popover fetches the user's data from the new API route.
+  - Implemented smooth animation (`popoverIn`) and outside-click detection for closing.
+
+### 3. Username Component Interactive Update
+- **File**: `src/components/Username.js`
+- **Changes**:
+  - Converted the username to a button-like trigger for the `UserPopover`.
+  - Used `e.preventDefault()` to stop immediate navigation, allowing the user to interact with the popover first.
+  - Maintained the existing color coding and styling logic while adding the popover anchor.
+
+## Avatar Integration Finalization (Earlier Today)
 
 ### 1. Global Username Component Refinement
 - **File**: `src/components/Username.js`
 - **Changes**:
-  - Removed redundant inline styles for the avatar image.
-  - Standardized URL generation using the new `getAvatarUrl` utility.
-  - Added `inline-flex` and `align-items: center` to ensure the avatar and text are perfectly aligned.
+  - Standardized URL generation using the `getAvatarUrl` utility.
+  - Added `inline-flex` and `align-items: center` for perfect alignment.
   - Ensured consistent gap between avatar and username.
 
 ### 2. Standardized Media Utilities
-- **File**: `src/lib/media.js` (NEW)
+- **File**: `src/lib/media.js`
 - **Changes**:
   - Created `getAvatarUrl(avatarKey)` to centralize avatar image path resolution.
-  - Handles null/undefined keys safely.
-  - Extracts the filename from the key to construct the correct API endpoint path (`/api/media/avatars/`).
+  - Handles null/undefined keys safely, construction API paths like `/api/media/avatars/`.
 
 ### 3. Account & Profile Integration
 - **File**: `src/app/account/AccountTabsClient.js`
   - Integrated `getAvatarUrl` for consistent preview rendering.
-  - Applied the `.username-avatar` global class to the large preview image for consistent styling (circular, bordered).
-  - Explicitly passed `avatar_key` to `Username` component instances.
+  - Restored large preview and mini-preview on the account page so users can see their avatar before editing.
 - **File**: `src/app/profile/[username]/page.js`
-  - Confirmed `avatar_key` is retrieved in the database query.
-  - Passed `profileUser.avatar_key` to the `Username` component.
+  - Implemented the `ProfileAvatarHero` with a dynamic parallax effect.
+  - Background aura, drop shadow, and text shadows now match the user's chosen outline color.
 
-### 4. Avatar Customizer Enhancements
-- **File**: `src/components/AvatarCustomizer.js`
+### 3. Default Avatar & Visual Consistency
+- **New Asset**: `public/icons/default-avatar.svg`
 - **Changes**:
-  - Improved "RANDOM" button logic to include randomization of:
-    - **Fill Color**: Random from the palette.
-    - **Finish**: Solid, Glow, or Glitter (with specific logic for non-glowable layers like mouth).
-    - **Stroke Color**: Random from the palette.
-    - **Stroke Width**: Randomly assigned between 2px and 10px.
-  - Updated action buttons to use text labels ("RANDOM", "SAVE", "CLOSE") instead of icons for better clarity and consistency with the UI.
-  - Refined button styling with subtle backgrounds and borders matching the "Errl" theme.
-
-### 5. Global CSS Updates
-- **File**: `src/app/globals.css`
-- **Changes**:
-  - Added `object-fit: cover` to the `.username-avatar` class to ensure uploaded/imported images fill the circular container correctly without distortion.
-  - Verified shadow and border consistency for all avatars site-wide.
+  - Implemented a default avatar SVG that matches the "Reset" state (white face, black features).
+  - Updated `src/lib/media.js` to return this default SVG path when a user hasn't set an avatar (`avatarKey` is null or empty).
+  - Synchronized the `INITIAL_LAYERS` in `src/components/AvatarCustomizer.js` to match the default SVG colors (`#ffffff` face, `#0a0a0a` features).
+  - Fixed a bug on the Profile page where a default avatar was showing next to the username despite the big hero version above it.
 
 ## Verification Checklist
-- [x] Username avatars display correctly in the header and post lists.
-- [x] Avatars are circular and have the standard accent border.
-- [x] Account Profile tab shows the correct large avatar preview.
-- [x] "RANDOM" button in customizer produces varied and interesting results.
-- [x] Double-clicking a layer in the customizer randomizes that specific layer.
-- [x] Keyboard shortcuts and drag/drop functionality remain robust.
-- [x] Avatar changes persist after saving and refreshing.
-- [x] Public profile pages display the user's avatar next to their name.
-
-Everything specified in the avatar customization plan has been implemented and verified.
-
-## Final Refinements & UI Polishing (January 28, 2026 - Evening Update)
-- **Canvas Centering**: Re-calculated and applied precise `x` and `y` offsets to `INITIAL_LAYERS` to ensure the face is perfectly centered within the `0 100 1100 1100` viewBox.
-- **Settings Panel Logic**: 
-  - Separated **Fill** and **Outline** tabs to eliminate control interference.
-  - **Fill Tab**: Controls scale, rotation, fill color, and finishes.
-  - **Outline Tab**: Controls outline color and thickness.
-- **Advanced Color Controls**:
-  - Integrated a **Color Wheel** trigger (bottom-right of palette) for custom hex selection.
-  - Added **Right-Click** support on palette boxes to reassign individual slots for the session.
-- **UI/UX Freshening**:
-  - Consolidated settings panel into a tighter, more condensed layout.
-  - Upgraded **Undo/Redo** icons (larger) and buttons (circular, borderless, hover-glow effect).
-  - Added a **RESET** button to restore original shapes with fresh random colors.
-  - Updated all action buttons to use the **ClaimUsernameForm** style (gradient background, 999px border-radius, consistent shadows).
-- **Tooltips & Descriptions**: Added descriptive `title` attributes to all controls and updated the interaction hint text at the bottom for better clarity.
-- **Documentation**: Updated `docs/03-Features/AVATAR_SYSTEM.md` to reflect the latest UI changes and new features.
-
-## Final Polish & Keyboard Enhancements (January 28, 2026 - Final)
-- **Draggable Settings Panel**: The avatar layer settings popout can now be dragged around the canvas by its header, allowing for unobstructed views while editing.
-- **Enhanced Keyboard Controls**: 
-  - Added `ESC` to quickly close the settings panel.
-  - Added `R` to randomize the currently selected layer.
-  - Added `+/-` (and `[` / `]`) for precise scaling of layers.
-  - Added `Ctrl+S` (or `Cmd+S`) to save the avatar from anywhere.
-- **UI Compaction**:
-  - Reduced unnecessary padding and spacing within the settings panel for a "squished" and more focused layout.
-  - Replaced text labels for animated gradients (Rainbow, Fire, Ocean, Toxic) with intuitive emojis (🌈, 🔥, 🌊, 🧪) to save space.
-  - Tightened the gap between scale/rotation labels and their respective values/sliders.
-- **Performance & Stability**:
-  - Increased the **Undo History** limit to 99,999 steps to allow for virtually infinite experimentation.
-  - Implemented stable state refs for the keyboard event handler to prevent stale closures and ensure reliable shortcut behavior.
-- **Interaction Improvements**:
-  - Enabled dragging of avatar layers using both left and right mouse buttons.
-  - Fixed color wheel button and palette box reassignment via right-click to ensure full functionality.
-  - Cleaned up the avatar preview logic in the Account tab for better visual consistency.
-
-## Final Polish & Visual Fixes (January 28, 2026 - Final Addendum)
-- **Centering Fix**: Reset default layer offsets to `x: 0, y: 0` to ensure avatars are perfectly centered in all views.
-- **Stroke Scaling**: Removed `non-scaling-stroke` from avatar paths. Strokes now scale proportionally, preventing small username icons from becoming "blobs" when using thick outlines.
-- **Thickness Restriction**: Restricted maximum outline thickness to `10px` (down from `20px`) and updated randomization logic to prefer thinner, cleaner outlines.
-- **Username Alignment**: Reduced the gap between the username avatar and text to `6px` for a tighter, more professional look.
-- **Canvas Rooting & Centering**: Reconfigured the avatar canvas to root from the face's mathematical center (`561.5, 682.5`). Updated the `viewBox` to `70 191 983 983` (adding 5px stroke padding) and applied `aspectRatio: '1 / 1'` to the canvas card. Set the initial face scale to `1.0` to ensure it fills the circle perfectly.
-- **Username Icon Optimization**: Removed the secondary blue border and glow from small username avatars, allowing the user's custom outline to be the primary border. Increased icon size from `20px` to `24px` and set a semi-transparent black background for better contrast and legibility across different themes.
-- **UI Compaction & Canvas Priority**: Reduced the padding of the main customizer container and the sizing of all action buttons (Save, Random, Reset, Import) to prioritize canvas space. Condensed the settings panel even further and enforced a strict `1:1` square aspect ratio on the canvas for perfect centering.
-- **Improved Transform Logic**: Layers now scale and rotate around the face's center point rather than the arbitrary SVG origin, preventing "drift" when adjusting size or orientation.
+- [x] Username avatars display correctly in post headers.
+- [x] Clicking a username anywhere opens the mini profile preview.
+- [x] Mini profile preview shows the custom avatar and a link to the profile.
+- [x] Avatars do not appear in replies, comments, or feeds (except when clicked for the popover).
+- [x] Users who haven't set an avatar now display the "default" (white/black) look.
+- [x] Database queries on all 13 detail pages fetch the `avatar_key`.
+- [x] Parallax effect and color-matching on profile pages remain functional.
+- [x] Account page previews are restored and accurate.
+- [x] Profile page no longer shows a redundant small avatar next to the username.
+- [x] Resetting in the customizer correctly reverts to the white/black default look.

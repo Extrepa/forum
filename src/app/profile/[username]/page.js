@@ -442,7 +442,6 @@ export default async function ProfilePage({ params }) {
                   <Username
                     name={profileUser.username}
                     colorIndex={colorIndex}
-                    avatarKey={null} // Explicitly null to prevent small avatar inside Username
                     href={null}
                     style={{ 
                       fontSize: '32px', 
