@@ -1428,7 +1428,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             <button 
               onClick={() => {
                 const serializer = new XMLSerializer();
-                const svgString = serializer.serializeToString(svgRef.current);
+                const svgClone = svgRef.current.cloneNode(true);
+                svgClone.setAttribute('width', '1024');
+                svgClone.setAttribute('height', '1024');
+                svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
               title="Save Avatar: Apply your changes to your profile"
