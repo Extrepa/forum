@@ -21,6 +21,30 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Re-inserting the data fetching useEffect
+  useEffect(() => {
+    console.log('UserPopover: Fetching data for username:', username); // Debugging line
+    fetch(`/api/user/${encodeURIComponent(username)}`)
+      .then(res => {
+        if (!res.ok) {
+          console.error('UserPopover: API response not OK:', res.status, res.statusText); // Debugging line
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('UserPopover: Received user data:', data); // Debugging line
+        if (!data.error) {
+          setUserInfo(data);
+        }
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('UserPopover: Error during data fetch:', error); // Debugging line
+        setLoading(false);
+      });
+  }, [username]);
+
 
   const placement = viewportWidth <= 640 ? 'bottom' : 'top-end'; // Default to 'bottom' on small screens
 
@@ -59,7 +83,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const profileHref = `/profile/${encodeURIComponent(username)}`;
 
   return createPortal( // Wrap with createPortal
-    <div 
+    <div
       ref={refs.setFloating} // Assign Floating UI's floating ref
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
@@ -116,7 +140,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
             {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
           </div>
         )}
-        <Link 
+        <Link
           href={profileHref}
           onClick={onClose}
           style={{
