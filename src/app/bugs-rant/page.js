@@ -1,8 +1,10 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
 import BugsRantClient from './BugsRantClient';
 import { redirect } from 'next/navigation';
@@ -14,12 +16,15 @@ export default async function BugsRantPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
 
   let results = [];
   let dbUnavailable = false;
+  const hiddenFilter = showHidden ? '' : 'AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -33,7 +38,7 @@ export default async function BugsRantPage({ searchParams }) {
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type IN ('bugs', 'rant')
-           AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
+           ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            AND (${isSignedIn ? '1=1' : 'posts.is_private = 0'})
          ORDER BY posts.created_at DESC
@@ -76,22 +81,25 @@ export default async function BugsRantPage({ searchParams }) {
       <PageTopRow
         items={[{ href: '/', label: 'Home' }, { href: '/bugs-rant', label: 'Bugs & Rants' }]}
         right={
-          <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
-            <GenericPostForm
-              action="/api/posts"
-              allowedTypes={['bugs', 'rant']}
-              titleLabel="Title (optional)"
-              titlePlaceholder="Short summary"
-              bodyLabel="Details"
-              bodyPlaceholder="What happened? What did you expect? Steps to reproduce? Screenshots/links?"
-              buttonLabel="Post"
-              showImage={true}
-              requireImage={false}
-              titleRequired={false}
-              bodyRequired={true}
-              showPrivateToggle={false}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
+              <GenericPostForm
+                action="/api/posts"
+                allowedTypes={['bugs', 'rant']}
+                titleLabel="Title (optional)"
+                titlePlaceholder="Short summary"
+                bodyLabel="Details"
+                bodyPlaceholder="What happened? What did you expect? Steps to reproduce? Screenshots/links?"
+                buttonLabel="Post"
+                showImage={true}
+                requireImage={false}
+                titleRequired={false}
+                bodyRequired={true}
+                showPrivateToggle={false}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <BugsRantClient posts={posts} notice={notice} />

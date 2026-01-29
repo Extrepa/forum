@@ -5,6 +5,7 @@ import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
 import { redirect } from 'next/navigation';
 
@@ -15,8 +16,11 @@ export default async function AnnouncementsPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   let results = [];
+  const hiddenFilter = showHidden ? '' : 'AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -31,7 +35,7 @@ export default async function AnnouncementsPage({ searchParams }) {
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          WHERE timeline_updates.moved_to_id IS NULL
-           AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+           ${hiddenFilter}
            AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
          ORDER BY timeline_updates.created_at DESC
          LIMIT 50`
@@ -120,23 +124,26 @@ export default async function AnnouncementsPage({ searchParams }) {
       ? 'Title and body are required.'
       : null;
 
-  const canCreate = !!user && !!user.password_hash && isAdminUser(user);
+  const canCreate = !!user && !!user.password_hash && isAdmin;
 
   return (
     <>
       <PageTopRow
         items={[{ href: '/', label: 'Home' }, { href: '/announcements', label: 'Announcements' }]}
         right={
-          <NewPostModalButton label="New Announcement" title="Post Announcement" disabled={!canCreate}>
-            <PostForm
-              action="/api/timeline"
-              titleLabel="Title"
-              bodyLabel="Update"
-              buttonLabel="Post Announcement"
-              titleRequired={false}
-              showImage={true}
-            />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Announcement" title="Post Announcement" disabled={!canCreate}>
+              <PostForm
+                action="/api/timeline"
+                titleLabel="Title"
+                bodyLabel="Update"
+                buttonLabel="Post Announcement"
+                titleRequired={false}
+                showImage={true}
+              />
+            </NewPostModalButton>
+          </>
         }
       />
       <TimelineClient updates={updates} notice={notice} basePath="/announcements" />

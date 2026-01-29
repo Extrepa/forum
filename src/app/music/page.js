@@ -3,8 +3,10 @@ import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { safeEmbedFromUrl } from '../../lib/embeds';
 import { getSessionUser } from '../../lib/auth';
+import { isAdminUser } from '../../lib/admin';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
+import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import MusicPostForm from '../../components/MusicPostForm';
 import { redirect } from 'next/navigation';
 
@@ -15,8 +17,11 @@ export default async function MusicPage({ searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const isAdmin = isAdminUser(user);
+  const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   let results = [];
+  const hiddenFilter = showHidden ? '' : 'AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)';
   try {
     const out = await db
       .prepare(
@@ -34,7 +39,7 @@ export default async function MusicPage({ searchParams }) {
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
-           AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+           ${hiddenFilter}
            AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
          ORDER BY music_posts.created_at DESC
          LIMIT 50`
@@ -143,9 +148,12 @@ export default async function MusicPage({ searchParams }) {
           { href: '/music', label: 'Music' },
         ]}
         right={
-          <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate} variant="wide">
-            <MusicPostForm />
-          </NewPostModalButton>
+          <>
+            {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
+            <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate} variant="wide">
+              <MusicPostForm />
+            </NewPostModalButton>
+          </>
         }
       />
       <MusicClient posts={posts} notice={notice} />
