@@ -21,6 +21,7 @@ export default function Username({
   style,
 }) {
   const [showPopover, setShowPopover] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
   const anchorRef = useRef(null);
 
   const safeName = String(name || '').trim();
@@ -47,18 +48,28 @@ export default function Username({
 
   const disableLink = href === null || href === false;
 
-  const handleClick = (e) => {
-    if (disableLink) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setShowPopover(!showPopover);
+  const handleMouseEnter = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+    setShowPopover(true);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setShowPopover(false);
+    }, 200); // 200ms delay to allow moving to popover
+    setHoverTimeout(timeout);
   };
 
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span 
+      style={{ position: 'relative', display: 'inline-block' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <span 
         ref={anchorRef}
-        onClick={handleClick}
         className={classes} 
         title={title || safeName} 
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}

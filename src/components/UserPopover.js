@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift, autoUpdate, autoPlacement } from '@floating-ui/react';
 import { createPortal } from 'react-dom';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
@@ -10,6 +9,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewportWidth, setViewportWidth] = useState(0); // Initialize with 0
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleResize = () => {
@@ -21,7 +21,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Re-inserting the data fetching useEffect
+  // Data fetching useEffect (kept as is)
   useEffect(() => {
     console.log('UserPopover: Fetching data for username:', username); // Debugging line
     fetch(`/api/user/${encodeURIComponent(username)}`)
@@ -45,28 +45,57 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       });
   }, [username]);
 
+  useEffect(() => {
+    const calculatePosition = () => {
+      if (!anchorRef.current || !popoverRef.current) return;
 
-  const placement = viewportWidth <= 640 ? 'bottom' : 'top-end'; // Default to 'bottom' on small screens
+      const anchorRect = anchorRef.current.getBoundingClientRect();
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
 
-  const { refs, floatingStyles } = useFloating({
-    placement,
-    middleware: [
-      offset(4), // 4px offset from the anchor
-      viewportWidth <= 640 ?
-        autoPlacement({ // Use autoPlacement for mobile
-          padding: 16,
-          allowedPlacements: ['bottom', 'top'], // Prioritize bottom, then top for mobile
-        }) :
-        flip(), // Use flip for desktop
-      shift({ padding: 16, crossAxis: viewportWidth <= 640 }), // Apply crossAxis shift only for mobile
-    ],
-    strategy: 'fixed',
-    whileElementsMounted: autoUpdate,
-  });
+      let newLeft, newTop;
+
+      // Default to "above and to the right" for desktop
+      if (viewportWidth > 640) {
+        newLeft = anchorRect.right + 4; // 4px to the right of the anchor
+        newTop = anchorRect.top - 4 - popoverRect.height; // 4px above the anchor
+
+        // Fallback to "below and to the right" if not enough space above
+        if (newTop < 16) { // 16px from top edge
+          newTop = anchorRect.bottom + 4; // 4px below the anchor
+        }
+
+        // Clamp to viewport edges
+        newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
+        newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
+
+      } else { // Mobile (viewportWidth <= 640) - centered horizontally, prioritize below
+        newLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
+        newTop = anchorRect.bottom + 4; // Default to below with a small offset
+
+        // Clamp horizontally first
+        newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
+
+        // If it goes off-screen below, try above
+        if (newTop + popoverRect.height > viewportHeight - 16 && anchorRect.top - 4 - popoverRect.height >= 16) {
+          newTop = anchorRect.top - 4 - popoverRect.height;
+        }
+
+        // Final vertical clamping
+        newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
+      }
+
+      setPopoverPosition({ top: newTop, left: newLeft });
+    };
+
+    calculatePosition();
+    window.addEventListener('resize', calculatePosition);
+    return () => window.removeEventListener('resize', calculatePosition);
+  }, [username, anchorRef, viewportWidth, loading]); // Depend on relevant states/props
 
   useEffect(() => {
     const handleDocumentClick = (event) => {
-      // Ensure refs are current before checking contains
       if (popoverRef.current && anchorRef.current &&
           !popoverRef.current.contains(event.target) &&
           !anchorRef.current.contains(event.target)) {
@@ -74,29 +103,29 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       }
     };
 
+    // Use mousedown as it fires before click and allows earlier detection
     document.addEventListener('mousedown', handleDocumentClick);
     return () => {
       document.removeEventListener('mousedown', handleDocumentClick);
     };
-  }, [onClose, anchorRef, popoverRef]);
-
+  }, [onClose, anchorRef]); // popoverRef is not needed here if it's not changing
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
 
-  return createPortal( // Wrap with createPortal
+  return createPortal(
     <div
-      ref={refs.setFloating} // Assign Floating UI's floating ref
-      className="card notifications-popover-errl" // Apply Errl border styling class
+      ref={popoverRef}
+      className="card notifications-popover-errl"
       style={{
-        ...floatingStyles, // Apply Floating UI's calculated styles
-        position: 'fixed', // Keep as fixed for viewport positioning
+        position: 'fixed',
         zIndex: 9999,
+        top: popoverPosition.top,
+        left: popoverPosition.left,
         width: 'max-content',
-        maxWidth: 'calc(100vw - 32px)', // Re-introduce responsive max-width
+        maxWidth: 'calc(100vw - 32px)',
         padding: '12px',
         background: 'var(--errl-panel)',
-        // Removed explicit border, borderRadius, boxShadow since .card class handles it
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -104,6 +133,8 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         backdropFilter: 'blur(10px)',
         animation: 'popoverIn 0.2s ease-out'
       }}
+      onMouseEnter={() => {}} // Keep open on hover over popover
+      onMouseLeave={onClose} // Close when mouse leaves popover
     >
       <style>{`
         @keyframes popoverIn {
@@ -144,7 +175,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         )}
         <Link
           href={profileHref}
-          onClick={onClose}
+          onClick={onClose} // Close popover when clicking link
           style={{
             fontSize: '11px',
             color: 'var(--accent)',
