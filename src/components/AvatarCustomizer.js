@@ -377,13 +377,27 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const positionPanelAtPoint = (clientX, clientY) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
-    const panelHeight = panelRef.current?.offsetHeight || 400; // Best guess for initial calc
+    const panelHeight = panelRef.current?.offsetHeight || 400; 
+
+    // Convert client coords (viewport) to local coords (container)
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+
+    // Clamp so that the panel stays within the VIEWPORT, 
+    // but expressed in container-local coordinates.
+    const minLocalX = -rect.left + 8;
+    const maxLocalX = viewportWidth - rect.left - PANEL_WIDTH - 8;
+    const minLocalY = -rect.top + 8;
+    const maxLocalY = viewportHeight - rect.top - panelHeight - 8;
     
     setPanelPos({
-      left: Math.min(Math.max(clientX - PANEL_WIDTH / 2, 8), viewportWidth - PANEL_WIDTH - 8),
-      top: Math.min(Math.max(clientY - 24, 8), viewportHeight - panelHeight - 8)
+      left: Math.min(Math.max(localX - PANEL_WIDTH / 2, minLocalX), maxLocalX),
+      top: Math.min(Math.max(localY - 24, minLocalY), maxLocalY)
     });
   };
 
@@ -399,13 +413,22 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const clampPanelToContainer = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
     
     setPanelPos((prev) => {
       const panelHeight = panelRef.current?.offsetHeight || 0;
-      const nextLeft = Math.min(Math.max(prev.left, 8), viewportWidth - PANEL_WIDTH - 8);
-      const nextTop = Math.min(Math.max(prev.top, 8), viewportHeight - panelHeight - 8);
+      const minLocalX = -rect.left + 8;
+      const maxLocalX = viewportWidth - rect.left - PANEL_WIDTH - 8;
+      const minLocalY = -rect.top + 8;
+      const maxLocalY = viewportHeight - rect.top - panelHeight - 8;
+
+      const nextLeft = Math.min(Math.max(prev.left, minLocalX), maxLocalX);
+      const nextTop = Math.min(Math.max(prev.top, minLocalY), maxLocalY);
+      
       if (prev.left === nextLeft && prev.top === nextTop) return prev;
       return { left: nextLeft, top: nextTop };
     });
@@ -598,6 +621,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const dx = clientX - panelDragStart.current.x;
       const dy = clientY - panelDragStart.current.y;
       
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
       const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
       const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
       const panelHeight = panelRef.current?.offsetHeight || 0;
@@ -605,9 +631,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextLeft = panelDragStart.current.initialLeft + dx;
       
+      const minLocalX = -rect.left + 8;
+      const maxLocalX = viewportWidth - rect.left - PANEL_WIDTH - 8;
+      const minLocalY = -rect.top + 8;
+      const maxLocalY = viewportHeight - rect.top - panelHeight - 8;
+
       setPanelPos({
-        top: Math.min(Math.max(nextTop, 8), viewportHeight - panelHeight - 8),
-        left: Math.min(Math.max(nextLeft, 8), viewportWidth - PANEL_WIDTH - 8)
+        top: Math.min(Math.max(nextTop, minLocalY), maxLocalY),
+        left: Math.min(Math.max(nextLeft, minLocalX), maxLocalX)
       });
     };
 
@@ -1280,10 +1311,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           className="card avatar-customizer-panel"
           ref={panelRef}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: `${panelPos.top}px`,
             left: `${panelPos.left}px`,
-            zIndex: 1000,
+            zIndex: 100,
             width: `${PANEL_WIDTH}px`,
             minWidth: `${PANEL_WIDTH}px`,
             maxWidth: `${PANEL_WIDTH}px`,
