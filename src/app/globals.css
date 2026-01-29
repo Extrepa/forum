@@ -13,6 +13,14 @@
   --errl-accent-3: #f5ffb7;
   --errl-accent-4: #00f5a0;
   --errl-accent-soft: #0d3344;
+  --username-0: #34E1FF;
+  --username-1: #FF34F5;
+  --username-2: #FFFF00;
+  --username-3: #00FF41;
+  --username-4: #FF6B00;
+  --username-5: #B026FF;
+  --username-6: #00D9FF;
+  --username-7: #CCFF00;
 
   --bg: var(--errl-bg);
   --bg-accent: var(--errl-bg-alt);
