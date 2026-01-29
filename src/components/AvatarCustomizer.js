@@ -150,7 +150,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [panelPos, setPanelPos] = useState({ top: 8, left: 8 });
-  const panelWidth = 190;
+  const [panelWidth, setPanelWidth] = useState(190);
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialLeft: 8 });
   const [palette, setPalette] = useState(INITIAL_PALETTE);
@@ -375,14 +375,22 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     }
   };
 
+  const getPanelWidth = () => {
+    const viewportWidth = window.innerWidth || 0;
+    if (!viewportWidth) return 190;
+    return Math.min(190, Math.max(140, viewportWidth - 16));
+  };
+
   const positionPanelAtPoint = (clientX, clientY) => {
     const viewportWidth = window.innerWidth || 0;
     const viewportHeight = window.innerHeight || 0;
     const panelHeight = panelRef.current?.offsetHeight || 0;
+    const nextWidth = getPanelWidth();
+    setPanelWidth(nextWidth);
     const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
     const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
     setPanelPos({
-      left: Math.min(Math.max(clientX - panelWidth / 2, 8), maxLeft),
+      left: Math.min(Math.max(clientX - nextWidth / 2, 8), maxLeft),
       top: Math.min(Math.max(clientY - 24, 8), maxTop)
     });
   };
@@ -397,16 +405,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     }
     lastContextMenuRef.current = now;
     setSelectedLayerId(id);
-    positionPanelAtPoint(e.clientX, e.clientY);
     setContextMenu({ x: e.clientX, y: e.clientY, id });
+    requestAnimationFrame(() => positionPanelAtPoint(e.clientX, e.clientY));
   };
 
   const clampPanelToViewport = useCallback(() => {
     const viewportWidth = window.innerWidth || 0;
     const viewportHeight = window.innerHeight || 0;
+    const nextWidth = getPanelWidth();
+    setPanelWidth(nextWidth);
     const panelHeight = panelRef.current?.offsetHeight || 0;
     setPanelPos((prev) => {
-      const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
+      const maxLeft = Math.max(8, viewportWidth - nextWidth - 8);
       const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
       const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
@@ -453,11 +463,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   useEffect(() => {
     if (!contextMenu) return;
-    const viewportWidth = window.innerWidth || 0;
-    setPanelPos((prev) => ({
-      ...prev,
-      left: Math.max(8, viewportWidth - panelWidth - 16)
-    }));
     clampPanelToViewport();
     const handleResize = () => clampPanelToViewport();
     window.addEventListener('resize', handleResize);
@@ -726,8 +731,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setSelectedLayerId(id);
     longPressRef.current = setTimeout(() => {
       setSelectedLayerId(id);
-      positionPanelAtPoint(touch.clientX, touch.clientY);
       setContextMenu({ x: touch.clientX, y: touch.clientY, id });
+      requestAnimationFrame(() => positionPanelAtPoint(touch.clientX, touch.clientY));
     }, 450);
   };
 
@@ -1054,8 +1059,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           <div 
             className="card avatar-customizer-panel"
             ref={panelRef}
-            onMouseDown={handlePanelMouseDown}
-            onTouchStart={handlePanelTouchStart}
             style={{
               position: 'fixed',
               top: `${panelPos.top}px`,
@@ -1064,6 +1067,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               width: `${panelWidth}px`,
               minWidth: `${panelWidth}px`,
               maxWidth: `${panelWidth}px`,
+              boxSizing: 'border-box',
               background: 'var(--errl-panel)',
               backdropFilter: 'blur(16px)',
               borderRadius: '12px',
@@ -1076,19 +1080,26 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               maxHeight: 'calc(100vh - 16px)',
               overflowY: 'auto',
               overflowX: 'visible',
-              cursor: isDraggingPanel ? 'grabbing' : 'grab'
+              cursor: 'default'
             }}
           >
             <div 
+              onMouseDown={handlePanelMouseDown}
+              onTouchStart={handlePanelTouchStart}
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 marginBottom: '2px',
                 paddingBottom: '4px',
                 borderBottom: '1px solid rgba(52, 225, 255, 0.1)',
-                position: 'relative'
+                position: 'relative',
+                cursor: isDraggingPanel ? 'grabbing' : 'grab',
+                gap: '6px'
               }}
             >
+              <span style={{ fontSize: '12px', color: 'rgba(52, 225, 255, 0.6)', letterSpacing: '1px', lineHeight: 1, marginTop: '-1px' }}>
+                ⋯
+              </span>
               <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
                 {selectedLayer.type} Settings
               </span>
