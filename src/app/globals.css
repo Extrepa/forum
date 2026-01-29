@@ -1580,7 +1580,7 @@ a.list-item:hover {
 
 /* Username link hover */
 .username:hover {
-  text-decoration: underline;
+  text-decoration: none;
   opacity: 0.9;
 }
 

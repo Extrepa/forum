@@ -42,6 +42,7 @@ export default function UserPopover({ username, avatarKey, colorIndex, onClose, 
   return (
     <div 
       ref={popoverRef}
+      className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
         position: 'absolute',
         top: 'calc(100% + 8px)',
@@ -50,9 +51,7 @@ export default function UserPopover({ username, avatarKey, colorIndex, onClose, 
         width: '140px',
         padding: '12px',
         background: 'var(--errl-panel)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        boxShadow: 'var(--shadow)',
+        // Removed explicit border, borderRadius, boxShadow since .card class handles it
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -93,13 +92,18 @@ export default function UserPopover({ username, avatarKey, colorIndex, onClose, 
         <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${colorIndex || 0})` }}>
           {username}
         </div>
+        {userInfo?.role && (
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>
+            {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
+          </div>
+        )}
         <Link 
           href={profileHref}
           onClick={onClose}
           style={{ 
             fontSize: '11px', 
             color: 'var(--accent)', 
-            marginTop: '4px', 
+            marginTop: userInfo?.role ? '0px' : '4px', 
             display: 'block',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',

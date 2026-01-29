@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
 
   try {
     const user = await db
-      .prepare('SELECT username, avatar_key, preferred_username_color_index FROM users WHERE username = ?')
+      .prepare('SELECT username, avatar_key, preferred_username_color_index, role FROM users WHERE username = ?')
       .bind(username)
       .first();
 
