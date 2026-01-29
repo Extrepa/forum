@@ -8,7 +8,6 @@ import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
 import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
-import { getAvatarUrl } from '../../../lib/media';
 
 export const dynamic = 'force-dynamic';
 
