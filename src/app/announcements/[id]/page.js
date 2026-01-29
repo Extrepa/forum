@@ -50,26 +50,51 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   }
   const db = await getDb();
   const isAdmin = isAdminUser(user);
-  const update = await db
-    .prepare(
-        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
-              timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
-              timeline_updates.moved_to_type, timeline_updates.moved_to_id,
-              timeline_updates.author_user_id,
-              COALESCE(timeline_updates.views, 0) AS views,
-              COALESCE(timeline_updates.is_locked, 0) AS is_locked,
-              COALESCE(timeline_updates.is_hidden, 0) AS is_hidden,
-              COALESCE(timeline_updates.is_deleted, 0) AS is_deleted,
-              users.username AS author_name,
-              users.preferred_username_color_index AS author_color_preference,
-              users.avatar_key AS author_avatar_key,
-              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
-       FROM timeline_updates
-       JOIN users ON users.id = timeline_updates.author_user_id
-       WHERE timeline_updates.id = ?`
-    )
-      .bind(id)
-    .first();
+  let update = null;
+  try {
+    update = await db
+      .prepare(
+          `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
+                timeline_updates.moved_to_type, timeline_updates.moved_to_id,
+                timeline_updates.author_user_id,
+                COALESCE(timeline_updates.views, 0) AS views,
+                COALESCE(timeline_updates.is_locked, 0) AS is_locked,
+                COALESCE(timeline_updates.is_hidden, 0) AS is_hidden,
+                COALESCE(timeline_updates.is_deleted, 0) AS is_deleted,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE timeline_updates.id = ?`
+      )
+        .bind(id)
+      .first();
+  } catch (e) {
+    // Fallback if is_hidden/is_deleted columns don't exist yet.
+    update = await db
+      .prepare(
+          `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
+                timeline_updates.created_at, timeline_updates.updated_at, timeline_updates.image_key,
+                timeline_updates.moved_to_type, timeline_updates.moved_to_id,
+                timeline_updates.author_user_id,
+                COALESCE(timeline_updates.views, 0) AS views,
+                COALESCE(timeline_updates.is_locked, 0) AS is_locked,
+                0 AS is_hidden,
+                0 AS is_deleted,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                users.avatar_key AS author_avatar_key,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id) AS like_count
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE timeline_updates.id = ?`
+      )
+        .bind(id)
+      .first();
+  }
 
   if (!update) {
     return (
