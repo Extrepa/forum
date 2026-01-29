@@ -108,6 +108,11 @@ export default function UserPopover({ username, onClose, anchorRef }) {
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
+  const preferredIndexRaw = userInfo?.preferred_username_color_index;
+  const preferredIndex = Number.isFinite(preferredIndexRaw) ? preferredIndexRaw : Number(preferredIndexRaw);
+  const colorIndex = Number.isFinite(preferredIndex)
+    ? Math.max(0, Math.min(7, Math.floor(preferredIndex)))
+    : 0;
 
   return createPortal(
     <div
@@ -154,7 +159,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              border: `2px solid var(--username-${userInfo?.preferred_username_color_index || 0})`,
               background: 'rgba(0,0,0,0.3)'
             }}
           />
@@ -162,7 +166,18 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       )}
 
       <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: userInfo ? `var(--username-${userInfo.preferred_username_color_index || 0})` : 'var(--muted)', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+        <div
+          className={userInfo ? `username username--${colorIndex}` : ''}
+          style={{
+            fontSize: '14px',
+            fontWeight: '700',
+            color: userInfo ? undefined : 'var(--muted)',
+            wordBreak: 'break-word',
+            maxWidth: '100%',
+            flexShrink: 1,
+            minWidth: 0
+          }}
+        >
           {username}
         </div>
         {userInfo?.role && (
