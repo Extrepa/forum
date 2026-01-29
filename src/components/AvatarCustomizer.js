@@ -1498,7 +1498,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     const size = Math.max(bbox.width, bbox.height);
                     const cxB = bbox.x + bbox.width / 2;
                     const cyB = bbox.y + bbox.height / 2;
-                    const pad = size * 0.03;
+                    const pad = size * 0.01;
                     return `${(cxB - size / 2 - pad).toFixed(2)} ${(cyB - size / 2 - pad).toFixed(2)} ${(size + pad * 2).toFixed(2)} ${(size + pad * 2).toFixed(2)}`;
                   } catch (e) {
                     return null;

@@ -480,7 +480,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             className="username-avatar"
                             width={96}
                             height={96}
-                            style={{ width: '96px', height: '96px', display: 'block', objectFit: 'contain', objectPosition: 'center' }} 
+                            style={{ width: '96px', height: '96px', display: 'block', objectFit: 'cover', objectPosition: 'center' }} 
                             unoptimized
                           />
                         </div>
@@ -500,7 +500,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           width={24}
                           height={24}
                           unoptimized
-                          style={{ width: '24px', height: '24px', objectFit: 'contain', objectPosition: 'center' }}
+                          style={{ width: '24px', height: '24px', objectFit: 'cover', objectPosition: 'center' }}
                         />
                       </div>
                     )}
