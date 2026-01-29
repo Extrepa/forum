@@ -3987,11 +3987,10 @@ header::before {
   /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
   .notifications-popover-errl {
-    /* Keep original 380px width - don't shrink unless viewport is smaller */
-    width: 380px !important;
-    max-width: 380px !important;
-    /* Only shrink if viewport is actually smaller than 380px */
-    min-width: min(380px, calc(100vw - 16px)) !important;
+    /* Override fixed width to allow shrinking, but ensure it doesn't get too small */
+    width: fit-content !important;
+    max-width: calc(100vw - 32px) !important;
+    min-width: min(120px, calc(100vw - 32px)) !important; /* Add a min-width for mobile */
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -4016,8 +4015,9 @@ header::before {
       left: auto !important;
       transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: min(380px, calc(100vw - 16px)) !important;
-      max-width: min(380px, calc(100vw - 16px)) !important;
+      width: fit-content !important;
+      max-width: calc(100vw - 32px) !important;
+      min-width: min(120px, calc(100vw - 32px)) !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;
@@ -4035,6 +4035,7 @@ header::before {
     .notifications-popover-errl {
       width: calc(100vw - 16px) !important;
       max-width: calc(100vw - 16px) !important;
+      min-width: min(120px, calc(100vw - 16px)) !important;
     }
   }
   
