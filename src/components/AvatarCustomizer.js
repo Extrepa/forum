@@ -247,6 +247,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleReset = () => {
+    if (!window.confirm("Restore factory defaults? All custom modifications will be purged from the buffer.")) return;
     setPalette([...INITIAL_PALETTE]);
     const nextLayers = INITIAL_LAYERS.map((l) => {
       const fillColor = l.color || '#000000';
@@ -1260,7 +1261,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               SAVE CHANGES
             </button>
             <button 
-              onClick={onCancel}
+              onClick={() => {
+                if (historyIndex > 0) {
+                  if (window.confirm("Unsaved modifications detected. Exit anyway?")) {
+                    onCancel();
+                  }
+                } else {
+                  onCancel();
+                }
+              }}
               title="Abort: Exit without saving"
               style={{ 
                 flex: 1,

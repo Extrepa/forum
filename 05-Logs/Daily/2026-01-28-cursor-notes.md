@@ -32,6 +32,10 @@
 - **Cohesive Buttons**: Updated the "Edit Avatar", "Edit Username", and "Edit Socials" buttons in the account tab to use consistent styling and thematic tooltips.
 - **Styling Sync**: Ensured the "Save Changes" button within the customizer matches the account tab's primary button aesthetic.
 
+#### 5. Safety & Verification (Confirmation Dialogs)
+- **Unsaved Changes Warning**: Implemented a `window.confirm` guard on the EXIT button. If the `historyIndex > 0` (indicating modifications were made), the system will warn the user before they abort and lose their progress.
+- **Reset Confirmation**: Added a confirmation step to the "Restore Factory Defaults" (Reset) button to prevent accidental purging of custom progress.
+
 ### Technical Details
 - **Clamping Math**: Uses `getBoundingClientRect` of the container vs `window.innerWidth/Height` to calculate local offsets for `absolute` positioning that feels like `fixed`.
 - **CSS Hierarchy**: Balanced inline React styles with global CSS overrides for maximum control over mobile behavior.
