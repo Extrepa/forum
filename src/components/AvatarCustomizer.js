@@ -1433,6 +1433,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 svgClone.setAttribute('width', '1024');
                 svgClone.setAttribute('height', '1024');
                 svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                svgClone.removeAttribute('style');
                 const computeFaceViewBox = () => {
                   const faceLayer = layers.find((layer) => layer.id === 'face');
                   if (!faceLayer) return null;
@@ -1442,7 +1443,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   const size = Math.max(bounds.width, bounds.height) + strokePad;
                   const cxB = bounds.x + bounds.width / 2;
                   const cyB = bounds.y + bounds.height / 2;
-                  const pad = size * 0.02;
+                  const pad = 0;
                   return `${(cxB - size / 2 - pad).toFixed(2)} ${(cyB - size / 2 - pad).toFixed(2)} ${(size + pad * 2).toFixed(2)} ${(size + pad * 2).toFixed(2)}`;
                 };
 
