@@ -429,17 +429,17 @@ export default async function ProfilePage({ params }) {
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'center', 
-                gap: '20px', 
-                marginBottom: '20px',
-                padding: '8px 0'
+                gap: '8px', 
+                marginBottom: '8px',
+                padding: '0'
               }}>
                 <div style={{ 
                   position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: '200px',
-                  height: '200px',
+                  width: '180px',
+                  height: '180px',
                   borderRadius: '50%',
                   background: `radial-gradient(circle, ${userColor}33 0%, transparent 70%)`
                 }}>
@@ -472,7 +472,7 @@ export default async function ProfilePage({ params }) {
                     }}
                   />
                   <div style={{ 
-                    marginTop: '8px', 
+                    marginTop: '2px', 
                     color: 'var(--muted)', 
                     fontSize: '14px',
                     textTransform: 'uppercase',
