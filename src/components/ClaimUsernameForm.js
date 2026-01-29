@@ -930,8 +930,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               )}
             </p>
             <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
-              Born on an overhead projector, mixing oil and water and light—a spark of awe brought to life.
-              <br />
               <span className="errl-birthday">Errl&apos;s birthday 2015</span>
             </p>
           </div>

@@ -3722,6 +3722,10 @@ header::before {
   transform: translateY(12px);
 }
 
+.errl-depth:hover .errl-depth__punct {
+  transform: translateY(15px);
+}
+
 .errl-birthday {
   color: #b026ff;
   display: block;
