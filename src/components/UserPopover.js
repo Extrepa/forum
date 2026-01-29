@@ -32,31 +32,18 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      let newLeft, newTop;
+      let newLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
+      let newTop = anchorRect.bottom + 4; // Default to below with a small offset
 
-      // Calculate a default horizontal position centered with the anchor
-      const centeredLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
-
-      // Try positioning below the anchor
-      if (anchorRect.bottom + 4 + popoverRect.height <= viewportHeight - 16) {
-        newTop = anchorRect.bottom + 4;
-      }
-      // Try positioning above the anchor
-      else if (anchorRect.top - 4 - popoverRect.height >= 16) {
-        newTop = anchorRect.top - 4 - popoverRect.height;
-      }
-      // Default to below if neither fits perfectly, clamping will adjust
-      else {
-        newTop = anchorRect.bottom + 4;
-      }
-
-      newLeft = centeredLeft;
-
-      // Final clamping for horizontal position
+      // Clamp horizontal position
       newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
 
-      // Final clamping for vertical position
-      // Ensure at least 16px from top edge and bottom edge
+      // Check if popover goes off-screen below, and if so, try above
+      if (newTop + popoverRect.height > viewportHeight - 16 && anchorRect.top - 4 - popoverRect.height >= 16) {
+        newTop = anchorRect.top - 4 - popoverRect.height;
+      }
+
+      // Clamp vertical position (ensures it's never off-screen)
       newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
 
       setPopoverPosition({ left: newLeft, top: newTop });

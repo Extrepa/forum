@@ -21,5 +21,6 @@
     - Further refined `calculatePosition` to prioritize positioning directly below or above the anchor, horizontally centered, with robust clamping, removing the previous complex horizontal centering attempt.
     - Removed `maxWidth: 'calc(100vw - 32px)'` from the popover's inline styles.
     - Reduced the vertical offset from `8px` to `4px` in `calculatePosition`.
+    - Simplified `calculatePosition` to always apply clamping, first attempting to place below the anchor, then above if necessary.
 - Modified `src/components/Username.js`:
-    - Changed the outer `span` to `display: 'inline-flex'` to provide more accurate dimensions for the popover's positioning.
+    - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.

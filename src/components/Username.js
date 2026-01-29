@@ -55,7 +55,7 @@ export default function Username({
   };
 
   return (
-    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+    <span style={{ position: 'relative', display: 'inline-block' }}>
       <span 
         ref={anchorRef}
         onClick={handleClick}
