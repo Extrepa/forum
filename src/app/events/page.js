@@ -53,8 +53,6 @@ export default async function EventsPage({ searchParams }) {
                   COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
          FROM events
          JOIN users ON users.id = events.author_user_id
-         WHERE (events.is_hidden = 0 OR events.is_hidden IS NULL)
-           AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
          ORDER BY events.starts_at ASC
            LIMIT 50`
         )

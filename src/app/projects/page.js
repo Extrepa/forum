@@ -52,8 +52,6 @@ export default async function ProjectsPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM project_comments WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at
          FROM projects
          JOIN users ON users.id = projects.author_user_id
-         WHERE (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
-           AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
          ORDER BY projects.created_at DESC
          LIMIT 50`
       )
