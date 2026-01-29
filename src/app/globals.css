@@ -673,27 +673,6 @@ nav a {
   flex-shrink: 0; /* Prevent nav buttons from shrinking */
 }
 
-nav a[data-disabled="true"] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-  box-shadow: none;
-}
-
-.forum-logo-disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.header-search-toggle:disabled,
-.nav-menu-button:disabled,
-.nav-more-toggle:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
 .nav-more-toggle {
   flex: 0 0 auto;
 }
@@ -3747,19 +3726,6 @@ header::before {
   transform: translateY(15px);
 }
 
-.errl-birthday {
-  color: #b026ff;
-  display: block;
-  text-align: right;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.errl-birthday:hover {
-  background: linear-gradient(90deg, #b026ff, #34e1ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 .breadcrumb-separator {
   color: var(--muted);

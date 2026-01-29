@@ -63,12 +63,9 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
       {links.map((link) => (
         <a
           key={link.href}
-          href={isSignedIn ? link.href : '#'}
+          href={link.href}
           className={isActive(link.href) ? 'active' : ''}
-          aria-disabled={!isSignedIn ? 'true' : undefined}
-          data-disabled={!isSignedIn ? 'true' : undefined}
           onClick={(e) => handleLinkClick(e, link.href)}
-          tabIndex={!isSignedIn ? -1 : undefined}
         >
           {link.label}
         </a>

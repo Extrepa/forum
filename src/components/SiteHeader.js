@@ -204,7 +204,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               if (navDisabled) return;
               setMoreOpen((v) => !v);
             }}
-            disabled={navDisabled}
             aria-label="More pages"
             aria-expanded={moreOpen ? 'true' : 'false'}
             title="More"
@@ -267,7 +266,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
                 setMenuOpen((v) => !v);
                 setSearchMode(false);
               }}
-              disabled={navDisabled}
               aria-label="Open navigation menu"
               aria-expanded={menuOpen ? 'true' : 'false'}
             >
@@ -284,7 +282,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               className="header-search-toggle"
               aria-label="Search"
               title="Search"
-              disabled={navDisabled}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>

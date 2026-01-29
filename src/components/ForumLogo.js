@@ -83,11 +83,9 @@ export default function ForumLogo({
     <Element
       {...(isButton ? { type: 'button' } : { href })}
       aria-label={getLinkAriaLabel()}
-      aria-disabled={disabled ? 'true' : undefined}
-      {...(isButton && disabled ? { disabled: true } : {})}
       className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''} ${
         isButton ? 'forum-logo-button' : ''
-      } ${disabled ? 'forum-logo-disabled' : ''}`}
+      }`}
       onClick={(e) => {
         if (disabled) {
           e.preventDefault();

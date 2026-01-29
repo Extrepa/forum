@@ -49,9 +49,7 @@ export default function SearchBar({ disabled = false }) {
           if (disabled) return;
           setIsOpen(!isOpen);
         }}
-        disabled={disabled}
         className="header-search-toggle"
-        aria-disabled={disabled ? 'true' : undefined}
         aria-label="Search"
         title="Search"
       >

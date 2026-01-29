@@ -32,6 +32,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginIdentifierFocused, setLoginIdentifierFocused] = useState(false);
+  const [rememberLogin, setRememberLogin] = useState(false);
 
   // signup focus tracking
   const [signupEmailFocused, setSignupEmailFocused] = useState(false);
@@ -105,6 +106,15 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const loginIdentifierPlaceholder = useRotatingPlaceholder(LOGIN_IDENTIFIER_SUGGESTIONS, loginIdentifierActive, { minMs: 3000, maxMs: 5000 });
   const signupEmailPlaceholder = useRotatingPlaceholder(EMAIL_SUGGESTIONS, signupEmailActive, { minMs: 3000, maxMs: 5000 });
   const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 3000, maxMs: 5000 });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const savedIdentifier = window.localStorage.getItem('errl_forum_remembered_identifier');
+    if (savedIdentifier) {
+      setLoginIdentifier(savedIdentifier);
+      setRememberLogin(true);
+    }
+  }, []);
 
   // account settings
   const [newEmail, setNewEmail] = useState('');
@@ -377,6 +387,17 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       }
 
       setStatus({ type: 'success', message: 'Signed in.' });
+      try {
+        if (typeof window !== 'undefined') {
+          if (rememberLogin && loginIdentifier) {
+            window.localStorage.setItem('errl_forum_remembered_identifier', loginIdentifier);
+          } else {
+            window.localStorage.removeItem('errl_forum_remembered_identifier');
+          }
+        }
+      } catch (e) {
+        // ignore storage errors
+      }
       setLoginIdentifier('');
       setLoginPassword('');
       const user = await refreshMe();
@@ -929,9 +950,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </>
               )}
             </p>
-            <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
-              <span className="errl-birthday">Errl&apos;s birthday 2015</span>
-            </p>
           </div>
         </div>
         <div style={{ flex: '1 1 50%', minWidth: 0, width: '100%', maxWidth: '100%' }}>
@@ -939,10 +957,21 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <>
               <h3 className="section-title" style={{ marginBottom: '20px' }}>Sign in</h3>
               <form onSubmit={submitLogin}>
-                <label>
-                  <div className="muted">Email or username</div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                    <label htmlFor="login-identifier" className="muted">Email or username</label>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted)' }}>
+                      <input
+                        type="checkbox"
+                        checked={rememberLogin}
+                        onChange={(event) => setRememberLogin(event.target.checked)}
+                      />
+                      Remember me
+                    </label>
+                  </div>
                   <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
+                      id="login-identifier"
                       name="identifier"
                       value={loginIdentifier}
                       onChange={(event) => setLoginIdentifier(event.target.value)}
@@ -977,7 +1006,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       </div>
                     )}
                   </div>
-                </label>
+                </div>
                 <label>
                   <div className="muted">Password</div>
                   <input
