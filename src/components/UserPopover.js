@@ -32,25 +32,30 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      let newLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
-      let newTop = anchorRect.bottom + 8; // Default: 8px below the anchor
+      let newLeft, newTop;
 
-      const canFitBelow = (newTop + popoverRect.height <= viewportHeight - 16);
-      const canFitAbove = (anchorRect.top - popoverRect.height - 8 >= 16);
-      const canFitRight = (anchorRect.right + 8 + popoverRect.width <= viewportWidth - 16);
-      const canFitLeft = (anchorRect.left - popoverRect.width - 8 >= 16);
-
-      if (!canFitBelow && canFitAbove) {
-        // If no room below but room above, position above
+      // Priority 1: Below the anchor
+      let candidateLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
+      let candidateTop = anchorRect.bottom + 8;
+      if (candidateTop + popoverRect.height <= viewportHeight - 16) {
+        newLeft = candidateLeft;
+        newTop = candidateTop;
+      } else if (anchorRect.top - popoverRect.height - 8 >= 16) {
+        // Priority 2: Above the anchor
+        newLeft = candidateLeft;
         newTop = anchorRect.top - popoverRect.height - 8;
-      } else if (!canFitBelow && !canFitAbove && canFitRight) {
-        // If no room above or below, but room to the right, position to the right
+      } else if (anchorRect.right + 8 + popoverRect.width <= viewportWidth - 16) {
+        // Priority 3: Right of the anchor
         newLeft = anchorRect.right + 8;
         newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
-      } else if (!canFitBelow && !canFitAbove && !canFitRight && canFitLeft) {
-        // If no room above, below or right, but room to the left, position to the left
+      } else if (anchorRect.left - popoverRect.width - 8 >= 16) {
+        // Priority 4: Left of the anchor
         newLeft = anchorRect.left - popoverRect.width - 8;
         newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
+      } else {
+        // Fallback: Default to below, even if it overflows (will be clamped later)
+        newLeft = candidateLeft;
+        newTop = candidateTop;
       }
 
       // Final clamping for horizontal position
