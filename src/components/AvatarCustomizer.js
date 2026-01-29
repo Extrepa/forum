@@ -375,6 +375,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     }
   };
 
+  const positionPanelAtPoint = (clientX, clientY) => {
+    const viewportWidth = window.innerWidth || 0;
+    const viewportHeight = window.innerHeight || 0;
+    const panelHeight = panelRef.current?.offsetHeight || 0;
+    const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
+    const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
+    setPanelPos({
+      left: Math.min(Math.max(clientX - panelWidth / 2, 8), maxLeft),
+      top: Math.min(Math.max(clientY - 24, 8), maxTop)
+    });
+  };
+
   const handleContextMenu = (e, id) => {
     e.preventDefault();
     e.stopPropagation();
@@ -385,6 +397,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     }
     lastContextMenuRef.current = now;
     setSelectedLayerId(id);
+    positionPanelAtPoint(e.clientX, e.clientY);
     setContextMenu({ x: e.clientX, y: e.clientY, id });
   };
 
@@ -713,6 +726,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setSelectedLayerId(id);
     longPressRef.current = setTimeout(() => {
       setSelectedLayerId(id);
+      positionPanelAtPoint(touch.clientX, touch.clientY);
       setContextMenu({ x: touch.clientX, y: touch.clientY, id });
     }, 450);
   };
@@ -1040,6 +1054,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           <div 
             className="card avatar-customizer-panel"
             ref={panelRef}
+            onMouseDown={handlePanelMouseDown}
+            onTouchStart={handlePanelTouchStart}
             style={{
               position: 'fixed',
               top: `${panelPos.top}px`,
@@ -1060,26 +1076,43 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               maxHeight: 'calc(100vh - 16px)',
               overflowY: 'auto',
               overflowX: 'visible',
-              cursor: isDraggingPanel ? 'grabbing' : 'default'
+              cursor: isDraggingPanel ? 'grabbing' : 'grab'
             }}
           >
             <div 
-              onMouseDown={handlePanelMouseDown}
-              onTouchStart={handlePanelTouchStart}
               style={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
                 alignItems: 'center', 
                 marginBottom: '2px',
-                cursor: 'grab',
                 paddingBottom: '4px',
-                borderBottom: '1px solid rgba(52, 225, 255, 0.1)'
+                borderBottom: '1px solid rgba(52, 225, 255, 0.1)',
+                position: 'relative'
               }}
             >
               <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
                 {selectedLayer.type} Settings
               </span>
-              <button onClick={() => setContextMenu(null)} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '14px', padding: 0, minHeight: 0, boxShadow: 'none' }}>✕</button>
+              <button 
+                onClick={() => setContextMenu(null)} 
+                style={{ 
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '6px',
+                  background: 'rgba(2, 7, 10, 0.6)',
+                  border: '1px solid rgba(52, 225, 255, 0.25)',
+                  color: 'var(--muted)',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  padding: 0,
+                  lineHeight: '16px',
+                  boxShadow: 'none'
+                }}
+              >
+                ✕
+              </button>
             </div>
 
             {selectedLayer.type !== 'import' && (
