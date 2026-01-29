@@ -575,7 +575,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             <Username
                             name={user.username}
                             colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                            avatarKey={null}
+                            avatarKey={undefined}
                             href={null}
                           />
                         </div>

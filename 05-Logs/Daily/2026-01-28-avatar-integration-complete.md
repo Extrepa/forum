@@ -59,6 +59,7 @@ Finalized avatar integration across the platform, including global username disp
   - Updated `src/lib/media.js` to return this default SVG path when a user hasn't set an avatar (`avatarKey` is null or empty).
   - Synchronized the `INITIAL_LAYERS` in `src/components/AvatarCustomizer.js` to match the default SVG colors (`#ffffff` face, `#0a0a0a` features).
   - Fixed a bug on the Profile page where a default avatar was showing next to the username despite the big hero version above it.
+  - Fixed a similar issue on the Account page (Profile tab) where the small avatar was appearing next to the username; it is now hidden to avoid redundancy with the preview above it.
 
 ## Verification Checklist
 - [x] Username avatars display correctly in post headers.
