@@ -38,16 +38,16 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       const centeredLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
 
       // Try positioning below the anchor
-      if (anchorRect.bottom + 8 + popoverRect.height <= viewportHeight - 16) {
-        newTop = anchorRect.bottom + 8;
+      if (anchorRect.bottom + 4 + popoverRect.height <= viewportHeight - 16) {
+        newTop = anchorRect.bottom + 4;
       }
       // Try positioning above the anchor
-      else if (anchorRect.top - 8 - popoverRect.height >= 16) {
-        newTop = anchorRect.top - 8 - popoverRect.height;
+      else if (anchorRect.top - 4 - popoverRect.height >= 16) {
+        newTop = anchorRect.top - 4 - popoverRect.height;
       }
       // Default to below if neither fits perfectly, clamping will adjust
       else {
-        newTop = anchorRect.bottom + 8;
+        newTop = anchorRect.bottom + 4;
       }
 
       newLeft = centeredLeft;
@@ -94,7 +94,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         left: popoverPosition.left,
         zIndex: 9999,
         width: 'max-content',
-        maxWidth: 'calc(100vw - 32px)', // Ensures it doesn't overflow on small screens
         padding: '12px',
         background: 'var(--errl-panel)',
         // Removed explicit border, borderRadius, boxShadow since .card class handles it
