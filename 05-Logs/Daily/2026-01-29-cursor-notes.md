@@ -17,3 +17,4 @@
     - Removed explicit `minWidth` and `maxWidth` from the popover's inline styles to allow for more flexible sizing.
     - Updated horizontal and vertical clamping logic in `calculatePosition` to be more robust, ensuring the popover stays within viewport bounds more effectively.
     - Refactored horizontal positioning logic to prioritize centering on smaller screens, followed by clamping, to prevent off-screen display on mobile and narrow viewports.
+    - Added a `useEffect` hook to implement click-outside-to-close functionality. The popover now disappears when a user clicks anywhere outside of the popover or its trigger element.
