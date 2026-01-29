@@ -3628,6 +3628,13 @@ header::before {
   flex: 0 0 auto;
 }
 
+.page-top-row-right button,
+.page-top-row-right form button {
+  min-height: 40px;
+  padding: 7px 10px;
+  font-size: 14px;
+}
+
 @media (max-width: 768px) {
   .page-top-row {
     flex-wrap: wrap;
