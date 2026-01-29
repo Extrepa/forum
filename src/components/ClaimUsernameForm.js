@@ -119,6 +119,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [notifyMentionEnabled, setNotifyMentionEnabled] = useState(true);
   const [notifyReplyEnabled, setNotifyReplyEnabled] = useState(true);
   const [notifyCommentEnabled, setNotifyCommentEnabled] = useState(true);
+  const [notifyAdminNewUserEnabled, setNotifyAdminNewUserEnabled] = useState(false);
+  const [notifyAdminNewPostEnabled, setNotifyAdminNewPostEnabled] = useState(false);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
   const [uiColorMode, setUiColorMode] = useState(0);
   const [uiBorderColor, setUiBorderColor] = useState('#34e1ff');
@@ -154,6 +156,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
         setNotifyReplyEnabled(user?.notifyReplyEnabled ?? true);
         setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
+        setNotifyAdminNewUserEnabled(!!user?.notifyAdminNewUserEnabled);
+        setNotifyAdminNewPostEnabled(!!user?.notifyAdminNewPostEnabled);
         setUiLoreEnabled(!!user?.uiLoreEnabled);
         setLoreEnabled(!!user?.uiLoreEnabled);
         setUiColorMode(user?.uiColorMode ?? 0);
@@ -195,6 +199,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setNotifyMentionEnabled(user?.notifyMentionEnabled ?? true);
       setNotifyReplyEnabled(user?.notifyReplyEnabled ?? true);
       setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
+      setNotifyAdminNewUserEnabled(!!user?.notifyAdminNewUserEnabled);
+      setNotifyAdminNewPostEnabled(!!user?.notifyAdminNewPostEnabled);
       setUiLoreEnabled(!!user?.uiLoreEnabled);
       setLoreEnabled(!!user?.uiLoreEnabled);
       setUiColorMode(user?.uiColorMode ?? 0);
@@ -285,7 +291,9 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
           updateEnabled: notifyUpdateEnabled,
           mentionEnabled: notifyMentionEnabled,
           replyEnabled: notifyReplyEnabled,
-          commentEnabled: notifyCommentEnabled
+          commentEnabled: notifyCommentEnabled,
+          adminNewUserEnabled: notifyAdminNewUserEnabled,
+          adminNewPostEnabled: notifyAdminNewPostEnabled
         })
       });
       const payload = await response.json();
@@ -713,6 +721,43 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 </button>
               </div>
             </div>
+
+            {me?.role === 'admin' ? (
+              <div className="card" style={{ padding: 12 }}>
+                <h3 className="section-title" style={{ marginBottom: '12px', borderBottom: 'none' }}>
+                  Admin Notifications
+                </h3>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 12, lineHeight: '1.4' }}>
+                  Extra alerts for admin activity monitoring. These are in addition to your standard notification preferences.
+                </div>
+                <div className="stack" style={{ gap: 10 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>New user signups</span>
+                    <input
+                      type="checkbox"
+                      checked={notifyAdminNewUserEnabled}
+                      onChange={(e) => setNotifyAdminNewUserEnabled(e.target.checked)}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>New forum threads</span>
+                    <input
+                      type="checkbox"
+                      checked={notifyAdminNewPostEnabled}
+                      onChange={(e) => setNotifyAdminNewPostEnabled(e.target.checked)}
+                    />
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={submitNotificationPrefs}
+                    disabled={status.type === 'loading'}
+                    style={{ marginTop: 8 }}
+                  >
+                    Save preferences
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="account-col">

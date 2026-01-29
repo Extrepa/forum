@@ -31,11 +31,12 @@ export async function POST(request) {
 
   const db = await getDb();
   const threadId = crypto.randomUUID();
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?)'
     )
-    .bind(threadId, user.id, title, body, Date.now(), null)
+    .bind(threadId, user.id, title, body, now, null)
     .run();
 
   // Create mention notifications
@@ -46,6 +47,39 @@ export async function POST(request) {
     targetId: threadId,
     requestUrl: request.url
   });
+
+  if (user.role !== 'admin') {
+    try {
+      const { results: admins } = await db
+        .prepare('SELECT id FROM users WHERE role = ? AND notify_admin_new_post_enabled = 1')
+        .bind('admin')
+        .all();
+
+      if (admins && admins.length) {
+        await Promise.all(
+          admins.map((admin) =>
+            db
+              .prepare(
+                `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`
+              )
+              .bind(
+                crypto.randomUUID(),
+                admin.id,
+                user.id,
+                'admin_post',
+                'forum_thread',
+                threadId,
+                now
+              )
+              .run()
+          )
+        );
+      }
+    } catch (e) {
+      // Ignore admin notification failures
+    }
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

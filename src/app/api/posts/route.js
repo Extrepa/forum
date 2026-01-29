@@ -120,13 +120,14 @@ export async function POST(request) {
 
   const db = await getDb();
   const postId = crypto.randomUUID();
+  const now = Date.now();
   try {
     await db
       .prepare(
         `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(postId, user.id, type, finalTitle, body || null, imageKey, isPrivate, Date.now())
+      .bind(postId, user.id, type, finalTitle, body || null, imageKey, isPrivate, now)
       .run();
 
     // Create mention notifications
@@ -137,6 +138,7 @@ export async function POST(request) {
       targetId: postId,
       requestUrl: request.url
     });
+
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
@@ -144,4 +146,3 @@ export async function POST(request) {
 
   return NextResponse.redirect(redirectUrl, 303);
 }
-

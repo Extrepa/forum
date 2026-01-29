@@ -147,6 +147,38 @@ export async function POST(request) {
     // Notifications table might not exist yet, ignore
   }
 
+  // Admin notifications for new signups (opt-in)
+  try {
+    const { results: admins } = await db
+      .prepare('SELECT id FROM users WHERE role = ? AND notify_admin_new_user_enabled = 1')
+      .bind('admin')
+      .all();
+
+    if (admins && admins.length) {
+      await Promise.all(
+        admins.map((admin) =>
+          db
+            .prepare(
+              `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`
+            )
+            .bind(
+              crypto.randomUUID(),
+              admin.id,
+              userId,
+              'admin_signup',
+              'user',
+              validation.normalized,
+              now
+            )
+            .run()
+        )
+      );
+    }
+  } catch (e) {
+    // Ignore admin notification failures
+  }
+
   const response = NextResponse.json({
     ok: true,
     username: validation.normalized,
@@ -155,4 +187,3 @@ export async function POST(request) {
   setSessionCookie(response, token);
   return response;
 }
-

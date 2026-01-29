@@ -357,6 +357,12 @@ export default function NotificationsMenu({
               } else if (n.type === 'test' && n.target_type === 'system') {
                 href = '/account';
                 label = 'Test notification - system check';
+              } else if (n.type === 'admin_signup' && n.target_type === 'user') {
+                href = `/profile/${n.target_id}`;
+                label = `New user signed up: ${actor}`;
+              } else if (n.type === 'admin_post' && n.target_type === 'forum_thread') {
+                href = `/lobby/${n.target_id}`;
+                label = `New forum thread by ${actor}`;
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${actor} replied to a thread`;
