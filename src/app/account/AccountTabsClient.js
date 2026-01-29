@@ -115,6 +115,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   }, [openDropdowns]);
 
+  useEffect(() => {
+    if (!isEditingAvatar) {
+      return;
+    }
+    let active = true;
+    const sendPing = () => {
+      if (!active) return;
+      fetch('/api/account/avatar-edit-time', { method: 'POST', keepalive: true }).catch(() => {});
+    };
+
+    sendPing();
+    const interval = setInterval(sendPing, 60000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+      fetch('/api/account/avatar-edit-time', { method: 'POST', keepalive: true }).catch(() => {});
+    };
+  }, [isEditingAvatar]);
+
   const handleSaveUsername = async (e) => {
     e?.preventDefault?.();
     const trimmed = (newUsername || '').trim();
@@ -1050,6 +1069,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <div>
                           <span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span>
                           <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span>
+                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span>
                         </div>
                       </>
                     );

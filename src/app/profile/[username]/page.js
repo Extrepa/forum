@@ -22,10 +22,22 @@ export default async function ProfilePage({ params }) {
   const username = decodeURIComponent(params.username);
   
   // Get user by username
-  const profileUser = await db
-    .prepare('SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?')
-    .bind(username.toLowerCase())
-    .first();
+  let profileUser = null;
+  try {
+    profileUser = await db
+      .prepare(
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
+      )
+      .bind(username.toLowerCase())
+      .first();
+  } catch (e) {
+    profileUser = await db
+      .prepare(
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+      )
+      .bind(username.toLowerCase())
+      .first();
+  }
 
   if (!profileUser) {
     return (
@@ -309,6 +321,8 @@ export default async function ProfilePage({ params }) {
       recentReplies: allReplies.slice(0, 10),
       recentActivity: allActivity,
       profileViews: profileUser.profile_views || 0,
+      timeSpentMinutes: profileUser.time_spent_minutes || 0,
+      avatarEditMinutes: profileUser.avatar_edit_minutes || 0,
     };
   } catch (e) {
     stats = {
@@ -319,6 +333,8 @@ export default async function ProfilePage({ params }) {
       recentReplies: [],
       recentActivity: [],
       profileViews: profileUser.profile_views || 0,
+      timeSpentMinutes: profileUser.time_spent_minutes || 0,
+      avatarEditMinutes: profileUser.avatar_edit_minutes || 0,
     };
   }
 
@@ -570,6 +586,14 @@ export default async function ProfilePage({ params }) {
                     <div>
                       <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
                       <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span>
+                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span>
                     </div>
                   </>
                 );

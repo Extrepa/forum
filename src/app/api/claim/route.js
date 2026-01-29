@@ -14,6 +14,17 @@ export async function GET() {
     if (existingUser) {
       return NextResponse.json({ username: existingUser.username });
     }
+    try {
+      const adminUser = await db
+        .prepare('SELECT users.username FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?')
+        .bind(existingToken)
+        .first();
+      if (adminUser) {
+        return NextResponse.json({ username: adminUser.username });
+      }
+    } catch (e) {
+      // Ignore if admin_sessions table doesn't exist yet.
+    }
   }
 
   return NextResponse.json({ username: null });

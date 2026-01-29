@@ -44,10 +44,24 @@ export async function POST(request) {
   }
 
   const newToken = createToken();
-  await db
-    .prepare('UPDATE users SET session_token = ? WHERE id = ?')
-    .bind(newToken, user.id)
-    .run();
+  if (user.role === 'admin') {
+    try {
+      await db
+        .prepare('INSERT INTO admin_sessions (token, user_id, created_at) VALUES (?, ?, ?)')
+        .bind(newToken, user.id, Date.now())
+        .run();
+    } catch (e) {
+      await db
+        .prepare('UPDATE users SET session_token = ? WHERE id = ?')
+        .bind(newToken, user.id)
+        .run();
+    }
+  } else {
+    await db
+      .prepare('UPDATE users SET session_token = ? WHERE id = ?')
+      .bind(newToken, user.id)
+      .run();
+  }
 
   const response = NextResponse.json({
     ok: true,
@@ -58,4 +72,3 @@ export async function POST(request) {
   setSessionCookie(response, newToken);
   return response;
 }
-
