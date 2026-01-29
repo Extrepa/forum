@@ -418,7 +418,7 @@ export default async function ProfilePage({ params }) {
                 width={28}
                 height={28}
                 unoptimized
-                style={{ width: '28px', height: '28px', objectFit: 'cover', objectPosition: 'center' }}
+                style={{ width: '28px', height: '28px', objectFit: 'contain', objectPosition: 'center' }}
               />
               <Username
                 name={profileUser.username}
