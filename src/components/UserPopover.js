@@ -90,7 +90,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       )}
 
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0}) !important` }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})` }}>
           {username}
         </div>
         {userInfo?.role && (

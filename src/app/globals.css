@@ -4011,16 +4011,29 @@ header::before {
     .notifications-popover-errl {
       /* Use fixed positioning relative to viewport */
       position: fixed !important;
-      /* Calculate right position: align to logo but ensure 8px margin from viewport edge */
-      /* Logo is typically near right edge, so we'll position from viewport right */
-      right: 8px !important;
-      left: auto !important;
+      /* Center horizontally */
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      right: auto !important;
       /* Keep original width unless viewport is smaller */
-      width: min(380px, calc(100vw - 16px)) !important;
-      max-width: min(380px, calc(100vw - 16px)) !important;
-      transform: none !important;
-      /* Calculate top position based on logo position - will be handled by JS or keep relative */
-      top: auto !important;
+      width: min(380px, calc(100vw - 32px)) !important;
+      max-width: min(380px, calc(100vw - 32px)) !important;
+      /* Center vertically or position nicely */
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      /* Ensure high z-index */
+      z-index: 9999 !important;
+      margin: 0 !important;
+    }
+    
+    /* Ensure backdrop for fixed popover on mobile */
+    .notifications-popover-errl::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: -1;
+      backdrop-filter: blur(4px);
     }
   }
   
