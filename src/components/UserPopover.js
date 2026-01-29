@@ -94,21 +94,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     return () => window.removeEventListener('resize', calculatePosition);
   }, [username, anchorRef, viewportWidth, loading]); // Depend on relevant states/props
 
-  useEffect(() => {
-    const handleDocumentClick = (event) => {
-      if (popoverRef.current && anchorRef.current &&
-          !popoverRef.current.contains(event.target) &&
-          !anchorRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-
-    // Use mousedown as it fires before click and allows earlier detection
-    document.addEventListener('mousedown', handleDocumentClick);
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentClick);
-    };
-  }, [onClose, anchorRef]); // popoverRef is not needed here if it's not changing
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
@@ -122,7 +107,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: viewportWidth <= 640 ? 'fit-content' : 'max-content',
+        width: viewportWidth <= 640 ? '100%' : 'max-content',
         minWidth: viewportWidth <= 640 ? '120px' : undefined,
         maxWidth: 'calc(100vw - 32px)',
         padding: '12px',
@@ -147,7 +132,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       {loading ? (
         <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
       ) : (
-        <div style={{ position: 'relative', width: '64px', height: '64px' }}>
+        <div style={{ position: 'relative', width: '64px', height: '64px', maxWidth: '100%' }}>
           <Image
             src={avatarUrl}
             alt={username}
@@ -165,12 +150,12 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         </div>
       )}
 
-      <div style={{ textAlign: 'center', wordBreak: 'break-word' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})`, wordBreak: 'break-word' }}>
+      <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%' }}>
+        <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})`, wordBreak: 'break-word', maxWidth: '100%' }}>
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word' }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word', maxWidth: '100%' }}>
             {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
           </div>
         )}
