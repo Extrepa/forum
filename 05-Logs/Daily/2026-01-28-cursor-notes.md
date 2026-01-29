@@ -38,7 +38,7 @@
 
 #### 6. Profile Page Enhancements
 - **Hero Avatar Display**: Replaced the small 24px inline avatar with a prominent 160px "Hero" version positioned centrally above the username.
-- **Enhanced Visuals**: Added a stylized container for the avatar with soft glows, thick borders, and subtle backgrounds to make the user's "Neural Representation" stand out.
+- **Integrated Layout**: Refined the profile layout to remove the nested box, allowing the avatar and large username to flow naturally between the "Profile" title and "Socials" links for a cleaner, more integrated look.
 - **Prominent Username**: Increased the profile username font size to 32px with heavy weights and text shadows for better hierarchy.
 - **Clean Layout**: Explicitly suppressed the small avatar inside the `Username` component on profile pages to prevent redundancy.
 

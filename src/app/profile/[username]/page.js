@@ -416,12 +416,9 @@ export default async function ProfilePage({ params }) {
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'center', 
-                gap: '24px', 
-                marginBottom: '16px',
-                padding: '24px 16px',
-                background: 'rgba(0, 0, 0, 0.3)',
-                borderRadius: '16px',
-                border: '1px solid rgba(52, 225, 255, 0.1)'
+                gap: '20px', 
+                marginBottom: '20px',
+                padding: '8px 0'
               }}>
                 <div style={{ position: 'relative' }}>
                   <Image
