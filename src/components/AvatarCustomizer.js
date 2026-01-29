@@ -967,13 +967,28 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 ✕
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span>• Click a piece, then right‑click to customize.</span>
-              <span>• Fill: solid, glow, glitter, gradient, or image fill.</span>
-              <span>• Outline: solid or gradient, with adjustable thickness.</span>
-              <span>• Scale, rotate, mirror, and tweak glow/gradient direction.</span>
-              <span>• Duplicate, randomize, or delete parts.</span>
-              <span>• Save applies changes to your profile.</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ borderBottom: '1px solid rgba(52, 225, 255, 0.1)', paddingBottom: '4px' }}>
+                <strong style={{ color: 'var(--accent)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Desktop</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span>• <strong>Move:</strong> Drag or Arrows (Shift for 5x)</span>
+                <span>• <strong>Scale/Rotate:</strong> + / - and {'{ / }'} keys</span>
+                <span>• <strong>Customize:</strong> Right‑click a piece</span>
+                <span>• <strong>Randomize:</strong> &apos;R&apos; key or Double‑click</span>
+                <span>• <strong>Undo/Redo:</strong> Ctrl+Z / Ctrl+Y</span>
+              </div>
+              
+              <div style={{ borderBottom: '1px solid rgba(52, 225, 255, 0.1)', paddingBottom: '4px', marginTop: '4px' }}>
+                <strong style={{ color: 'var(--accent)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mobile / Touch</strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span>• <strong>Move:</strong> Touch and Drag</span>
+                <span>• <strong>Customize:</strong> Long‑press a piece</span>
+                <span>• <strong>Randomize:</strong> Double‑tap piece</span>
+                <span>• <strong>History:</strong> Floating icons (top‑left)</span>
+                <span>• <strong>Settings:</strong> Drag panel header to move</span>
+              </div>
             </div>
           </div>
         )}
@@ -1301,8 +1316,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           zIndex: 10
         }}
       >
-        Drag to move • Arrows for precision • Double‑click to randomize<br/>
-        + / - scale • {'{ }'} rotate • Right‑click to customize
+        Desktop: Drag or Arrows • +/- Scale • {'{ }'} Rotate • R-click Customize<br/>
+        Mobile: Drag • Long‑press Customize • Double‑tap Randomize
       </div>
 
       {/* Advanced Side Panel (Condensed Context Menu) */}
