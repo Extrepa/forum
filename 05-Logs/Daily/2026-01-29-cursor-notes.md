@@ -1,3 +1,5 @@
 ### 2026-01-29
 
-- Ran test build after fixing JSX syntax error; build succeeded.
+- Reverted previous layout changes in `src/components/ClaimUsernameForm.js`.
+- Re-applied 50/50 split and divider on large viewports in `src/components/ClaimUsernameForm.js`.
+- Build succeeded after re-applying layout changes.
