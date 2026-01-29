@@ -32,27 +32,34 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      let newLeft = anchorRect.left;
-      let newTop = anchorRect.bottom + 8; // 8px below the anchor
+      let newLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
+      let newTop = anchorRect.bottom + 8; // Default: 8px below the anchor
 
-      // Adjust if popover overflows right side of viewport
-      if (newLeft + popoverRect.width > viewportWidth - 16) { // 16px padding from right edge
-        newLeft = viewportWidth - popoverRect.width - 16;
-      }
-      // Ensure it doesn't go off the left side either
-      if (newLeft < 16) { // 16px padding from left edge
-        newLeft = 16;
+      const canFitBelow = (newTop + popoverRect.height <= viewportHeight - 16);
+      const canFitAbove = (anchorRect.top - popoverRect.height - 8 >= 16);
+      const canFitRight = (anchorRect.right + 8 + popoverRect.width <= viewportWidth - 16);
+      const canFitLeft = (anchorRect.left - popoverRect.width - 8 >= 16);
+
+      if (!canFitBelow && canFitAbove) {
+        // If no room below but room above, position above
+        newTop = anchorRect.top - popoverRect.height - 8;
+      } else if (!canFitBelow && !canFitAbove && canFitRight) {
+        // If no room above or below, but room to the right, position to the right
+        newLeft = anchorRect.right + 8;
+        newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
+      } else if (!canFitBelow && !canFitAbove && !canFitRight && canFitLeft) {
+        // If no room above, below or right, but room to the left, position to the left
+        newLeft = anchorRect.left - popoverRect.width - 8;
+        newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
       }
 
-      // Adjust if popover overflows bottom of viewport
-      if (newTop + popoverRect.height > viewportHeight - 16) {
-        // Try to position above the anchor if it overflows below
-        newTop = anchorRect.top - popoverRect.height - 8; // 8px above the anchor
-        // If it still overflows above, position at the top with some padding
-        if (newTop < 16) {
-          newTop = 16;
-        }
-      }
+      // Final clamping for horizontal position
+      newLeft = Math.max(16, newLeft); // Ensure at least 16px from left edge
+      newLeft = Math.min(newLeft, viewportWidth - popoverRect.width - 16); // Ensure at most 16px from right edge
+
+      // Final clamping for vertical position
+      newTop = Math.max(16, newTop); // Ensure at least 16px from top edge
+      newTop = Math.min(newTop, viewportHeight - popoverRect.height - 16); // Ensure at most 16px from bottom edge
 
       setPopoverPosition({ left: newLeft, top: newTop });
     };
