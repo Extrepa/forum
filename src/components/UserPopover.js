@@ -44,27 +44,25 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         // Priority 2: Above the anchor
         newLeft = candidateLeft;
         newTop = anchorRect.top - popoverRect.height - 8;
-      } else if (anchorRect.right + 8 + popoverRect.width <= viewportWidth - 16) {
-        // Priority 3: Right of the anchor
-        newLeft = anchorRect.right + 8;
-        newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
-      } else if (anchorRect.left - popoverRect.width - 8 >= 16) {
-        // Priority 4: Left of the anchor
-        newLeft = anchorRect.left - popoverRect.width - 8;
-        newTop = anchorRect.top + (anchorRect.height / 2) - (popoverRect.height / 2);
       } else {
         // Fallback: Default to below, even if it overflows (will be clamped later)
         newLeft = candidateLeft;
         newTop = candidateTop;
       }
 
+      // Horizontal centering attempt for small screens/fallback
+      // If the popover is wider than the viewport, or if centering it
+      // would push it off the screen, try to center it and then clamp.
+      if (popoverRect.width > viewportWidth - 32 || candidateLeft < 16 || candidateLeft + popoverRect.width > viewportWidth - 16) {
+          newLeft = (viewportWidth - popoverRect.width) / 2;
+      }
+
       // Final clamping for horizontal position
-      newLeft = Math.max(16, newLeft); // Ensure at least 16px from left edge
-      newLeft = Math.min(newLeft, viewportWidth - popoverRect.width - 16); // Ensure at most 16px from right edge
+      newLeft = Math.max(16, Math.min(newLeft, viewportWidth - popoverRect.width - 16));
 
       // Final clamping for vertical position
-      newTop = Math.max(16, newTop); // Ensure at least 16px from top edge
-      newTop = Math.min(newTop, viewportHeight - popoverRect.height - 16); // Ensure at most 16px from bottom edge
+      // Ensure at least 16px from top edge and bottom edge
+      newTop = Math.max(16, Math.min(newTop, viewportHeight - popoverRect.height - 16));
 
       setPopoverPosition({ left: newLeft, top: newTop });
     };
@@ -86,9 +84,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         top: popoverPosition.top,
         left: popoverPosition.left,
         zIndex: 9999,
-        minWidth: '140px',
         width: 'max-content',
-        maxWidth: '200px',
         padding: '12px',
         background: 'var(--errl-panel)',
         // Removed explicit border, borderRadius, boxShadow since .card class handles it
