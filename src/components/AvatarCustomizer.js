@@ -391,7 +391,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     if (!canvas) return;
     const canvasWidth = canvas.clientWidth || 0;
     const canvasHeight = canvas.clientHeight || 0;
-    const nextWidth = Math.max(120, Math.min(190, Math.floor(canvasWidth * 0.6)));
+    const nextWidth = Math.min(190, Math.max(150, Math.floor(canvasWidth - 32)));
     setPanelWidth(nextWidth);
     setPanelPos((prev) => {
       const maxRight = Math.max(8, canvasWidth - nextWidth - 8);
@@ -427,6 +427,15 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const pt = svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  };
+
+  const getSVGPointFromTouch = (touch) => {
+    const svg = svgRef.current;
+    if (!svg || !touch) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint();
+    pt.x = touch.clientX;
+    pt.y = touch.clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   };
 
@@ -566,6 +575,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     };
   };
 
+  const handlePanelTouchStart = (e) => {
+    const touch = e.touches?.[0];
+    if (!touch) return;
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    setIsDraggingPanel(true);
+    panelDragStart.current = { 
+      x: touch.clientX, 
+      y: touch.clientY, 
+      initialTop: panelPos.top, 
+      initialRight: panelPos.right 
+    };
+  };
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDraggingPanel) {
@@ -584,17 +607,40 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
         });
       }
     };
+    const handleTouchMove = (e) => {
+      if (!isDraggingPanel) return;
+      const touch = e.touches?.[0];
+      if (!touch) return;
+      e.preventDefault();
+      const dx = touch.clientX - panelDragStart.current.x;
+      const dy = touch.clientY - panelDragStart.current.y;
+      const canvas = canvasRef.current;
+      const canvasWidth = canvas?.clientWidth || 0;
+      const canvasHeight = canvas?.clientHeight || 0;
+      const nextTop = panelDragStart.current.initialTop + dy;
+      const nextRight = panelDragStart.current.initialRight - dx;
+      const maxRight = Math.max(8, canvasWidth - panelWidth - 8);
+      const maxTop = Math.max(8, canvasHeight - 8);
+      setPanelPos({
+        top: Math.min(Math.max(nextTop, 8), maxTop),
+        right: Math.min(Math.max(nextRight, 8), maxRight)
+      });
+    };
     const handleMouseUp = () => setIsDraggingPanel(false);
 
     if (isDraggingPanel) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleMouseUp);
     }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleMouseUp);
     };
-  }, [isDraggingPanel]);
+  }, [isDraggingPanel, panelWidth]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
@@ -651,10 +697,21 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const handleTouchStartLayer = (e, id) => {
     const touch = e.touches?.[0];
     if (!touch) return;
+    if (contextMenu) return;
     if (longPressRef.current) {
       clearTimeout(longPressRef.current);
       longPressRef.current = null;
     }
+    if (selectedLayerId === id && id !== 'face') {
+      setIsDragging(true);
+      const point = getSVGPointFromTouch(touch);
+      const layer = layers.find(l => l.id === id);
+      if (layer) {
+        dragStart.current = { x: point.x - layer.x, y: point.y - layer.y };
+      }
+      return;
+    }
+    setSelectedLayerId(id);
     longPressRef.current = setTimeout(() => {
       setSelectedLayerId(id);
       setContextMenu({ x: touch.clientX, y: touch.clientY, id });
@@ -666,6 +723,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       clearTimeout(longPressRef.current);
       longPressRef.current = null;
     }
+    if (isDragging) {
+      setIsDragging(false);
+      pushHistory(layers);
+      return;
+    }
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
       randomizeLayer(id);
@@ -673,6 +735,18 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       return;
     }
     lastTapRef.current = now;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging || !selectedLayerId) return;
+    const touch = e.touches?.[0];
+    if (!touch) return;
+    e.preventDefault();
+    const point = getSVGPointFromTouch(touch);
+    handleLayerChange(selectedLayerId, {
+      x: point.x - dragStart.current.x,
+      y: point.y - dragStart.current.y
+    }, true);
   };
 
   const wheelColor = selectedLayer
@@ -866,6 +940,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           onMouseMove={handleSvgMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
           style={{ width: '100%', height: '100%', flex: 1, minHeight: 0, touchAction: 'none', cursor: 'pointer', overflow: 'visible', paddingTop: '8px', paddingBottom: '8px', boxSizing: 'border-box' }}
           onClick={(e) => {
             setContextMenu(null);
@@ -989,6 +1065,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           >
             <div 
               onMouseDown={handlePanelMouseDown}
+              onTouchStart={handlePanelTouchStart}
               style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
