@@ -897,9 +897,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const wrapperProps = noCardWrapper ? {} : { className: 'card' };
   return (
     <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
-      <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
-        <div style={{ flex: '1 1 50%', paddingRight: '24px', borderRight: '1px solid rgba(52, 225, 255, 0.2)' }}>
-          <div style={{ position: 'sticky', top: '20px' }}>
+      <div className="auth-form-container" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%', maxWidth: '100%', boxSizing: 'border-box', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 50%' }}>
             <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '24px', color: 'var(--accent)' }}>Welcome to the Errl Forum</h4>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               This forum is built for people who grew up checking forums, profiles, and pages on purpose — not scrolling endlessly, but actually arriving somewhere.
@@ -914,7 +913,6 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               Take your time. Dive in. Errl’s got layers.
             </p>
           </div>
-        </div>
         <div style={{ flex: '1 1 50%', width: '100%' }}>
           {mode === 'login' ? (
             <>
