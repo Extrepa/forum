@@ -23,6 +23,12 @@ export async function POST(request) {
   const mentionEnabled = payload.mentionEnabled !== undefined ? (payload.mentionEnabled ? 1 : 0) : 1;
   const replyEnabled = payload.replyEnabled !== undefined ? (payload.replyEnabled ? 1 : 0) : 1;
   const commentEnabled = payload.commentEnabled !== undefined ? (payload.commentEnabled ? 1 : 0) : 1;
+  const adminNewUserEnabled = user.role === 'admin'
+    ? (payload.adminNewUserEnabled ? 1 : 0)
+    : null;
+  const adminNewPostEnabled = user.role === 'admin'
+    ? (payload.adminNewPostEnabled ? 1 : 0)
+    : null;
 
   if (emailEnabled && !user.email) {
     return NextResponse.json({ error: 'Set an email before enabling email notifications.' }, { status: 400 });
@@ -32,6 +38,26 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const adminUpdateSql = user.role === 'admin'
+    ? ', notify_admin_new_user_enabled = ?, notify_admin_new_post_enabled = ?'
+    : '';
+
+  const params = [
+    emailEnabled,
+    smsEnabled,
+    rsvpEnabled,
+    likeEnabled,
+    updateEnabled,
+    mentionEnabled,
+    replyEnabled,
+    commentEnabled
+  ];
+
+  if (user.role === 'admin') {
+    params.push(adminNewUserEnabled, adminNewPostEnabled);
+  }
+  params.push(user.id);
+
   await db
     .prepare(`
       UPDATE users 
@@ -42,10 +68,10 @@ export async function POST(request) {
           notify_update_enabled = ?,
           notify_mention_enabled = ?,
           notify_reply_enabled = ?,
-          notify_comment_enabled = ?
+          notify_comment_enabled = ?${adminUpdateSql}
       WHERE id = ?
     `)
-    .bind(emailEnabled, smsEnabled, rsvpEnabled, likeEnabled, updateEnabled, mentionEnabled, replyEnabled, commentEnabled, user.id)
+    .bind(...params)
     .run();
 
   return NextResponse.json({ 
@@ -57,7 +83,8 @@ export async function POST(request) {
     notifyUpdateEnabled: !!updateEnabled,
     notifyMentionEnabled: !!mentionEnabled,
     notifyReplyEnabled: !!replyEnabled,
-    notifyCommentEnabled: !!commentEnabled
+    notifyCommentEnabled: !!commentEnabled,
+    notifyAdminNewUserEnabled: user.role === 'admin' ? !!adminNewUserEnabled : false,
+    notifyAdminNewPostEnabled: user.role === 'admin' ? !!adminNewPostEnabled : false
   });
 }
-
