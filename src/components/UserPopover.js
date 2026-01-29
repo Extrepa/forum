@@ -52,12 +52,14 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     placement,
     middleware: [
       offset(4), // 4px offset from the anchor
-      flip(),    // Flips to other sides if top-end doesn't fit
-      shift({ padding: 16 }), // Add padding to shift to keep it 16px from edges
+      autoPlacement({
+        crossAxis: true, // Allow autoPlacement to consider centering horizontally
+        padding: 16,     // Keep padding from viewport edges
+        allowedPlacements: viewportWidth <= 640 ? ['bottom', 'top'] : ['top-end', 'bottom-end', 'top-start', 'bottom-start'],
+        alignment: viewportWidth <= 640 ? 'center' : undefined, // Explicitly align center on small viewports
+      }),
+      shift({ padding: 16, crossAxis: true }), // Allow shift to also move along the cross axis for centering
     ],
-    elements: {
-      reference: anchorRef.current,
-    },
     strategy: 'fixed',
     whileElementsMounted: autoUpdate,
   });

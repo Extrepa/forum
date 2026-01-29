@@ -42,6 +42,9 @@
     - Dynamically set `placement` and `middleware` in `useFloating` based on `viewportWidth`, including `crossAxis(0)` for horizontal centering on small screens and `padding: 16` for `shift`.
     - Removed manual `handleClickOutside` `useEffect` and integrated `useClickOutside` from Floating UI for robust click-outside-to-close functionality.
     - Removed incorrect `crossAxis` import and `crossAxis(0)` middleware usage from Floating UI configuration.
-    - **Removed incorrect `useClickOutside` import and its usage. Reverted to manual `useEffect` for click-outside-to-close.**
+    - Removed incorrect `useClickOutside` import and its usage. Reverted to manual `useEffect` for click-outside-to-close.
+    - Re-inserted the `useEffect` for fetching user data with `console.log` and `console.error` statements.
+    - Updated `useFloating` middleware to use `autoPlacement` with `crossAxis: true` and `padding: 16` for improved responsive positioning on small viewports.
+    - **Further refined `useFloating` middleware: Added `alignment: 'center'` to `autoPlacement` for small viewports and `crossAxis: true` to `shift` to explicitly enforce horizontal centering.**
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
