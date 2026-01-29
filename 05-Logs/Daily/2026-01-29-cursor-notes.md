@@ -81,3 +81,36 @@
 - Changed: Popover username uses shared `username` class styling (consistent glow + future-proofing).
 - Changed: Popover avatar no longer has an outline/border.
 - Added: Role-based color fill for profile role label with configurable CSS vars.
+
+---
+
+## Account Stats: Time Spent (2026-01-29)
+
+### Summary
+- Added a new account stats metric for total minutes spent on the site while logged in.
+- Implemented a client heartbeat to track active time and a server endpoint to persist minutes.
+- Ran the D1 migration, merged to `main`, and deployed to production.
+
+### Work Completed
+- Added `time_spent_minutes` and `time_tracking_last_seen` columns to `users`.
+  - Migration: `migrations/0047_add_user_time_spent.sql`
+- Added heartbeat endpoint to record active minutes.
+  - File: `src/app/api/account/active-time/route.js`
+  - Guards against multi-tab double counting by updating only when the stored timestamp is older than 1 minute.
+- Added client tracker to ping every minute and on `pagehide`.
+  - File: `src/components/ActiveTimeTracker.js`
+  - Mounted in `src/app/layout.js` for signed-in users.
+- Added stat to account profile stats card and API payloads.
+  - Files: `src/app/account/AccountTabsClient.js`, `src/app/account/page.js`, `src/app/api/account/stats/route.js`
+  - Query updates have a fallback if the new column is missing.
+
+### Database / Deploy Notes
+- Migration applied to remote D1:
+  - Command: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0047_add_user_time_spent.sql`
+- Initial `wrangler deploy` attempts hit Cloudflare 502 errors.
+- Merged `feat/time-spent-stat` into `main`, pushed, then ran production deploy:
+  - Command: `./deploy.sh --production "Add time spent tracking stat"`
+  - Production deploy succeeded.
+
+### Follow-up
+- Optional: update `deploy.sh` to pass `--env ""` to silence Wrangler env warning.
