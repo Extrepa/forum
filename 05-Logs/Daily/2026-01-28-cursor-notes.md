@@ -36,6 +36,37 @@
 - **Unsaved Changes Warning**: Implemented a `window.confirm` guard on the EXIT button. If the `historyIndex > 0` (indicating modifications were made), the system will warn the user before they abort and lose their progress.
 - **Reset Confirmation**: Added a confirmation step to the "Restore Factory Defaults" (Reset) button to prevent accidental purging of custom progress.
 
+#### 6. Profile Page Enhancements
+- **Hero Avatar Display**: Replaced the small 24px inline avatar with a prominent 160px "Hero" version positioned centrally above the username.
+- **Enhanced Visuals**: Added a stylized container for the avatar with soft glows, thick borders, and subtle backgrounds to make the user's "Neural Representation" stand out.
+- **Prominent Username**: Increased the profile username font size to 32px with heavy weights and text shadows for better hierarchy.
+- **Clean Layout**: Explicitly suppressed the small avatar inside the `Username` component on profile pages to prevent redundancy.
+
+## Feature Capability Audit: Avatar System
+
+### 1. AvatarCustomizer (Frontend Interface)
+- **Vector-Based Manipulation**: Real-time editing of SVG layers (Face, Eyes, Mouth, Frames).
+- **Transformation Toolkit**:
+    - **Precise Translation**: X/Y positioning for all elements.
+    - **Dynamic Scaling**: Independent layer resizing.
+    - **Rotational Control**: Full 360-degree rotation for accessories and expressions.
+- **Advanced Aesthetics**:
+    - **Curated & Custom Colors**: Choice between a themed palette or a precision hue-picker wheel.
+    - **Animated Gradients**: Integrated SVG animation stops for "Rainbow", "Toxic", "Fire", and "Ocean" effects.
+    - **Gradient Directionality**: 4-way direction control (L-R, T-B, Diagonal 1/2).
+- **UX Infrastructure**:
+    - **Undo/Redo Engine**: Deep history tracking (99,999 step buffer).
+    - **Draggable Portal Panel**: Settings panel exists in a React Portal, allowing free movement across the entire viewport.
+    - **Mobile Gestures**: Long-press to edit, double-tap to reset transforms, and touch-locked dragging.
+- **Immersive Terminology**: Tooltips and UI labels utilize "errl" universe language (e.g., "Neural Representation", "Chaos Protocol").
+
+### 2. AvatarFeature (Backend & Integration)
+- **Cloud Persistence**: Automated SVG serialization and storage in R2-compatible buckets.
+- **State Serialization**: Full layer data stored in database (`avatar_state`) to ensure edits can be resumed later.
+- **System-Wide Deployment**: Integrated into headers, profile pages, and account settings.
+- **Performance Optimized**: SVG rendering ensures lightweight, crisp visuals across all device resolutions.
+- **Authorization Layer**: Strict user-specific access controls for editing and saving personal representations.
+
 ### Technical Details
 - **Clamping Math**: Uses `getBoundingClientRect` of the container vs `window.innerWidth/Height` to calculate local offsets for `absolute` positioning that feels like `fixed`.
 - **CSS Hierarchy**: Balanced inline React styles with global CSS overrides for maximum control over mobile behavior.

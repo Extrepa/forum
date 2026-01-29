@@ -7,6 +7,7 @@ import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
+import { getAvatarUrl } from '../../../lib/media';
 
 export const dynamic = 'force-dynamic';
 
@@ -410,27 +411,62 @@ export default async function ProfilePage({ params }) {
             }}>
             <h2 className="section-title" style={{ marginBottom: '4px' }}>Profile</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Image
-                src={profileUser.avatar_key ? `/api/media/avatars/${profileUser.avatar_key.split('/').pop()}` : '/icons/errl-face.png'}
-                alt=""
-                width={28}
-                height={28}
-                unoptimized
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.5)'
-                }}
-              />
-              <Username
-                name={profileUser.username}
-                colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
-                avatarKey={null}
-                href={null}
-              />
-            </div>
+              {/* Profile Header with Big Avatar */}
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                gap: '24px', 
+                marginBottom: '16px',
+                padding: '24px 16px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '16px',
+                border: '1px solid rgba(52, 225, 255, 0.1)'
+              }}>
+                <div style={{ position: 'relative' }}>
+                  <Image
+                    src={getAvatarUrl(profileUser.avatar_key) || '/icons/errl-face.png'}
+                    alt=""
+                    width={160}
+                    height={160}
+                    unoptimized
+                    style={{
+                      width: '160px',
+                      height: '160px',
+                      borderRadius: '24px',
+                      background: 'rgba(0,0,0,0.6)',
+                      border: '2px solid var(--accent)',
+                      padding: '12px',
+                      boxShadow: '0 0 30px rgba(52, 225, 255, 0.2)',
+                      display: 'block'
+                    }}
+                  />
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <Username
+                    name={profileUser.username}
+                    colorIndex={getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index })}
+                    avatarKey={null} // Explicitly null to prevent small avatar inside Username
+                    href={null}
+                    style={{ 
+                      fontSize: '32px', 
+                      fontWeight: '800',
+                      letterSpacing: '-0.02em',
+                      textShadow: '0 0 20px rgba(52, 225, 255, 0.3)'
+                    }}
+                  />
+                  <div style={{ 
+                    marginTop: '8px', 
+                    color: 'var(--muted)', 
+                    fontSize: '14px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em'
+                  }}>
+                    Errl Portal Resident
+                  </div>
+                </div>
+              </div>
 
               {/* Social Links Display */}
               {profileLinks.length > 0 && (

@@ -16,6 +16,7 @@ export default function Username({
   title,
   href,
   avatarKey,
+  style,
 }) {
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -44,7 +45,7 @@ export default function Username({
   const wrapperProps = disableLink ? {} : { href: profileHref };
 
   return (
-    <Wrapper {...wrapperProps} className={classes} title={title || safeName}>
+    <Wrapper {...wrapperProps} className={classes} title={title || safeName} style={style}>
       {avatarUrl && (
         <Image 
           src={avatarUrl} 
