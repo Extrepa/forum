@@ -898,7 +898,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   return (
     <Wrapper {...wrapperProps} style={noCardWrapper ? {} : { padding: '20px' }}>
       <div className="auth-form-container">
-        <div style={{ flex: '1 1 50%', width: '50%', boxSizing: 'border-box' }}>
+        <div className="auth-intro-section">
             <h4 className="section-title" style={{ marginBottom: '12px', fontSize: '24px', color: 'var(--accent)' }}>Welcome to the Errl Forum</h4>
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               This forum is built for people who grew up checking forums, profiles, and pages on purpose — not scrolling endlessly, but actually arriving somewhere.
@@ -913,7 +913,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
               Take your time. Dive in. Errl’s got layers.
             </p>
           </div>
-        <div style={{ flex: '1 1 50%', width: '50%', paddingLeft: '24px', boxSizing: 'border-box' }}>
+        <div className="auth-form-section">
           {mode === 'login' ? (
             <>
               <h3 className="section-title" style={{ marginBottom: '20px' }}>Sign in</h3>
