@@ -2,65 +2,60 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, autoUpdate, crossAxis, useClickOutside } from '@floating-ui/react';
+import { createPortal } from 'react-dom';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [viewportWidth, setViewportWidth] = useState(0); // Initialize with 0
 
   useEffect(() => {
-    fetch(`/api/user/${encodeURIComponent(username)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) {
-          setUserInfo(data);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [username]);
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    handleResize(); // Set initial width
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+  const placement = viewportWidth <= 640 ? 'bottom' : 'top-end'; // Default to 'bottom' on small screens
 
   const { refs, floatingStyles } = useFloating({
-    placement: 'top-end', // Default to top-end (above and to the right)
+    placement,
     middleware: [
       offset(4), // 4px offset from the anchor
       flip(),    // Flips to other sides if top-end doesn't fit
-      shift(),   // Shifts along the reference to prevent overflow
-    ],
+      shift({ padding: 16 }), // Add padding to shift to keep it 16px from edges
+      viewportWidth <= 640 && crossAxis(0), // Center horizontally on small screens
+    ].filter(Boolean), // Filter out falsey values if middleware is conditional
     elements: {
-      reference: anchorRef.current, // Use the passed anchorRef as the reference
+      reference: anchorRef.current,
     },
-    strategy: 'fixed', // Add this line
-    whileElementsMounted: autoUpdate, // This line is correct now
+    strategy: 'fixed',
+    whileElementsMounted: autoUpdate,
   });
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target) &&
-          anchorRef.current && !anchorRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
+  useClickOutside(refs.floating, onClose);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [onClose, anchorRef, popoverRef]);
+  useClickOutside(refs.floating, onClose);
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
 
-  return (
+  return createPortal( // Wrap with createPortal
     <div 
       ref={refs.setFloating} // Assign Floating UI's floating ref
       className="card notifications-popover-errl" // Apply Errl border styling class
       style={{
         ...floatingStyles, // Apply Floating UI's calculated styles
-        position: 'fixed', // Change back to fixed
+        position: 'fixed', // Keep as fixed for viewport positioning
         zIndex: 9999,
         width: 'max-content',
+        maxWidth: 'calc(100vw - 32px)', // Re-introduce responsive max-width
         padding: '12px',
         background: 'var(--errl-panel)',
         // Removed explicit border, borderRadius, boxShadow since .card class handles it
@@ -125,6 +120,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           View Profile →
         </Link>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -32,6 +32,14 @@
     - Imported `autoUpdate` from `@floating-ui/react`.
     - Configured `useFloating` to use `whileElementsMounted: autoUpdate`.
     - Reverted the popover's `position` style from `absolute` back to `fixed`.
-    - **Added `strategy: 'fixed'` to `useFloating` hook for correct fixed positioning calculations.**
+    - Added `strategy: 'fixed'` to `useFloating` hook for correct fixed positioning calculations.
+    - Imported `createPortal` from `react-dom`.
+    - Removed the redundant `handleClickOutside` `useEffect`.
+    - Wrapped the popover `div` with `createPortal(..., document.body)`.
+    - Re-introduced a responsive `maxWidth: 'calc(100vw - 32px)'` to the popover's inline styles.
+    - Imported `crossAxis` from `@floating-ui/react`.
+    - Added `viewportWidth` state and a `useEffect` to track window resizing.
+    - Dynamically set `placement` and `middleware` in `useFloating` based on `viewportWidth`, including `crossAxis(0)` for horizontal centering on small screens and `padding: 16` for `shift`.
+    - Removed manual `handleClickOutside` `useEffect` and integrated `useClickOutside` from Floating UI for robust click-outside-to-close functionality.
 - Modified `src/components/Username.js`:
     - Reverted `display: 'inline-flex'` back to `display: 'inline-block'` to avoid potential interference with positioning.
