@@ -3961,7 +3961,7 @@ header::before {
   }
 
   /* Card containing auth form should use full width on mobile */
-  .card {
+  .card:not(.avatar-customizer-panel) {
     width: 100% !important;
     max-width: 100% !important;
   }

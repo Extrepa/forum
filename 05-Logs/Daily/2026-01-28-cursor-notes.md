@@ -4,14 +4,16 @@
 
 ### Status Update
 - Site-wide avatar integration is complete.
-- Branch `feat/avatar-customizer` is active with several uncommitted refinements.
-- Transitioning focus to the "Settings Panel" UX on mobile and smaller viewports.
+- Branch `feat/avatar-customizer` is active.
+- Fixed settings panel "stretching" on mobile by excluding it from global `.card` rules in `globals.css`.
+- Refactored dragging and positioning logic in `AvatarCustomizer.js` to clamp to viewport width.
+- Build verified (successfully compiled).
 
 ### Identified Issues
-- **Responsive Sizing**: The settings panel (popout) has inconsistent width behavior on small screens.
-- **Dragging Logic**: Dragging the panel on mobile/touch is buggy, often resetting or jumping.
-- **Context Menu Positioning**: Long-press/Right-click positioning of the panel can push it off-screen or overlap poorly on mobile.
-- **Visual "Squishing"**: Need to ensure the panel layout remains usable even when viewport width is limited.
+- **Responsive Sizing [FIXED]**: The settings panel was stretching due to a `.card { width: 100% !important }` rule in `globals.css` on small viewports.
+- **Dragging Logic [IMPROVED]**: Panel can no longer be dragged off the right edge of the viewport.
+- **Context Menu Positioning [IMPROVED]**: Initial placement now respects viewport boundaries.
+- **Visual "Squishing" [FIXED]**: Fixed width of 195px is now reliably enforced.
 
 ### Action Plan
 1. Refactor `getPanelWidth` and `positionPanelAtPoint` to be more robust.

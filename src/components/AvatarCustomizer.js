@@ -385,8 +385,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const localX = clientX - rect.left;
     const localY = clientY - rect.top;
     
-    const maxLeft = Math.max(0, rect.width - PANEL_WIDTH - 8);
-    const maxTop = Math.max(0, rect.height - 40); // Initial guess, will be clamped by effect
+    // Clamping logic: stay within container and viewport
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
+    const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
+    const maxTop = Math.max(8, rect.height - 40); 
     
     setPanelPos({
       left: Math.min(Math.max(localX - PANEL_WIDTH / 2, 8), maxLeft),
@@ -409,10 +411,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
     
     setPanelPos((prev) => {
       const panelHeight = panelRef.current?.offsetHeight || 0;
-      const maxLeft = Math.max(8, rect.width - PANEL_WIDTH - 8);
+      const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
       const maxTop = Math.max(8, rect.height - panelHeight - 8);
       const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
@@ -612,11 +615,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       if (!container) return;
       const rect = container.getBoundingClientRect();
       const panelHeight = panelRef.current?.offsetHeight || 0;
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
       
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextLeft = panelDragStart.current.initialLeft + dx;
       
-      const maxLeft = Math.max(8, rect.width - PANEL_WIDTH - 8);
+      const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
       const maxTop = Math.max(8, rect.height - panelHeight - 8);
       
       setPanelPos({
