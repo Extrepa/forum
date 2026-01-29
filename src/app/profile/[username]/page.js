@@ -411,11 +411,12 @@ export default async function ProfilePage({ params }) {
             <h2 className="section-title" style={{ marginBottom: '4px' }}>Profile</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img
+              <Image
                 src={profileUser.avatar_key ? `/api/media/avatars/${profileUser.avatar_key.split('/').pop()}` : '/icons/errl-face.png'}
                 alt=""
                 width={28}
                 height={28}
+                unoptimized
                 style={{
                   width: '28px',
                   height: '28px',
