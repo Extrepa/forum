@@ -1225,17 +1225,26 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               style={{ 
                 flex: 2,
                 minHeight: '28px',
-                borderRadius: '6px',
+                borderRadius: '999px',
                 border: 'none',
-                background: 'var(--accent)',
-                color: 'var(--bg)',
+                background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                color: '#001018',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
                 transition: 'all 0.2s ease',
                 fontFamily: '"Space Grotesk", sans-serif',
                 padding: '6px 12px',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
               }}
             >
               SAVE CHANGES
@@ -1246,9 +1255,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               style={{ 
                 flex: 1,
                 minHeight: '28px',
-                borderRadius: '6px',
+                borderRadius: '999px',
                 border: '1px solid rgba(52, 225, 255, 0.3)',
-                background: 'transparent',
+                background: 'rgba(2, 7, 10, 0.4)',
                 color: 'var(--muted)',
                 cursor: 'pointer',
                 fontSize: '12px',
@@ -1257,6 +1266,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 fontFamily: '"Space Grotesk", sans-serif',
                 padding: '6px 12px',
                 whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(52, 225, 255, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.6)';
+                e.currentTarget.style.color = 'var(--accent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(2, 7, 10, 0.4)';
+                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
+                e.currentTarget.style.color = 'var(--muted)';
               }}
             >
               CLOSE
