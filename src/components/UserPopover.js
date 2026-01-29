@@ -34,27 +34,23 @@ export default function UserPopover({ username, onClose, anchorRef }) {
 
       let newLeft, newTop;
 
-      // Priority 1: Below the anchor
-      let candidateLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
-      let candidateTop = anchorRect.bottom + 8;
-      if (candidateTop + popoverRect.height <= viewportHeight - 16) {
-        newLeft = candidateLeft;
-        newTop = candidateTop;
-      } else if (anchorRect.top - popoverRect.height - 8 >= 16) {
-        // Priority 2: Above the anchor
-        newLeft = candidateLeft;
-        newTop = anchorRect.top - popoverRect.height - 8;
-      } else {
-        // Fallback: Default to below, even if it overflows (will be clamped later)
-        newLeft = candidateLeft;
-        newTop = candidateTop;
-      }
+      // Calculate a default horizontal position centered with the anchor
+      const centeredLeft = anchorRect.left + (anchorRect.width / 2) - (popoverRect.width / 2);
 
-      // Horizontal centering attempt for small screens/fallback
-      // If the popover is wider than the viewport, or if centering it
-      // would push it off the screen, try to center it and then clamp.
-      if (popoverRect.width > viewportWidth - 32 || candidateLeft < 16 || candidateLeft + popoverRect.width > viewportWidth - 16) {
-          newLeft = (viewportWidth - popoverRect.width) / 2;
+      // Try positioning below the anchor
+      if (anchorRect.bottom + 8 + popoverRect.height <= viewportHeight - 16) {
+        newTop = anchorRect.bottom + 8;
+        newLeft = centeredLeft;
+      }
+      // Try positioning above the anchor
+      else if (anchorRect.top - 8 - popoverRect.height >= 16) {
+        newTop = anchorRect.top - 8 - popoverRect.height;
+        newLeft = centeredLeft;
+      }
+      // Fallback: If neither above nor below fits well, place below and let clamping handle it
+      else {
+        newTop = anchorRect.bottom + 8; // Default to below
+        newLeft = centeredLeft;
       }
 
       // Final clamping for horizontal position
