@@ -684,9 +684,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       e.target.value = '';
       return;
     }
-    const maxSize = 512 * 1024;
+    const maxSize = selectedLayerId === 'face' ? 1536 * 1024 : 512 * 1024;
     if (file.size > maxSize) {
-      alert('Image too large. Please use an image under 512KB.');
+      const limitLabel = selectedLayerId === 'face' ? '1.5MB' : '512KB';
+      alert(`Image too large. Please use an image under ${limitLabel}.`);
       e.target.value = '';
       return;
     }
