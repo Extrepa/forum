@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAvatarUrl } from '../lib/media';
-import { useFloating, offset, flip, shift, autoUpdate, useClickOutside } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
 import { createPortal } from 'react-dom';
 
 export default function UserPopover({ username, onClose, anchorRef }) {
@@ -38,9 +38,22 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     whileElementsMounted: autoUpdate,
   });
 
-  useClickOutside(refs.floating, onClose);
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      // Ensure refs are current before checking contains
+      if (popoverRef.current && anchorRef.current &&
+          !popoverRef.current.contains(event.target) &&
+          !anchorRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
 
-  useClickOutside(refs.floating, onClose);
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+    };
+  }, [onClose, anchorRef, popoverRef]);
+
 
   const avatarUrl = getAvatarUrl(userInfo?.avatar_key);
   const profileHref = `/profile/${encodeURIComponent(username)}`;
