@@ -377,22 +377,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const positionPanelAtPoint = (clientX, clientY) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    
-    // Convert client coords to container-local coords
-    const localX = clientX - rect.left;
-    const localY = clientY - rect.top;
-    
-    // Clamping logic: stay within container and viewport
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
-    const maxTop = Math.max(8, rect.height - 40); 
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
+    const panelHeight = panelRef.current?.offsetHeight || 400; // Best guess for initial calc
     
     setPanelPos({
-      left: Math.min(Math.max(localX - PANEL_WIDTH / 2, 8), maxLeft),
-      top: Math.min(Math.max(localY - 24, 8), maxTop)
+      left: Math.min(Math.max(clientX - PANEL_WIDTH / 2, 8), viewportWidth - PANEL_WIDTH - 8),
+      top: Math.min(Math.max(clientY - 24, 8), viewportHeight - panelHeight - 8)
     });
   };
 
@@ -408,17 +399,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const clampPanelToContainer = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
     
     setPanelPos((prev) => {
       const panelHeight = panelRef.current?.offsetHeight || 0;
-      const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
-      const maxTop = Math.max(8, rect.height - panelHeight - 8);
-      const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
-      const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
+      const nextLeft = Math.min(Math.max(prev.left, 8), viewportWidth - PANEL_WIDTH - 8);
+      const nextTop = Math.min(Math.max(prev.top, 8), viewportHeight - panelHeight - 8);
       if (prev.left === nextLeft && prev.top === nextTop) return prev;
       return { left: nextLeft, top: nextTop };
     });
@@ -611,21 +598,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const dx = clientX - panelDragStart.current.x;
       const dy = clientY - panelDragStart.current.y;
       
-      const container = containerRef.current;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
-      const panelHeight = panelRef.current?.offsetHeight || 0;
       const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
+      const panelHeight = panelRef.current?.offsetHeight || 0;
       
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextLeft = panelDragStart.current.initialLeft + dx;
       
-      const maxLeft = Math.max(8, Math.min(rect.width, viewportWidth - rect.left) - PANEL_WIDTH - 8);
-      const maxTop = Math.max(8, rect.height - panelHeight - 8);
-      
       setPanelPos({
-        top: Math.min(Math.max(nextTop, 8), maxTop),
-        left: Math.min(Math.max(nextLeft, 8), maxLeft)
+        top: Math.min(Math.max(nextTop, 8), viewportHeight - panelHeight - 8),
+        left: Math.min(Math.max(nextLeft, 8), viewportWidth - PANEL_WIDTH - 8)
       });
     };
 
@@ -1298,10 +1280,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           className="card avatar-customizer-panel"
           ref={panelRef}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: `${panelPos.top}px`,
             left: `${panelPos.left}px`,
-            zIndex: 100,
+            zIndex: 1000,
             width: `${PANEL_WIDTH}px`,
             minWidth: `${PANEL_WIDTH}px`,
             maxWidth: `${PANEL_WIDTH}px`,
