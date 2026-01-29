@@ -376,52 +376,58 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const getPanelWidth = () => {
-    const viewportWidth = window.innerWidth || 0;
-    if (!viewportWidth) return 190;
-    return Math.min(190, Math.max(140, viewportWidth - 16));
+    const container = containerRef.current;
+    if (!container) return 190;
+    const containerWidth = container.clientWidth;
+    return Math.min(190, Math.max(140, containerWidth - 16));
   };
 
   const positionPanelAtPoint = (clientX, clientY) => {
-    const viewportWidth = window.innerWidth || 0;
-    const viewportHeight = window.innerHeight || 0;
-    const panelHeight = panelRef.current?.offsetHeight || 0;
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const nextWidth = getPanelWidth();
     setPanelWidth(nextWidth);
-    const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
-    const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
+    
+    // Convert client coords to container-local coords
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+    
+    const maxLeft = Math.max(0, rect.width - nextWidth - 8);
+    const maxTop = Math.max(0, rect.height - 40); // Allow some space at bottom
+    
     setPanelPos({
-      left: Math.min(Math.max(clientX - nextWidth / 2, 8), maxLeft),
-      top: Math.min(Math.max(clientY - 24, 8), maxTop)
+      left: Math.min(Math.max(localX - nextWidth / 2, 8), maxLeft),
+      top: Math.min(Math.max(localY - 24, 8), maxTop)
     });
   };
 
   const handleContextMenu = (e, id) => {
     e.preventDefault();
     e.stopPropagation();
-    const now = Date.now();
-    if (now - lastContextMenuRef.current < 300) {
-      const viewportWidth = window.innerWidth || 0;
-      setPanelPos({ top: 8, left: Math.max(8, viewportWidth - panelWidth - 16) });
-    }
-    lastContextMenuRef.current = now;
+    
     setSelectedLayerId(id);
     setContextMenu({ x: e.clientX, y: e.clientY, id });
+    
+    // Use requestAnimationFrame to ensure panelRef is available if just opened
     requestAnimationFrame(() => positionPanelAtPoint(e.clientX, e.clientY));
   };
 
-  const clampPanelToViewport = useCallback(() => {
-    const viewportWidth = window.innerWidth || 0;
-    const viewportHeight = window.innerHeight || 0;
+  const clampPanelToContainer = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const nextWidth = getPanelWidth();
     setPanelWidth(nextWidth);
-    const panelHeight = panelRef.current?.offsetHeight || 0;
+    
     setPanelPos((prev) => {
-      const maxLeft = Math.max(8, viewportWidth - nextWidth - 8);
+      const panelHeight = panelRef.current?.offsetHeight || 0;
+      const maxLeft = Math.max(8, rect.width - nextWidth - 8);
+      const maxTop = Math.max(8, rect.height - panelHeight - 8);
       const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
-      const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
       if (prev.left === nextLeft && prev.top === nextTop) return prev;
-      return { ...prev, left: nextLeft, top: nextTop };
+      return { left: nextLeft, top: nextTop };
     });
   }, []);
 
@@ -463,11 +469,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
   useEffect(() => {
     if (!contextMenu) return;
-    clampPanelToViewport();
-    const handleResize = () => clampPanelToViewport();
+    clampPanelToContainer();
+    const handleResize = () => clampPanelToContainer();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [clampPanelToViewport, contextMenu]);
+  }, [clampPanelToContainer, contextMenu]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -607,57 +613,49 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDraggingPanel) {
-        const dx = e.clientX - panelDragStart.current.x;
-        const dy = e.clientY - panelDragStart.current.y;
-        const viewportWidth = window.innerWidth || 0;
-        const viewportHeight = window.innerHeight || 0;
-        const panelHeight = panelRef.current?.offsetHeight || 0;
-        const nextTop = panelDragStart.current.initialTop + dy;
-        const nextLeft = panelDragStart.current.initialLeft + dx;
-        const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
-        const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
-        setPanelPos({
-          top: Math.min(Math.max(nextTop, 8), maxTop),
-          left: Math.min(Math.max(nextLeft, 8), maxLeft)
-        });
-      }
-    };
-    const handleTouchMove = (e) => {
+    const handleMove = (clientX, clientY) => {
       if (!isDraggingPanel) return;
-      const touch = e.touches?.[0];
-      if (!touch) return;
-      e.preventDefault();
-      const dx = touch.clientX - panelDragStart.current.x;
-      const dy = touch.clientY - panelDragStart.current.y;
-      const viewportWidth = window.innerWidth || 0;
-      const viewportHeight = window.innerHeight || 0;
+      const dx = clientX - panelDragStart.current.x;
+      const dy = clientY - panelDragStart.current.y;
+      
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
       const panelHeight = panelRef.current?.offsetHeight || 0;
+      
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextLeft = panelDragStart.current.initialLeft + dx;
-      const maxLeft = Math.max(8, viewportWidth - panelWidth - 8);
-      const maxTop = Math.max(8, viewportHeight - panelHeight - 8);
+      
+      const maxLeft = Math.max(8, rect.width - panelWidth - 8);
+      const maxTop = Math.max(8, rect.height - panelHeight - 8);
+      
       setPanelPos({
         top: Math.min(Math.max(nextTop, 8), maxTop),
         left: Math.min(Math.max(nextLeft, 8), maxLeft)
       });
     };
-    const handleMouseUp = () => setIsDraggingPanel(false);
+
+    const onMouseMove = (e) => handleMove(e.clientX, e.clientY);
+    const onTouchMove = (e) => {
+      if (e.touches?.[0]) {
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+    const onEnd = () => setIsDraggingPanel(false);
 
     if (isDraggingPanel) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleTouchMove, { passive: false });
-      window.addEventListener('touchend', handleMouseUp);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onEnd);
     }
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleMouseUp);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onEnd);
     };
-  }, [isDraggingPanel]);
+  }, [isDraggingPanel, panelWidth]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
@@ -715,25 +713,34 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const touch = e.touches?.[0];
     if (!touch) return;
     if (contextMenu) return;
+    
+    // Reset long press
     if (longPressRef.current) {
       clearTimeout(longPressRef.current);
       longPressRef.current = null;
     }
+    
+    // Store touch start for movement threshold
+    dragStart.current = { x: touch.clientX, y: touch.clientY, isLongPress: true };
+    
     if (selectedLayerId === id && id !== 'face') {
       setIsDragging(true);
       const point = getSVGPointFromTouch(touch);
       const layer = layers.find(l => l.id === id);
       if (layer) {
-        dragStart.current = { x: point.x - layer.x, y: point.y - layer.y };
+        dragStart.current = { ...dragStart.current, x: point.x - layer.x, y: point.y - layer.y, isLongPress: false };
       }
       return;
     }
+    
     setSelectedLayerId(id);
     longPressRef.current = setTimeout(() => {
-      setSelectedLayerId(id);
-      setContextMenu({ x: touch.clientX, y: touch.clientY, id });
-      requestAnimationFrame(() => positionPanelAtPoint(touch.clientX, touch.clientY));
-    }, 450);
+      if (dragStart.current.isLongPress) {
+        setSelectedLayerId(id);
+        setContextMenu({ x: touch.clientX, y: touch.clientY, id });
+        requestAnimationFrame(() => positionPanelAtPoint(touch.clientX, touch.clientY));
+      }
+    }, 500);
   };
 
   const handleTouchEndLayer = (e, id) => {
@@ -756,9 +763,21 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   };
 
   const handleTouchMove = (e) => {
-    if (!isDragging || !selectedLayerId) return;
     const touch = e.touches?.[0];
     if (!touch) return;
+
+    // If moving significantly, cancel long press
+    if (longPressRef.current && dragStart.current.isLongPress) {
+      const dx = Math.abs(touch.clientX - dragStart.current.x);
+      const dy = Math.abs(touch.clientY - dragStart.current.y);
+      if (dx > 10 || dy > 10) {
+        clearTimeout(longPressRef.current);
+        longPressRef.current = null;
+        dragStart.current.isLongPress = false;
+      }
+    }
+
+    if (!isDragging || !selectedLayerId) return;
     e.preventDefault();
     const point = getSVGPointFromTouch(touch);
     handleLayerChange(selectedLayerId, {
@@ -1060,7 +1079,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             className="card avatar-customizer-panel"
             ref={panelRef}
             style={{
-              position: 'fixed',
+              position: 'absolute',
               top: `${panelPos.top}px`,
               left: `${panelPos.left}px`,
               zIndex: 100,
@@ -1077,7 +1096,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
-              maxHeight: 'calc(100vh - 16px)',
+              maxHeight: `calc(100% - ${panelPos.top}px - 8px)`,
               overflowY: 'auto',
               overflowX: 'visible',
               cursor: 'default'
@@ -1155,7 +1174,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
             {activeControlTab === 'fill' ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '16px', gap: '3px', position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
                   {palette.slice(0, 12).map((c, idx) => (
                     <div 
                       key={`${idx}-${c}`} 
@@ -1168,14 +1187,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         background: c, 
                         borderRadius: '3px', 
                         cursor: 'pointer', 
-                        border: selectedLayer.color === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
+                        border: selectedLayer.color === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
                       }} 
                     />
                   ))}
                   <div 
                     title="Custom Fill Color Wheel"
                     style={{ 
-                      position: 'absolute', bottom: '2px', right: '2px', width: '14px', height: '14px', 
+                      position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
                       background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
                       borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
                     }}
@@ -1199,11 +1218,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
                           title={`Apply ${f} finish`}
                           style={{ 
-                            fontSize: '8px', padding: '5px 2px', 
+                            fontSize: '9px', padding: '8px 2px', 
                             background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
                             color: selectedLayer.finish === f ? '#001018' : 'var(--ink)', 
                             border: '1px solid ' + (selectedLayer.finish === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                            borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                            borderRadius: '8px', cursor: 'pointer', minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
                           }}
                         >
@@ -1215,12 +1234,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         onClick={() => imageFillInputRef.current?.click()}
                         title="Apply image fill"
                         style={{
-                          fontSize: '12px',
-                          padding: '4px 0',
+                          fontSize: '14px',
+                          padding: '6px 0',
                           background: selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
                           color: selectedLayer.finish === 'image' ? '#001018' : 'var(--ink)',
                           border: '1px solid ' + (selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'),
-                          borderRadius: '999px',
+                          borderRadius: '8px',
                           cursor: 'pointer',
                           minHeight: 0,
                           fontFamily: '"Space Grotesk", sans-serif',
@@ -1249,10 +1268,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                           title={`Apply ${g.name} gradient`}
                           style={{ 
                             fontSize: '12px', 
-                            padding: '10px 0', 
+                            padding: '12px 0', 
                             background: g.preview, 
                             border: '1px solid ' + (selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                            borderRadius: '999px', 
+                            borderRadius: '8px', 
                             cursor: 'pointer', 
                             minHeight: 0,
                             fontFamily: '"Space Grotesk", sans-serif',
@@ -1383,14 +1402,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                             </div>
                           </div>
                   {selectedLayer.id !== 'face' && (
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                       <button 
                         onClick={() => handleDuplicate(selectedLayer.id)} 
                         title="Duplicate (Ctrl+D)" 
                         style={{ 
-                          flex: 1, fontSize: '10px', padding: '6px', 
+                          flex: 1, fontSize: '10px', padding: '8px 4px', 
                           background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                          color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
                           fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
@@ -1400,9 +1419,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         onClick={() => randomizeLayer(selectedLayer.id)} 
                         title="Randomize Layer (R)" 
                         style={{ 
-                          flex: 1, fontSize: '10px', padding: '6px', 
+                          flex: 1, fontSize: '10px', padding: '8px 4px', 
                           background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                          color: 'var(--accent)', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
                           fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
@@ -1412,9 +1431,9 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         onClick={() => handleDelete(selectedLayer.id)} 
                         title="Delete (Del)" 
                         style={{ 
-                          flex: 1, fontSize: '10px', padding: '6px', 
+                          flex: 1, fontSize: '10px', padding: '8px 4px', 
                           background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
-                          color: '#ff6b6b', borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          color: '#ff6b6b', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
                           fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.15)'}
@@ -1425,7 +1444,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               </>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '16px', gap: '3px', position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
                   {palette.slice(0, 12).map((c, idx) => (
                     <div 
                       key={`${idx}-${c}-outline`} 
@@ -1438,14 +1457,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         background: c, 
                         borderRadius: '3px', 
                         cursor: 'pointer', 
-                        border: selectedLayer.stroke === c ? '1px solid #fff' : '1px solid rgba(255,255,255,0.1)'
+                        border: selectedLayer.stroke === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
                       }} 
                     />
                   ))}
                   <div 
                     title="Custom Outline Color Wheel"
                     style={{ 
-                      position: 'absolute', bottom: '2px', right: '2px', width: '14px', height: '14px', 
+                      position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
                       background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
                       borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
                     }}
