@@ -474,14 +474,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
                       {user.avatar_key ? (
                         <div style={{ position: 'relative' }}>
-                          <Image 
-                            src={getAvatarUrl(user.avatar_key)} 
-                            alt="Current Avatar" 
-                            className="username-avatar"
+                          <img
+                            src={getAvatarUrl(user.avatar_key)}
+                            alt="Current Avatar"
                             width={96}
                             height={96}
-                            style={{ width: '96px', height: '96px', display: 'block', objectFit: 'cover', objectPosition: 'center' }} 
-                            unoptimized
+                            style={{
+                              width: '96px',
+                              height: '96px',
+                              display: 'block',
+                              borderRadius: '50%',
+                              background: 'rgba(0,0,0,0.5)'
+                            }}
                           />
                         </div>
                       ) : (
@@ -493,14 +497,17 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {!isEditingAvatar && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                         <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                        <Image 
-                          src={getAvatarUrl(user.avatar_key)} 
+                        <img
+                          src={getAvatarUrl(user.avatar_key)}
                           alt="Mini avatar preview"
-                          className="username-avatar"
                           width={24}
                           height={24}
-                          unoptimized
-                          style={{ width: '24px', height: '24px', objectFit: 'cover', objectPosition: 'center' }}
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.5)'
+                          }}
                         />
                       </div>
                     )}
