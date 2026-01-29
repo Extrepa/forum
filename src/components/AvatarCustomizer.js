@@ -269,6 +269,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     setPickingForIndex(index);
     pickingForIndexRef.current = index;
     if (colorInputRef.current) {
+      // Set the current color to the input so the picker starts at the right spot
+      if (typeof index === 'number' && palette[index]) {
+        colorInputRef.current.value = palette[index];
+      }
       colorInputRef.current.click();
     }
   };
@@ -276,16 +280,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const handleColorChange = (e) => {
     const newColor = e.target.value;
     const targetIndex = pickingForIndexRef.current ?? pickingForIndex;
+    
     if (targetIndex === 'wheel') {
       if (selectedLayer) {
         handleLayerChange(selectedLayer.id, activeControlTab === 'fill'
-          ? { color: newColor, finish: 'solid', gradientId: undefined, gradientDirection: undefined, gradientUrl: undefined }
+          ? { color: newColor, finish: 'solid', gradientId: undefined, gradientDirection: undefined, gradientUrl: undefined, imageUrl: undefined }
           : { stroke: newColor, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
       }
     } else if (targetIndex !== null && targetIndex !== undefined) {
-      const nextPalette = [...palette];
-      nextPalette[targetIndex] = newColor;
-      setPalette(nextPalette);
+      setPalette(prev => {
+        const next = [...prev];
+        next[targetIndex] = newColor;
+        return next;
+      });
     }
     setPickingForIndex(null);
     pickingForIndexRef.current = null;
@@ -1458,7 +1465,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <input
                     type="color"
                     value={wheelColor}
-                    onChange={(e) => applyWheelColor(e.target.value)}
+                    onInput={(e) => applyWheelColor(e.target.value)}
                     title="Extract Custom Hue"
                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
                   />
@@ -1811,7 +1818,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     <input 
       type="color" 
       ref={colorInputRef} 
-      onChange={handleColorChange} 
+      onInput={handleColorChange} 
       style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }} 
       aria-hidden="true"
       tabIndex={-1}
