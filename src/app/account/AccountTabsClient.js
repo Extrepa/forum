@@ -519,19 +519,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </button>
                 </div>
                 {isEditingAvatar && (
-                  <div style={{ 
-                    width: '100%',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(52, 225, 255, 0.18)',
-                    background: 'rgba(2, 7, 10, 0.55)',
-                    padding: '12px'
-                  }}>
-                    <AvatarCustomizer 
-                      onSave={handleAvatarSave} 
-                      onCancel={() => setIsEditingAvatar(false)}
-                      initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
-                    />
-                  </div>
+                  <AvatarCustomizer 
+                    onSave={handleAvatarSave} 
+                    onCancel={() => setIsEditingAvatar(false)}
+                    initialState={user.avatar_state ? JSON.parse(user.avatar_state) : null}
+                  />
                 )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
                 {/* Username and Colors Container */}
