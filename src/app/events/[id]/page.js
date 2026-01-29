@@ -331,6 +331,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={id} postType="event" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
@@ -361,7 +362,6 @@ export default async function EventDetailPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={id} postType="event" initialHidden={isHidden} />
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
                   panelId="edit-event-panel"

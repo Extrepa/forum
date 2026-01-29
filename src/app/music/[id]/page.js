@@ -309,6 +309,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
@@ -339,7 +340,6 @@ export default async function MusicDetailPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={id} postType="music" initialHidden={isHidden} />
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
                   panelId="edit-music-panel"

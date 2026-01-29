@@ -107,6 +107,10 @@ export default function DeletePostButton({ postId, postType = 'thread', replyId 
         style={{ 
           fontSize: '12px', 
           padding: '4px 8px',
+          minHeight: '44px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           background: 'rgba(255, 52, 52, 0.1)',
           borderColor: 'rgba(255, 52, 52, 0.3)',
           color: '#ff6b6b'

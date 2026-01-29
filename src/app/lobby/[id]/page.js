@@ -722,6 +722,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />
@@ -752,7 +753,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} />
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
                   panelId="edit-thread-panel"

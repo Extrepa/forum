@@ -218,6 +218,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
@@ -248,7 +249,6 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} />
                 <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-announcement-panel" />
                 {canDelete ? <DeletePostButton postId={update.id} postType="timeline" /> : null}
               </>

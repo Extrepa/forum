@@ -60,9 +60,9 @@ export default function HidePostButton({ postId, postType = 'post', initialHidde
       className="button"
       style={{
         fontSize: '16px',
-        padding: '4px 8px',
+        padding: '6px 10px',
         minWidth: '44px',
-        minHeight: '34px',
+        minHeight: '44px',
         lineHeight: 1,
         display: 'inline-flex',
         alignItems: 'center',

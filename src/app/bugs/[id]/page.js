@@ -201,6 +201,7 @@ export default async function BugDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={post.id} postType="post" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/posts/${post.id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
@@ -231,7 +232,6 @@ export default async function BugDetailPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={post.id} postType="post" initialHidden={isHidden} />
                 <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-post-panel" />
                 {canDelete ? <DeletePostButton postId={post.id} postType="post" /> : null}
               </>

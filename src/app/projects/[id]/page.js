@@ -446,6 +446,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         ]}
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {isAdmin ? <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} /> : null}
             {canToggleLock ? (
               <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
@@ -476,7 +477,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             ) : null}
             {isAdmin ? (
               <>
-                <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} />
                 <EditPostButtonWithPanel 
                   buttonLabel="Edit Post" 
                   panelId="edit-project-panel"
