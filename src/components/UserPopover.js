@@ -151,6 +151,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       )}
 
       <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%' }}>
+        {console.log('UserPopover: UserInfo for color debug:', userInfo)}
         <div style={{ fontSize: '14px', fontWeight: '700', color: `var(--username-${userInfo?.preferred_username_color_index || 0})`, wordBreak: 'break-word', maxWidth: '100%' }}>
           {username}
         </div>
