@@ -182,7 +182,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         </div>
         {userInfo?.role && (
           <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
-            {userInfo.role === 'admin' ? 'Admin' : userInfo.role === 'mod' ? 'Mod' : 'Resident'}
+            {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : 'Drip'}
           </div>
         )}
         <Link

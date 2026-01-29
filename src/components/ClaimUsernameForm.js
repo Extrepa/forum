@@ -911,7 +911,17 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                   <br />
                   <br />
                   If you arrived through someone you trust, you’re in the right place.{' '}
-                  <span style={{ color: '#0b6b2f', fontWeight: 600 }}>Errl has depth.</span>
+                  <span className="errl-depth" role="text">
+                    <span className="errl-depth__lead">Errl has </span>
+                    <span className="errl-depth__word" aria-label="depth">
+                      <span className="errl-depth__letter">d</span>
+                      <span className="errl-depth__letter">e</span>
+                      <span className="errl-depth__letter">p</span>
+                      <span className="errl-depth__letter">t</span>
+                      <span className="errl-depth__letter">h</span>
+                      <span className="errl-depth__punct">.</span>
+                    </span>
+                  </span>
                 </>
               ) : (
                 <>
@@ -922,7 +932,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
               Born on an overhead projector, mixing oil and water and light—a spark of awe brought to life.
               <br />
-              <span style={{ color: 'var(--muted)', display: 'block', textAlign: 'right' }}>Errl&apos;s birthday 2015</span>
+              <span className="errl-birthday">Errl&apos;s birthday 2015</span>
             </p>
           </div>
         </div>

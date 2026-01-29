@@ -71,7 +71,7 @@ export default async function ProfilePage({ params }) {
   ];
   const userColor = USERNAME_COLORS[colorIndex] || USERNAME_COLORS[0];
   const role = profileUser.role || 'user';
-  const roleLabel = role === 'admin' ? 'Admin' : role === 'mod' ? 'Mod' : 'Errl Portal Resident';
+  const roleLabel = role === 'admin' ? 'Drip Warden' : role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = role === 'admin'
     ? 'var(--role-admin)'
     : role === 'mod'

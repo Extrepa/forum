@@ -3677,6 +3677,65 @@ header::before {
   text-decoration: underline;
 }
 
+.errl-depth {
+  color: #39ff14;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.errl-depth__lead {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.errl-depth__word {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.errl-depth__letter,
+.errl-depth__punct {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.errl-depth:hover .errl-depth__letter:nth-child(1) {
+  transform: translateY(0px);
+}
+
+.errl-depth:hover .errl-depth__letter:nth-child(2) {
+  transform: translateY(3px);
+}
+
+.errl-depth:hover .errl-depth__letter:nth-child(3) {
+  transform: translateY(6px);
+}
+
+.errl-depth:hover .errl-depth__letter:nth-child(4) {
+  transform: translateY(9px);
+}
+
+.errl-depth:hover .errl-depth__letter:nth-child(5) {
+  transform: translateY(12px);
+}
+
+.errl-birthday {
+  color: #b026ff;
+  display: block;
+  text-align: right;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.errl-birthday:hover {
+  background: linear-gradient(90deg, #b026ff, #34e1ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .breadcrumb-separator {
   color: var(--muted);
   margin: 0 4px;
