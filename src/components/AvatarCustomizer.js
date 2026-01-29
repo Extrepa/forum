@@ -1433,6 +1433,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 svgClone.setAttribute('width', '1024');
                 svgClone.setAttribute('height', '1024');
                 svgClone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                const computeFaceViewBox = () => {
+                  const faceLayer = layers.find((layer) => layer.id === 'face');
+                  if (!faceLayer) return null;
+                  const bounds = getPathBounds(faceLayer.d);
+                  if (!Number.isFinite(bounds.x) || !Number.isFinite(bounds.y)) return null;
+                  const strokePad = (faceLayer.strokeWidth || 4) * 2;
+                  const size = Math.max(bounds.width, bounds.height) + strokePad;
+                  const cxB = bounds.x + bounds.width / 2;
+                  const cyB = bounds.y + bounds.height / 2;
+                  const pad = size * 0.02;
+                  return `${(cxB - size / 2 - pad).toFixed(2)} ${(cyB - size / 2 - pad).toFixed(2)} ${(size + pad * 2).toFixed(2)} ${(size + pad * 2).toFixed(2)}`;
+                };
+
                 const computeSceneViewBox = () => {
                   let minX = Infinity;
                   let minY = Infinity;
@@ -1504,7 +1517,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                     return null;
                   }
                 };
-                svgClone.setAttribute('viewBox', computeDomBBox() || computeSceneViewBox());
+                svgClone.setAttribute('viewBox', computeFaceViewBox() || computeDomBBox() || computeSceneViewBox());
                 const svgString = serializer.serializeToString(svgClone);
                 onSave(svgString, { layers });
               }}
