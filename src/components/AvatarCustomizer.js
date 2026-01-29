@@ -150,7 +150,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [panelPos, setPanelPos] = useState({ top: 8, left: 8 });
-  const [panelWidth, setPanelWidth] = useState(190);
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const panelDragStart = useRef({ x: 0, y: 0, initialTop: 8, initialLeft: 8 });
   const [palette, setPalette] = useState(INITIAL_PALETTE);
@@ -171,6 +170,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const panelRef = useRef(null);
   const imageFillInputRef = useRef(null);
   const lastContextMenuRef = useRef(0);
+
+  const PANEL_WIDTH = 195;
 
   // Refs for keyboard handler to avoid stale closures
   const layersRef = useRef(layers);
@@ -375,29 +376,20 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     }
   };
 
-  const getPanelWidth = () => {
-    const container = containerRef.current;
-    if (!container) return 190;
-    const containerWidth = container.clientWidth;
-    return Math.min(190, Math.max(140, containerWidth - 16));
-  };
-
   const positionPanelAtPoint = (clientX, clientY) => {
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    const nextWidth = getPanelWidth();
-    setPanelWidth(nextWidth);
     
     // Convert client coords to container-local coords
     const localX = clientX - rect.left;
     const localY = clientY - rect.top;
     
-    const maxLeft = Math.max(0, rect.width - nextWidth - 8);
-    const maxTop = Math.max(0, rect.height - 40); // Allow some space at bottom
+    const maxLeft = Math.max(0, rect.width - PANEL_WIDTH - 8);
+    const maxTop = Math.max(0, rect.height - 40); // Initial guess, will be clamped by effect
     
     setPanelPos({
-      left: Math.min(Math.max(localX - nextWidth / 2, 8), maxLeft),
+      left: Math.min(Math.max(localX - PANEL_WIDTH / 2, 8), maxLeft),
       top: Math.min(Math.max(localY - 24, 8), maxTop)
     });
   };
@@ -417,12 +409,10 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    const nextWidth = getPanelWidth();
-    setPanelWidth(nextWidth);
     
     setPanelPos((prev) => {
       const panelHeight = panelRef.current?.offsetHeight || 0;
-      const maxLeft = Math.max(8, rect.width - nextWidth - 8);
+      const maxLeft = Math.max(8, rect.width - PANEL_WIDTH - 8);
       const maxTop = Math.max(8, rect.height - panelHeight - 8);
       const nextLeft = Math.min(Math.max(prev.left, 8), maxLeft);
       const nextTop = Math.min(Math.max(prev.top, 8), maxTop);
@@ -430,6 +420,14 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       return { left: nextLeft, top: nextTop };
     });
   }, []);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    clampPanelToContainer();
+    const handleResize = () => clampPanelToContainer();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [clampPanelToContainer, contextMenu]);
 
   const getGradientId = (layer) => {
     if (layer.gradientId) return layer.gradientId;
@@ -466,14 +464,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     pt.y = touch.clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   };
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    clampPanelToContainer();
-    const handleResize = () => clampPanelToContainer();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [clampPanelToContainer, contextMenu]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -626,7 +616,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const nextTop = panelDragStart.current.initialTop + dy;
       const nextLeft = panelDragStart.current.initialLeft + dx;
       
-      const maxLeft = Math.max(8, rect.width - panelWidth - 8);
+      const maxLeft = Math.max(8, rect.width - PANEL_WIDTH - 8);
       const maxTop = Math.max(8, rect.height - panelHeight - 8);
       
       setPanelPos({
@@ -655,7 +645,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onEnd);
     };
-  }, [isDraggingPanel, panelWidth]);
+  }, [isDraggingPanel]);
 
   const handleImportImage = (e) => {
     const file = e.target.files?.[0];
@@ -821,8 +811,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           background: 'rgba(2, 7, 10, 0.4)', 
           borderRadius: '12px', 
           border: 'none',
-          overflowX: 'auto',
-          overflowY: 'hidden',
+          overflow: 'hidden',
           position: 'relative',
           aspectRatio: '1 / 1',
           width: '100%',
@@ -1073,512 +1062,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           })}
         </svg>
 
-        {/* Advanced Side Panel (Condensed Context Menu) */}
-        {contextMenu && selectedLayer && (
-          <div 
-            className="card avatar-customizer-panel"
-            ref={panelRef}
-            style={{
-              position: 'absolute',
-              top: `${panelPos.top}px`,
-              left: `${panelPos.left}px`,
-              zIndex: 100,
-              width: `${panelWidth}px`,
-              minWidth: `${panelWidth}px`,
-              maxWidth: `${panelWidth}px`,
-              boxSizing: 'border-box',
-              background: 'var(--errl-panel)',
-              backdropFilter: 'blur(16px)',
-              borderRadius: '12px',
-              border: '1px solid var(--accent)',
-              padding: '8px',
-              boxShadow: 'var(--shadow)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px',
-              maxHeight: `calc(100% - ${panelPos.top}px - 8px)`,
-              overflowY: 'auto',
-              overflowX: 'visible',
-              cursor: 'default'
-            }}
-          >
-            <div 
-              onMouseDown={handlePanelMouseDown}
-              onTouchStart={handlePanelTouchStart}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: '2px',
-                paddingBottom: '4px',
-                borderBottom: '1px solid rgba(52, 225, 255, 0.1)',
-                position: 'relative',
-                cursor: isDraggingPanel ? 'grabbing' : 'grab',
-                gap: '6px'
-              }}
-            >
-              <span style={{ fontSize: '12px', color: 'rgba(52, 225, 255, 0.6)', letterSpacing: '1px', lineHeight: 1, marginTop: '-1px' }}>
-                ⋯
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
-                {selectedLayer.type} Settings
-              </span>
-              <button 
-                onClick={() => setContextMenu(null)} 
-                style={{ 
-                  position: 'absolute',
-                  top: '-2px',
-                  right: '-2px',
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '6px',
-                  background: 'rgba(2, 7, 10, 0.6)',
-                  border: '1px solid rgba(52, 225, 255, 0.25)',
-                  color: 'var(--muted)',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  padding: 0,
-                  lineHeight: '16px',
-                  boxShadow: 'none'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {selectedLayer.type !== 'import' && (
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '999px', padding: '2px', border: '1px solid rgba(52, 225, 255, 0.1)' }}>
-                <button 
-                  onClick={() => setActiveControlTab('fill')}
-                  title="Edit Fill Color and Finish"
-                  style={{ 
-                    flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
-                    background: activeControlTab === 'fill' ? 'var(--accent)' : 'transparent', 
-                    color: activeControlTab === 'fill' ? '#001018' : 'var(--ink)', 
-                    cursor: 'pointer', minHeight: 0, fontWeight: '600', transition: 'all 0.2s ease',
-                    boxShadow: activeControlTab === 'fill' ? '0 0 10px rgba(52, 225, 255, 0.3)' : 'none'
-                  }}
-                >FILL</button>
-                <button 
-                  onClick={() => setActiveControlTab('outline')}
-                  title="Edit Outline (Stroke) Color"
-                  style={{ 
-                    flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
-                    background: activeControlTab === 'outline' ? 'var(--accent)' : 'transparent', 
-                    color: activeControlTab === 'outline' ? '#001018' : 'var(--ink)', 
-                    cursor: 'pointer', minHeight: 0, fontWeight: '600', transition: 'all 0.2s ease',
-                    boxShadow: activeControlTab === 'outline' ? '0 0 10px rgba(52, 225, 255, 0.3)' : 'none'
-                  }}
-                >OUTLINE</button>
-              </div>
-            )}
-
-            {activeControlTab === 'fill' ? (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
-                  {palette.slice(0, 12).map((c, idx) => (
-                    <div 
-                      key={`${idx}-${c}`} 
-                      onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid', imageUrl: undefined })}
-                      onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
-                      title={`Set Fill to ${c} (Right-click to reassign box)`}
-                      style={{ 
-                        width: '100%',
-                        height: '100%',
-                        background: c, 
-                        borderRadius: '3px', 
-                        cursor: 'pointer', 
-                        border: selectedLayer.color === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
-                      }} 
-                    />
-                  ))}
-                  <div 
-                    title="Custom Fill Color Wheel"
-                    style={{ 
-                      position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
-                      background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
-                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
-                    }}
-                  >
-                    <input
-                      type="color"
-                      value={wheelColor}
-                      onChange={(e) => applyWheelColor(e.target.value)}
-                      title="Pick a custom fill color"
-                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-                    />
-                  </div>
-                </div>
-
-                {selectedLayer.type !== 'import' && (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                      {['solid', 'glow', 'glitter'].map(f => (
-                        <button
-                          key={f}
-                          onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
-                          title={`Apply ${f} finish`}
-                          style={{ 
-                            fontSize: '9px', padding: '8px 2px', 
-                            background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                            color: selectedLayer.finish === f ? '#001018' : 'var(--ink)', 
-                            border: '1px solid ' + (selectedLayer.finish === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                            borderRadius: '8px', cursor: 'pointer', minHeight: 0,
-                            fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
-                          }}
-                        >
-                          {f.toUpperCase()}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => imageFillInputRef.current?.click()}
-                        title="Apply image fill"
-                        style={{
-                          fontSize: '14px',
-                          padding: '6px 0',
-                          background: selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
-                          color: selectedLayer.finish === 'image' ? '#001018' : 'var(--ink)',
-                          border: '1px solid ' + (selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'),
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          minHeight: 0,
-                          fontFamily: '"Space Grotesk", sans-serif',
-                          fontWeight: '600',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        🖼️
-                      </button>
-                    </div>
-                    <input
-                      ref={imageFillInputRef}
-                      type="file"
-                      accept="image/*,.gif"
-                      onChange={handleImageFillImport}
-                      style={{ display: 'none' }}
-                    />
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                      {GRADIENTS.map(g => (
-                        <button
-                          key={g.id}
-                          onClick={() => {
-                            const nextDirection = selectedLayer.gradientDirection || 'lr';
-                            handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientId: g.id, gradientDirection: nextDirection, gradientUrl: `url(#${g.id}-${nextDirection})` });
-                          }}
-                          title={`Apply ${g.name} gradient`}
-                          style={{ 
-                            fontSize: '12px', 
-                            padding: '12px 0', 
-                            background: g.preview, 
-                            border: '1px solid ' + (selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                            borderRadius: '8px', 
-                            cursor: 'pointer', 
-                            minHeight: 0,
-                            fontFamily: '"Space Grotesk", sans-serif',
-                            fontWeight: '600',
-                            transition: 'all 0.2s ease',
-                            boxShadow: selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                          {selectedLayer.finish === 'glow' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
-                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>GLOW</label>
-                              <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.glowIntensity ?? 28}</span>
-                              <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
-                                  style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                  title="Decrease glow"
-                                >
-                                  −
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
-                                  style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                  title="Increase glow"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {selectedLayer.finish === 'gradient' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
-                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>DIR</label>
-                              <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>ANGLE</span>
-                              <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                                {GRADIENT_DIRECTIONS.map((dir) => {
-                                  const activeGradientId = getGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
-                                  const activeDirection = selectedLayer.gradientDirection || 'lr';
-                                  return (
-                                    <button
-                                      key={dir.id}
-                                      type="button"
-                                      onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
-                                      style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                      title={`Gradient ${dir.label}`}
-                                    >
-                                      {dir.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>SCALE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.scale.toFixed(2)}</span>
-                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Scale down"
-                              >
-                                −
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Scale up"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                          
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>ROTATE</label>
-                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.rotation}°</span>
-                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Rotate left"
-                              >
-                                ←
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Rotate right"
-                              >
-                                →
-                              </button>
-                            </div>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
-                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>MIRROR</label>
-                            <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>FLIP</span>
-                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Flip horizontal"
-                              >
-                                ⇋
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
-                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
-                                title="Flip vertical"
-                              >
-                                ⇵
-                              </button>
-                            </div>
-                          </div>
-                  {selectedLayer.id !== 'face' && (
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                      <button 
-                        onClick={() => handleDuplicate(selectedLayer.id)} 
-                        title="Duplicate (Ctrl+D)" 
-                        style={{ 
-                          flex: 1, fontSize: '10px', padding: '8px 4px', 
-                          background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                          color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
-                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
-                      >DUP</button>
-                      <button 
-                        onClick={() => randomizeLayer(selectedLayer.id)} 
-                        title="Randomize Layer (R)" 
-                        style={{ 
-                          flex: 1, fontSize: '10px', padding: '8px 4px', 
-                          background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
-                          color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
-                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
-                      >RAND</button>
-                      <button 
-                        onClick={() => handleDelete(selectedLayer.id)} 
-                        title="Delete (Del)" 
-                        style={{ 
-                          flex: 1, fontSize: '10px', padding: '8px 4px', 
-                          background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
-                          color: '#ff6b6b', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
-                          fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.15)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
-                      >DEL</button>
-                    </div>
-                  )}
-              </>
-            ) : (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
-                  {palette.slice(0, 12).map((c, idx) => (
-                    <div 
-                      key={`${idx}-${c}-outline`} 
-                      onClick={() => handleLayerChange(selectedLayer.id, { stroke: c, strokeFinish: 'solid', strokeGradientUrl: undefined })}
-                      onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
-                      title={`Set Outline to ${c} (Right-click to reassign box)`}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        background: c, 
-                        borderRadius: '3px', 
-                        cursor: 'pointer', 
-                        border: selectedLayer.stroke === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
-                      }} 
-                    />
-                  ))}
-                  <div 
-                    title="Custom Outline Color Wheel"
-                    style={{ 
-                      position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
-                      background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
-                      borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
-                    }}
-                  >
-                    <input
-                      type="color"
-                      value={wheelColor}
-                      onChange={(e) => applyWheelColor(e.target.value)}
-                      title="Pick a custom outline color"
-                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OUTLINE FINISH</label>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
-                    {['solid', 'gradient'].map(f => (
-                      <button
-                        key={`outline-${f}`}
-                        onClick={() => {
-                          if (f === 'gradient') {
-                            const nextId = getStrokeGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
-                            const nextDir = selectedLayer.strokeGradientDirection || 'lr';
-                            handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientId: nextId, strokeGradientDirection: nextDir, strokeGradientUrl: `url(#${nextId}-${nextDir})` });
-                            return;
-                          }
-                          handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
-                        }}
-                        style={{ 
-                          fontSize: '10px', 
-                          padding: '4px 0', 
-                          background: (selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                          color: (selectedLayer.strokeFinish || 'solid') === f ? '#001018' : 'var(--ink)', 
-                          border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                          borderRadius: '999px', cursor: 'pointer', minHeight: 0,
-                          fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {f.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                  {(selectedLayer.strokeFinish || 'solid') === 'gradient' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                      {GRADIENTS.map(g => (
-                        <button
-                          key={`outline-${g.id}`}
-                          onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientId: g.id, strokeGradientDirection: selectedLayer.strokeGradientDirection || 'lr', strokeGradientUrl: `url(#${g.id}-${selectedLayer.strokeGradientDirection || 'lr'})` })}
-                          title={`Apply ${g.name} gradient to outline`}
-                          style={{ 
-                            fontSize: '12px', 
-                            padding: '10px 0', 
-                            background: g.preview, 
-                            border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                            borderRadius: '999px', 
-                            cursor: 'pointer', 
-                            minHeight: 0,
-                            fontFamily: '"Space Grotesk", sans-serif',
-                            fontWeight: '600',
-                            transition: 'all 0.2s ease',
-                            boxShadow: (selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
-                    <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
-                  </div>
-                  <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
-                </div>
-              </>
-            )}
-
-          </div>
-        )}
-
-        {/* Hint */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '52%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            fontSize: '8px',
-            color: 'var(--muted)',
-            textTransform: 'uppercase',
-            fontFamily: '"Space Grotesk", sans-serif',
-            letterSpacing: '0.1em',
-            lineHeight: '1.2',
-            opacity: showHint ? 1 : 0,
-            transition: 'opacity 0.2s ease',
-            pointerEvents: 'none',
-            padding: '4px 8px',
-            background: 'rgba(2, 7, 10, 0.45)',
-            borderRadius: '8px',
-            border: '1px solid rgba(52, 225, 255, 0.15)',
-            backdropFilter: 'blur(4px)',
-            width: '260px',
-            maxWidth: '80%'
-          }}
-        >
-          Drag to move • Arrows for precision • Double‑click to randomize<br/>
-          + / - scale • {'{ }'} rotate • Right‑click to customize
-        </div>
-
         {/* Action Bar */}
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px', borderTop: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(0,0,0,0.4)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}
@@ -1771,8 +1254,513 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             </button>
           </div>
         </div>
-    </div>
+      </div>
 
+      {/* Hint */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '52%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          fontSize: '8px',
+          color: 'var(--muted)',
+          textTransform: 'uppercase',
+          fontFamily: '"Space Grotesk", sans-serif',
+          letterSpacing: '0.1em',
+          lineHeight: '1.2',
+          opacity: showHint ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          pointerEvents: 'none',
+          padding: '4px 8px',
+          background: 'rgba(2, 7, 10, 0.45)',
+          borderRadius: '8px',
+          border: '1px solid rgba(52, 225, 255, 0.15)',
+          backdropFilter: 'blur(4px)',
+          width: '260px',
+          maxWidth: '80%',
+          zIndex: 10
+        }}
+      >
+        Drag to move • Arrows for precision • Double‑click to randomize<br/>
+        + / - scale • {'{ }'} rotate • Right‑click to customize
+      </div>
+
+      {/* Advanced Side Panel (Condensed Context Menu) */}
+      {contextMenu && selectedLayer && (
+        <div 
+          className="card avatar-customizer-panel"
+          ref={panelRef}
+          style={{
+            position: 'absolute',
+            top: `${panelPos.top}px`,
+            left: `${panelPos.left}px`,
+            zIndex: 100,
+            width: `${PANEL_WIDTH}px`,
+            minWidth: `${PANEL_WIDTH}px`,
+            maxWidth: `${PANEL_WIDTH}px`,
+            boxSizing: 'border-box',
+            background: 'var(--errl-panel)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '12px',
+            border: '1px solid var(--accent)',
+            padding: '8px',
+            boxShadow: 'var(--shadow)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            cursor: 'default',
+            overflow: 'visible' // Let it grow naturally
+          }}
+        >
+          <div 
+            onMouseDown={handlePanelMouseDown}
+            onTouchStart={handlePanelTouchStart}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '2px',
+              paddingBottom: '4px',
+              borderBottom: '1px solid rgba(52, 225, 255, 0.1)',
+              position: 'relative',
+              cursor: isDraggingPanel ? 'grabbing' : 'grab',
+              gap: '6px'
+            }}
+          >
+            <span style={{ fontSize: '12px', color: 'rgba(52, 225, 255, 0.6)', letterSpacing: '1px', lineHeight: 1, marginTop: '-1px' }}>
+              ⋯
+            </span>
+            <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', fontFamily: '"Unbounded", sans-serif', letterSpacing: '0.5px' }}>
+              {selectedLayer.type} Settings
+            </span>
+            <button 
+              onClick={() => setContextMenu(null)} 
+              style={{ 
+                position: 'absolute',
+                top: '-2px',
+                right: '-2px',
+                width: '18px',
+                height: '18px',
+                borderRadius: '6px',
+                background: 'rgba(2, 7, 10, 0.6)',
+                border: '1px solid rgba(52, 225, 255, 0.25)',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                fontSize: '12px',
+                padding: 0,
+                lineHeight: '16px',
+                boxShadow: 'none'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {selectedLayer.type !== 'import' && (
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '999px', padding: '2px', border: '1px solid rgba(52, 225, 255, 0.1)' }}>
+              <button 
+                onClick={() => setActiveControlTab('fill')}
+                title="Edit Fill Color and Finish"
+                style={{ 
+                  flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
+                  background: activeControlTab === 'fill' ? 'var(--accent)' : 'transparent', 
+                  color: activeControlTab === 'fill' ? '#001018' : 'var(--ink)', 
+                  cursor: 'pointer', minHeight: 0, fontWeight: '600', transition: 'all 0.2s ease',
+                  boxShadow: activeControlTab === 'fill' ? '0 0 10px rgba(52, 225, 255, 0.3)' : 'none'
+                }}
+              >FILL</button>
+              <button 
+                onClick={() => setActiveControlTab('outline')}
+                title="Edit Outline (Stroke) Color"
+                style={{ 
+                  flex: 1, fontSize: '10px', padding: '6px', border: 'none', borderRadius: '999px', 
+                  background: activeControlTab === 'outline' ? 'var(--accent)' : 'transparent', 
+                  color: activeControlTab === 'outline' ? '#001018' : 'var(--ink)', 
+                  cursor: 'pointer', minHeight: 0, fontWeight: '600', transition: 'all 0.2s ease',
+                  boxShadow: activeControlTab === 'outline' ? '0 0 10px rgba(52, 225, 255, 0.3)' : 'none'
+                }}
+              >OUTLINE</button>
+            </div>
+          )}
+
+          {activeControlTab === 'fill' ? (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
+                {palette.slice(0, 12).map((c, idx) => (
+                  <div 
+                    key={`${idx}-${c}`} 
+                    onClick={() => handleLayerChange(selectedLayer.id, { color: c, finish: 'solid', imageUrl: undefined })}
+                    onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
+                    title={`Set Fill to ${c} (Right-click to reassign box)`}
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      background: c, 
+                      borderRadius: '3px', 
+                      cursor: 'pointer', 
+                      border: selectedLayer.color === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
+                    }} 
+                  />
+                ))}
+                <div 
+                  title="Custom Fill Color Wheel"
+                  style={{ 
+                    position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
+                    background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
+                    borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
+                  }}
+                >
+                  <input
+                    type="color"
+                    value={wheelColor}
+                    onChange={(e) => applyWheelColor(e.target.value)}
+                    title="Pick a custom fill color"
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
+                </div>
+              </div>
+
+              {selectedLayer.type !== 'import' && (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                    {['solid', 'glow', 'glitter'].map(f => (
+                      <button
+                        key={f}
+                        onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
+                        title={`Apply ${f} finish`}
+                        style={{ 
+                          fontSize: '9px', padding: '8px 2px', 
+                          background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                          color: selectedLayer.finish === f ? '#001018' : 'var(--ink)', 
+                          border: '1px solid ' + (selectedLayer.finish === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                          borderRadius: '8px', cursor: 'pointer', minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {f.toUpperCase()}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => imageFillInputRef.current?.click()}
+                      title="Apply image fill"
+                      style={{
+                        fontSize: '14px',
+                        padding: '6px 0',
+                        background: selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                        color: selectedLayer.finish === 'image' ? '#001018' : 'var(--ink)',
+                        border: '1px solid ' + (selectedLayer.finish === 'image' ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'),
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        minHeight: 0,
+                        fontFamily: '"Space Grotesk", sans-serif',
+                        fontWeight: '600',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      🖼️
+                    </button>
+                  </div>
+                  <input
+                    ref={imageFillInputRef}
+                    type="file"
+                    accept="image/*,.gif"
+                    onChange={handleImageFillImport}
+                    style={{ display: 'none' }}
+                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                    {GRADIENTS.map(g => (
+                      <button
+                        key={g.id}
+                        onClick={() => {
+                          const nextDirection = selectedLayer.gradientDirection || 'lr';
+                          handleLayerChange(selectedLayer.id, { finish: 'gradient', gradientId: g.id, gradientDirection: nextDirection, gradientUrl: `url(#${g.id}-${nextDirection})` });
+                        }}
+                        title={`Apply ${g.name} gradient`}
+                        style={{ 
+                          fontSize: '12px', 
+                          padding: '12px 0', 
+                          background: g.preview, 
+                          border: '1px solid ' + (selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                          borderRadius: '8px', 
+                          cursor: 'pointer', 
+                          minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif',
+                          fontWeight: '600',
+                          transition: 'all 0.2s ease',
+                          boxShadow: selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+                        {selectedLayer.finish === 'glow' && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>GLOW</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.glowIntensity ?? 28}</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.max(8, (selectedLayer.glowIntensity ?? 28) - 2) })}
+                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                                title="Decrease glow"
+                              >
+                                −
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { glowIntensity: Math.min(48, (selectedLayer.glowIntensity ?? 28) + 2) })}
+                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                                title="Increase glow"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedLayer.finish === 'gradient' && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>DIR</label>
+                            <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>ANGLE</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              {GRADIENT_DIRECTIONS.map((dir) => {
+                                const activeGradientId = getGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
+                                const activeDirection = selectedLayer.gradientDirection || 'lr';
+                                return (
+                                  <button
+                                    key={dir.id}
+                                    type="button"
+                                    onClick={() => handleLayerChange(selectedLayer.id, { gradientDirection: dir.id, gradientUrl: `url(#${activeGradientId}-${dir.id})` })}
+                                    style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: activeDirection === dir.id ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                                    title={`Gradient ${dir.label}`}
+                                  >
+                                    {dir.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                          <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>SCALE</label>
+                          <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.scale.toFixed(2)}</span>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { scale: Math.max(0.1, selectedLayer.scale - 0.05) })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Scale down"
+                            >
+                              −
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { scale: selectedLayer.scale + 0.05 })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Scale up"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                          <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>ROTATE</label>
+                          <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.rotation}°</span>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation - 5 + 360) % 360 })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Rotate left"
+                            >
+                              ←
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { rotation: (selectedLayer.rotation + 5) % 360 })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Rotate right"
+                            >
+                              →
+                            </button>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                          <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>MIRROR</label>
+                          <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textAlign: 'center', lineHeight: 1 }}>FLIP</span>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { flipX: (selectedLayer.flipX || 1) * -1 })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipX === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Flip horizontal"
+                            >
+                              ⇋
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLayerChange(selectedLayer.id, { flipY: (selectedLayer.flipY || 1) * -1 })}
+                              style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: selectedLayer.flipY === -1 ? 'rgba(52, 225, 255, 0.2)' : 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                              title="Flip vertical"
+                            >
+                              ⇵
+                            </button>
+                          </div>
+                        </div>
+                {selectedLayer.id !== 'face' && (
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                    <button 
+                      onClick={() => handleDuplicate(selectedLayer.id)} 
+                      title="Duplicate (Ctrl+D)" 
+                      style={{ 
+                        flex: 1, fontSize: '10px', padding: '8px 4px', 
+                        background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
+                        color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
+                        fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
+                    >DUP</button>
+                    <button 
+                      onClick={() => randomizeLayer(selectedLayer.id)} 
+                      title="Randomize Layer (R)" 
+                      style={{ 
+                        flex: 1, fontSize: '10px', padding: '8px 4px', 
+                        background: 'rgba(52, 225, 255, 0.1)', border: '1px solid rgba(52, 225, 255, 0.3)', 
+                        color: 'var(--accent)', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
+                        fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(52, 225, 255, 0.1)'}
+                    >RAND</button>
+                    <button 
+                      onClick={() => handleDelete(selectedLayer.id)} 
+                      title="Delete (Del)" 
+                      style={{ 
+                        flex: 1, fontSize: '10px', padding: '8px 4px', 
+                        background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,107,107,0.3)', 
+                        color: '#ff6b6b', borderRadius: '8px', cursor: 'pointer', minHeight: 0,
+                        fontWeight: '600', fontFamily: '"Space Grotesk", sans-serif', transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.15)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
+                    >DEL</button>
+                  </div>
+                )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '24px', gap: '3px', position: 'relative' }}>
+                {palette.slice(0, 12).map((c, idx) => (
+                  <div 
+                    key={`${idx}-${c}-outline`} 
+                    onClick={() => handleLayerChange(selectedLayer.id, { stroke: c, strokeFinish: 'solid', strokeGradientUrl: undefined })}
+                    onContextMenu={(e) => { e.preventDefault(); openColorPicker(idx); }}
+                    title={`Set Outline to ${c} (Right-click to reassign box)`}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      background: c, 
+                      borderRadius: '3px', 
+                      cursor: 'pointer', 
+                      border: selectedLayer.stroke === c ? '2px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)'
+                    }} 
+                  />
+                ))}
+                <div 
+                  title="Custom Outline Color Wheel"
+                  style={{ 
+                    position: 'absolute', bottom: '3px', right: '3px', width: '18px', height: '18px', 
+                    background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
+                    borderRadius: '50%', cursor: 'pointer', border: '1px solid #fff', zIndex: 2
+                  }}
+                >
+                  <input
+                    type="color"
+                    value={wheelColor}
+                    onChange={(e) => applyWheelColor(e.target.value)}
+                    title="Pick a custom outline color"
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OUTLINE FINISH</label>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
+                  {['solid', 'gradient'].map(f => (
+                    <button
+                      key={`outline-${f}`}
+                      onClick={() => {
+                        if (f === 'gradient') {
+                          const nextId = getStrokeGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
+                          const nextDir = selectedLayer.strokeGradientDirection || 'lr';
+                          handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientId: nextId, strokeGradientDirection: nextDir, strokeGradientUrl: `url(#${nextId}-${nextDir})` });
+                          return;
+                        }
+                        handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
+                      }}
+                      style={{ 
+                        fontSize: '10px', 
+                        padding: '4px 0', 
+                        background: (selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                        color: (selectedLayer.strokeFinish || 'solid') === f ? '#001018' : 'var(--ink)', 
+                        border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                        borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                        fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {f.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+                {(selectedLayer.strokeFinish || 'solid') === 'gradient' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                    {GRADIENTS.map(g => (
+                      <button
+                        key={`outline-${g.id}`}
+                        onClick={() => handleLayerChange(selectedLayer.id, { strokeFinish: 'gradient', strokeGradientId: g.id, strokeGradientDirection: selectedLayer.strokeGradientDirection || 'lr', strokeGradientUrl: `url(#${g.id}-${selectedLayer.strokeGradientDirection || 'lr'})` })}
+                        title={`Apply ${g.name} gradient to outline`}
+                        style={{ 
+                          fontSize: '12px', 
+                          padding: '10px 0', 
+                          background: g.preview, 
+                          border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                          borderRadius: '8px', 
+                          cursor: 'pointer', 
+                          minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif',
+                          fontWeight: '600',
+                          transition: 'all 0.2s ease',
+                          boxShadow: (selectedLayer.strokeFinish || 'solid') === 'gradient' && getStrokeGradientId(selectedLayer) === g.id ? '0 0 10px rgba(52, 225, 255, 0.35)' : 'none'
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
+                  <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
+                </div>
+                <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
+              </div>
+            </>
+          )}
+
+        </div>
+      )}
+    
     {/* Hidden Color Input (kept in DOM for reliable programmatic open) */}
     <input 
       type="color" 
