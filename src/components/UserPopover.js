@@ -31,7 +31,8 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     elements: {
       reference: anchorRef.current, // Use the passed anchorRef as the reference
     },
-    whileElementsMounted: autoUpdate, // Add this line
+    strategy: 'fixed', // Add this line
+    whileElementsMounted: autoUpdate, // This line is correct now
   });
 
   useEffect(() => {
