@@ -8,7 +8,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [viewportWidth, setViewportWidth] = useState(0); // Initialize with 0
+  const [viewportWidth, setViewportWidth] = useState(0);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -21,29 +21,40 @@ export default function UserPopover({ username, onClose, anchorRef }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Data fetching useEffect (kept as is)
   useEffect(() => {
-    console.log('UserPopover: Fetching data for username:', username); // Debugging line
     fetch(`/api/user/${encodeURIComponent(username)}`)
       .then(res => {
         if (!res.ok) {
-          console.error('UserPopover: API response not OK:', res.status, res.statusText); // Debugging line
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         return res.json();
       })
       .then(data => {
-        console.log('UserPopover: Received user data:', data); // Debugging line
         if (!data.error) {
           setUserInfo(data);
         }
         setLoading(false);
       })
-      .catch(error => {
-        console.error('UserPopover: Error during data fetch:', error); // Debugging line
+      .catch(() => {
         setLoading(false);
       });
   }, [username]);
+
+  useEffect(() => {
+    const handlePointerDown = event => {
+      if (!popoverRef.current || !anchorRef?.current) return;
+      if (popoverRef.current.contains(event.target)) return;
+      if (anchorRef.current.contains(event.target)) return;
+      onClose?.();
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+    };
+  }, [anchorRef, onClose]);
 
   useEffect(() => {
     const calculatePosition = () => {
@@ -151,7 +162,6 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       )}
 
       <div style={{ textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
-        {console.log('UserPopover: UserInfo for color debug:', userInfo)}
         <div style={{ fontSize: '14px', fontWeight: '700', color: userInfo ? `var(--username-${userInfo.preferred_username_color_index || 0})` : 'var(--muted)', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
           {username}
         </div>

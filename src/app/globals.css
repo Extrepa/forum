@@ -3986,7 +3986,7 @@ header::before {
 
   /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
-  .notifications-popover-errl {
+  .notifications-popover-errl.notifications-popover {
     /* Override fixed width to allow shrinking, but ensure it doesn't get too small */
     width: fit-content !important;
     max-width: calc(100vw - 32px) !important;
@@ -4007,7 +4007,7 @@ header::before {
   /* On mobile, use fixed positioning to ensure it stays in viewport */
   @media (max-width: 640px) {
     .notifications-popover,
-    .notifications-popover-errl {
+    .notifications-popover-errl.notifications-popover {
       /* Keep original absolute positioning, but ensure it doesn't go off-screen */
       position: absolute !important;
       /* Align to the right of the anchor, or center if it helps */
@@ -4024,15 +4024,15 @@ header::before {
     }
     
     /* Remove backdrop if it was added */
-    .notifications-popover-errl::before {
+    .notifications-popover-errl.notifications-popover::before {
       display: none !important;
     }
   }
   
   /* On very small screens where 380px doesn't fit, shrink it */
   @media (max-width: 396px) {
-    .notifications-popover,
-    .notifications-popover-errl {
+  .notifications-popover,
+  .notifications-popover-errl.notifications-popover {
       width: calc(100vw - 16px) !important;
       max-width: calc(100vw - 16px) !important;
       min-width: min(120px, calc(100vw - 16px)) !important;
@@ -4041,31 +4041,31 @@ header::before {
   
   /* Prevent content from being compressed - ensure proper text wrapping */
   .notifications-popover > div,
-  .notifications-popover-errl > div {
+  .notifications-popover-errl.notifications-popover > div {
     min-width: 0 !important;
   }
   
   /* Ensure buttons don't get squished */
   .notifications-popover button,
-  .notifications-popover-errl button {
+  .notifications-popover-errl.notifications-popover button {
     white-space: nowrap !important;
     flex-shrink: 0 !important;
   }
   
   /* Ensure header buttons container doesn't wrap too aggressively */
   .notifications-popover > div:first-child,
-  .notifications-popover-errl > div:first-child {
+  .notifications-popover-errl.notifications-popover > div:first-child {
     gap: 8px !important;
   }
   
   .notifications-popover > div:first-child > div:last-child,
-  .notifications-popover-errl > div:first-child > div:last-child {
+  .notifications-popover-errl.notifications-popover > div:first-child > div:last-child {
     flex-shrink: 0 !important;
   }
   
   /* Ensure content inside notifications popover doesn't overflow */
   .notifications-popover *,
-  .notifications-popover-errl * {
+  .notifications-popover-errl.notifications-popover * {
     max-width: 100% !important;
     box-sizing: border-box !important;
     word-wrap: break-word !important;
@@ -4074,7 +4074,7 @@ header::before {
   
   /* Ensure buttons in notifications popover fit but don't stretch */
   .notifications-popover button,
-  .notifications-popover-errl button {
+  .notifications-popover-errl.notifications-popover button {
     white-space: normal !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
@@ -4085,7 +4085,7 @@ header::before {
   
   /* Ensure footer container doesn't overflow */
   .notifications-popover > div:last-child,
-  .notifications-popover-errl > div:last-child {
+  .notifications-popover-errl.notifications-popover > div:last-child {
     flex-wrap: wrap !important;
     gap: 6px !important;
     min-width: 0 !important;
@@ -4093,7 +4093,7 @@ header::before {
   
   /* Footer left button group */
   .notifications-popover > div:last-child > div:first-child,
-  .notifications-popover-errl > div:last-child > div:first-child {
+  .notifications-popover-errl.notifications-popover > div:last-child > div:first-child {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     display: flex !important;
@@ -4103,7 +4103,7 @@ header::before {
   
   /* Footer buttons - keep them small, don't stretch */
   .notifications-popover > div:last-child button,
-  .notifications-popover-errl > div:last-child button {
+  .notifications-popover-errl.notifications-popover > div:last-child button {
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: 0 !important;
@@ -4114,7 +4114,7 @@ header::before {
   
   /* Close button should stay small on the right */
   .notifications-popover > div:last-child > button:last-child,
-  .notifications-popover-errl > div:last-child > button:last-child {
+  .notifications-popover-errl.notifications-popover > div:last-child > button:last-child {
     flex: 0 0 auto !important;
     width: auto !important;
     margin-left: auto !important;

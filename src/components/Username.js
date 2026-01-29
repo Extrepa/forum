@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getUsernameColorIndex } from '../lib/usernameColor';
@@ -22,7 +22,13 @@ export default function Username({
 }) {
   const [showPopover, setShowPopover] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState(null);
+  const [isTouch, setIsTouch] = useState(false);
   const anchorRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsTouch(window.matchMedia('(hover: none)').matches);
+  }, []);
 
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -62,11 +68,20 @@ export default function Username({
     setHoverTimeout(timeout);
   };
 
+  const handleClick = () => {
+    if (!isTouch) return;
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+    setShowPopover(prev => !prev);
+  };
+
   return (
     <span 
       style={{ position: 'relative', display: 'inline-block' }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       <span 
         ref={anchorRef}
@@ -98,4 +113,3 @@ export default function Username({
     </span>
   );
 }
-

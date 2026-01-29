@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
+import { normalizeUsername } from '../../../../lib/username';
 
 export async function GET(request, { params }) {
   const { username } = await params;
   const db = await getDb();
+  const normalizedUsername = normalizeUsername(username);
 
   try {
     const user = await db
-      .prepare('SELECT username, avatar_key, preferred_username_color_index, role FROM users WHERE username = ?')
-      .bind(username)
+      .prepare('SELECT username, avatar_key, preferred_username_color_index, role FROM users WHERE username_norm = ?')
+      .bind(normalizedUsername)
       .first();
 
     if (!user) {
