@@ -904,14 +904,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               {mode === 'login' ? (
                 <>
-                  Errl is a creative space I built for people who value music, art, community, and intentional connection — online and off.
+                  Errl is a character shaped by music, creativity, and community. This forum is an extension of him — a space built to share ideas, projects, events, and inspiration without noise or pressure.
                   <br />
                   <br />
-                  This forum exists to share projects, events, ideas, and inspiration without algorithms, pressure, or noise. It pulls from early-internet creativity and renegade culture, shaped into something slower and more thoughtful.
+                  Influenced by early-internet creativity and renegade culture, Errl moves slowly and intentionally here.
                   <br />
                   <br />
-                  If you found your way here through someone you trust, you’re welcome to explore.{' '}
-                  <span style={{ color: '#39ff14', fontWeight: 600 }}>Errl has layers.</span>
+                  If you arrived through someone you trust, you’re in the right place.{' '}
+                  <span style={{ color: '#0b6b2f', fontWeight: 600 }}>Errl has depth.</span>
                 </>
               ) : (
                 <>
@@ -922,7 +922,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ fontSize: '14px', lineHeight: '1.5', fontStyle: 'italic', color: 'var(--errl-accent-3)' }}>
               Born on an overhead projector, mixing oil and water and light—a spark of awe brought to life.
               <br />
-              <span style={{ color: 'var(--muted)' }}>—2015</span>
+              <span style={{ color: 'var(--muted)', display: 'block', textAlign: 'right' }}>Errl&apos;s birthday 2015</span>
             </p>
           </div>
         </div>
