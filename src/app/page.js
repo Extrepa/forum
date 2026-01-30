@@ -86,9 +86,9 @@ export default async function HomePage({ searchParams }) {
     // Timeline/Announcements
     const timelineCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM timeline_updates WHERE moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM timeline_updates WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM timeline_updates',
+      'SELECT COUNT(*) as count FROM timeline_updates WHERE (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     const timelineRecent = await safeFirst(
@@ -115,9 +115,9 @@ export default async function HomePage({ searchParams }) {
     // Forum/General
     const forumCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM forum_threads WHERE moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM forum_threads WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM forum_threads',
+      'SELECT COUNT(*) as count FROM forum_threads WHERE (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     
@@ -222,9 +222,9 @@ export default async function HomePage({ searchParams }) {
     // Events
     const eventsCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM events WHERE moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM events WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM events',
+      'SELECT COUNT(*) as count FROM events WHERE (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     
@@ -330,9 +330,9 @@ export default async function HomePage({ searchParams }) {
     // Music
     const musicCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM music_posts WHERE moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM music_posts WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM music_posts',
+      'SELECT COUNT(*) as count FROM music_posts WHERE (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     
@@ -438,9 +438,9 @@ export default async function HomePage({ searchParams }) {
     // Projects
     const projectsCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM projects WHERE moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM projects WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM projects',
+      'SELECT COUNT(*) as count FROM projects WHERE (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     
@@ -546,9 +546,9 @@ export default async function HomePage({ searchParams }) {
     // Shitposts
     const shitpostsCount = await safeFirst(
       db,
-      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND moved_to_id IS NULL',
+      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       [],
-      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL',
+      'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     const shitpostsRecent = await safeFirst(
@@ -577,9 +577,9 @@ export default async function HomePage({ searchParams }) {
     // Art & Nostalgia (combined) - compare posts and comments
     const artNostalgiaCount = await safeFirst(
       db,
-      `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
+      `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (is_deleted = 0 OR is_deleted IS NULL) AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
       [],
-      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\')',
+      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\') AND (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     const artNostalgiaRecentPost = await safeFirst(
@@ -643,9 +643,9 @@ export default async function HomePage({ searchParams }) {
     // Bugs & Rants (combined) - compare posts and comments
     const bugsRantCount = await safeFirst(
       db,
-      `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
+      `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (is_deleted = 0 OR is_deleted IS NULL) AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
       [],
-      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\')',
+      'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\') AND (is_deleted = 0 OR is_deleted IS NULL)',
       []
     );
     const bugsRantRecentPost = await safeFirst(
@@ -713,9 +713,9 @@ export default async function HomePage({ searchParams }) {
       try {
         devlogCount = await safeFirst(
           db,
-          'SELECT COUNT(*) as count FROM dev_logs',
+          'SELECT COUNT(*) as count FROM dev_logs WHERE (is_deleted = 0 OR is_deleted IS NULL)',
           [],
-          'SELECT COUNT(*) as count FROM dev_logs',
+          'SELECT COUNT(*) as count FROM dev_logs WHERE (is_deleted = 0 OR is_deleted IS NULL)',
           []
         );
         
@@ -827,9 +827,9 @@ export default async function HomePage({ searchParams }) {
       try {
         loreMemoriesCount = await safeFirst(
           db,
-          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\')',
+          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)',
           [],
-          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\')',
+          'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)',
           []
         );
         const loreMemoriesRecentPost = await safeFirst(
