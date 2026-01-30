@@ -80,6 +80,8 @@ export default function ForumClient({ announcements = [], stickies = [], threads
           createdAt={row.created_at}
           lastActivity={row.last_activity_at || row.created_at}
           lastActivityBy={lastPostAuthor}
+          lastActivityByColorIndex={lastPostColorIndex}
+          lastActivityByPreferredColorIndex={null}
           titleHref={`${basePath}/${row.id}`}
           showTitleLink={false}
         />

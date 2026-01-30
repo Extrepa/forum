@@ -509,6 +509,7 @@ export default async function FeedPage() {
   const allUsernames = items.flatMap(i => {
     const names = [i.author];
     if (i.attendeeNames) names.push(...i.attendeeNames);
+    if (i.lastActivityBy) names.push(i.lastActivityBy);
     return names;
   }).filter(Boolean);
   
@@ -572,6 +573,8 @@ export default async function FeedPage() {
                     createdAt={item.createdAt}
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
                     lastActivityBy={item.type === 'Event' ? undefined : item.lastActivityBy}
+                    lastActivityByColorIndex={item.lastActivityBy ? (usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy)) : undefined}
+                    lastActivityByPreferredColorIndex={undefined}
                     titleHref={item.href}
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
@@ -653,8 +656,10 @@ export default async function FeedPage() {
                         )}
                         {/* Bottom Right: Last Activity */}
                         {item.lastActivity && (
-                          <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
-                            Last activity{item.lastActivityBy ? ` by ${item.lastActivityBy}` : ''}: {formatDateTime(item.lastActivity)}
+                          <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                            Last activity{item.lastActivityBy ? (
+                              <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy)} /></>
+                            ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
                           </span>
                         )}
                       </div>

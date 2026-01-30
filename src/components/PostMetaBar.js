@@ -28,6 +28,8 @@ export default function PostMetaBar({
   createdAt,
   lastActivity,
   lastActivityBy,
+  lastActivityByColorIndex,
+  lastActivityByPreferredColorIndex,
   className = '',
   titleHref,
   showTitleLink = true,
@@ -105,8 +107,10 @@ export default function PostMetaBar({
         )}
         {/* Desktop: Last Activity on bottom right */}
         {lastActivity && (
-          <span className="post-meta-last-activity muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
-            Last activity{lastActivityBy ? ` by ${lastActivityBy}` : ''}: {formatDateTime(lastActivity)}
+          <span className="post-meta-last-activity muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            Last activity{lastActivityBy ? (
+              <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+            ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
           </span>
         )}
       </div>
@@ -118,8 +122,10 @@ export default function PostMetaBar({
           fontSize: '12px',
           marginTop: '4px'
         }}>
-          <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
-            Last activity{lastActivityBy ? ` by ${lastActivityBy}` : ''}: {formatDateTime(lastActivity)}
+          <span className="muted" style={{ whiteSpace: 'nowrap' }}>
+            Last activity{lastActivityBy ? (
+              <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+            ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
           </span>
         </div>
       )}
