@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
 import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
@@ -48,6 +49,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [dragLabel, setDragLabel] = useState('Feed');
   const [eggHeaderHeight, setEggHeaderHeight] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -196,13 +202,22 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     (event) => {
       if (!navDisabled || !eggArmed || eggActive) return;
       if (event.button !== undefined && event.button !== 0) return;
-      const rect = feedLinkRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const label = feedLinkRef.current?.textContent?.trim();
+      
+      // Use currentTarget to get the element being interacted with, 
+      // which is more reliable than the ref (especially if multiple NavLinks exist)
+      const target = event.currentTarget;
+      const rect = target.getBoundingClientRect();
+      
+      const label = target.textContent?.trim();
       if (label) setDragLabel(label);
+      
       event.preventDefault();
       event.stopPropagation();
-      event.target.setPointerCapture(event.pointerId);
+      
+      if (event.target.setPointerCapture) {
+        event.target.setPointerCapture(event.pointerId);
+      }
+
       setDragSize({ width: rect.width, height: rect.height });
       setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
       setDragPoint({ x: event.clientX, y: event.clientY });
@@ -439,7 +454,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         />
       )}
 
-      {eggDragging ? (
+      {mounted && eggDragging ? createPortal(
         <div
           className="nav-egg-drag-ghost"
           style={{
@@ -450,7 +465,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           }}
         >
           {dragLabel}
-        </div>
+        </div>,
+        document.body
       ) : null}
 
       {eggActive ? (
