@@ -24,3 +24,15 @@
 **Status:**
 - Header height logic was already removed in the previous step.
 - Face size in the Easter egg iframe has been halved.
+
+---
+
+## Continuation: Easter egg visuals and border (same session)
+
+**Completed:**
+- **ErrlSVG rainbow stroke**: Added SVG `<defs>` with `linearGradient` id `rainbowGradient` (cyan → magenta → lime → green → cyan). Face, eyes, and mouth paths now use `stroke="url(#rainbowGradient)"` and `strokeWidth="12"` for consistent outline weight.
+- **Face size**: Increased interactive face from `w-12 h-12 md:w-14 md:h-14` to `w-16 h-16 md:w-20 md:h-20`; position offsets updated from `-32` to `-40` so the larger face stays centered on the physics body (radius 32 unchanged).
+- **Rainbow border**: Applied `rainbow-border rounded-3xl` to the game container div (ref={containerRef}) so the existing `.rainbow-border::before` neonChase animation shows around the game area.
+- Neon-text glow was already reduced (0 0 5px / 0 0 10px, lower opacity).
+
+**Files:** `public/easter-eggs/errl-bubbles-header.html`
