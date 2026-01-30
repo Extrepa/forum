@@ -1417,9 +1417,6 @@ button:hover {
   .post-meta-stats-mobile {
     display: none !important;
   }
-  .post-meta-stats-condensed-mobile {
-    display: none !important;
-  }
   .post-meta-last-activity {
     display: inline !important;
   }
@@ -1440,20 +1437,6 @@ button:hover {
   }
   .post-meta-stats-mobile {
     display: inline !important;
-  }
-  .post-meta-stats-condensed-mobile {
-    display: inline !important;
-  }
-  .post-meta--condensed .post-meta-stats-mobile-hide-condensed {
-    display: none !important;
-  }
-  /* Keep stats on same row as author+time on small viewports */
-  .post-meta--condensed .post-meta-author-row {
-    flex-wrap: nowrap !important;
-  }
-  .post-meta--condensed .post-meta-author-row > div:first-child {
-    overflow: hidden;
-    min-width: 0;
   }
   .post-meta-last-activity {
     display: none !important;
