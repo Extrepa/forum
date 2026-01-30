@@ -352,15 +352,13 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setSignupNotifyEmail(true);
       setSignupNotifySms(false);
       const user = await refreshMe();
-      // Refresh server components to update header with new auth state
-      router.refresh();
       // Navigate to preferred landing page (or home if not set)
-      // Check landing page preference to avoid redirect flash
+      // Force a full reload so server auth state is guaranteed to refresh.
       const landingPage = user?.defaultLandingPage || defaultLandingPage || 'home';
-      if (landingPage === 'feed') {
-        router.replace('/feed');
+      if (typeof window !== 'undefined') {
+        window.location.href = landingPage === 'feed' ? '/feed' : '/';
       } else {
-        router.replace('/');
+        router.replace(landingPage === 'feed' ? '/feed' : '/');
       }
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -401,15 +399,13 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setLoginIdentifier('');
       setLoginPassword('');
       const user = await refreshMe();
-      // Refresh server components to update header with new auth state
-      router.refresh();
       // Navigate to preferred landing page (or home if not set)
-      // Check landing page preference to avoid redirect flash
+      // Force a full reload so server auth state is guaranteed to refresh.
       const landingPage = user?.defaultLandingPage || defaultLandingPage || 'home';
-      if (landingPage === 'feed') {
-        router.replace('/feed');
+      if (typeof window !== 'undefined') {
+        window.location.href = landingPage === 'feed' ? '/feed' : '/';
       } else {
-        router.replace('/');
+        router.replace(landingPage === 'feed' ? '/feed' : '/');
       }
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
