@@ -79,17 +79,28 @@ export default function PostMetaBar({
               />
             </span>
           )}
+          {/* Condensed desktop: by author at time next to title (left side) */}
+          {isCondensed && (
+            <span className="post-meta-condensed-author-desktop muted" style={{ fontSize: '12px', marginLeft: '6px' }}>
+              by <Username 
+                name={author} 
+                colorIndex={authorColorIndex}
+                preferredColorIndex={authorPreferredColorIndex}
+              />
+              {createdAt ? <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+            </span>
+          )}
         </div>
-        {/* Desktop: Views/Replies/Likes on top right (hidden when condensed - stats are in condensed-meta-row) */}
-        {topRight && !isCondensed && (
+        {/* Desktop: stats on right (both condensed and non-condensed) */}
+        {topRight && (
           <span className="post-meta-stats-desktop muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {topRight}
           </span>
         )}
-        {/* Condensed: author+date and stats on same row so stats don't wrap to own line */}
+        {/* Condensed mobile: author+date and stats on same row so stats don't wrap to own line */}
         {isCondensed && (
           <div className="post-meta-condensed-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', minWidth: 0 }}>
-            <span className="muted" style={{ fontSize: '12px', flex: '1 1 auto', minWidth: 0 }}>
+            <span className="post-meta-condensed-author-mobile muted" style={{ fontSize: '12px', flex: '1 1 auto', minWidth: 0 }}>
               by <Username 
                 name={author} 
                 colorIndex={authorColorIndex}
