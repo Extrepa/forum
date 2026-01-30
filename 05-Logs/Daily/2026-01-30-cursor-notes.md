@@ -87,3 +87,27 @@ Completed full plan implementation.
 2. **PostMetaBar lastActivityBy**: New prop shows "Last activity by [user]: date" when provided. Wired in feed page and ForumClient (General/lobby).
 3. **Feed last_activity_author**: All 7 feed content-type queries now include last_activity_author; feed displays "by [user]" for last activity.
 4. **Thread previews - scrollable mini previews**: Added `post-body-scrollable` (max-height 400px, overflow-y auto) to list views in: LoreMemoriesClient, LoreClient, MemoriesClient, ArtClient, BugsClient, RantClient, NostalgiaClient, ArtNostalgiaClient, BugsRantClient, TimelineClient, EventsClient, MusicClient, ProjectsClient. DevLogClient already had it.
+
+---
+
+## PostMetaBar condensed layout refinements (mobile / small viewports)
+
+### Problem 1: Stats in own row
+When condensed (no replies), view count was wrapping to its own row instead of staying on the same line as "by username at time".
+
+**Fix:** Added `post-meta-condensed-meta-row` – a dedicated flex row for condensed posts that contains "by username at time" (left) and stats (right) in one `justify-content: space-between` flex container. This row always stays together, so stats never wrap to a separate line.
+
+### Problem 2: Stats bottom-right when title wraps
+Initially tried `align-self: flex-end` on stats in row 1; that caused stats to wrap to their own row when title was long. Reverted to the condensed-meta-row approach above.
+
+### Problem 3: Font size
+- **Non-condensed:** "by username" and date were 14px; changed to 12px.
+- **Condensed:** Already 12px; kept as-is.
+- All metadata (author, date, stats, last activity) is now consistently 12px.
+
+### Files changed
+- `src/components/PostMetaBar.js`:
+  - Condensed layout: title in first block, then `post-meta-condensed-meta-row` (author + date | stats) with `width: 100%` so it occupies its own line below the title.
+  - Hide desktop stats when condensed (stats live in condensed-meta-row).
+  - All metadata spans use `fontSize: '12px'`.
+- `src/app/globals.css`: Removed obsolete `post-meta-stats-condensed-row1` hide/show rules.

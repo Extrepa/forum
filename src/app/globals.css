@@ -1411,6 +1411,14 @@ button:hover {
 
 /* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
 @media (min-width: 768px) {
+  /* Condensed posts: keep title + author/date + stats on one line; no wrap */
+  .post-meta--condensed .post-meta-row1 {
+    flex-wrap: nowrap !important;
+  }
+  .post-meta--condensed .post-meta-condensed-meta-row {
+    width: auto !important;
+    flex: 0 0 auto !important;
+  }
   .post-meta-stats-desktop {
     display: inline !important;
   }
