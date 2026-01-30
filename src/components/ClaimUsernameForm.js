@@ -933,7 +933,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <p className="muted" style={{ marginBottom: '16px', lineHeight: '1.6' }}>
               {mode === 'login' ? (
                 <>
-                  Errl is a character shaped by music, creativity, and community. This forum is an extension of him — a space built to share ideas, projects, events, and inspiration without noise or pressure.
+                  Errl is an icon shaped by music, creativity, and community. This forum is an extension of him — a space built to share ideas, projects, events, and inspiration without noise or pressure.
                   <br />
                   <br />
                   Influenced by early-internet creativity and renegade culture, Errl moves slowly and intentionally here.

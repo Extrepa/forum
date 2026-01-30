@@ -120,3 +120,24 @@ Desktop condensed layout put "by username at time" next to the views on the righ
 ### Files changed
 - `src/components/PostMetaBar.js`: Condensed layout with desktop/mobile variants, font sizes as above.
 - `src/app/globals.css`: post-meta-condensed-author-desktop (show on desktop), post-meta-condensed-author-mobile (show on mobile), post-meta-condensed-meta-row (show on mobile, hide on desktop for condensed), flex-wrap: nowrap for condensed on desktop.
+
+---
+
+## Header layout and Easter egg
+
+### Header padding (desktop)
+- **Dropdown + Search:** `header-right-controls` gap 8px→12px, added `padding-left: 12px` (later 16px) for space from face/nav.
+- **More space overall:** header gap 12px→18px, brand min-height 88px, brand-left gap 4px→8px, header-nav-section gap 8px→12px.
+
+### Mobile/small viewport (max-width 1000px, 640px)
+- **Navigation button when not signed in:** Removed `if (navDisabled) return` so the button always opens the menu (needed for Easter egg).
+- **Menu stays open when not signed in:** Stopped calling `setMenuOpen(false)` in the navDisabled branch of the useEffect so users can access the Feed link for the Easter egg on mobile.
+- **Smaller header:** At 1000px: gap 12px, padding 12px 16px, brand min-height 80px, header-bottom-controls margin-top 6px. At 640px: gap 10px, padding 10px 12px, brand min-height 72px, brand-left gap 4px, padding-right 72px, header-bottom-controls margin-top 6px.
+
+### Easter egg SVG stroke
+- **Errl face (Cha face) in errl-bubbles-header.html:** Eyes and mouth had `strokeWidth="12"`, which looked too thick. Reduced to `strokeWidth="4"` to match the face outline (same as ForumLogo).
+
+### Files changed
+- `src/components/SiteHeader.js`: Navigation button always opens menu; menu no longer auto-closed when navDisabled.
+- `src/app/globals.css`: header/brand spacing, mobile overrides for header size.
+- `public/easter-eggs/errl-bubbles-header.html`: region-eyeL, region-eyeR, region-mouth strokeWidth 12→4.
