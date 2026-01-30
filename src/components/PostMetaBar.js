@@ -52,7 +52,7 @@ export default function PostMetaBar({
   const isCondensed = replies === 0;
 
   return (
-    <div className={`${className} ${isCondensed ? 'post-meta--condensed' : ''}`.trim()}>
+    <div className={`${className} ${isCondensed ? 'post-meta post-meta--condensed' : ''}`.trim()} style={isCondensed ? { display: 'flex', flexDirection: 'column' } : {}}>
       {/* Row 1: Title/Author on left, Views/Replies/Likes on top right (desktop) */}
       <div className="post-meta-row1" style={{ 
         display: 'flex',
@@ -97,7 +97,7 @@ export default function PostMetaBar({
         fontSize: '12px',
         flexWrap: 'wrap',
         gap: '8px',
-        rowGap: '4px'
+        rowGap: '4px',
       }}>
         {createdAt && replies > 0 && (
           <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>

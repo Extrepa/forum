@@ -1454,6 +1454,24 @@ button:hover {
   .event-info-row {
     justify-content: center !important;
   }
+
+  /* Condensed feed posts: stats stay in bottom right */
+  .list-item--condensed-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 72px !important;
+  }
+  .list-item--condensed-meta .post-meta--condensed {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .list-item--condensed-meta .post-meta--condensed .post-meta-row1 {
+    flex-shrink: 0;
+  }
+  .list-item--condensed-meta .post-meta--condensed > div:last-of-type {
+    margin-top: auto;
+  }
 }
 
 .post-body-scrollable {
