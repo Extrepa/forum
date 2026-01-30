@@ -70,28 +70,39 @@ export default function PostMetaBar({
           >
             <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
           </TitleElement>
-          <span className="muted" style={{ fontSize: isCondensed ? '12px' : '14px', marginLeft: '6px' }}>
-            by <Username 
-              name={author} 
-              colorIndex={authorColorIndex}
-              preferredColorIndex={authorPreferredColorIndex}
-            />
-            {isCondensed && createdAt ? (
-              <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></>
-            ) : null}
-          </span>
+          {!isCondensed && (
+            <span className="muted" style={{ fontSize: '12px', marginLeft: '6px' }}>
+              by <Username 
+                name={author} 
+                colorIndex={authorColorIndex}
+                preferredColorIndex={authorPreferredColorIndex}
+              />
+            </span>
+          )}
         </div>
-        {/* Desktop: Views/Replies/Likes on top right */}
-        {topRight && (
+        {/* Desktop: Views/Replies/Likes on top right (hidden when condensed - stats are in condensed-meta-row) */}
+        {topRight && !isCondensed && (
           <span className="post-meta-stats-desktop muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {topRight}
           </span>
         )}
-        {/* Condensed mobile: stats in row 1 with flex-end so they align to bottom when title wraps */}
-        {topRight && isCondensed && (
-          <span className="post-meta-stats-condensed-row1 muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0, alignSelf: 'flex-end' }}>
-            {topRight}
-          </span>
+        {/* Condensed: author+date and stats on same row so stats don't wrap to own line */}
+        {isCondensed && (
+          <div className="post-meta-condensed-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', minWidth: 0 }}>
+            <span className="muted" style={{ fontSize: '12px', flex: '1 1 auto', minWidth: 0 }}>
+              by <Username 
+                name={author} 
+                colorIndex={authorColorIndex}
+                preferredColorIndex={authorPreferredColorIndex}
+              />
+              {createdAt ? <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+            </span>
+            {topRight && (
+              <span className="post-meta-stats-condensed-row1 muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {topRight}
+              </span>
+            )}
+          </div>
         )}
       </div>
 

@@ -1431,16 +1431,9 @@ button:hover {
   }
 }
 
-.post-meta-stats-condensed-row1 {
-  display: none !important;
-}
-
 @media (max-width: 767px) {
   .post-meta-stats-desktop {
     display: none !important;
-  }
-  .post-meta-stats-condensed-row1 {
-    display: inline !important;
   }
   .post-meta-stats-mobile {
     display: inline !important;
