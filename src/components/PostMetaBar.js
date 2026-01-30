@@ -105,8 +105,8 @@ export default function PostMetaBar({
             {topRight}
           </span>
         )}
-        {/* Desktop: Last Activity on bottom right */}
-        {lastActivity && (
+        {/* Desktop: Last Activity on bottom right - hide when no replies (avoids duplicating author) */}
+        {lastActivity && replies > 0 && (
           <span className="post-meta-last-activity muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
             Last activity{lastActivityBy ? (
               <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
@@ -114,8 +114,8 @@ export default function PostMetaBar({
           </span>
         )}
       </div>
-      {/* Mobile: Last Activity on separate row */}
-      {lastActivity && (
+      {/* Mobile: Last Activity on separate row - hide when no replies (avoids duplicating author) */}
+      {lastActivity && replies > 0 && (
         <div className="post-meta-last-activity-mobile" style={{ 
           display: 'flex',
           justifyContent: 'flex-end',

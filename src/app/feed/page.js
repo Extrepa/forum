@@ -654,8 +654,8 @@ export default async function FeedPage() {
                             ))}
                           </span>
                         )}
-                        {/* Bottom Right: Last Activity */}
-                        {item.lastActivity && (
+                        {/* Bottom Right: Last Activity - hide when no replies (avoids duplicating author) */}
+                        {item.lastActivity && item.replies > 0 && (
                           <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
                             Last activity{item.lastActivityBy ? (
                               <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy)} /></>

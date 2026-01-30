@@ -138,9 +138,9 @@ export default function EventsClient({ events, notice }) {
                           </span>
                         ) : null}
                       </div>
-                      {(row.last_activity_at || row.created_at) ? (
-                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }} suppressHydrationWarning>
-                          Last activity: {formatDateTime(row.last_activity_at || row.created_at)}
+                      {(row.last_activity_at || row.created_at) && (row.comment_count || 0) > 0 ? (
+                          <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }} suppressHydrationWarning>
+                          Last activity at {formatDateTime(row.last_activity_at || row.created_at)}
                         </span>
                       ) : null}
                     </div>
