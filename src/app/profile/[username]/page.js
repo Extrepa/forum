@@ -134,12 +134,30 @@ export default async function ProfilePage({ params }) {
       .bind(profileUser.id)
       .first();
 
+    let postsCount = 0;
+    let postCommentsCount = 0;
+    try {
+      const postsRows = await db
+        .prepare('SELECT COUNT(*) as count FROM posts WHERE author_user_id = ? AND type IN (\'art\',\'bugs\',\'rant\',\'nostalgia\',\'lore\',\'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)')
+        .bind(profileUser.id)
+        .first();
+      const postCommentsRows = await db
+        .prepare('SELECT COUNT(*) as count FROM post_comments WHERE author_user_id = ? AND is_deleted = 0')
+        .bind(profileUser.id)
+        .first();
+      postsCount = postsRows?.count || 0;
+      postCommentsCount = postCommentsRows?.count || 0;
+    } catch (e) {
+      // posts / post_comments tables may not exist (migration 0017)
+    }
+
     const threadCount = (forumThreads?.count || 0) + 
                         (devLogs?.count || 0) + 
                         (musicPosts?.count || 0) + 
                         (projects?.count || 0) + 
                         (timelineUpdates?.count || 0) + 
-                        (events?.count || 0);
+                        (events?.count || 0) + 
+                        postsCount;
     
     // Count all reply types
     const forumReplies = await db
@@ -177,7 +195,8 @@ export default async function ProfilePage({ params }) {
                        (musicComments?.count || 0) + 
                        (projectReplies?.count || 0) + 
                        (timelineComments?.count || 0) + 
-                       (eventComments?.count || 0);
+                       (eventComments?.count || 0) + 
+                       postCommentsCount;
 
     // Get recent posts from all types
     const recentForumThreads = await db
@@ -233,6 +252,20 @@ export default async function ProfilePage({ params }) {
       )
       .bind(profileUser.id)
       .all();
+
+    let recentPostsFromShared = { results: [] };
+    try {
+      recentPostsFromShared = await db
+        .prepare(
+          `SELECT id, title, created_at, type as post_type FROM posts 
+           WHERE author_user_id = ? AND type IN ('art','bugs','rant','nostalgia','lore','memories') AND (is_deleted = 0 OR is_deleted IS NULL)
+           ORDER BY created_at DESC LIMIT 10`
+        )
+        .bind(profileUser.id)
+        .all();
+    } catch (e) {
+      // posts table may not exist
+    }
 
     // Get recent replies/comments from all types
     const recentForumReplies = await db
@@ -301,6 +334,22 @@ export default async function ProfilePage({ params }) {
       .bind(profileUser.id)
       .all();
 
+    let recentPostComments = { results: [] };
+    try {
+      recentPostComments = await db
+        .prepare(
+          `SELECT post_comments.id, post_comments.created_at, posts.id as thread_id, posts.title as thread_title, posts.type as post_type, 'post_comment' as reply_type
+           FROM post_comments
+           JOIN posts ON posts.id = post_comments.post_id
+           WHERE post_comments.author_user_id = ? AND post_comments.is_deleted = 0
+           ORDER BY post_comments.created_at DESC LIMIT 10`
+        )
+        .bind(profileUser.id)
+        .all();
+    } catch (e) {
+      // post_comments table may not exist
+    }
+
     // Merge and sort recent activity
     const allPosts = [
       ...(recentForumThreads?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
@@ -308,7 +357,8 @@ export default async function ProfilePage({ params }) {
       ...(recentMusicPosts?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
       ...(recentProjects?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
       ...(recentTimelineUpdates?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
-      ...(recentEvents?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type }))
+      ...(recentEvents?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type })),
+      ...(recentPostsFromShared?.results || []).map(p => ({ ...p, type: 'thread', postType: p.post_type }))
     ];
 
     const allReplies = [
@@ -317,7 +367,8 @@ export default async function ProfilePage({ params }) {
       ...(recentMusicComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
       ...(recentProjectReplies?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
       ...(recentTimelineComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
-      ...(recentEventComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type }))
+      ...(recentEventComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type })),
+      ...(recentPostComments?.results || []).map(r => ({ ...r, type: 'reply', replyType: r.reply_type, post_type: r.post_type }))
     ];
 
     const allActivity = [...allPosts, ...allReplies]
@@ -381,7 +432,17 @@ export default async function ProfilePage({ params }) {
       timeline_comment: 'Announcements',
       event: 'Events',
       event_comment: 'Events',
+      art: 'Art',
+      bugs: 'Bugs',
+      rant: 'Rant',
+      nostalgia: 'Nostalgia',
+      lore: 'Lore',
+      memories: 'Memories',
+      post_comment: 'Posts',
     };
+    if (t === 'post_comment' && postType) {
+      return map[postType] || 'Posts';
+    }
     return map[t] || 'Forum';
   };
 
@@ -655,6 +716,7 @@ export default async function ProfilePage({ params }) {
                   else if (postType === 'project') href = `/projects/${item.id}`;
                   else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
                   else if (postType === 'event') href = `/events/${item.id}`;
+                  else if (['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories'].includes(postType)) href = `/${postType}/${item.id}`;
                 } else {
                   const replyType = item.replyType || item.reply_type;
                   const threadId = item.thread_id;
@@ -664,6 +726,7 @@ export default async function ProfilePage({ params }) {
                   else if (replyType === 'project_reply') href = `/projects/${threadId}`;
                   else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
                   else if (replyType === 'event_comment') href = `/events/${threadId}`;
+                  else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `/${item.post_type || item.postType}/${threadId}`;
                 }
                 const postType = item.postType || item.post_type;
                 const replyType = item.replyType || item.reply_type;
