@@ -3306,9 +3306,23 @@ header::before {
   }
 
   .nav-menu-button {
-    width: auto;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
     transform: none;
     writing-mode: horizontal-tb;
+  }
+
+  .header-bottom-left {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: max-content;
+  }
+
+  .header-bottom-right {
+    flex: 0 0 auto;
+    min-width: 0;
   }
 
   .nav-menu-popover {
@@ -3821,7 +3835,13 @@ header::before {
   flex: 0 0 auto;
 }
 
-/* Match nav/breadcrumb pill size and stay compact */
+/* Keep section buttons compact: match nav pill size, never stretch */
+.page-top-row-right form {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 0;
+}
+
 .page-top-row-right button,
 .page-top-row-right form button {
   min-height: 40px;
@@ -3831,7 +3851,8 @@ header::before {
   white-space: nowrap;
   width: max-content;
   max-width: 100%;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  min-width: 0;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.2);
   background: rgba(2, 7, 10, 0.4);
@@ -3873,10 +3894,16 @@ header::before {
     font-size: 12px;
     padding: 6px 10px;
     white-space: nowrap;
+    width: max-content;
+    max-width: 100%;
+    flex: 0 0 auto;
+    align-self: flex-start;
   }
 
   .page-top-row-right form {
     margin: 0;
+    flex: 0 0 auto;
+    width: max-content;
   }
 }
 
