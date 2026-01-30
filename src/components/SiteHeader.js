@@ -37,14 +37,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const searchInputRef = useRef(null);
   const searchFormRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const headerRef = useRef(null);
   const logoWrapRef = useRef(null);
   const feedLinkRef = useRef(null);
   const [eggArmed, setEggArmed] = useState(false);
   const [eggActive, setEggActive] = useState(false);
   const [eggDragging, setEggDragging] = useState(false);
   const [dragPoint, setDragPoint] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [dragLabel, setDragLabel] = useState('Feed');
+  const [eggHeaderHeight, setEggHeaderHeight] = useState(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -68,6 +71,18 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       setEggDragging(false);
     }
   }, [navDisabled]);
+
+  useEffect(() => {
+    if (eggArmed || eggDragging || eggActive) {
+      if (!eggHeaderHeight && headerRef.current) {
+        setEggHeaderHeight(headerRef.current.getBoundingClientRect().height);
+      }
+      return;
+    }
+    if (eggHeaderHeight) {
+      setEggHeaderHeight(null);
+    }
+  }, [eggArmed, eggDragging, eggActive, eggHeaderHeight]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
@@ -188,6 +203,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       event.preventDefault();
       event.stopPropagation();
       setDragSize({ width: rect.width, height: rect.height });
+      setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
       setDragPoint({ x: event.clientX, y: event.clientY });
       setEggDragging(true);
     },
@@ -237,7 +253,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   }, [detail, moreOpen, menuOpen, searchMode, eggActive]);
 
   return (
-    <header className={headerClassName}>
+    <header
+      ref={headerRef}
+      className={headerClassName}
+      style={eggHeaderHeight ? { minHeight: eggHeaderHeight } : undefined}
+    >
       <div className="brand">
         <div className="brand-left">
           <div>
@@ -424,9 +444,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           style={{
             width: dragSize.width,
             height: dragSize.height,
-            left: dragPoint.x,
-            top: dragPoint.y,
-            transform: 'translate(-50%, -50%)'
+            left: dragPoint.x - dragOffset.x,
+            top: dragPoint.y - dragOffset.y
           }}
         >
           {dragLabel}
