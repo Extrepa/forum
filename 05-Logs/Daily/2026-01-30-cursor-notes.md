@@ -149,3 +149,11 @@ Desktop condensed layout put "by username at time" next to the views on the righ
 - **Branch:** `fix/pin-admin-controls`
 - **PinPostButton:** New component (icon next to visibility icon in breadcrumbs/controls row). Calls `POST /api/admin/posts/[id]/pin` with JSON `{ type }`; maps postType (thread, timeline, post, event, music, project, devlog) to API type.
 - **Detail pages:** Added `is_pinned` to main content queries and PinPostButton next to HidePostButton (admin-only) on: lobby, announcements, devlog, events, music, projects, rant, nostalgia, memories, lore, lore-memories, bugs, art.
+
+---
+
+## Development Update #7 (draft)
+
+- **File:** `05-Logs/Development/2026-01-30-development-post-07.md`
+- **Scope:** All changes since dev update #6 (2026-01-29): Easter egg (brief, not-signed-in only), pins everywhere, likes on comments/replies, admin pin API, admin new-reply pref, admin audit fields prep, PostMetaBar condensed layout, feed/last-activity/attendee UI, header/nav spacing, full reload after sign-in, sign-in copy.
+- **Style:** Matches #5/#6 (New Features, Enhancements, Bug Fixes, Technical, Known Issues).

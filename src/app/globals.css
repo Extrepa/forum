@@ -692,6 +692,7 @@ nav a.nav-link-egg-armed {
   border-color: rgba(255, 52, 245, 0.7);
   box-shadow: 0 0 18px rgba(255, 52, 245, 0.4), 0 0 10px rgba(52, 225, 255, 0.35);
   cursor: grab;
+  touch-action: none; /* Let pointer/touch drag work on mobile */
 }
 
 nav a.nav-link-egg-armed:active {

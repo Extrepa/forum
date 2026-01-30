@@ -216,11 +216,15 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   useEffect(() => {
     if (!eggDragging) return;
 
+    const prevTouchAction = document.body.style.touchAction;
+    document.body.style.touchAction = 'none';
+
     const handleMove = (event) => {
       setDragPoint({ x: event.clientX, y: event.clientY });
     };
 
     const handleUp = (event) => {
+      document.body.style.touchAction = prevTouchAction;
       setEggDragging(false);
       const logoRect = logoWrapRef.current?.getBoundingClientRect();
       if (!logoRect) return;
@@ -239,6 +243,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     window.addEventListener('pointerup', handleUp);
     window.addEventListener('pointercancel', handleUp);
     return () => {
+      document.body.style.touchAction = prevTouchAction;
       window.removeEventListener('pointermove', handleMove);
       window.removeEventListener('pointerup', handleUp);
       window.removeEventListener('pointercancel', handleUp);
