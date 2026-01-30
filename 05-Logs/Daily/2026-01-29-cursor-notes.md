@@ -1,25 +1,19 @@
-## 2026-01-29 - Cursor Notes
+# Daily Log - 2026-01-29
 
-### Updates to sign-in page intro text and layout
+## Task: Fix Easter Egg Feed Button Drag Issue
 
-**Branch created**: `feat/update-signin-intro`
+**User Query:** The feed button is not staying attached to the mouse when dragging.
 
-**Changes Made:**
+**Investigation:**
+- Located `src/components/SiteHeader.js` as the main component managing the drag state (`eggDragging`, `dragPoint`).
+- Identified `src/app/globals.css` containing `.nav-egg-drag-ghost` and `.nav-link-egg-hidden`.
+- **Root Cause Analysis**:
+  1. `.nav-link-egg-hidden` used `visibility: hidden`. When the drag started, the element became invisible, causing it to stop receiving/emitting pointer events (or bubbling them), which broke the drag interaction immediately or intermittently.
+  2. Dragging lacked `setPointerCapture`, making it vulnerable to the pointer leaving the window or entering iframes (which swallow events).
 
-1.  **Replaced placeholder intro text** with user-provided multi-paragraph content in `src/components/ClaimUsernameForm.js`.
-2.  **Applied initial styling to intro text**:
-    *   "Welcome to the Errl Forum" (`h4`): `fontSize: '24px'`, `color: 'var(--accent)'`
-    *   "Take your time. Dive in. Errl’s got layers." (`p`): `fontSize: '18px'`, `fontStyle: 'italic'`, `color: 'var(--errl-accent-4)'`, `fontWeight: 'bold'`
-3.  **Renamed branch** from `feature/update-signin-intro` to `feat/update-signin-intro`.
-4.  **Updated intro text content**: Changed "Errl is built by people who grew up" to "This forum is built for people who grew up" in `src/components/ClaimUsernameForm.js`.
-5.  **Reduced bottom padding** for the last intro text paragraph to `12px`.
-6.  **Reverted `src/components/ClaimUsernameForm.js` to a stable state** (commit `6d13f78`) due to persistent JSX syntax errors and layout issues from previous inline styling attempts.
-7.  **Re-implemented new responsive layout strategy using external CSS classes**:
-    *   **Added CSS rules** to `src/app/globals.css` (done in a previous step before the revert, these styles are assumed to still be present).
-        *   `.auth-form-container`: Handles overall flex container, stacking on small screens, and side-by-side on large screens.
-        *   `.auth-intro-section`: Styles for the intro text section, including mobile padding/border and desktop padding/divider.
-        *   `.auth-form-section`: Styles for the sign-in form section, including desktop padding.
-    *   **Applied new CSS classes** in `src/components/ClaimUsernameForm.js`:
-        *   `auth-form-container` to the main container div.
-        *   `auth-intro-section` to the intro text div (replacing inline styles).
-        *   `auth-form-section` to the sign-in form div (replacing inline styles).
+**Fixes Applied:**
+- **CSS**: Changed `.nav-link-egg-hidden` to use `opacity: 0` instead of `visibility: hidden`. This keeps the element interactive and part of the layout while still hiding it visually.
+- **JS**: Added `event.target.setPointerCapture(event.pointerId)` in `handleEggDragStart` in `SiteHeader.js` to robustly track the pointer during the drag operation.
+
+**Status:**
+- Fixes implemented.

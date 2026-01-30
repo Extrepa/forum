@@ -202,6 +202,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       if (label) setDragLabel(label);
       event.preventDefault();
       event.stopPropagation();
+      event.target.setPointerCapture(event.pointerId);
       setDragSize({ width: rect.width, height: rect.height });
       setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
       setDragPoint({ x: event.clientX, y: event.clientY });

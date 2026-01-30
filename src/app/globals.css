@@ -684,7 +684,7 @@ nav a.nav-link-egg-armed:active {
 }
 
 nav a.nav-link-egg-hidden {
-  visibility: hidden;
+  opacity: 0;
 }
 
 .nav-more-toggle {
