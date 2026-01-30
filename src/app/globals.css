@@ -939,10 +939,27 @@ main {
 }
 
 @media (max-width: 640px) {
+  /* Ensure mobile viewport scales content; body/html rely on viewport meta */
+  html {
+    overflow-x: hidden;
+  }
+
+  .site {
+    padding: 16px 12px 32px;
+  }
+
+  .forum-title {
+    font-size: clamp(28px, 12vw, 52px);
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
   .account-columns {
     grid-template-columns: 1fr;
   }
-  
+
   /* Make edit button smaller on mobile */
   .username-edit-btn {
     padding: 2px 4px !important;
@@ -3804,16 +3821,37 @@ header::before {
   flex: 0 0 auto;
 }
 
+/* Match nav/breadcrumb pill size and stay compact */
 .page-top-row-right button,
 .page-top-row-right form button {
-  min-height: 44px;
-  padding: 7px 10px;
-  font-size: 14px;
+  min-height: 40px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  width: max-content;
+  max-width: 100%;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
+  color: var(--ink);
+  transition: all 0.2s ease;
+}
+
+.page-top-row-right button:hover:not(:disabled),
+.page-top-row-right form button:hover:not(:disabled) {
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(13, 51, 68, 0.6);
+  box-shadow: 0 0 18px rgba(52, 225, 255, 0.45);
+  color: var(--errl-accent-3);
+  transform: none;
 }
 
 /* Align breadcrumb row height with control buttons */
 .page-top-row .breadcrumb-item {
-  min-height: 44px;
+  min-height: 40px;
 }
 
 @media (max-width: 768px) {
@@ -3821,22 +3859,22 @@ header::before {
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .page-top-row-right {
     width: 100%;
     justify-content: flex-end;
     flex-wrap: wrap;
     gap: 6px;
   }
-  
+
   .page-top-row-right button,
   .page-top-row-right form button {
-    min-height: 44px;
+    min-height: 40px;
     font-size: 12px;
-    padding: 4px 8px;
+    padding: 6px 10px;
     white-space: nowrap;
   }
-  
+
   .page-top-row-right form {
     margin: 0;
   }

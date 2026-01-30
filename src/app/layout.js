@@ -16,6 +16,12 @@ export const metadata = {
   description: 'Announcements, ideas, and plans for the Errl community.'
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5
+};
+
 // Force dynamic rendering to ensure auth state is always fresh
 export const dynamic = 'force-dynamic';
 

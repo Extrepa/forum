@@ -14,10 +14,24 @@ export const dynamic = 'force-dynamic';
 export default async function ProfilePage({ params }) {
   const currentUser = await getSessionUser();
   const db = await getDb();
-  
+  const resolved = await params;
+  const rawUsername = resolved?.username;
+
+  if (!rawUsername) {
+    return (
+      <div className="stack">
+        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/profile', label: 'Profile' }]} />
+        <section className="card">
+          <h2 className="section-title">User not found</h2>
+          <p className="muted">No username in the URL.</p>
+        </section>
+      </div>
+    );
+  }
+
   // Decode username from URL
-  const username = decodeURIComponent(params.username);
-  
+  const username = decodeURIComponent(rawUsername);
+
   // Get user by username
   let profileUser = null;
   try {
