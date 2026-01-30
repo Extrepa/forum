@@ -274,6 +274,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             variant="primary"
             easterEgg={{
               armed: eggArmed,
+              dragging: eggDragging,
               feedRef: feedLinkRef,
               onArm: handleEggArm,
               onDragStart: handleEggDragStart
@@ -319,6 +320,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             variant="more"
             easterEgg={{
               armed: eggArmed,
+              dragging: eggDragging,
               feedRef: feedLinkRef,
               onArm: handleEggArm,
               onDragStart: handleEggDragStart
@@ -396,6 +398,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
               variant="all"
               easterEgg={{
                 armed: eggArmed,
+                dragging: eggDragging,
                 feedRef: feedLinkRef,
                 onArm: handleEggArm,
                 onDragStart: handleEggDragStart
@@ -434,7 +437,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         <div className="header-easter-egg-overlay" aria-hidden="true">
           <iframe
             className="header-easter-egg-iframe"
-            title="Errl Easter Egg"
+            title="Errl's Bubble Blitz"
             src="/easter-eggs/errl-bubbles-header.html"
           />
         </div>

@@ -66,10 +66,12 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all', easterE
           href={link.href}
           className={[
             isActive(link.href) ? 'active' : '',
-            link.href === '/feed' && easterEgg?.armed ? 'nav-link-egg-armed' : ''
+            link.href === '/feed' && easterEgg?.armed ? 'nav-link-egg-armed' : '',
+            link.href === '/feed' && easterEgg?.dragging ? 'nav-link-egg-hidden' : ''
           ]
             .filter(Boolean)
             .join(' ')}
+          data-egg-hidden={link.href === '/feed' && easterEgg?.dragging ? 'true' : undefined}
           ref={link.href === '/feed' ? easterEgg?.feedRef : null}
           onDoubleClick={link.href === '/feed' ? easterEgg?.onArm : undefined}
           onPointerDown={link.href === '/feed' ? easterEgg?.onDragStart : undefined}

@@ -683,6 +683,10 @@ nav a.nav-link-egg-armed:active {
   cursor: grabbing;
 }
 
+nav a.nav-link-egg-hidden {
+  visibility: hidden;
+}
+
 .nav-more-toggle {
   flex: 0 0 auto;
 }
