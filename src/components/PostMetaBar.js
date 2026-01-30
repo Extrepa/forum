@@ -49,8 +49,10 @@ export default function PostMetaBar({
   const TitleElement = showTitleLink && titleHref ? 'a' : 'span';
   const titleProps = showTitleLink && titleHref ? { href: titleHref } : {};
 
+  const isCondensed = replies === 0;
+
   return (
-    <div className={className}>
+    <div className={`${className} ${isCondensed ? 'post-meta--condensed' : ''}`.trim()}>
       {/* Row 1: Title/Author on left, Views/Replies/Likes on top right (desktop) */}
       <div className="post-meta-row1" style={{ 
         display: 'flex',
@@ -62,22 +64,32 @@ export default function PostMetaBar({
         rowGap: '4px'
       }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <TitleElement 
-            {...titleProps}
-            style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
-          >
-            <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
-          </TitleElement>
-          <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
-            by <Username 
-              name={author} 
-              colorIndex={authorColorIndex}
-              preferredColorIndex={authorPreferredColorIndex}
-            />
-            {replies === 0 && createdAt ? (
-              <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></>
-            ) : null}
-          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px', rowGap: '4px' }}>
+            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+              <TitleElement 
+                {...titleProps}
+                style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
+              >
+                <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
+              </TitleElement>
+              <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
+                by <Username 
+                  name={author} 
+                  colorIndex={authorColorIndex}
+                  preferredColorIndex={authorPreferredColorIndex}
+                />
+                {isCondensed && createdAt ? (
+                  <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></>
+                ) : null}
+              </span>
+            </div>
+            {/* Mobile only: stats in same row as author+time when condensed */}
+            {isCondensed && topRight && (
+              <span className="post-meta-stats-condensed-mobile muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto' }}>
+                {topRight}
+              </span>
+            )}
+          </div>
         </div>
         {/* Desktop: Views/Replies/Likes on top right */}
         {topRight && (
@@ -102,9 +114,9 @@ export default function PostMetaBar({
             {formatDateTime(createdAt)}
           </span>
         )}
-        {/* Mobile: Views/Replies/Likes on right side of date row */}
+        {/* Mobile: Views/Replies/Likes on right side of date row (hidden when condensed - stats move to row 1) */}
         {topRight && (
-          <span className="post-meta-stats-mobile muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+          <span className={`post-meta-stats-mobile muted ${isCondensed ? 'post-meta-stats-mobile-hide-condensed' : ''}`} style={{ fontSize: '12px', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
             {topRight}
           </span>
         )}

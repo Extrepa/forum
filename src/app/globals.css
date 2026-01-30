@@ -1417,6 +1417,9 @@ button:hover {
   .post-meta-stats-mobile {
     display: none !important;
   }
+  .post-meta-stats-condensed-mobile {
+    display: none !important;
+  }
   .post-meta-last-activity {
     display: inline !important;
   }
@@ -1437,6 +1440,12 @@ button:hover {
   }
   .post-meta-stats-mobile {
     display: inline !important;
+  }
+  .post-meta-stats-condensed-mobile {
+    display: inline !important;
+  }
+  .post-meta--condensed .post-meta-stats-mobile-hide-condensed {
+    display: none !important;
   }
   .post-meta-last-activity {
     display: none !important;
