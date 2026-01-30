@@ -14,5 +14,13 @@
   - Updated `handleEggDragStart` to use `event.currentTarget` instead of `feedLinkRef.current`. This guarantees we calculate geometry based on the *actual element the user touched*, regardless of where the ref is currently pointing.
   - Added `mounted` state check to safely use `createPortal` with SSR.
 
+**New Request:**
+- "Make the header back to its normal height" and "shrink the face by almost half".
+- **Action**: Modified `public/easter-eggs/errl-bubbles-header.html`.
+  - Reduced physics body radius from 60 to 32.
+  - Reduced visual face size classes from `w-24 h-24` (96px) to `w-12 h-12` (48px).
+  - Updated offset calculations (`x - 32`, `y - 32`) to match the new half-size (center point shift).
+
 **Status:**
-- Applied robust fixes for positioning and context.
+- Header height logic was already removed in the previous step.
+- Face size in the Easter egg iframe has been halved.

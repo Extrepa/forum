@@ -38,7 +38,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const searchInputRef = useRef(null);
   const searchFormRef = useRef(null);
   const searchTimeoutRef = useRef(null);
-  const headerRef = useRef(null);
   const logoWrapRef = useRef(null);
   const feedLinkRef = useRef(null);
   const [eggArmed, setEggArmed] = useState(false);
@@ -48,7 +47,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [dragLabel, setDragLabel] = useState('Feed');
-  const [eggHeaderHeight, setEggHeaderHeight] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -77,18 +75,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       setEggDragging(false);
     }
   }, [navDisabled]);
-
-  useEffect(() => {
-    if (eggArmed || eggDragging || eggActive) {
-      if (!eggHeaderHeight && headerRef.current) {
-        setEggHeaderHeight(headerRef.current.getBoundingClientRect().height);
-      }
-      return;
-    }
-    if (eggHeaderHeight) {
-      setEggHeaderHeight(null);
-    }
-  }, [eggArmed, eggDragging, eggActive, eggHeaderHeight]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
@@ -270,9 +256,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   return (
     <header
-      ref={headerRef}
       className={headerClassName}
-      style={eggHeaderHeight ? { minHeight: eggHeaderHeight } : undefined}
     >
       <div className="brand">
         <div className="brand-left">

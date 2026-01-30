@@ -107,8 +107,8 @@
 
             const startX = width / 2;
             const startY = height / 2;
-            faceX.set(startX - 64);
-            faceY.set(startY - 64);
+            faceX.set(startX - 32);
+            faceY.set(startY - 32);
 
             const engine = Matter.Engine.create();
             engine.gravity.y = 0.5; 
@@ -128,7 +128,7 @@
             ];
             Matter.World.add(engine.world, walls);
 
-            const faceBody = Matter.Bodies.circle(startX, startY, 60, {
+            const faceBody = Matter.Bodies.circle(startX, startY, 32, {
                 label: 'face',
                 restitution: 0.9,
                 friction: 0.05,
@@ -168,8 +168,8 @@
 
               if (faceBodyRef.current) {
                   const { x, y } = faceBodyRef.current.position;
-                  faceX.set(x - 64);
-                  faceY.set(y - 64);
+                  faceX.set(x - 32);
+                  faceY.set(y - 32);
               }
 
               ctx.clearRect(0, 0, width, height);
@@ -417,7 +417,7 @@
                 {slingshotLine}
 
                 <motion.div
-                    className={`absolute z-10 w-24 h-24 md:w-28 md:h-28 ${mode === 'move' ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
+                    className={`absolute z-10 w-12 h-12 md:w-14 md:h-14 ${mode === 'move' ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
                     style={{
                         x: faceX,
                         y: faceY
