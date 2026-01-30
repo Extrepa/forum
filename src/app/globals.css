@@ -161,6 +161,11 @@ header.header--search-open {
 }
 
 .nav-menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: 0;
   border: 1px solid rgba(52, 225, 255, 0.2);
   background: rgba(2, 7, 10, 0.4);
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
@@ -3306,22 +3311,27 @@ header::before {
   }
 
   .nav-menu-button {
-    width: max-content;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: max-content !important;
     max-width: 100%;
     min-width: 0;
     flex-shrink: 0;
     transform: none;
     writing-mode: horizontal-tb;
+    box-sizing: border-box;
   }
 
   .header-bottom-left {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     min-width: 0;
     max-width: max-content;
+    display: flex;
   }
 
   .header-bottom-right {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     min-width: 0;
   }
 
@@ -3837,21 +3847,24 @@ header::before {
 
 /* Keep section buttons compact: match nav pill size, never stretch */
 .page-top-row-right form {
-  flex: 0 0 auto;
-  width: max-content;
+  flex: 0 0 auto !important;
+  width: max-content !important;
   min-width: 0;
 }
 
 .page-top-row-right button,
 .page-top-row-right form button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   padding: 7px 12px;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
-  width: max-content;
+  width: max-content !important;
   max-width: 100%;
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
   min-width: 0;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.2);
@@ -3859,6 +3872,7 @@ header::before {
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
   color: var(--ink);
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .page-top-row-right button:hover:not(:disabled),
@@ -3894,16 +3908,17 @@ header::before {
     font-size: 12px;
     padding: 6px 10px;
     white-space: nowrap;
-    width: max-content;
+    width: max-content !important;
     max-width: 100%;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     align-self: flex-start;
+    display: inline-flex !important;
   }
 
   .page-top-row-right form {
     margin: 0;
-    flex: 0 0 auto;
-    width: max-content;
+    flex: 0 0 auto !important;
+    width: max-content !important;
   }
 }
 
