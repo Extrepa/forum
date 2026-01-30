@@ -1860,6 +1860,13 @@ span:has(.username) + .status-badge {
   text-decoration: underline;
 }
 
+.section-card-count {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .post-header {
   display: flex;
   align-items: center;

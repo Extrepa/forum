@@ -12,11 +12,11 @@ export default function HomeSectionCard({ title, description, count, recentActiv
         className="list-item"
         style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
       >
-        <strong>{title}</strong>
-        <div className="list-meta">{description}</div>
-        <div className="section-stats">
-          <span suppressHydrationWarning>{count} {count === 1 ? 'post' : 'posts'}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
+          <strong>{title}</strong>
+          <span className="section-card-count" suppressHydrationWarning>{count} {count === 1 ? 'post' : 'posts'}</span>
         </div>
+        <div className="list-meta">{description}</div>
       </Link>
     );
   }
@@ -55,16 +55,15 @@ export default function HomeSectionCard({ title, description, count, recentActiv
       className="list-item"
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
-      <strong>{title}</strong>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
+        <strong>{title}</strong>
+        <span className="section-card-count" suppressHydrationWarning>{count} {count === 1 ? 'post' : 'posts'}</span>
+      </div>
       <div className="list-meta">{description}</div>
       <div className="section-stats" suppressHydrationWarning>
-        <span>{count} {count === 1 ? 'post' : 'posts'}</span>
-        {recentActivity && (
-          <span>
-            {' · '}
-            Latest: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
-          </span>
-        )}
+        <span>
+          Recent activity: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
+        </span>
       </div>
     </Link>
   );
