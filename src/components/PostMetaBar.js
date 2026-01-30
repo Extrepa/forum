@@ -87,7 +87,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
-              {createdAt ? <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+              {createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
           )}
         </div>
@@ -106,7 +106,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
-              {createdAt ? <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+              {createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
             {topRight && (
               <span className="post-meta-stats-condensed-row1 muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
