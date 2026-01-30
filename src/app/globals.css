@@ -720,8 +720,6 @@ nav a.active {
 
 header.header--easter-egg {
   overflow: hidden;
-  min-height: 520px;
-  height: clamp(520px, 68vh, 720px);
 }
 
 header.header--easter-egg > * {

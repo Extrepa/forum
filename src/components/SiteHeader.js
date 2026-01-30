@@ -435,7 +435,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           <iframe
             className="header-easter-egg-iframe"
             title="Errl Easter Egg"
-            src="/easter-eggs/errl-bubbles.html"
+            src="/easter-eggs/errl-bubbles-header.html"
           />
         </div>
       ) : null}
