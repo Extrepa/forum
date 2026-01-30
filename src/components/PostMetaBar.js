@@ -87,6 +87,12 @@ export default function PostMetaBar({
             {topRight}
           </span>
         )}
+        {/* Condensed mobile: stats in row 1 with flex-end so they align to bottom when title wraps */}
+        {topRight && isCondensed && (
+          <span className="post-meta-stats-condensed-row1 muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0, alignSelf: 'flex-end' }}>
+            {topRight}
+          </span>
+        )}
       </div>
 
       {/* Row 2: Date/time on left, Views/Replies/Likes on right (mobile), Last Activity on right (desktop) */}
@@ -104,8 +110,8 @@ export default function PostMetaBar({
             {formatDateTime(createdAt)}
           </span>
         )}
-        {/* Mobile: Views/Replies/Likes on right (bottom right when condensed; right of date when has activity) */}
-        {topRight && (
+        {/* Mobile: Views/Replies/Likes on right (row 2; hidden when condensed - stats are in row 1 instead) */}
+        {topRight && !isCondensed && (
           <span className="post-meta-stats-mobile muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
             {topRight}
           </span>

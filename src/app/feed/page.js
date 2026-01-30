@@ -555,12 +555,11 @@ export default async function FeedPage() {
                 </>
               );
               
-              const isCondensedItem = item.type !== 'Event' && (item.replies || 0) === 0;
               return (
                 <a
                   key={`${item.type}:${item.href}`}
                   href={item.href}
-                  className={`list-item ${item.is_unread ? 'thread-unread' : ''} ${isCondensedItem ? 'list-item--condensed-meta' : ''}`}
+                  className={`list-item ${item.is_unread ? 'thread-unread' : ''}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                 >
                   <PostMetaBar
