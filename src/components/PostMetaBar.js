@@ -64,8 +64,8 @@ export default function PostMetaBar({
         rowGap: '4px'
       }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px', rowGap: '4px' }}>
-            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+          <div className="post-meta-author-row" style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'baseline', gap: '8px', minWidth: 0 }}>
+            <div style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden' }}>
               <TitleElement 
                 {...titleProps}
                 style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
