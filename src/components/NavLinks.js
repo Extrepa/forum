@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
-export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
+export default function NavLinks({ isAdmin, isSignedIn, variant = 'all', easterEgg }) {
   const pathname = usePathname();
   const router = useRouter();
   const { loreEnabled } = useUiPrefs();
@@ -64,7 +64,15 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all' }) {
         <a
           key={link.href}
           href={link.href}
-          className={isActive(link.href) ? 'active' : ''}
+          className={[
+            isActive(link.href) ? 'active' : '',
+            link.href === '/feed' && easterEgg?.armed ? 'nav-link-egg-armed' : ''
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          ref={link.href === '/feed' ? easterEgg?.feedRef : null}
+          onDoubleClick={link.href === '/feed' ? easterEgg?.onArm : undefined}
+          onPointerDown={link.href === '/feed' ? easterEgg?.onDragStart : undefined}
           onClick={(e) => handleLinkClick(e, link.href)}
         >
           {link.label}

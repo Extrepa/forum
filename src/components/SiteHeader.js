@@ -37,6 +37,15 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const searchInputRef = useRef(null);
   const searchFormRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const logoWrapRef = useRef(null);
+  const feedLinkRef = useRef(null);
+  const [eggArmed, setEggArmed] = useState(false);
+  const [eggActive, setEggActive] = useState(false);
+  const [eggDragging, setEggDragging] = useState(false);
+  const [dragPoint, setDragPoint] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
+  const [dragLabel, setDragLabel] = useState('Feed');
 
   useEffect(() => {
     setMenuOpen(false);
@@ -53,6 +62,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       setSearchMode(false);
       setSearchQuery('');
       setSearchResults([]);
+    }
+    if (!navDisabled) {
+      setEggArmed(false);
+      setEggActive(false);
+      setEggDragging(false);
     }
   }, [navDisabled]);
 
@@ -154,14 +168,75 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     handleSearchClose();
   };
 
+  const handleEggArm = useCallback(
+    (event) => {
+      if (!navDisabled || eggActive) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setEggArmed(true);
+    },
+    [navDisabled, eggActive]
+  );
+
+  const handleEggDragStart = useCallback(
+    (event) => {
+      if (!navDisabled || !eggArmed || eggActive) return;
+      if (event.button !== undefined && event.button !== 0) return;
+      const rect = feedLinkRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const label = feedLinkRef.current?.textContent?.trim();
+      if (label) setDragLabel(label);
+      event.preventDefault();
+      event.stopPropagation();
+      setDragSize({ width: rect.width, height: rect.height });
+      setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+      setDragPoint({ x: event.clientX, y: event.clientY });
+      setEggDragging(true);
+    },
+    [navDisabled, eggArmed, eggActive]
+  );
+
+  useEffect(() => {
+    if (!eggDragging) return;
+
+    const handleMove = (event) => {
+      setDragPoint({ x: event.clientX, y: event.clientY });
+    };
+
+    const handleUp = (event) => {
+      setEggDragging(false);
+      const logoRect = logoWrapRef.current?.getBoundingClientRect();
+      if (!logoRect) return;
+      const hit =
+        event.clientX >= logoRect.left &&
+        event.clientX <= logoRect.right &&
+        event.clientY >= logoRect.top &&
+        event.clientY <= logoRect.bottom;
+      if (hit) {
+        setEggActive(true);
+        setEggArmed(false);
+      }
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+  }, [eggDragging]);
+
   const headerClassName = useMemo(() => {
     const bits = [];
     if (detail) bits.push('header--detail');
     if (moreOpen) bits.push('header--expanded');
     if (menuOpen) bits.push('header--menu-open');
     if (searchMode) bits.push('header--search-open');
+    if (eggActive) bits.push('header--easter-egg');
     return bits.join(' ');
-  }, [detail, moreOpen, menuOpen, searchMode]);
+  }, [detail, moreOpen, menuOpen, searchMode, eggActive]);
 
   return (
     <header className={headerClassName}>
@@ -188,12 +263,24 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             <p className="forum-description">{subtitle}</p>
           </div>
         </div>
-        <NotificationsLogoTrigger enabled={!navDisabled} />
+        <div ref={logoWrapRef} className="header-errl-logo-wrap">
+          <NotificationsLogoTrigger enabled={!navDisabled} />
+        </div>
       </div>
 
       <div className="header-nav-section">
         <nav className="nav-inline">
-          <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="primary" />
+          <NavLinks
+            isAdmin={isAdmin}
+            isSignedIn={isSignedIn}
+            variant="primary"
+            easterEgg={{
+              armed: eggArmed,
+              feedRef: feedLinkRef,
+              onArm: handleEggArm,
+              onDragStart: handleEggDragStart
+            }}
+          />
         </nav>
 
         <div className="header-right-controls" ref={moreWrapRef}>
@@ -228,7 +315,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
       {moreOpen ? (
         <nav ref={moreNavRef} className="nav-inline nav-inline--more" aria-label="More pages">
-          <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="more" />
+          <NavLinks
+            isAdmin={isAdmin}
+            isSignedIn={isSignedIn}
+            variant="more"
+            easterEgg={{
+              armed: eggArmed,
+              feedRef: feedLinkRef,
+              onArm: handleEggArm,
+              onDragStart: handleEggDragStart
+            }}
+          />
         </nav>
       ) : null}
 
@@ -295,7 +392,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       {menuOpen && (
         <div ref={menuExpandedRef} className="nav-menu-expanded" role="menu" aria-label="Site menu">
           <nav className="nav-menu-links-scrollable">
-            <NavLinks isAdmin={isAdmin} isSignedIn={isSignedIn} variant="all" />
+            <NavLinks
+              isAdmin={isAdmin}
+              isSignedIn={isSignedIn}
+              variant="all"
+              easterEgg={{
+                armed: eggArmed,
+                feedRef: feedLinkRef,
+                onArm: handleEggArm,
+                onDragStart: handleEggDragStart
+              }}
+            />
           </nav>
         </div>
       )}
@@ -309,6 +416,29 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           excludeRef={searchFormRef}
         />
       )}
+
+      {eggDragging ? (
+        <div
+          className="nav-egg-drag-ghost"
+          style={{
+            width: dragSize.width,
+            height: dragSize.height,
+            transform: `translate(${dragPoint.x - dragOffset.x}px, ${dragPoint.y - dragOffset.y}px)`
+          }}
+        >
+          {dragLabel}
+        </div>
+      ) : null}
+
+      {eggActive ? (
+        <div className="header-easter-egg-overlay" aria-hidden="true">
+          <iframe
+            className="header-easter-egg-iframe"
+            title="Errl Easter Egg"
+            src="/easter-eggs/errl-bubbles.html"
+          />
+        </div>
+      ) : null}
 
       <HeaderSetupBanner />
     </header>
