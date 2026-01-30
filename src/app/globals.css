@@ -728,6 +728,19 @@ nav a.active {
 
 header.header--easter-egg {
   overflow: hidden;
+  min-height: 480px;
+  transition: min-height 0.3s ease-out;
+}
+
+header.header--easter-egg > *:not(.header-easter-egg-overlay) {
+  position: relative;
+  z-index: 2100;
+}
+
+@media (max-width: 640px) {
+  header.header--easter-egg {
+    min-height: 380px;
+  }
 }
 
 header.header--easter-egg > * {
