@@ -720,6 +720,10 @@ nav a.active {
   box-shadow: 0 0 22px rgba(255, 52, 245, 0.55), 0 0 12px rgba(52, 225, 255, 0.45);
   pointer-events: none;
   transform: translate(0, 0);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 header.header--easter-egg {
