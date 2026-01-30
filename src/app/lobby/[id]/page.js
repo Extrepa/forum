@@ -13,6 +13,7 @@ import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import { isAdminUser } from '../../../lib/admin';
 import PostHeader from '../../../components/PostHeader';
 import ThreadViewTracker from '../../../components/ThreadViewTracker';
@@ -96,6 +97,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       SELECT forum_threads.id, forum_threads.title, forum_threads.body,
              forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
              COALESCE(forum_threads.is_hidden, 0) AS is_hidden,
+             COALESCE(forum_threads.is_pinned, 0) AS is_pinned,
              COALESCE(forum_threads.is_deleted, 0) AS is_deleted,
              forum_threads.moved_to_type, forum_threads.moved_to_id,
              COALESCE(forum_threads.views, 0) AS views,
@@ -119,6 +121,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         thread.moved_to_type = thread.moved_to_type || null;
         thread.like_count = thread.like_count || 0;
         thread.is_hidden = thread.is_hidden ?? 0;
+        thread.is_pinned = thread.is_pinned ?? 0;
         thread.is_deleted = thread.is_deleted ?? 0;
         // #region agent log
         log('lobby/[id]/page.js:90', 'Thread defaults set', {threadId:id,hasMovedToId:!!thread.moved_to_id,likeCount:thread.like_count}, 'A');
@@ -136,6 +139,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                     COALESCE(forum_threads.is_hidden, 0) AS is_hidden,
+                    COALESCE(forum_threads.is_pinned, 0) AS is_pinned,
                     COALESCE(forum_threads.is_deleted, 0) AS is_deleted,
                     COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
@@ -152,6 +156,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           thread.moved_to_id = thread.moved_to_id || null;
           thread.moved_to_type = thread.moved_to_type || null;
           thread.is_hidden = thread.is_hidden ?? 0;
+          thread.is_pinned = thread.is_pinned ?? 0;
           thread.is_deleted = thread.is_deleted ?? 0;
         }
       } catch (e2) {
@@ -162,6 +167,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                     forum_threads.created_at, forum_threads.image_key, forum_threads.is_locked, forum_threads.author_user_id,
                     0 AS is_hidden,
+                    COALESCE(forum_threads.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted,
                     COALESCE(forum_threads.views, 0) AS views,
                     COALESCE(users.username, 'Deleted User') AS author_name,
@@ -179,6 +185,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             thread.moved_to_id = thread.moved_to_id || null;
             thread.moved_to_type = thread.moved_to_type || null;
             thread.is_hidden = thread.is_hidden ?? 0;
+            thread.is_pinned = thread.is_pinned ?? 0;
             thread.is_deleted = thread.is_deleted ?? 0;
           }
         } catch (e3) {
@@ -463,6 +470,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   const canEdit = !!viewer && thread && thread.id && !!viewer.password_hash && (viewer.id === thread.author_user_id || isAdmin);
   const canDelete = canEdit;
   const isHidden = thread?.is_hidden ? Boolean(thread.is_hidden) : false;
+  const isPinned = thread?.is_pinned ? Boolean(thread.is_pinned) : false;
   const isDeleted = thread?.is_deleted ? Boolean(thread.is_deleted) : false;
 
   if (isDeleted) {
@@ -735,6 +743,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={safeThreadId} postType="thread" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />

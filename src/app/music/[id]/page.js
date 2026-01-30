@@ -9,6 +9,7 @@ import PageTopRow from '../../../components/PageTopRow';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -66,6 +67,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
                 COALESCE(music_posts.is_locked, 0) AS is_locked,
                 COALESCE(music_posts.is_hidden, 0) AS is_hidden,
+                COALESCE(music_posts.is_pinned, 0) AS is_pinned,
                 COALESCE(music_posts.is_deleted, 0) AS is_deleted,
                 music_posts.embed_style
          FROM music_posts
@@ -93,6 +95,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   0 AS like_count,
                   COALESCE(music_posts.is_locked, 0) AS is_locked,
                   COALESCE(music_posts.is_hidden, 0) AS is_hidden,
+                  COALESCE(music_posts.is_pinned, 0) AS is_pinned,
                   COALESCE(music_posts.is_deleted, 0) AS is_deleted,
                   music_posts.embed_style
            FROM music_posts
@@ -108,6 +111,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
           post.is_locked = post.is_locked ?? 0;
           post.is_hidden = post.is_hidden ?? 0;
+          post.is_pinned = post.is_pinned ?? 0;
           post.is_deleted = post.is_deleted ?? 0;
         }
     } catch (e2) {
@@ -125,6 +129,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     0 AS like_count,
                     0 AS is_locked,
                     0 AS is_hidden,
+                    COALESCE(music_posts.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted,
                     music_posts.embed_style
              FROM music_posts
@@ -140,6 +145,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
           post.embed_style = post.embed_style || 'auto'; // Preserve existing value or default to 'auto'
           post.is_locked = 0;
           post.is_hidden = 0;
+          post.is_pinned = post.is_pinned ?? 0;
           post.is_deleted = 0;
         }
       } catch (e3) {
@@ -224,6 +230,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
   const canToggleLock = isAdmin;
   const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
   const isHidden = post.is_hidden ? Boolean(post.is_hidden) : false;
+  const isPinned = post.is_pinned ? Boolean(post.is_pinned) : false;
   const isDeleted = post.is_deleted ? Boolean(post.is_deleted) : false;
 
   if (isDeleted) {
@@ -314,6 +321,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={id} postType="music" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />

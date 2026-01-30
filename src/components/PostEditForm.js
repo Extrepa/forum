@@ -42,16 +42,6 @@ export default function PostEditForm({
         />
       </label>
 
-      <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <input 
-          type="checkbox" 
-          name="is_private" 
-          value="1" 
-          defaultChecked={initialData?.is_private ? true : false} 
-        />
-        <span className="muted">Members-only (signed-in users only)</span>
-      </label>
-
       {showImage ? (
         <label>
           <div className="muted">Image (optional)</div>

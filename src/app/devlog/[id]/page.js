@@ -12,6 +12,7 @@ import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/u
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import PostHeader from '../../../components/PostHeader';
@@ -87,6 +88,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         `SELECT dev_logs.id, dev_logs.author_user_id, dev_logs.title, dev_logs.body, dev_logs.image_key,
                 dev_logs.is_locked,
                 COALESCE(dev_logs.is_hidden, 0) AS is_hidden,
+                COALESCE(dev_logs.is_pinned, 0) AS is_pinned,
                 COALESCE(dev_logs.is_deleted, 0) AS is_deleted,
                 dev_logs.created_at, dev_logs.updated_at,
                 dev_logs.moved_to_type, dev_logs.moved_to_id,
@@ -113,6 +115,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
                   COALESCE(dev_logs.is_hidden, 0) AS is_hidden,
+                  COALESCE(dev_logs.is_pinned, 0) AS is_pinned,
                   COALESCE(dev_logs.is_deleted, 0) AS is_deleted,
                   0 AS like_count
            FROM dev_logs
@@ -125,6 +128,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         log.author_avatar_key = log.author_avatar_key || null;
         log.is_locked = 0;
         log.is_hidden = log.is_hidden ?? 0;
+        log.is_pinned = log.is_pinned ?? 0;
         log.is_deleted = log.is_deleted ?? 0;
         log.moved_to_id = null;
         log.moved_to_type = null;
@@ -143,6 +147,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     users.preferred_username_color_index AS author_color_preference,
                     users.avatar_key AS author_avatar_key,
                     0 AS is_hidden,
+                    COALESCE(dev_logs.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted,
                     0 AS like_count
              FROM dev_logs
@@ -155,6 +160,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           log.author_avatar_key = log.author_avatar_key || null;
           log.is_locked = 0;
           log.is_hidden = 0;
+          log.is_pinned = log.is_pinned ?? 0;
           log.is_deleted = 0;
           log.moved_to_id = null;
           log.moved_to_type = null;
@@ -279,6 +285,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
   const canDelete = canEdit;
   const canToggleLock = isAdmin;
   const isHidden = log.is_hidden ? Boolean(log.is_hidden) : false;
+  const isPinned = log.is_pinned ? Boolean(log.is_pinned) : false;
   const isDeleted = log.is_deleted ? Boolean(log.is_deleted) : false;
 
   if (isDeleted) {
@@ -376,6 +383,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={id} postType="devlog" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={id} postType="devlog" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/devlog/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />

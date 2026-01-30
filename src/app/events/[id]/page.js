@@ -8,6 +8,7 @@ import PageTopRow from '../../../components/PageTopRow';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import PostForm from '../../../components/PostForm';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
@@ -62,6 +63,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                 COALESCE(events.is_locked, 0) AS is_locked,
                 COALESCE(events.is_hidden, 0) AS is_hidden,
+                COALESCE(events.is_pinned, 0) AS is_pinned,
                 COALESCE(events.is_deleted, 0) AS is_deleted
          FROM events
          JOIN users ON users.id = events.author_user_id
@@ -82,6 +84,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                   0 AS like_count,
                   COALESCE(events.is_locked, 0) AS is_locked,
                   COALESCE(events.is_hidden, 0) AS is_hidden,
+                  COALESCE(events.is_pinned, 0) AS is_pinned,
                   COALESCE(events.is_deleted, 0) AS is_deleted
            FROM events
            JOIN users ON users.id = events.author_user_id
@@ -95,6 +98,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         event.moved_to_type = null;
         event.is_locked = event.is_locked ?? 0;
         event.is_hidden = event.is_hidden ?? 0;
+        event.is_pinned = event.is_pinned ?? 0;
         event.is_deleted = event.is_deleted ?? 0;
       }
     } catch (e2) {
@@ -110,6 +114,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                     0 AS like_count,
                     0 AS is_locked,
                     0 AS is_hidden,
+                    COALESCE(events.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted
              FROM events
              JOIN users ON users.id = events.author_user_id
@@ -305,6 +310,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   const canToggleLock = isAdmin;
   const isLocked = event.is_locked ? Boolean(event.is_locked) : false;
   const isHidden = event.is_hidden ? Boolean(event.is_hidden) : false;
+  const isPinned = event.is_pinned ? Boolean(event.is_pinned) : false;
   const isDeleted = event.is_deleted ? Boolean(event.is_deleted) : false;
 
   if (isDeleted) {
@@ -336,6 +342,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={id} postType="event" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={id} postType="event" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />

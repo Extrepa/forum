@@ -12,6 +12,7 @@ import LikeButton from '../../../components/LikeButton';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
@@ -82,6 +83,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                 COALESCE(projects.is_locked, 0) AS is_locked,
                 COALESCE(projects.is_hidden, 0) AS is_hidden,
+                COALESCE(projects.is_pinned, 0) AS is_pinned,
                 COALESCE(projects.is_deleted, 0) AS is_deleted
          FROM projects
          JOIN users ON users.id = projects.author_user_id
@@ -104,6 +106,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                   COALESCE(projects.is_locked, 0) AS is_locked,
                   COALESCE(projects.is_hidden, 0) AS is_hidden,
+                  COALESCE(projects.is_pinned, 0) AS is_pinned,
                   COALESCE(projects.is_deleted, 0) AS is_deleted
            FROM projects
            JOIN users ON users.id = projects.author_user_id
@@ -117,6 +120,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         project.moved_to_type = null;
         project.is_locked = project.is_locked ?? 0;
         project.is_hidden = project.is_hidden ?? 0;
+        project.is_pinned = project.is_pinned ?? 0;
         project.is_deleted = project.is_deleted ?? 0;
       }
     } catch (e2) {
@@ -134,6 +138,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
                     0 AS is_locked,
                     0 AS is_hidden,
+                    COALESCE(projects.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted
              FROM projects
              JOIN users ON users.id = projects.author_user_id
@@ -147,6 +152,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           project.moved_to_type = null;
           project.is_locked = 0;
           project.is_hidden = 0;
+          project.is_pinned = project.is_pinned ?? 0;
           project.is_deleted = 0;
         }
       } catch (e3) {
@@ -249,6 +255,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
   const canToggleLock = isAdmin;
   const isLocked = project.is_locked ? Boolean(project.is_locked) : false;
   const isHidden = project.is_hidden ? Boolean(project.is_hidden) : false;
+  const isPinned = project.is_pinned ? Boolean(project.is_pinned) : false;
   const isDeleted = project.is_deleted ? Boolean(project.is_deleted) : false;
 
   if (isDeleted) {
@@ -453,6 +460,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={safeProjectId} postType="project" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />

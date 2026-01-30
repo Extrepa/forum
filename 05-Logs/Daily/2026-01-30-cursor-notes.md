@@ -141,3 +141,11 @@ Desktop condensed layout put "by username at time" next to the views on the righ
 - `src/components/SiteHeader.js`: Navigation button always opens menu; menu no longer auto-closed when navDisabled.
 - `src/app/globals.css`: header/brand spacing, mobile overrides for header size.
 - `public/easter-eggs/errl-bubbles-header.html`: region-eyeL, region-eyeR, region-mouth strokeWidth 12→4.
+
+---
+
+## Pin admin controls (fix/pin-admin-controls)
+
+- **Branch:** `fix/pin-admin-controls`
+- **PinPostButton:** New component (icon next to visibility icon in breadcrumbs/controls row). Calls `POST /api/admin/posts/[id]/pin` with JSON `{ type }`; maps postType (thread, timeline, post, event, music, project, devlog) to API type.
+- **Detail pages:** Added `is_pinned` to main content queries and PinPostButton next to HidePostButton (admin-only) on: lobby, announcements, devlog, events, music, projects, rant, nostalgia, memories, lore, lore-memories, bugs, art.

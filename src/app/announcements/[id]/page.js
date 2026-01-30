@@ -17,6 +17,7 @@ import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostForm from '../../../components/PostForm';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import { formatDateTime } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
                 COALESCE(timeline_updates.views, 0) AS views,
                 COALESCE(timeline_updates.is_locked, 0) AS is_locked,
                 COALESCE(timeline_updates.is_hidden, 0) AS is_hidden,
+                COALESCE(timeline_updates.is_pinned, 0) AS is_pinned,
                 COALESCE(timeline_updates.is_deleted, 0) AS is_deleted,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -83,6 +85,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
                 COALESCE(timeline_updates.views, 0) AS views,
                 COALESCE(timeline_updates.is_locked, 0) AS is_locked,
                 0 AS is_hidden,
+                COALESCE(timeline_updates.is_pinned, 0) AS is_pinned,
                 0 AS is_deleted,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -117,6 +120,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
   const canToggleLock = isAdmin;
   const isLocked = update.is_locked ? Boolean(update.is_locked) : false;
   const isHidden = update.is_hidden ? Boolean(update.is_hidden) : false;
+  const isPinned = update.is_pinned ? Boolean(update.is_pinned) : false;
   const isDeleted = update.is_deleted ? Boolean(update.is_deleted) : false;
 
   if (isDeleted) {
@@ -221,6 +225,7 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={update.id} postType="timeline" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />

@@ -8,6 +8,7 @@ import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostEditForm from '../../../components/PostEditForm';
 import HidePostButton from '../../../components/HidePostButton';
+import PinPostButton from '../../../components/PinPostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -43,6 +44,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
               COALESCE(posts.views, 0) AS views,
               COALESCE(posts.is_locked, 0) AS is_locked,
               COALESCE(posts.is_hidden, 0) AS is_hidden,
+              COALESCE(posts.is_pinned, 0) AS is_pinned,
               COALESCE(posts.is_deleted, 0) AS is_deleted,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -138,6 +140,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
   const canToggleLock = isAdmin;
   const isLocked = post.is_locked ? Boolean(post.is_locked) : false;
   const isHidden = post.is_hidden ? Boolean(post.is_hidden) : false;
+  const isPinned = post.is_pinned ? Boolean(post.is_pinned) : false;
   const isDeleted = post.is_deleted ? Boolean(post.is_deleted) : false;
 
   if (isDeleted) {
@@ -198,6 +201,7 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
         right={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {isAdmin ? <HidePostButton postId={id} postType="post" initialHidden={isHidden} /> : null}
+            {isAdmin ? <PinPostButton postId={id} postType="post" initialPinned={isPinned} /> : null}
             {canToggleLock ? (
               <form action={`/api/posts/${id}/lock`} method="post" style={{ margin: 0 }}>
                 <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
