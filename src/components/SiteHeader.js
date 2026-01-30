@@ -258,81 +258,85 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
     <header
       className={headerClassName}
     >
-      <div className="brand">
-        <div className="brand-left">
-          <div>
-            <h1 
-              className="forum-title"
-              onClick={() => {
-                if (navDisabled) return;
-                setTitleClicked(true);
-                setTimeout(() => {
-                  router.push('/');
-                  setTitleClicked(false);
-                }, 300);
-              }}
-              style={{ 
-                animation: titleClicked ? 'gooey-click 0.3s ease' : undefined,
-                cursor: navDisabled ? 'default' : 'pointer'
-              }}
-            >
-              Errl Forum
-            </h1>
-            <p className="forum-description">{subtitle}</p>
+      {!eggActive && (
+        <div className="brand">
+          <div className="brand-left">
+            <div>
+              <h1 
+                className="forum-title"
+                onClick={() => {
+                  if (navDisabled) return;
+                  setTitleClicked(true);
+                  setTimeout(() => {
+                    router.push('/');
+                    setTitleClicked(false);
+                  }, 300);
+                }}
+                style={{ 
+                  animation: titleClicked ? 'gooey-click 0.3s ease' : undefined,
+                  cursor: navDisabled ? 'default' : 'pointer'
+                }}
+              >
+                Errl Forum
+              </h1>
+              <p className="forum-description">{subtitle}</p>
+            </div>
+          </div>
+          <div ref={logoWrapRef} className="header-errl-logo-wrap">
+            <NotificationsLogoTrigger enabled={!navDisabled} />
           </div>
         </div>
-        <div ref={logoWrapRef} className="header-errl-logo-wrap">
-          <NotificationsLogoTrigger enabled={!navDisabled} />
-        </div>
-      </div>
+      )}
 
-      <div className="header-nav-section">
-        <nav className="nav-inline">
-          <NavLinks
-            isAdmin={isAdmin}
-            isSignedIn={isSignedIn}
-            variant="primary"
-            easterEgg={{
-              armed: eggArmed,
-              dragging: eggDragging,
-              feedRef: feedLinkRef,
-              onArm: handleEggArm,
-              onDragStart: handleEggDragStart
-            }}
-          />
-        </nav>
+      {!eggActive && (
+        <div className="header-nav-section">
+          <nav className="nav-inline">
+            <NavLinks
+              isAdmin={isAdmin}
+              isSignedIn={isSignedIn}
+              variant="primary"
+              easterEgg={{
+                armed: eggArmed,
+                dragging: eggDragging,
+                feedRef: feedLinkRef,
+                onArm: handleEggArm,
+                onDragStart: handleEggDragStart
+              }}
+            />
+          </nav>
 
-        <div className="header-right-controls" ref={moreWrapRef}>
-          <button
-            type="button"
-            className="icon-button nav-more-toggle"
-            onClick={() => {
-              if (navDisabled) return;
-              setMoreOpen((v) => !v);
-            }}
-            aria-label="More pages"
-            aria-expanded={moreOpen ? 'true' : 'false'}
-            title="More"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
+          <div className="header-right-controls" ref={moreWrapRef}>
+            <button
+              type="button"
+              className="icon-button nav-more-toggle"
+              onClick={() => {
+                if (navDisabled) return;
+                setMoreOpen((v) => !v);
+              }}
+              aria-label="More pages"
+              aria-expanded={moreOpen ? 'true' : 'false'}
+              title="More"
             >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
-          <SearchBar disabled={navDisabled} />
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <SearchBar disabled={navDisabled} />
+          </div>
         </div>
-      </div>
+      )}
 
-      {moreOpen ? (
+      {!eggActive && moreOpen ? (
         <nav ref={moreNavRef} className="nav-inline nav-inline--more" aria-label="More pages">
           <NavLinks
             isAdmin={isAdmin}
@@ -349,67 +353,69 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         </nav>
       ) : null}
 
-      <div className="header-bottom-controls">
-        <div className="header-bottom-left" ref={menuRef}>
-          {searchMode ? (
-            <form ref={searchFormRef} onSubmit={handleSearchSubmit} className="header-search-form-inline">
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={strings.search.placeholder || "Search posts, threads, events..."}
-                className="header-search-input-inline"
-                autoFocus
-              />
+      {!eggActive && (
+        <div className="header-bottom-controls">
+          <div className="header-bottom-left" ref={menuRef}>
+            {searchMode ? (
+              <form ref={searchFormRef} onSubmit={handleSearchSubmit} className="header-search-form-inline">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={strings.search.placeholder || "Search posts, threads, events..."}
+                  className="header-search-input-inline"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchClose}
+                  className="header-search-close"
+                  aria-label="Close search"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m18 6-12 12"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                </button>
+              </form>
+            ) : (
               <button
                 type="button"
-                onClick={handleSearchClose}
-                className="header-search-close"
-                aria-label="Close search"
+                className="nav-menu-button"
+                onClick={() => {
+                  if (navDisabled) return;
+                  setMenuOpen((v) => !v);
+                  setSearchMode(false);
+                }}
+                aria-label="Open navigation menu"
+                aria-expanded={menuOpen ? 'true' : 'false'}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m18 6-12 12"></path>
-                  <path d="m6 6 12 12"></path>
+                Navigation
+              </button>
+            )}
+          </div>
+
+          <div className="header-bottom-right">
+            {!searchMode && (
+              <button
+                type="button"
+                onClick={handleSearchClick}
+                className="header-search-toggle"
+                aria-label="Search"
+                title="Search"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
                 </svg>
               </button>
-            </form>
-          ) : (
-            <button
-              type="button"
-              className="nav-menu-button"
-              onClick={() => {
-                if (navDisabled) return;
-                setMenuOpen((v) => !v);
-                setSearchMode(false);
-              }}
-              aria-label="Open navigation menu"
-              aria-expanded={menuOpen ? 'true' : 'false'}
-            >
-              Navigation
-            </button>
-          )}
+            )}
+          </div>
         </div>
+      )}
 
-        <div className="header-bottom-right">
-          {!searchMode && (
-            <button
-              type="button"
-              onClick={handleSearchClick}
-              className="header-search-toggle"
-              aria-label="Search"
-              title="Search"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {menuOpen && (
+      {!eggActive && menuOpen && (
         <div ref={menuExpandedRef} className="nav-menu-expanded" role="menu" aria-label="Site menu">
           <nav className="nav-menu-links-scrollable">
             <NavLinks
@@ -428,7 +434,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         </div>
       )}
 
-      {searchMode && searchResults.length > 0 && (
+      {!eggActive && searchMode && searchResults.length > 0 && (
         <SearchResultsPopover
           results={searchResults}
           query={searchQuery}
@@ -463,7 +469,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         </div>
       ) : null}
 
-      <HeaderSetupBanner />
+      {!eggActive && <HeaderSetupBanner />}
     </header>
   );
 }
