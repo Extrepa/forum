@@ -74,6 +74,9 @@ export default function PostMetaBar({
               colorIndex={authorColorIndex}
               preferredColorIndex={authorPreferredColorIndex}
             />
+            {replies === 0 && createdAt ? (
+              <> at <span suppressHydrationWarning>{formatDateTime(createdAt)}</span></>
+            ) : null}
           </span>
         </div>
         {/* Desktop: Views/Replies/Likes on top right */}
@@ -94,7 +97,7 @@ export default function PostMetaBar({
         gap: '8px',
         rowGap: '4px'
       }}>
-        {createdAt && (
+        {createdAt && replies > 0 && (
           <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
             {formatDateTime(createdAt)}
           </span>
