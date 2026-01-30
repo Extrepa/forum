@@ -1590,9 +1590,15 @@ a.profile-activity-item:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.profile-activity-item .activity-label,
 .profile-activity-item .activity-meta {
   color: var(--muted);
   font-size: 12px;
+  flex-shrink: 0;
+}
+.profile-activity-item .activity-section {
+  color: var(--errl-accent);
+  font-weight: 500;
   flex-shrink: 0;
 }
 

@@ -1139,16 +1139,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     >
                       {item.type === 'thread' ? (
                         <>
-                          <span>Posted</span>
+                          <span className="activity-label">Posted</span>
                           <span className="activity-title" title={title}>{title}</span>
-                          <span>in {section} at</span>
+                          <span className="activity-label">in</span>
+                          <span className="activity-section">{section}</span>
+                          <span className="activity-label">at</span>
                           <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
                         </>
                       ) : (
                         <>
-                          <span>Replied to</span>
+                          <span className="activity-label">Replied to</span>
                           <span className="activity-title" title={title}>{title}</span>
-                          <span>at</span>
+                          <span className="activity-label">at</span>
                           <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
                         </>
                       )}
