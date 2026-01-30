@@ -359,6 +359,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   // Get platform icon component
+  const getSectionLabel = (postType, replyType) => {
+    const t = postType || replyType || '';
+    const map = {
+      forum_thread: 'General',
+      forum_reply: 'General',
+      dev_log: 'Development',
+      dev_log_comment: 'Development',
+      music_post: 'Music',
+      music_comment: 'Music',
+      project: 'Projects',
+      project_reply: 'Projects',
+      timeline_update: 'Announcements',
+      timeline_comment: 'Announcements',
+      event: 'Events',
+      event_comment: 'Events',
+    };
+    return map[t] || 'Forum';
+  };
+
   const getPlatformIcon = (platform) => {
     const iconMap = {
       github: '/icons/social/github.png',
@@ -1086,9 +1105,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           {stats.recentActivity && stats.recentActivity.length > 0 ? (
             <div>
               <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
-              <div className="list">
+              <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
                 {stats.recentActivity.map((item) => {
-                  // Determine URL based on post/reply type
                   let href = '#';
                   if (item.type === 'thread') {
                     const postType = item.postType || item.post_type;
@@ -1108,24 +1126,32 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
                     else if (replyType === 'event_comment') href = `/events/${threadId}`;
                   }
-                  
+                  const postType = item.postType || item.post_type;
+                  const replyType = item.replyType || item.reply_type;
+                  const section = getSectionLabel(postType, replyType);
+                  const title = item.type === 'thread' ? item.title : item.thread_title;
+                  const timeStr = formatDateTime(item.created_at);
                   return (
                     <a
                       key={`${item.type}-${item.id}`}
                       href={href}
-                      className="list-item"
-                      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                      className="profile-activity-item"
                     >
-                      <div style={{ marginBottom: '4px' }}>
-                        {item.type === 'thread' ? (
-                          <strong>{item.title}</strong>
-                        ) : (
-                          <>Replied to <strong>{item.thread_title}</strong></>
-                        )}
-                      </div>
-                      <div className="list-meta" style={{ fontSize: '12px' }}>
-                        {formatDateTime(item.created_at)}
-                      </div>
+                      {item.type === 'thread' ? (
+                        <>
+                          <span>Posted</span>
+                          <span className="activity-title" title={title}>{title}</span>
+                          <span>in {section} at</span>
+                          <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Replied to</span>
+                          <span className="activity-title" title={title}>{title}</span>
+                          <span>at</span>
+                          <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
+                        </>
+                      )}
                     </a>
                   );
                 })}

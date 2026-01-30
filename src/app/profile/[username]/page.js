@@ -351,6 +351,26 @@ export default async function ProfilePage({ params }) {
     }
   }
 
+  // Section label for post/reply types (for Recent Activity)
+  const getSectionLabel = (postType, replyType) => {
+    const t = postType || replyType || '';
+    const map = {
+      forum_thread: 'General',
+      forum_reply: 'General',
+      dev_log: 'Development',
+      dev_log_comment: 'Development',
+      music_post: 'Music',
+      music_comment: 'Music',
+      project: 'Projects',
+      project_reply: 'Projects',
+      timeline_update: 'Announcements',
+      timeline_comment: 'Announcements',
+      event: 'Events',
+      event_comment: 'Events',
+    };
+    return map[t] || 'Forum';
+  };
+
   // Extract username from platform URLs
   const extractUsername = (platform, url) => {
     try {
@@ -610,9 +630,8 @@ export default async function ProfilePage({ params }) {
         {stats.recentActivity && stats.recentActivity.length > 0 ? (
           <div style={{ marginTop: '24px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
-            <div className="list">
+            <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
               {stats.recentActivity.map((item) => {
-                // Determine URL based on post/reply type
                 let href = '#';
                 if (item.type === 'thread') {
                   const postType = item.postType || item.post_type;
@@ -632,24 +651,32 @@ export default async function ProfilePage({ params }) {
                   else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
                   else if (replyType === 'event_comment') href = `/events/${threadId}`;
                 }
-                
+                const postType = item.postType || item.post_type;
+                const replyType = item.replyType || item.reply_type;
+                const section = getSectionLabel(postType, replyType);
+                const title = item.type === 'thread' ? item.title : item.thread_title;
+                const timeStr = formatDateTime(item.created_at);
                 return (
                   <a
                     key={`${item.type}-${item.id}`}
                     href={href}
-                    className="list-item"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                    className="profile-activity-item"
                   >
-                    <div style={{ marginBottom: '4px' }}>
-                      {item.type === 'thread' ? (
-                        <strong>{item.title}</strong>
-                      ) : (
-                        <>Replied to <strong>{item.thread_title}</strong></>
-                      )}
-                    </div>
-                    <div className="list-meta" style={{ fontSize: '12px' }}>
-                      <span suppressHydrationWarning>{formatDateTime(item.created_at)}</span>
-                    </div>
+                    {item.type === 'thread' ? (
+                      <>
+                        <span>Posted</span>
+                        <span className="activity-title" title={title}>{title}</span>
+                        <span>in {section} at</span>
+                        <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Replied to</span>
+                        <span className="activity-title" title={title}>{title}</span>
+                        <span>at</span>
+                        <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
+                      </>
+                    )}
                   </a>
                 );
               })}

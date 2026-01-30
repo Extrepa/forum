@@ -1550,6 +1550,52 @@ button:hover {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Skinny one-row activity cards for profile/account Recent Activity */
+.profile-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-activity-list--scrollable {
+  max-height: 230px;
+  overflow-y: auto;
+}
+.profile-activity-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 58, 74, 0.6);
+  background: rgba(4, 16, 23, 0.5);
+  font-size: 13px;
+  line-height: 1.4;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+a.profile-activity-item {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+a.profile-activity-item:hover {
+  background: rgba(52, 225, 255, 0.05);
+  border-color: rgba(52, 225, 255, 0.3);
+}
+.profile-activity-item .activity-title {
+  font-weight: 600;
+  color: var(--ink);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-activity-item .activity-meta {
+  color: var(--muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
 .list-item {
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: 14px;
@@ -3753,9 +3799,14 @@ header::before {
 
 .page-top-row-right button,
 .page-top-row-right form button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 7px 10px;
   font-size: 14px;
+}
+
+/* Align breadcrumb row height with control buttons */
+.page-top-row .breadcrumb-item {
+  min-height: 44px;
 }
 
 @media (max-width: 768px) {
@@ -3773,6 +3824,7 @@ header::before {
   
   .page-top-row-right button,
   .page-top-row-right form button {
+    min-height: 44px;
     font-size: 12px;
     padding: 4px 8px;
     white-space: nowrap;
