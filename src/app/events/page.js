@@ -33,7 +33,8 @@ export default async function EventsPage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at,
+                (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
@@ -57,7 +58,8 @@ export default async function EventsPage({ searchParams }) {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
-                  COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at,
+                  (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count
          FROM events
          JOIN users ON users.id = events.author_user_id
          ORDER BY is_pinned DESC, events.starts_at ASC

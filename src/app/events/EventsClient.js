@@ -126,6 +126,11 @@ export default function EventsClient({ events, notice }) {
                               ({formatRelativeEventDate(row.starts_at)})
                             </span>
                           ) : null}
+                          {row.attendee_count > 0 ? (
+                            <span className="muted" style={{ marginLeft: '6px' }}>
+                              · {row.attendee_count} attending
+                            </span>
+                          ) : null}
                         </span>
                         {row.user_attending ? (
                           <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>

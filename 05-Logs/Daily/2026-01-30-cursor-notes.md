@@ -70,3 +70,11 @@ Completed full plan implementation.
 - **Deploy prep doc**: `05-Logs/Daily/2026-01-30-deploy-prep.md`
 - **Migrations**: Run `npx wrangler d1 migrations apply errl_forum_db --remote` before deploy (or apply 0051, 0052, 0053 manually)
 - **Preview**: `./deploy.sh --preview "Likes on comments, pins everywhere, admin UI prep"`
+
+---
+
+## Missing updates (user report)
+
+- Added attendee count to events page list: "· X attending" next to event date (events/page.js, EventsClient.js)
+- Added attendee count next to event date on feed page (feed/page.js)
+- See `05-Logs/Daily/2026-01-30-missing-updates-summary.md` for home/feed/thread preview analysis and clarification needed
