@@ -27,6 +27,7 @@ export default function PostMetaBar({
   likes = 0,
   createdAt,
   lastActivity,
+  lastActivityBy,
   className = '',
   titleHref,
   showTitleLink = true,
@@ -105,7 +106,7 @@ export default function PostMetaBar({
         {/* Desktop: Last Activity on bottom right */}
         {lastActivity && (
           <span className="post-meta-last-activity muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
-            Last activity: {formatDateTime(lastActivity)}
+            Last activity{lastActivityBy ? ` by ${lastActivityBy}` : ''}: {formatDateTime(lastActivity)}
           </span>
         )}
       </div>
@@ -118,7 +119,7 @@ export default function PostMetaBar({
           marginTop: '4px'
         }}>
           <span className="muted" style={{ whiteSpace: 'nowrap' }} suppressHydrationWarning>
-            Last activity: {formatDateTime(lastActivity)}
+            Last activity{lastActivityBy ? ` by ${lastActivityBy}` : ''}: {formatDateTime(lastActivity)}
           </span>
         </div>
       )}

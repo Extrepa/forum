@@ -78,3 +78,12 @@ Completed full plan implementation.
 - Added attendee count to events page list: "· X attending" next to event date (events/page.js, EventsClient.js)
 - Added attendee count next to event date on feed page (feed/page.js)
 - See `05-Logs/Daily/2026-01-30-missing-updates-summary.md` for home/feed/thread preview analysis and clarification needed
+
+---
+
+## Home/Feed/Thread updates (user feedback)
+
+1. **Home page section cards** (Lore & Memories, Art & Nostalgia, Bugs & Rant): Added post_comment comparison so "recent" shows newest of post vs comment (e.g., "X commented on Y by Z" when a comment is newer than the post).
+2. **PostMetaBar lastActivityBy**: New prop shows "Last activity by [user]: date" when provided. Wired in feed page and ForumClient (General/lobby).
+3. **Feed last_activity_author**: All 7 feed content-type queries now include last_activity_author; feed displays "by [user]" for last activity.
+4. **Thread previews - scrollable mini previews**: Added `post-body-scrollable` (max-height 400px, overflow-y auto) to list views in: LoreMemoriesClient, LoreClient, MemoriesClient, ArtClient, BugsClient, RantClient, NostalgiaClient, ArtNostalgiaClient, BugsRantClient, TimelineClient, EventsClient, MusicClient, ProjectsClient. DevLogClient already had it.

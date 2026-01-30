@@ -79,6 +79,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
           likes={row.like_count || 0}
           createdAt={row.created_at}
           lastActivity={row.last_activity_at || row.created_at}
+          lastActivityBy={lastPostAuthor}
           titleHref={`${basePath}/${row.id}`}
           showTitleLink={false}
         />

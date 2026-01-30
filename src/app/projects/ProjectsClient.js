@@ -100,7 +100,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                         style={{ marginTop: '8px', marginBottom: '8px' }}
                       />
                     ) : null}
-                    {!condensed ? <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
+                    {!condensed ? <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.descriptionHtml }} /> : null}
                     {!condensed ? (
                       <div className="project-links" style={{ marginTop: '8px', marginBottom: '8px' }}>
                         {row.github_url ? (

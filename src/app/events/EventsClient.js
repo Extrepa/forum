@@ -87,7 +87,7 @@ export default function EventsClient({ events, notice }) {
                       showTitleLink={false}
                     />
                     {!condensed && row.details ? (
-                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
                     {row.image_key ? (
                       <Image

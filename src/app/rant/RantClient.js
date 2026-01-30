@@ -73,7 +73,7 @@ export default function RantClient({ posts, notice }) {
                       Members-only
                     </span>
                   ) : null}
-                  {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginTop: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
+                  {!condensed && p.bodyHtml ? <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                 </a>
                 );
               };

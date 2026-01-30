@@ -574,7 +574,7 @@ export default async function HomePage({ searchParams }) {
       []
     );
 
-    // Art & Nostalgia (combined)
+    // Art & Nostalgia (combined) - compare posts and comments
     const artNostalgiaCount = await safeFirst(
       db,
       `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
@@ -582,7 +582,7 @@ export default async function HomePage({ searchParams }) {
       'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\')',
       []
     );
-    const artNostalgiaRecent = await safeFirst(
+    const artNostalgiaRecentPost = await safeFirst(
       db,
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
               users.username AS author_name,
@@ -604,8 +604,43 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       []
     );
+    let artNostalgiaRecentComment = null;
+    try {
+      artNostalgiaRecentComment = await db
+        .prepare(
+          `SELECT post_comments.created_at,
+                  posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                  comment_users.username AS comment_author,
+                  comment_users.preferred_username_color_index AS comment_author_color_preference,
+                  post_users.username AS post_author,
+                  post_users.preferred_username_color_index AS post_author_color_preference
+           FROM post_comments
+           JOIN posts ON posts.id = post_comments.post_id
+           JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+           JOIN users AS post_users ON post_users.id = posts.author_user_id
+           WHERE posts.type IN ('art', 'nostalgia')
+             AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
+             AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+             AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+           ORDER BY post_comments.created_at DESC
+           LIMIT 1`
+        )
+        .first();
+    } catch (e) {}
+    let artNostalgiaRecent = null;
+    if (artNostalgiaRecentPost && artNostalgiaRecentComment) {
+      if (artNostalgiaRecentComment.created_at > artNostalgiaRecentPost.created_at) {
+        artNostalgiaRecent = { type: 'comment', postId: artNostalgiaRecentComment.post_id, postTitle: artNostalgiaRecentComment.post_title, postAuthor: artNostalgiaRecentComment.post_author, postAuthorColorPreference: artNostalgiaRecentComment.post_author_color_preference != null ? Number(artNostalgiaRecentComment.post_author_color_preference) : null, activityAuthor: artNostalgiaRecentComment.comment_author, activityAuthorColorPreference: artNostalgiaRecentComment.comment_author_color_preference != null ? Number(artNostalgiaRecentComment.comment_author_color_preference) : null, createdAt: artNostalgiaRecentComment.created_at, href: `/${artNostalgiaRecentComment.post_type}/${artNostalgiaRecentComment.post_id}` };
+      } else {
+        artNostalgiaRecent = { type: 'post', postId: artNostalgiaRecentPost.id, postTitle: artNostalgiaRecentPost.title, postAuthor: artNostalgiaRecentPost.author_name, postAuthorColorPreference: artNostalgiaRecentPost.author_color_preference != null ? Number(artNostalgiaRecentPost.author_color_preference) : null, activityAuthor: artNostalgiaRecentPost.author_name, activityAuthorColorPreference: artNostalgiaRecentPost.author_color_preference != null ? Number(artNostalgiaRecentPost.author_color_preference) : null, createdAt: artNostalgiaRecentPost.created_at, href: `/${artNostalgiaRecentPost.type}/${artNostalgiaRecentPost.id}` };
+      }
+    } else if (artNostalgiaRecentPost) {
+      artNostalgiaRecent = { type: 'post', postId: artNostalgiaRecentPost.id, postTitle: artNostalgiaRecentPost.title, postAuthor: artNostalgiaRecentPost.author_name, postAuthorColorPreference: artNostalgiaRecentPost.author_color_preference != null ? Number(artNostalgiaRecentPost.author_color_preference) : null, activityAuthor: artNostalgiaRecentPost.author_name, activityAuthorColorPreference: artNostalgiaRecentPost.author_color_preference != null ? Number(artNostalgiaRecentPost.author_color_preference) : null, createdAt: artNostalgiaRecentPost.created_at, href: `/${artNostalgiaRecentPost.type}/${artNostalgiaRecentPost.id}` };
+    } else if (artNostalgiaRecentComment) {
+      artNostalgiaRecent = { type: 'comment', postId: artNostalgiaRecentComment.post_id, postTitle: artNostalgiaRecentComment.post_title, postAuthor: artNostalgiaRecentComment.post_author, postAuthorColorPreference: artNostalgiaRecentComment.post_author_color_preference != null ? Number(artNostalgiaRecentComment.post_author_color_preference) : null, activityAuthor: artNostalgiaRecentComment.comment_author, activityAuthorColorPreference: artNostalgiaRecentComment.comment_author_color_preference != null ? Number(artNostalgiaRecentComment.comment_author_color_preference) : null, createdAt: artNostalgiaRecentComment.created_at, href: `/${artNostalgiaRecentComment.post_type}/${artNostalgiaRecentComment.post_id}` };
+    }
 
-    // Bugs & Rants (combined)
+    // Bugs & Rants (combined) - compare posts and comments
     const bugsRantCount = await safeFirst(
       db,
       `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (${hasUsername ? '1=1' : 'is_private = 0'})`,
@@ -613,7 +648,7 @@ export default async function HomePage({ searchParams }) {
       'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\')',
       []
     );
-    const bugsRantRecent = await safeFirst(
+    const bugsRantRecentPost = await safeFirst(
       db,
       `SELECT posts.id, posts.title, posts.created_at, posts.type,
               users.username AS author_name,
@@ -635,6 +670,41 @@ export default async function HomePage({ searchParams }) {
        LIMIT 1`,
       []
     );
+    let bugsRantRecentComment = null;
+    try {
+      bugsRantRecentComment = await db
+        .prepare(
+          `SELECT post_comments.created_at,
+                  posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                  comment_users.username AS comment_author,
+                  comment_users.preferred_username_color_index AS comment_author_color_preference,
+                  post_users.username AS post_author,
+                  post_users.preferred_username_color_index AS post_author_color_preference
+           FROM post_comments
+           JOIN posts ON posts.id = post_comments.post_id
+           JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+           JOIN users AS post_users ON post_users.id = posts.author_user_id
+           WHERE posts.type IN ('bugs', 'rant')
+             AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
+             AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+             AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+           ORDER BY post_comments.created_at DESC
+           LIMIT 1`
+        )
+        .first();
+    } catch (e) {}
+    let bugsRantRecent = null;
+    if (bugsRantRecentPost && bugsRantRecentComment) {
+      if (bugsRantRecentComment.created_at > bugsRantRecentPost.created_at) {
+        bugsRantRecent = { type: 'comment', postId: bugsRantRecentComment.post_id, postTitle: bugsRantRecentComment.post_title, postAuthor: bugsRantRecentComment.post_author, postAuthorColorPreference: bugsRantRecentComment.post_author_color_preference != null ? Number(bugsRantRecentComment.post_author_color_preference) : null, activityAuthor: bugsRantRecentComment.comment_author, activityAuthorColorPreference: bugsRantRecentComment.comment_author_color_preference != null ? Number(bugsRantRecentComment.comment_author_color_preference) : null, createdAt: bugsRantRecentComment.created_at, href: `/${bugsRantRecentComment.post_type}/${bugsRantRecentComment.post_id}` };
+      } else {
+        bugsRantRecent = { type: 'post', postId: bugsRantRecentPost.id, postTitle: bugsRantRecentPost.title, postAuthor: bugsRantRecentPost.author_name, postAuthorColorPreference: bugsRantRecentPost.author_color_preference != null ? Number(bugsRantRecentPost.author_color_preference) : null, activityAuthor: bugsRantRecentPost.author_name, activityAuthorColorPreference: bugsRantRecentPost.author_color_preference != null ? Number(bugsRantRecentPost.author_color_preference) : null, createdAt: bugsRantRecentPost.created_at, href: `/${bugsRantRecentPost.type}/${bugsRantRecentPost.id}` };
+      }
+    } else if (bugsRantRecentPost) {
+      bugsRantRecent = { type: 'post', postId: bugsRantRecentPost.id, postTitle: bugsRantRecentPost.title, postAuthor: bugsRantRecentPost.author_name, postAuthorColorPreference: bugsRantRecentPost.author_color_preference != null ? Number(bugsRantRecentPost.author_color_preference) : null, activityAuthor: bugsRantRecentPost.author_name, activityAuthorColorPreference: bugsRantRecentPost.author_color_preference != null ? Number(bugsRantRecentPost.author_color_preference) : null, createdAt: bugsRantRecentPost.created_at, href: `/${bugsRantRecentPost.type}/${bugsRantRecentPost.id}` };
+    } else if (bugsRantRecentComment) {
+      bugsRantRecent = { type: 'comment', postId: bugsRantRecentComment.post_id, postTitle: bugsRantRecentComment.post_title, postAuthor: bugsRantRecentComment.post_author, postAuthorColorPreference: bugsRantRecentComment.post_author_color_preference != null ? Number(bugsRantRecentComment.post_author_color_preference) : null, activityAuthor: bugsRantRecentComment.comment_author, activityAuthorColorPreference: bugsRantRecentComment.comment_author_color_preference != null ? Number(bugsRantRecentComment.comment_author_color_preference) : null, createdAt: bugsRantRecentComment.created_at, href: `/${bugsRantRecentComment.post_type}/${bugsRantRecentComment.post_id}` };
+    }
 
     // Development (signed-in only)
     let devlogCount = null;
@@ -750,7 +820,7 @@ export default async function HomePage({ searchParams }) {
       }
     }
 
-    // Lore & Memories (signed-in only, combined)
+    // Lore & Memories (signed-in only, combined) - compare posts and comments
     let loreMemoriesCount = null;
     let loreMemoriesRecent = null;
     if (hasUsername) {
@@ -762,7 +832,7 @@ export default async function HomePage({ searchParams }) {
           'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\')',
           []
         );
-        loreMemoriesRecent = await safeFirst(
+        const loreMemoriesRecentPost = await safeFirst(
           db,
           `SELECT posts.id, posts.title, posts.created_at, posts.type,
                   users.username AS author_name,
@@ -783,6 +853,81 @@ export default async function HomePage({ searchParams }) {
            LIMIT 1`,
           []
         );
+        let loreMemoriesRecentComment = null;
+        try {
+          loreMemoriesRecentComment = await db
+            .prepare(
+              `SELECT post_comments.created_at,
+                      posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                      comment_users.username AS comment_author,
+                      comment_users.preferred_username_color_index AS comment_author_color_preference,
+                      post_users.username AS post_author,
+                      post_users.preferred_username_color_index AS post_author_color_preference
+               FROM post_comments
+               JOIN posts ON posts.id = post_comments.post_id
+               JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+               JOIN users AS post_users ON post_users.id = posts.author_user_id
+               WHERE posts.type IN ('lore', 'memories')
+                 AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+                 AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+               ORDER BY post_comments.created_at DESC
+               LIMIT 1`
+            )
+            .first();
+        } catch (e) {
+          // Table might not exist
+        }
+        if (loreMemoriesRecentPost && loreMemoriesRecentComment) {
+          if (loreMemoriesRecentComment.created_at > loreMemoriesRecentPost.created_at) {
+            loreMemoriesRecent = {
+              type: 'comment',
+              postId: loreMemoriesRecentComment.post_id,
+              postTitle: loreMemoriesRecentComment.post_title,
+              postAuthor: loreMemoriesRecentComment.post_author,
+              postAuthorColorPreference: loreMemoriesRecentComment.post_author_color_preference !== null && loreMemoriesRecentComment.post_author_color_preference !== undefined ? Number(loreMemoriesRecentComment.post_author_color_preference) : null,
+              activityAuthor: loreMemoriesRecentComment.comment_author,
+              activityAuthorColorPreference: loreMemoriesRecentComment.comment_author_color_preference !== null && loreMemoriesRecentComment.comment_author_color_preference !== undefined ? Number(loreMemoriesRecentComment.comment_author_color_preference) : null,
+              createdAt: loreMemoriesRecentComment.created_at,
+              href: `/lore-memories/${loreMemoriesRecentComment.post_id}`
+            };
+          } else {
+            loreMemoriesRecent = {
+              type: 'post',
+              postId: loreMemoriesRecentPost.id,
+              postTitle: loreMemoriesRecentPost.title,
+              postAuthor: loreMemoriesRecentPost.author_name,
+              postAuthorColorPreference: loreMemoriesRecentPost.author_color_preference !== null && loreMemoriesRecentPost.author_color_preference !== undefined ? Number(loreMemoriesRecentPost.author_color_preference) : null,
+              activityAuthor: loreMemoriesRecentPost.author_name,
+              activityAuthorColorPreference: loreMemoriesRecentPost.author_color_preference !== null && loreMemoriesRecentPost.author_color_preference !== undefined ? Number(loreMemoriesRecentPost.author_color_preference) : null,
+              createdAt: loreMemoriesRecentPost.created_at,
+              href: `/lore-memories/${loreMemoriesRecentPost.id}`
+            };
+          }
+        } else if (loreMemoriesRecentPost) {
+          loreMemoriesRecent = {
+            type: 'post',
+            postId: loreMemoriesRecentPost.id,
+            postTitle: loreMemoriesRecentPost.title,
+            postAuthor: loreMemoriesRecentPost.author_name,
+            postAuthorColorPreference: loreMemoriesRecentPost.author_color_preference !== null && loreMemoriesRecentPost.author_color_preference !== undefined ? Number(loreMemoriesRecentPost.author_color_preference) : null,
+            activityAuthor: loreMemoriesRecentPost.author_name,
+            activityAuthorColorPreference: loreMemoriesRecentPost.author_color_preference !== null && loreMemoriesRecentPost.author_color_preference !== undefined ? Number(loreMemoriesRecentPost.author_color_preference) : null,
+            createdAt: loreMemoriesRecentPost.created_at,
+            href: `/lore-memories/${loreMemoriesRecentPost.id}`
+          };
+        } else if (loreMemoriesRecentComment) {
+          loreMemoriesRecent = {
+            type: 'comment',
+            postId: loreMemoriesRecentComment.post_id,
+            postTitle: loreMemoriesRecentComment.post_title,
+            postAuthor: loreMemoriesRecentComment.post_author,
+            postAuthorColorPreference: loreMemoriesRecentComment.post_author_color_preference !== null && loreMemoriesRecentComment.post_author_color_preference !== undefined ? Number(loreMemoriesRecentComment.post_author_color_preference) : null,
+            activityAuthor: loreMemoriesRecentComment.comment_author,
+            activityAuthorColorPreference: loreMemoriesRecentComment.comment_author_color_preference !== null && loreMemoriesRecentComment.comment_author_color_preference !== undefined ? Number(loreMemoriesRecentComment.comment_author_color_preference) : null,
+            createdAt: loreMemoriesRecentComment.created_at,
+            href: `/lore-memories/${loreMemoriesRecentComment.post_id}`
+          };
+        }
       } catch (e) {
         // Posts table might not exist
       }
@@ -883,12 +1028,15 @@ export default async function HomePage({ searchParams }) {
         count: artNostalgiaCount?.count || 0,
         recent: artNostalgiaRecent
           ? {
-              id: artNostalgiaRecent.id,
-              title: artNostalgiaRecent.title || 'Untitled',
-              author: artNostalgiaRecent.author_name,
-              authorColorPreference: artNostalgiaRecent.author_color_preference !== null && artNostalgiaRecent.author_color_preference !== undefined ? Number(artNostalgiaRecent.author_color_preference) : null,
-              timeAgo: formatTimeAgo(artNostalgiaRecent.created_at),
-              url: `/${artNostalgiaRecent.type}/${artNostalgiaRecent.id}`
+              type: artNostalgiaRecent.type,
+              postId: artNostalgiaRecent.postId,
+              postTitle: artNostalgiaRecent.postTitle || 'Untitled',
+              postAuthor: artNostalgiaRecent.postAuthor,
+              postAuthorColorPreference: artNostalgiaRecent.postAuthorColorPreference,
+              activityAuthor: artNostalgiaRecent.activityAuthor,
+              activityAuthorColorPreference: artNostalgiaRecent.activityAuthorColorPreference,
+              timeAgo: formatTimeAgo(artNostalgiaRecent.createdAt),
+              href: artNostalgiaRecent.href
             }
           : null
       },
@@ -896,12 +1044,15 @@ export default async function HomePage({ searchParams }) {
         count: bugsRantCount?.count || 0,
         recent: bugsRantRecent
           ? {
-              id: bugsRantRecent.id,
-              title: bugsRantRecent.title || (bugsRantRecent.type === 'bugs' ? 'Bug report' : 'Untitled'),
-              author: bugsRantRecent.author_name,
-              authorColorPreference: bugsRantRecent.author_color_preference !== null && bugsRantRecent.author_color_preference !== undefined ? Number(bugsRantRecent.author_color_preference) : null,
-              timeAgo: formatTimeAgo(bugsRantRecent.created_at),
-              url: `/${bugsRantRecent.type}/${bugsRantRecent.id}`
+              type: bugsRantRecent.type,
+              postId: bugsRantRecent.postId,
+              postTitle: bugsRantRecent.postTitle || 'Untitled',
+              postAuthor: bugsRantRecent.postAuthor,
+              postAuthorColorPreference: bugsRantRecent.postAuthorColorPreference,
+              activityAuthor: bugsRantRecent.activityAuthor,
+              activityAuthorColorPreference: bugsRantRecent.activityAuthorColorPreference,
+              timeAgo: formatTimeAgo(bugsRantRecent.createdAt),
+              href: bugsRantRecent.href
             }
           : null
       },
@@ -925,16 +1076,18 @@ export default async function HomePage({ searchParams }) {
         count: loreMemoriesCount?.count || 0,
         recent: loreMemoriesRecent
           ? {
-              id: loreMemoriesRecent.id,
-              title: loreMemoriesRecent.title || 'Untitled',
-              author: loreMemoriesRecent.author_name,
-              authorColorPreference: loreMemoriesRecent.author_color_preference !== null && loreMemoriesRecent.author_color_preference !== undefined ? Number(loreMemoriesRecent.author_color_preference) : null,
-            createdAt: loreMemoriesRecent.created_at,
-            timeAgo: formatTimeAgo(loreMemoriesRecent.created_at),
-            url: `/lore-memories/${loreMemoriesRecent.id}`
-          }
-        : null
-    } : null
+              type: loreMemoriesRecent.type,
+              postId: loreMemoriesRecent.postId,
+              postTitle: loreMemoriesRecent.postTitle || 'Untitled',
+              postAuthor: loreMemoriesRecent.postAuthor,
+              postAuthorColorPreference: loreMemoriesRecent.postAuthorColorPreference,
+              activityAuthor: loreMemoriesRecent.activityAuthor,
+              activityAuthorColorPreference: loreMemoriesRecent.activityAuthorColorPreference,
+              timeAgo: formatTimeAgo(loreMemoriesRecent.createdAt),
+              href: loreMemoriesRecent.href
+            }
+          : null
+      } : null
   };
 }
 
@@ -1452,12 +1605,18 @@ if (hasUsername && sectionData) {
       allUsernames.push(sectionData.shitposts.recent.author);
     }
     // Art & Nostalgia
-    if (sectionData.artNostalgia?.recent?.author) {
-      allUsernames.push(sectionData.artNostalgia.recent.author);
+    if (sectionData.artNostalgia?.recent) {
+      if (sectionData.artNostalgia.recent.postAuthor) allUsernames.push(sectionData.artNostalgia.recent.postAuthor);
+      if (sectionData.artNostalgia.recent.activityAuthor && sectionData.artNostalgia.recent.activityAuthor !== sectionData.artNostalgia.recent.postAuthor) {
+        allUsernames.push(sectionData.artNostalgia.recent.activityAuthor);
+      }
     }
     // Bugs & Rant
-    if (sectionData.bugsRant?.recent?.author) {
-      allUsernames.push(sectionData.bugsRant.recent.author);
+    if (sectionData.bugsRant?.recent) {
+      if (sectionData.bugsRant.recent.postAuthor) allUsernames.push(sectionData.bugsRant.recent.postAuthor);
+      if (sectionData.bugsRant.recent.activityAuthor && sectionData.bugsRant.recent.activityAuthor !== sectionData.bugsRant.recent.postAuthor) {
+        allUsernames.push(sectionData.bugsRant.recent.activityAuthor);
+      }
     }
     // Devlog
     if (sectionData.devlog?.recent) {
@@ -1465,8 +1624,11 @@ if (hasUsername && sectionData) {
       if (sectionData.devlog.recent.activityAuthor) allUsernames.push(sectionData.devlog.recent.activityAuthor);
     }
     // Lore & Memories
-    if (sectionData.loreMemories?.recent?.author) {
-      allUsernames.push(sectionData.loreMemories.recent.author);
+    if (sectionData.loreMemories?.recent?.postAuthor) {
+      allUsernames.push(sectionData.loreMemories.recent.postAuthor);
+    }
+    if (sectionData.loreMemories?.recent?.activityAuthor && sectionData.loreMemories.recent.activityAuthor !== sectionData.loreMemories.recent.postAuthor) {
+      allUsernames.push(sectionData.loreMemories.recent.activityAuthor);
     }
   }
   
@@ -1527,12 +1689,22 @@ if (hasUsername && sectionData) {
       preferredColors.set(sectionData.shitposts.recent.author, Number(sectionData.shitposts.recent.authorColorPreference));
     }
     // Art & Nostalgia
-    if (sectionData.artNostalgia?.recent?.author && sectionData.artNostalgia.recent.authorColorPreference !== null && sectionData.artNostalgia.recent.authorColorPreference !== undefined) {
-      preferredColors.set(sectionData.artNostalgia.recent.author, Number(sectionData.artNostalgia.recent.authorColorPreference));
+    if (sectionData.artNostalgia?.recent) {
+      if (sectionData.artNostalgia.recent.postAuthor && sectionData.artNostalgia.recent.postAuthorColorPreference != null) {
+        preferredColors.set(sectionData.artNostalgia.recent.postAuthor, Number(sectionData.artNostalgia.recent.postAuthorColorPreference));
+      }
+      if (sectionData.artNostalgia.recent.activityAuthor && sectionData.artNostalgia.recent.activityAuthorColorPreference != null) {
+        preferredColors.set(sectionData.artNostalgia.recent.activityAuthor, Number(sectionData.artNostalgia.recent.activityAuthorColorPreference));
+      }
     }
     // Bugs & Rant
-    if (sectionData.bugsRant?.recent?.author && sectionData.bugsRant.recent.authorColorPreference !== null && sectionData.bugsRant.recent.authorColorPreference !== undefined) {
-      preferredColors.set(sectionData.bugsRant.recent.author, Number(sectionData.bugsRant.recent.authorColorPreference));
+    if (sectionData.bugsRant?.recent) {
+      if (sectionData.bugsRant.recent.postAuthor && sectionData.bugsRant.recent.postAuthorColorPreference != null) {
+        preferredColors.set(sectionData.bugsRant.recent.postAuthor, Number(sectionData.bugsRant.recent.postAuthorColorPreference));
+      }
+      if (sectionData.bugsRant.recent.activityAuthor && sectionData.bugsRant.recent.activityAuthorColorPreference != null) {
+        preferredColors.set(sectionData.bugsRant.recent.activityAuthor, Number(sectionData.bugsRant.recent.activityAuthorColorPreference));
+      }
     }
     // Devlog
     if (sectionData.devlog?.recent) {
@@ -1544,8 +1716,13 @@ if (hasUsername && sectionData) {
       }
     }
     // Lore & Memories
-    if (sectionData.loreMemories?.recent?.author && sectionData.loreMemories.recent.authorColorPreference !== null && sectionData.loreMemories.recent.authorColorPreference !== undefined) {
-      preferredColors.set(sectionData.loreMemories.recent.author, Number(sectionData.loreMemories.recent.authorColorPreference));
+    if (sectionData.loreMemories?.recent) {
+      if (sectionData.loreMemories.recent.postAuthor && sectionData.loreMemories.recent.postAuthorColorPreference !== null && sectionData.loreMemories.recent.postAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.loreMemories.recent.postAuthor, Number(sectionData.loreMemories.recent.postAuthorColorPreference));
+      }
+      if (sectionData.loreMemories.recent.activityAuthor && sectionData.loreMemories.recent.activityAuthorColorPreference !== null && sectionData.loreMemories.recent.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(sectionData.loreMemories.recent.activityAuthor, Number(sectionData.loreMemories.recent.activityAuthorColorPreference));
+      }
     }
   }
   
@@ -1644,16 +1821,7 @@ if (hasUsername && sectionData) {
       title: strings.cards.artNostalgia.title,
       description: strings.cards.artNostalgia.description,
       count: sectionData.artNostalgia.count || 0,
-      recentActivity: sectionData.artNostalgia.recent ? {
-        type: 'post',
-        postTitle: sectionData.artNostalgia.recent.title || 'Untitled',
-        postAuthor: sectionData.artNostalgia.recent.author,
-        postAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
-        activityAuthor: sectionData.artNostalgia.recent.author,
-        activityAuthorColorPreference: sectionData.artNostalgia.recent.authorColorPreference,
-        timeAgo: sectionData.artNostalgia.recent.timeAgo,
-        href: sectionData.artNostalgia.recent.url
-      } : null,
+      recentActivity: sectionData.artNostalgia.recent || null,
       href: "/art-nostalgia"
     });
   }
@@ -1663,16 +1831,7 @@ if (hasUsername && sectionData) {
       title: strings.cards.bugsRant.title,
       description: strings.cards.bugsRant.description,
       count: sectionData.bugsRant.count || 0,
-      recentActivity: sectionData.bugsRant.recent ? {
-        type: 'post',
-        postTitle: sectionData.bugsRant.recent.title || 'Untitled',
-        postAuthor: sectionData.bugsRant.recent.author,
-        postAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
-        activityAuthor: sectionData.bugsRant.recent.author,
-        activityAuthorColorPreference: sectionData.bugsRant.recent.authorColorPreference,
-        timeAgo: sectionData.bugsRant.recent.timeAgo,
-        href: sectionData.bugsRant.recent.url
-      } : null,
+      recentActivity: sectionData.bugsRant.recent || null,
       href: "/bugs-rant"
     });
   }
@@ -1692,16 +1851,7 @@ if (hasUsername && sectionData) {
       title: strings.cards.loreMemories.title,
       description: strings.cards.loreMemories.description,
       count: sectionData.loreMemories.count || 0,
-      recentActivity: sectionData.loreMemories.recent ? {
-        type: 'post',
-        postTitle: sectionData.loreMemories.recent.title || 'Untitled',
-        postAuthor: sectionData.loreMemories.recent.author,
-        postAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
-        activityAuthor: sectionData.loreMemories.recent.author,
-        activityAuthorColorPreference: sectionData.loreMemories.recent.authorColorPreference,
-        timeAgo: sectionData.loreMemories.recent.timeAgo,
-        href: sectionData.loreMemories.recent.url
-      } : null,
+      recentActivity: sectionData.loreMemories.recent || null,
       href: "/lore-memories"
     });
   }

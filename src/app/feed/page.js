@@ -57,7 +57,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id), 0) AS like_count,
-              COALESCE((SELECT MAX(timeline_comments.created_at) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0), timeline_updates.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(timeline_comments.created_at) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0), timeline_updates.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM timeline_comments JOIN users ON users.id = timeline_comments.author_user_id WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0 ORDER BY timeline_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.moved_to_id IS NULL
@@ -72,7 +73,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_update' AND post_id = timeline_updates.id), 0) AS like_count,
-              COALESCE((SELECT MAX(timeline_comments.created_at) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0), timeline_updates.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(timeline_comments.created_at) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0), timeline_updates.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM timeline_comments JOIN users ON users.id = timeline_comments.author_user_id WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0 ORDER BY timeline_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        ORDER BY timeline_updates.created_at DESC
@@ -87,7 +89,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count,
-              COALESCE((SELECT MAX(forum_replies.created_at) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0), forum_threads.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(forum_replies.created_at) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0), forum_threads.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM forum_replies JOIN users ON users.id = forum_replies.author_user_id WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0 ORDER BY forum_replies.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.moved_to_id IS NULL
@@ -102,7 +105,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_thread' AND post_id = forum_threads.id), 0) AS like_count,
-              COALESCE((SELECT MAX(forum_replies.created_at) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0), forum_threads.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(forum_replies.created_at) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0), forum_threads.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM forum_replies JOIN users ON users.id = forum_replies.author_user_id WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0 ORDER BY forum_replies.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        ORDER BY forum_threads.created_at DESC
@@ -118,6 +122,7 @@ export default async function FeedPage() {
               (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id), 0) AS like_count,
               COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM event_comments JOIN users ON users.id = event_comments.author_user_id WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0 ORDER BY event_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author,
               (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
               (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
        FROM events
@@ -135,6 +140,7 @@ export default async function FeedPage() {
               (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id), 0) AS like_count,
               COALESCE((SELECT MAX(event_comments.created_at) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0), events.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM event_comments JOIN users ON users.id = event_comments.author_user_id WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0 ORDER BY event_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author,
               (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
               (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
        FROM events
@@ -151,7 +157,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM music_comments WHERE music_comments.post_id = music_posts.id AND (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id), 0) AS like_count,
-              COALESCE((SELECT MAX(music_comments.created_at) FROM music_comments WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0), music_posts.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(music_comments.created_at) FROM music_comments WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0), music_posts.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM music_comments JOIN users ON users.id = music_comments.author_user_id WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0 ORDER BY music_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        WHERE music_posts.moved_to_id IS NULL
@@ -166,7 +173,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM music_comments WHERE music_comments.post_id = music_posts.id AND (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)) AS comment_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id), 0) AS like_count,
-              COALESCE((SELECT MAX(music_comments.created_at) FROM music_comments WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0), music_posts.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(music_comments.created_at) FROM music_comments WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0), music_posts.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM music_comments JOIN users ON users.id = music_comments.author_user_id WHERE music_comments.post_id = music_posts.id AND music_comments.is_deleted = 0 ORDER BY music_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM music_posts
        JOIN users ON users.id = music_posts.author_user_id
        ORDER BY music_posts.created_at DESC
@@ -181,7 +189,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id), 0) AS like_count,
-              COALESCE((SELECT MAX(project_replies.created_at) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0), projects.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(project_replies.created_at) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0), projects.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM project_replies JOIN users ON users.id = project_replies.author_user_id WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0 ORDER BY project_replies.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        WHERE projects.moved_to_id IS NULL
@@ -196,7 +205,8 @@ export default async function FeedPage() {
               users.preferred_username_color_index AS author_color_preference,
               (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)) AS reply_count,
               COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id), 0) AS like_count,
-              COALESCE((SELECT MAX(project_replies.created_at) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0), projects.created_at) AS last_activity_at
+              COALESCE((SELECT MAX(project_replies.created_at) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0), projects.created_at) AS last_activity_at,
+              COALESCE((SELECT users.username FROM project_replies JOIN users ON users.id = project_replies.author_user_id WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0 ORDER BY project_replies.created_at DESC LIMIT 1), users.username) AS last_activity_author
        FROM projects
        JOIN users ON users.id = projects.author_user_id
        ORDER BY projects.created_at DESC
@@ -213,7 +223,8 @@ export default async function FeedPage() {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)) AS comment_count,
                   COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id), 0) AS like_count,
-                  COALESCE((SELECT MAX(post_comments.created_at) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0), posts.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(post_comments.created_at) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0), posts.created_at) AS last_activity_at,
+                  COALESCE((SELECT users.username FROM post_comments JOIN users ON users.id = post_comments.author_user_id WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0 ORDER BY post_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
@@ -229,7 +240,8 @@ export default async function FeedPage() {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)) AS comment_count,
                   COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id), 0) AS like_count,
-                  COALESCE((SELECT MAX(post_comments.created_at) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0), posts.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(post_comments.created_at) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0), posts.created_at) AS last_activity_at,
+                  COALESCE((SELECT users.username FROM post_comments JOIN users ON users.id = post_comments.author_user_id WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0 ORDER BY post_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
@@ -252,7 +264,8 @@ export default async function FeedPage() {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)) AS comment_count,
                   COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id), 0) AS like_count,
-                  COALESCE((SELECT MAX(dev_log_comments.created_at) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0), dev_logs.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(dev_log_comments.created_at) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0), dev_logs.created_at) AS last_activity_at,
+                  COALESCE((SELECT users.username FROM dev_log_comments JOIN users ON users.id = dev_log_comments.author_user_id WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0 ORDER BY dev_log_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            ORDER BY dev_logs.created_at DESC
@@ -264,7 +277,8 @@ export default async function FeedPage() {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)) AS comment_count,
                   COALESCE((SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id), 0) AS like_count,
-                  COALESCE((SELECT MAX(dev_log_comments.created_at) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0), dev_logs.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(dev_log_comments.created_at) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0), dev_logs.created_at) AS last_activity_at,
+                  COALESCE((SELECT users.username FROM dev_log_comments JOIN users ON users.id = dev_log_comments.author_user_id WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0 ORDER BY dev_log_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            ORDER BY dev_logs.created_at DESC
@@ -306,7 +320,8 @@ export default async function FeedPage() {
       views: row.views || 0,
       replies: row.reply_count || 0,
       likes: row.like_count || 0,
-      lastActivity: row.last_activity_at || row.created_at
+      lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || null
     })),
     ...threads.map((row) => ({
       type: 'Lobby',
@@ -320,7 +335,8 @@ export default async function FeedPage() {
       views: row.views || 0,
       replies: row.reply_count || 0,
       likes: row.like_count || 0,
-      lastActivity: row.last_activity_at || row.created_at
+      lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null
     })),
     ...events.map((row) => ({
       type: 'Event',
@@ -335,6 +351,7 @@ export default async function FeedPage() {
       replies: row.comment_count || 0,
       likes: row.like_count || 0,
       lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null,
       startsAt: row.starts_at,
       attendeeCount: row.attendee_count || 0,
       attendeeNames: row.attendee_names ? String(row.attendee_names).split(',') : []
@@ -351,7 +368,8 @@ export default async function FeedPage() {
       views: row.views || 0,
       replies: row.comment_count || 0,
       likes: row.like_count || 0,
-      lastActivity: row.last_activity_at || row.created_at
+      lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null
     })),
     ...projects.map((row) => ({
       type: 'Project',
@@ -365,7 +383,8 @@ export default async function FeedPage() {
       views: row.views || 0,
       replies: row.reply_count || 0,
       likes: row.like_count || 0,
-      lastActivity: row.last_activity_at || row.created_at
+      lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null
     })),
     ...posts.map((row) => ({
       type: labelForPostType(row.type),
@@ -380,6 +399,7 @@ export default async function FeedPage() {
       replies: row.comment_count || 0,
       likes: row.like_count || 0,
       lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null,
       meta: row.is_private ? 'Members-only' : null
     })),
     ...devlogs.map((row) => ({
@@ -394,7 +414,8 @@ export default async function FeedPage() {
       views: row.views || 0,
       replies: row.comment_count || 0,
       likes: row.like_count || 0,
-      lastActivity: row.last_activity_at || row.created_at
+      lastActivity: row.last_activity_at || row.created_at,
+      lastActivityBy: row.last_activity_author || row.author_name || null
     }))
   ]
     .filter((x) => !!x.createdAt)
@@ -550,6 +571,7 @@ export default async function FeedPage() {
                     likes={item.likes}
                     createdAt={item.createdAt}
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
+                    lastActivityBy={item.type === 'Event' ? undefined : item.lastActivityBy}
                     titleHref={item.href}
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
@@ -632,7 +654,7 @@ export default async function FeedPage() {
                         {/* Bottom Right: Last Activity */}
                         {item.lastActivity && (
                           <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} suppressHydrationWarning>
-                            Last activity: {formatDateTime(item.lastActivity)}
+                            Last activity{item.lastActivityBy ? ` by ${item.lastActivityBy}` : ''}: {formatDateTime(item.lastActivity)}
                           </span>
                         )}
                       </div>
