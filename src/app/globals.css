@@ -602,6 +602,20 @@ header.header--search-open {
   .header-right-controls .header-search-container {
     display: none;
   }
+
+  /* Reduce header size when using Navigation button layout */
+  header {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .brand {
+    min-height: 80px;
+  }
+
+  .header-bottom-controls {
+    margin-top: 6px;
+  }
 }
 
 /* Right-side header controls (More dropdown + Search) - padding between them and from face/nav */
@@ -3256,14 +3270,14 @@ header::before {
 
   header {
     align-items: flex-start;
-    gap: 16px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 10px 12px;
     flex-direction: column;
   }
 
   header.header--detail {
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 8px 10px;
+    gap: 6px;
   }
 
   header.header--detail + main {
@@ -3272,11 +3286,12 @@ header::before {
 
   .brand {
     width: 100%;
+    min-height: 72px;
   }
 
   .brand-left {
-    gap: 6px;
-    padding-right: 80px;
+    gap: 4px;
+    padding-right: 72px;
   }
 
   header.header--detail .brand {
@@ -4014,7 +4029,7 @@ header::before {
   }
 
   .header-bottom-controls {
-    margin-top: 12px;
+    margin-top: 6px;
     gap: 8px;
   }
 

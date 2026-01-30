@@ -63,13 +63,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
 
   useEffect(() => {
     if (navDisabled) {
-      setMenuOpen(false);
       setMoreOpen(false);
       setSearchMode(false);
       setSearchQuery('');
       setSearchResults([]);
+      /* Keep menuOpen true when navDisabled - allows Easter egg (drag Feed to face) on mobile */
     }
     if (!navDisabled) {
+      setMenuOpen(false);
       setEggArmed(false);
       setEggActive(false);
       setEggDragging(false);
@@ -384,7 +385,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
                 type="button"
                 className="nav-menu-button"
                 onClick={() => {
-                  if (navDisabled) return;
                   setMenuOpen((v) => !v);
                   setSearchMode(false);
                 }}
