@@ -166,3 +166,37 @@ Desktop condensed layout put "by username at time" next to the views on the righ
 - **Changes:**
   - **HomeStats.js:** Grid changed from `repeat(auto-fit, minmax(200px, 1fr))` to fixed 3-column layout via class `home-stats-grid`; cards use `home-stats-card` with `minWidth: 0` so they can shrink. Added classes `home-stats-number`, `home-stats-label`, `home-stats-sublabel`, `home-stats-number-sm`, `home-stats-two-col` for responsive scaling.
   - **globals.css:** `.home-stats-grid` uses `grid-template-columns: repeat(3, minmax(0, 1fr))`; `.home-stats-card { overflow: hidden }`. At `max-width: 640px`, reduced gap, padding, and font sizes for stats numbers/labels so three cards fit in one row.
+
+---
+
+## Session summary (everything we've done)
+
+Consolidated notes for all changes made in this session (post–dev update #7):
+
+### Easter egg (mobile drag)
+- **Issue:** Easter egg drag on Feed link didn’t work well on mobile (touch scroll fighting drag).
+- **Fix:** `touch-action: none` on armed Feed link in `globals.css`; during drag in `SiteHeader.js`, set `document.body.style.touchAction = 'none'` and restore on pointerup/pointercancel.
+
+### Feed & mobile scaling
+- **Issue:** Feed page didn’t shrink correctly on mobile.
+- **Fix:** Viewport export in `layout.js` (`width: 'device-width', initialScale: 1, maximumScale: 5`); mobile CSS in `globals.css` for `.forum-title`, `.section-title`, etc. at `max-width: 640px`.
+
+### Profile page: Recent Activity for other users
+- **Issue:** Recent Activity showed only on own account page, not on other users’ profile pages.
+- **Fix:** Await `params` in `src/app/profile/[username]/page.js` (Next.js 15); added `posts` (Art, Bugs, Rant, Nostalgia, Lore, Memories) and `post_comments` to profile recent-activity queries and counts so activity from those sections appears.
+
+### Buttons stretching on small viewports
+- **Issue:** Buttons (e.g. Development section) stretched on mobile/small viewports.
+- **Fix:** CSS in `globals.css` for `.page-top-row-right button`, `.page-top-row-right form button`, `.nav-menu-button`: `display: inline-flex`, `width: max-content`, `flex: 0 0 auto` (with `!important` where needed). Adjusted `.page-top-row .breadcrumb-item` min-height to 40px.
+
+### Explore Sections (homepage)
+- **Issue:** Section cards needed post count in top-right, clearer activity label, and empty-state copy.
+- **Fix:** `HomeSectionCard.js`: post count in card header opposite title; label "Latest drip:"; new `.section-card-empty-cta` with Errl-themed message "The goo is quiet here — head in and post something." when no recent activity. Matching CSS in `globals.css`.
+
+### Section post counts exclude deleted
+- **Issue:** Deleted posts were included in section post counts on homepage.
+- **Fix:** All relevant `COUNT(*)` queries in `src/app/page.js` (Timeline, Forum, Events, Music, Projects, Shitposts, Art & Nostalgia, Bugs & Rants, Development, Lore & Memories) now include `(is_deleted = 0 OR is_deleted IS NULL)`.
+
+### Homepage Stats: single row on small viewports
+- **Issue:** Stats cards wrapped to two rows on mobile.
+- **Fix:** Fixed 3-column grid (`repeat(3, minmax(0, 1fr))`), `home-stats-card` with `minWidth: 0` and responsive classes; at `max-width: 640px` reduced gap, padding, and font sizes so all three cards stay in one row.

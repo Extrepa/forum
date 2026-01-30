@@ -74,4 +74,18 @@ Hey everyone! This update adds **pins everywhere**, **likes on comments and repl
 - **Easter egg**: Only available when you're not signed in.
 - **Admin audit**: `edited_at` / `updated_by_user_id` are in the schema but not yet written by any edit flow; they're there for future admin tooling.
 
+---
+
+## Follow-up (same day, post–dev update #7)
+
+Additional fixes and polish applied after the above:
+
+- **Easter egg (mobile):** `touch-action: none` on armed Feed link and on body during drag so the drag works on touch devices.
+- **Feed / mobile:** Viewport meta and mobile CSS so feed and titles scale correctly on small screens.
+- **Profile Recent Activity:** Next.js 15 `params` fix and inclusion of posts/post_comments in profile recent-activity so other users’ profiles show their activity from Art, Bugs, Rant, Nostalgia, Lore, Memories.
+- **Buttons on small viewports:** CSS so page-top and nav buttons don’t stretch on mobile (inline-flex, max-content, flex-shrink).
+- **Explore Sections:** Post count in top-right of section cards, "Latest drip:" label, Errl-themed empty message when no recent activity.
+- **Section counts:** Homepage section post counts exclude deleted posts (`is_deleted = 0 OR is_deleted IS NULL` in all relevant COUNT queries).
+- **Stats cards:** Homepage Stats (Total Posts, Active Users, Recent Activity) stay in one row on small viewports; responsive scaling so three cards fit and remain readable.
+
 Thanks for testing and pushing the forum forward. If anything feels off, drop a note in Bugs or a dev post and I will prioritize it.
