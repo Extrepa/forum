@@ -604,12 +604,13 @@ header.header--search-open {
   }
 }
 
-/* Right-side header controls (Account + Search) */
+/* Right-side header controls (More dropdown + Search) - padding between them and from face/nav */
 .header-right-controls {
   margin-left: auto;
+  padding-left: 12px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0; /* Prevent shrinking */
 }
 
