@@ -43,7 +43,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [eggActive, setEggActive] = useState(false);
   const [eggDragging, setEggDragging] = useState(false);
   const [dragPoint, setDragPoint] = useState({ x: 0, y: 0 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [dragLabel, setDragLabel] = useState('Feed');
 
@@ -189,7 +188,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
       event.preventDefault();
       event.stopPropagation();
       setDragSize({ width: rect.width, height: rect.height });
-      setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
       setDragPoint({ x: event.clientX, y: event.clientY });
       setEggDragging(true);
     },
@@ -423,7 +421,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
           style={{
             width: dragSize.width,
             height: dragSize.height,
-            transform: `translate(${dragPoint.x - dragOffset.x}px, ${dragPoint.y - dragOffset.y}px)`
+            left: dragPoint.x,
+            top: dragPoint.y,
+            transform: 'translate(-50%, -50%)'
           }}
         >
           {dragLabel}
