@@ -17,6 +17,9 @@ export default function HomeSectionCard({ title, description, count, recentActiv
           <span className="section-card-count" suppressHydrationWarning>{count} {count === 1 ? 'post' : 'posts'}</span>
         </div>
         <div className="list-meta">{description}</div>
+        <p className="section-card-empty-cta" aria-hidden="true">
+          The goo is quiet here — head in and post something.
+        </p>
       </Link>
     );
   }
@@ -62,7 +65,7 @@ export default function HomeSectionCard({ title, description, count, recentActiv
       <div className="list-meta">{description}</div>
       <div className="section-stats" suppressHydrationWarning>
         <span>
-          Recent activity: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
+          Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
         </span>
       </div>
     </Link>

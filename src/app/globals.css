@@ -1867,6 +1867,13 @@ span:has(.username) + .status-badge {
   color: var(--muted);
 }
 
+.section-card-empty-cta {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
+
 .post-header {
   display: flex;
   align-items: center;
