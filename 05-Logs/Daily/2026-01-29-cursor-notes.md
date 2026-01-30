@@ -36,3 +36,32 @@
 - Neon-text glow was already reduced (0 0 5px / 0 0 10px, lower opacity).
 
 **Files:** `public/easter-eggs/errl-bubbles-header.html`
+
+---
+
+## Wrap-up: Easter egg verification (session end)
+
+**Scope:** Feed-button drag-and-drop, header Easter egg game, and in-iframe visuals.
+
+### Verification checklist
+
+| Area | Status | Notes |
+|------|--------|--------|
+| **Drag ghost** | OK | `createPortal` renders ghost into `document.body`; no header stacking-context issues. |
+| **Drag initiation** | OK | `handleEggDragStart` uses `event.currentTarget` and `target.getBoundingClientRect()`; `setPointerCapture(pointerId)` for consistent tracking. |
+| **Hidden feed button** | OK | `.nav-link-egg-hidden` uses `opacity: 0` (not `visibility: hidden`) so the element stays in layout for pointer events. |
+| **Header when egg active** | OK | Brand, nav, search, more dropdown hidden via `{!eggActive && (...)}`; `header--easter-egg` min-height 480px (380px mobile); direct children `pointer-events: none`, overlay `pointer-events: auto`. |
+| **Iframe game** | OK | `errl-bubbles-header.html`: transparent body, Matter.js radius 32, face position offsets -40, motion.div `w-16 h-16 md:w-20 md:h-20`. |
+| **ErrlSVG** | OK | `<defs>` with `#rainbowGradient`; face/eyes/mouth use `stroke="url(#rainbowGradient)"` and `strokeWidth="12"`. |
+| **Neon / border** | OK | `.neon-text` reduced glow; game container has `rainbow-border rounded-3xl` and `neonChase` animation. |
+
+### Files touched this session
+
+- `src/components/SiteHeader.js` – egg drag (createPortal, currentTarget, setPointerCapture), conditional header content when egg active.
+- `src/app/globals.css` – `.nav-link-egg-hidden` (opacity), `.nav-egg-drag-ghost`, `header.header--easter-egg` (min-height, pointer-events).
+- `public/easter-eggs/errl-bubbles-header.html` – rainbow stroke, face size/position, rainbow border on container, reduced title glow.
+
+### Follow-ups (optional)
+
+- Manually test: drag Feed into logo zone on desktop and mobile; confirm ghost follows cursor and drop activates game; confirm header content is hidden and iframe fills header.
+- If face feels off-center on very small viewports, consider responsive position offset (e.g. -32 for 64px face, -40 for 80px) instead of fixed -40.
