@@ -71,7 +71,7 @@ export default function PostMetaBar({
             <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
           </TitleElement>
           {!isCondensed && (
-            <span className="muted" style={{ fontSize: '12px', marginLeft: '6px' }}>
+            <span className="muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
               by <Username 
                 name={author} 
                 colorIndex={authorColorIndex}
@@ -81,7 +81,7 @@ export default function PostMetaBar({
           )}
           {/* Condensed desktop: by author at time next to title (left side) */}
           {isCondensed && (
-            <span className="post-meta-condensed-author-desktop muted" style={{ fontSize: '12px', marginLeft: '6px' }}>
+            <span className="post-meta-condensed-author-desktop muted" style={{ fontSize: '14px', marginLeft: '6px' }}>
               by <Username 
                 name={author} 
                 colorIndex={authorColorIndex}
@@ -100,7 +100,7 @@ export default function PostMetaBar({
         {/* Condensed mobile: author+date and stats on same row so stats don't wrap to own line */}
         {isCondensed && (
           <div className="post-meta-condensed-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', minWidth: 0 }}>
-            <span className="post-meta-condensed-author-mobile muted" style={{ fontSize: '12px', flex: '1 1 auto', minWidth: 0 }}>
+            <span className="post-meta-condensed-author-mobile muted" style={{ fontSize: '14px', flex: '1 1 auto', minWidth: 0 }}>
               by <Username 
                 name={author} 
                 colorIndex={authorColorIndex}
