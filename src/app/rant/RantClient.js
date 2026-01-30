@@ -42,6 +42,7 @@ export default function RantClient({ posts, notice }) {
                 const preferredColor = p.author_color_preference !== null && p.author_color_preference !== undefined ? Number(p.author_color_preference) : null;
                 const colorIndex = usernameColorMap.get(p.author_name) ?? getUsernameColorIndex(p.author_name, { preferredColorIndex: preferredColor });
                 const statusIcons = [];
+                if (p.is_pinned) statusIcons.push('📌');
                 if (p.is_unread) statusIcons.push('🆕');
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{p.title || 'Untitled'}</>

@@ -172,6 +172,40 @@ export async function POST(request, { params }) {
     }
   }
 
+  // Admin reply notifications: notify admins who have notify_admin_new_reply_enabled
+  if (user.role !== 'admin') {
+    try {
+      const { results: admins } = await db
+        .prepare('SELECT id FROM users WHERE role = ? AND notify_admin_new_reply_enabled = 1')
+        .bind('admin')
+        .all();
+
+      if (admins && admins.length) {
+        await Promise.all(
+          admins.map((admin) =>
+            db
+              .prepare(
+                `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`
+              )
+              .bind(
+                crypto.randomUUID(),
+                admin.id,
+                user.id,
+                'admin_reply',
+                'forum_thread',
+                id,
+                now
+              )
+              .run()
+          )
+        );
+      }
+    } catch (e) {
+      // Ignore admin notification failures
+    }
+  }
+
   // Redirect to last page after posting, or to nested reply if applicable
   if (effectiveReplyTo) {
     redirectUrl.hash = `reply-${effectiveReplyTo}`;

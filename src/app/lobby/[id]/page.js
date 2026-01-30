@@ -281,14 +281,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
                   forum_replies.reply_to_id,
                   COALESCE(users.username, 'Deleted User') AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id AND user_id = ? LIMIT 1) AS liked
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
            WHERE forum_replies.thread_id = ? AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
-        .bind(id, REPLIES_PER_PAGE, offset)
+        .bind(viewer?.id || '', id, REPLIES_PER_PAGE, offset)
         .all();
       // #region agent log
       log('lobby/[id]/page.js:195', 'After replies query', {threadId:id,hasResult:!!result,isArray:Array.isArray(result?.results),resultCount:result?.results?.length}, 'C');
@@ -310,14 +312,16 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
                   forum_replies.reply_to_id,
                   COALESCE(users.username, 'Deleted User') AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id AND user_id = ? LIMIT 1) AS liked
            FROM forum_replies
            LEFT JOIN users ON users.id = forum_replies.author_user_id
            WHERE forum_replies.thread_id = ?
            ORDER BY forum_replies.created_at ASC
            LIMIT ? OFFSET ?`
         )
-        .bind(id, REPLIES_PER_PAGE, offset)
+        .bind(viewer?.id || '', id, REPLIES_PER_PAGE, offset)
         .all();
       if (result && Array.isArray(result.results)) {
         replies = result.results.filter(r => r && r.id && r.body && r.author_user_id); // Filter out invalid replies
@@ -331,18 +335,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         const result = await db
           .prepare(
             `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at, forum_replies.author_user_id,
-                    forum_replies.reply_to_id
+                    forum_replies.reply_to_id,
+                    (SELECT COUNT(*) FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id) AS like_count,
+                    (SELECT 1 FROM post_likes WHERE post_type = 'forum_reply' AND post_id = forum_replies.id AND user_id = ? LIMIT 1) AS liked
              FROM forum_replies
              WHERE forum_replies.thread_id = ?
              ORDER BY forum_replies.created_at ASC
              LIMIT ? OFFSET ?`
           )
-          .bind(id, REPLIES_PER_PAGE, offset)
+          .bind(viewer?.id || '', id, REPLIES_PER_PAGE, offset)
           .all();
         if (result && Array.isArray(result.results)) {
           replies = result.results.map(r => ({
             ...r,
-            author_name: r.author_name || 'Unknown User' // Default if user lookup fails
+            author_name: r.author_name || 'Unknown User', // Default if user lookup fails
+            like_count: r.like_count ?? 0,
+            liked: !!r.liked
           })).filter(r => r && r.id && r.body && r.author_user_id);
         } else {
           replies = [];
@@ -658,18 +666,22 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       return (
         <div
           key={r.id}
-          className={`list-item${isChild ? ' reply-item--child' : ''}`}
+          className={`list-item comment-card${isChild ? ' reply-item--child' : ''}`}
           id={`reply-${r.id}`}
           style={{ position: 'relative' }}
         >
-          <DeleteCommentButton
-            commentId={r.id}
-            parentId={safeThreadId}
-            type="forum"
-            authorUserId={r.author_user_id}
-            currentUserId={viewer?.id}
-            isAdmin={!!isAdmin}
-          />
+          <div className="comment-action-row">
+            <LikeButton postType="forum_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
+            <DeleteCommentButton
+              inline
+              commentId={r.id}
+              parentId={safeThreadId}
+              type="forum"
+              authorUserId={r.author_user_id}
+              currentUserId={viewer?.id}
+              isAdmin={!!isAdmin}
+            />
+          </div>
           <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
           <div
             className="list-meta"

@@ -142,13 +142,15 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
       `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
               timeline_comments.author_user_id,
               users.username AS author_name,
-              users.preferred_username_color_index AS author_color_preference
+              users.preferred_username_color_index AS author_color_preference,
+              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id) AS like_count,
+              (SELECT 1 FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id AND user_id = ? LIMIT 1) AS liked
        FROM timeline_comments
        JOIN users ON users.id = timeline_comments.author_user_id
        WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
        ORDER BY timeline_comments.created_at ASC`
     )
-      .bind(id)
+    .bind(user?.id || '', id)
     .all();
 
   // Check if current user has liked this update
@@ -353,15 +355,19 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
-                <div key={c.id} className="list-item" style={{ position: 'relative' }}>
-                  <DeleteCommentButton
-                    commentId={c.id}
-                    parentId={update.id}
-                    type="timeline"
-                    authorUserId={c.author_user_id}
-                    currentUserId={user?.id}
-                    isAdmin={!!isAdmin}
-                  />
+                <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
+                  <div className="comment-action-row">
+                    <LikeButton postType="timeline_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                    <DeleteCommentButton
+                      inline
+                      commentId={c.id}
+                      parentId={update.id}
+                      type="timeline"
+                      authorUserId={c.author_user_id}
+                      currentUserId={user?.id}
+                      isAdmin={!!isAdmin}
+                    />
+                  </div>
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                   <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span>

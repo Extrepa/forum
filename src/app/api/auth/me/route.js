@@ -24,6 +24,7 @@ export async function GET() {
       notifyCommentEnabled: user.notify_comment_enabled !== 0,
       notifyAdminNewUserEnabled: user.notify_admin_new_user_enabled !== 0,
       notifyAdminNewPostEnabled: user.notify_admin_new_post_enabled !== 0,
+      notifyAdminNewReplyEnabled: user.notify_admin_new_reply_enabled !== 0,
       uiLoreEnabled: !!user.ui_lore_enabled,
       uiColorMode: user.ui_color_mode ?? 0,
       uiBorderColor: user.ui_border_color ?? null,

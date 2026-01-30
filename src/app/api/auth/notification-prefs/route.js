@@ -29,6 +29,9 @@ export async function POST(request) {
   const adminNewPostEnabled = user.role === 'admin'
     ? (payload.adminNewPostEnabled ? 1 : 0)
     : null;
+  const adminNewReplyEnabled = user.role === 'admin'
+    ? (payload.adminNewReplyEnabled ? 1 : 0)
+    : null;
 
   if (emailEnabled && !user.email) {
     return NextResponse.json({ error: 'Set an email before enabling email notifications.' }, { status: 400 });
@@ -39,7 +42,7 @@ export async function POST(request) {
 
   const db = await getDb();
   const adminUpdateSql = user.role === 'admin'
-    ? ', notify_admin_new_user_enabled = ?, notify_admin_new_post_enabled = ?'
+    ? ', notify_admin_new_user_enabled = ?, notify_admin_new_post_enabled = ?, notify_admin_new_reply_enabled = ?'
     : '';
 
   const params = [
@@ -54,7 +57,7 @@ export async function POST(request) {
   ];
 
   if (user.role === 'admin') {
-    params.push(adminNewUserEnabled, adminNewPostEnabled);
+    params.push(adminNewUserEnabled, adminNewPostEnabled, adminNewReplyEnabled);
   }
   params.push(user.id);
 
@@ -85,6 +88,7 @@ export async function POST(request) {
     notifyReplyEnabled: !!replyEnabled,
     notifyCommentEnabled: !!commentEnabled,
     notifyAdminNewUserEnabled: user.role === 'admin' ? !!adminNewUserEnabled : false,
-    notifyAdminNewPostEnabled: user.role === 'admin' ? !!adminNewPostEnabled : false
+    notifyAdminNewPostEnabled: user.role === 'admin' ? !!adminNewPostEnabled : false,
+    notifyAdminNewReplyEnabled: user.role === 'admin' ? !!adminNewReplyEnabled : false
   });
 }

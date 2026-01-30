@@ -1538,6 +1538,20 @@ a.list-item:hover {
   font-size: 18px;
 }
 
+.comment-card {
+  position: relative;
+}
+
+.comment-action-row {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  z-index: 2;
+}
+
 .list-meta {
   font-size: 13px;
   color: var(--muted);

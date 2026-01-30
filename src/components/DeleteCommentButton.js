@@ -38,6 +38,7 @@ function TrashIcon({ size = 14, title = 'Delete' }) {
  * @param {string|number|null} currentUserId - Logged-in user ID
  * @param {boolean} isAdmin - Whether current user is admin
  * @param {() => void} [onDeleted] - Callback after successful delete (default: router.refresh())
+ * @param {boolean} [inline] - If true, use position static for action row; if false, absolute top-right
  */
 export default function DeleteCommentButton({
   commentId,
@@ -47,6 +48,7 @@ export default function DeleteCommentButton({
   currentUserId,
   isAdmin,
   onDeleted,
+  inline = false,
 }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -106,9 +108,8 @@ export default function DeleteCommentButton({
   const pad = 2;
   const size = iconSize + pad * 2;
   const baseStyle = {
-    position: 'absolute',
-    top: 4,
-    right: 4,
+    position: inline ? 'static' : 'absolute',
+    ...(inline ? {} : { top: 4, right: 4 }),
     width: size,
     height: size,
     minWidth: size,

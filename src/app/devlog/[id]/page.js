@@ -204,13 +204,15 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
                 dev_log_comments.author_user_id,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log_comment' AND post_id = dev_log_comments.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'dev_log_comment' AND post_id = dev_log_comments.id AND user_id = ? LIMIT 1) AS liked
          FROM dev_log_comments
          JOIN users ON users.id = dev_log_comments.author_user_id
          WHERE dev_log_comments.log_id = ? AND dev_log_comments.is_deleted = 0
          ORDER BY dev_log_comments.created_at ASC`
       )
-      .bind(id)
+      .bind(user?.id || '', id)
       .all();
     comments = out?.results || [];
   } catch (e) {
@@ -221,13 +223,15 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at, dev_log_comments.reply_to_id,
                   dev_log_comments.author_user_id,
                   users.username AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log_comment' AND post_id = dev_log_comments.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'dev_log_comment' AND post_id = dev_log_comments.id AND user_id = ? LIMIT 1) AS liked
            FROM dev_log_comments
            JOIN users ON users.id = dev_log_comments.author_user_id
            WHERE dev_log_comments.log_id = ?
            ORDER BY dev_log_comments.created_at ASC`
         )
-        .bind(id)
+        .bind(user?.id || '', id)
         .all();
       comments = out?.results || [];
     } catch (e2) {
@@ -559,18 +563,22 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 return (
                   <div
                     key={c.id}
-                    className={`list-item${isChild ? ' reply-item--child' : ''}`}
+                    className={`list-item comment-card${isChild ? ' reply-item--child' : ''}`}
                     id={`reply-${c.id}`}
                     style={{ position: 'relative' }}
                   >
-                    <DeleteCommentButton
-                      commentId={c.id}
-                      parentId={id}
-                      type="devlog"
-                      authorUserId={c.author_user_id}
-                      currentUserId={user?.id}
-                      isAdmin={!!isAdmin}
-                    />
+                    <div className="comment-action-row">
+                      <LikeButton postType="dev_log_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                      <DeleteCommentButton
+                        inline
+                        commentId={c.id}
+                        parentId={id}
+                        type="devlog"
+                        authorUserId={c.author_user_id}
+                        currentUserId={user?.id}
+                        isAdmin={!!isAdmin}
+                      />
+                    </div>
                     <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
                     <div
                       className="list-meta"

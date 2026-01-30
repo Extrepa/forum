@@ -180,13 +180,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                 project_replies.author_user_id, project_replies.image_key,
                 COALESCE(users.username, 'Deleted User') AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id AND user_id = ? LIMIT 1) AS liked
          FROM project_replies
          LEFT JOIN users ON users.id = project_replies.author_user_id
          WHERE project_replies.project_id = ? AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
          ORDER BY project_replies.created_at ASC`
       )
-      .bind(id)
+      .bind(user?.id || '', id)
       .all();
     replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
   } catch (e) {
@@ -198,13 +200,15 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
                   project_replies.author_user_id, project_replies.image_key,
                   COALESCE(users.username, 'Deleted User') AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id AND user_id = ? LIMIT 1) AS liked
            FROM project_replies
            LEFT JOIN users ON users.id = project_replies.author_user_id
            WHERE project_replies.project_id = ?
            ORDER BY project_replies.created_at ASC`
         )
-        .bind(id)
+        .bind(user?.id || '', id)
         .all();
       replies = (out?.results || []).filter(r => r && r.id && r.body); // Filter out invalid replies
     } catch (e2) {
@@ -214,12 +218,14 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         const out = await db
           .prepare(
             `SELECT project_replies.id, project_replies.body, project_replies.created_at, project_replies.reply_to_id,
-                    project_replies.author_user_id, project_replies.image_key
+                    project_replies.author_user_id, project_replies.image_key,
+                    (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id) AS like_count,
+                    (SELECT 1 FROM post_likes WHERE post_type = 'project_reply' AND post_id = project_replies.id AND user_id = ? LIMIT 1) AS liked
              FROM project_replies
              WHERE project_replies.project_id = ?
              ORDER BY project_replies.created_at ASC`
           )
-          .bind(id)
+          .bind(user?.id || '', id)
           .all();
         replies = (out?.results || []).map(r => ({
           ...r,

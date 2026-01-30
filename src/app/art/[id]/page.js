@@ -67,14 +67,16 @@ export default async function ArtDetailPage({ params, searchParams }) {
           `SELECT post_comments.id, post_comments.body, post_comments.created_at,
                   post_comments.author_user_id,
                   users.username AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post_comment' AND post_id = post_comments.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'post_comment' AND post_id = post_comments.id AND user_id = ? LIMIT 1) AS liked
            FROM post_comments
            JOIN users ON users.id = post_comments.author_user_id
            WHERE post_comments.post_id = ?
              AND post_comments.is_deleted = 0
            ORDER BY post_comments.created_at ASC`
         )
-        .bind(id)
+        .bind(user?.id || '', id)
         .all();
       comments = out?.results || [];
     }
@@ -338,15 +340,19 @@ export default async function ArtDetailPage({ params, searchParams }) {
               const replyLink = `/art/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
-                <div key={c.id} className="list-item" style={{ position: 'relative' }}>
-                  <DeleteCommentButton
-                    commentId={c.id}
-                    parentId={post.id}
-                    type="post"
-                    authorUserId={c.author_user_id}
-                    currentUserId={user?.id}
-                    isAdmin={!!isAdmin}
-                  />
+                <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
+                  <div className="comment-action-row">
+                    <LikeButton postType="post_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                    <DeleteCommentButton
+                      inline
+                      commentId={c.id}
+                      parentId={post.id}
+                      type="post"
+                      authorUserId={c.author_user_id}
+                      currentUserId={user?.id}
+                      isAdmin={!!isAdmin}
+                    />
+                  </div>
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                   <div
                     className="list-meta"

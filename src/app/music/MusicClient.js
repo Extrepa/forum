@@ -46,6 +46,7 @@ export default function MusicClient({ posts, notice }) {
                 const preferredColor = row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null;
                 const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
                 const statusIcons = [];
+                if (row.is_pinned) statusIcons.push('📌');
                 if (row.is_unread) statusIcons.push('🆕');
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>

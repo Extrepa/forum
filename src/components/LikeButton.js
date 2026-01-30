@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-export default function LikeButton({ postType, postId, initialLiked = false, initialCount = 0 }) {
+export default function LikeButton({ postType, postId, initialLiked = false, initialCount = 0, size }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
+  const isCompact = size === 'sm';
 
   const handleLike = async () => {
     if (loading) return;
@@ -37,13 +38,13 @@ export default function LikeButton({ postType, postId, initialLiked = false, ini
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '4px',
-        padding: '3px 8px',
+        gap: isCompact ? '2px' : '4px',
+        padding: isCompact ? '2px 6px' : '3px 8px',
         border: '1px solid rgba(52, 225, 255, 0.3)',
         borderRadius: '999px',
         background: liked ? 'rgba(52, 225, 255, 0.15)' : 'rgba(2, 7, 10, 0.4)',
         color: liked ? 'var(--errl-accent)' : 'var(--muted)',
-        fontSize: '12px',
+        fontSize: isCompact ? '11px' : '12px',
         cursor: loading ? 'wait' : 'pointer',
         transition: 'all 0.2s ease',
         lineHeight: '1.2'
@@ -51,8 +52,8 @@ export default function LikeButton({ postType, postId, initialLiked = false, ini
       title={liked ? 'Unlike' : 'Like'}
     >
       <svg
-        width="12"
-        height="12"
+        width={isCompact ? 10 : 12}
+        height={isCompact ? 10 : 12}
         viewBox="0 0 24 24"
         fill={liked ? 'currentColor' : 'none'}
         stroke="currentColor"

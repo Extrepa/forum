@@ -32,13 +32,14 @@ export default async function ProjectsPage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM project_replies WHERE project_replies.project_id = projects.id AND project_replies.is_deleted = 0) AS reply_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM project_replies WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM project_replies WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at,
+                COALESCE(projects.is_pinned, 0) AS is_pinned
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.moved_to_id IS NULL
            ${hiddenFilter}
            AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
-         ORDER BY projects.created_at DESC
+         ORDER BY is_pinned DESC, projects.created_at DESC
          LIMIT 50`
       )
       .all();
@@ -54,10 +55,11 @@ export default async function ProjectsPage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM project_comments WHERE project_comments.project_id = projects.id AND project_comments.is_deleted = 0) AS reply_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'project' AND post_id = projects.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM project_comments WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM project_comments WHERE project_id = projects.id AND is_deleted = 0), projects.created_at) AS last_activity_at,
+                COALESCE(projects.is_pinned, 0) AS is_pinned
          FROM projects
          JOIN users ON users.id = projects.author_user_id
-         ORDER BY projects.created_at DESC
+         ORDER BY is_pinned DESC, projects.created_at DESC
          LIMIT 50`
       )
       .all();

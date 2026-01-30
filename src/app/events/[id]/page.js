@@ -152,13 +152,15 @@ export default async function EventDetailPage({ params, searchParams }) {
         `SELECT event_comments.id, event_comments.body, event_comments.created_at,
                 event_comments.author_user_id,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event_comment' AND post_id = event_comments.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'event_comment' AND post_id = event_comments.id AND user_id = ? LIMIT 1) AS liked
          FROM event_comments
          JOIN users ON users.id = event_comments.author_user_id
          WHERE event_comments.event_id = ? AND event_comments.is_deleted = 0
          ORDER BY event_comments.created_at ASC`
       )
-      .bind(id)
+      .bind(user?.id || '', id)
       .all();
     comments = result?.results || [];
   } catch (e) {
@@ -169,13 +171,15 @@ export default async function EventDetailPage({ params, searchParams }) {
           `SELECT event_comments.id, event_comments.body, event_comments.created_at,
                   event_comments.author_user_id,
                   users.username AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event_comment' AND post_id = event_comments.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'event_comment' AND post_id = event_comments.id AND user_id = ? LIMIT 1) AS liked
            FROM event_comments
            JOIN users ON users.id = event_comments.author_user_id
            WHERE event_comments.event_id = ?
            ORDER BY event_comments.created_at ASC`
         )
-        .bind(id)
+        .bind(user?.id || '', id)
         .all();
       comments = result?.results || [];
     } catch (e2) {

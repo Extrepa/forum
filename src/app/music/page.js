@@ -35,13 +35,14 @@ export default async function MusicPage({ searchParams }) {
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at,
+                COALESCE(music_posts.is_pinned, 0) AS is_pinned
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
            ${hiddenFilter}
            AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
-         ORDER BY music_posts.created_at DESC
+         ORDER BY is_pinned DESC, music_posts.created_at DESC
          LIMIT 50`
       )
       .all();
@@ -59,10 +60,11 @@ export default async function MusicPage({ searchParams }) {
                 (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
                 (SELECT COUNT(*) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM music_comments WHERE post_id = music_posts.id AND is_deleted = 0), music_posts.created_at) AS last_activity_at,
+                COALESCE(music_posts.is_pinned, 0) AS is_pinned
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
-         ORDER BY music_posts.created_at DESC
+         ORDER BY is_pinned DESC, music_posts.created_at DESC
          LIMIT 50`
       )
       .all();

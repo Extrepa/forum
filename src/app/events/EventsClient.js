@@ -60,6 +60,7 @@ export default function EventsClient({ events, notice }) {
                 };
 
                 const statusIcons = [];
+                if (row.is_pinned) statusIcons.push('📌');
                 if (row.is_unread) statusIcons.push('🆕');
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>

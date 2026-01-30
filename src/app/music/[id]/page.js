@@ -171,13 +171,15 @@ export default async function MusicDetailPage({ params, searchParams }) {
         `SELECT music_comments.id, music_comments.body, music_comments.created_at,
                 music_comments.author_user_id,
                 users.username AS author_name,
-                users.preferred_username_color_index AS author_color_preference
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_comment' AND post_id = music_comments.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'music_comment' AND post_id = music_comments.id AND user_id = ? LIMIT 1) AS liked
          FROM music_comments
          JOIN users ON users.id = music_comments.author_user_id
          WHERE music_comments.post_id = ? AND music_comments.is_deleted = 0
          ORDER BY music_comments.created_at ASC`
       )
-      .bind(id)
+      .bind(user?.id || '', id)
       .all();
     comments = result?.results || [];
   } catch (e) {
@@ -188,13 +190,15 @@ export default async function MusicDetailPage({ params, searchParams }) {
           `SELECT music_comments.id, music_comments.body, music_comments.created_at,
                   music_comments.author_user_id,
                   users.username AS author_name,
-                  users.preferred_username_color_index AS author_color_preference
+                  users.preferred_username_color_index AS author_color_preference,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_comment' AND post_id = music_comments.id) AS like_count,
+                  (SELECT 1 FROM post_likes WHERE post_type = 'music_comment' AND post_id = music_comments.id AND user_id = ? LIMIT 1) AS liked
            FROM music_comments
            JOIN users ON users.id = music_comments.author_user_id
            WHERE music_comments.post_id = ?
            ORDER BY music_comments.created_at ASC`
         )
-        .bind(id)
+        .bind(user?.id || '', id)
         .all();
       comments = result?.results || [];
     } catch (e2) {
@@ -486,15 +490,19 @@ export default async function MusicDetailPage({ params, searchParams }) {
               const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
               return (
-                <div key={comment.id} className="list-item" style={{ position: 'relative' }}>
-                  <DeleteCommentButton
-                    commentId={comment.id}
-                    parentId={id}
-                    type="music"
-                    authorUserId={comment.author_user_id}
-                    currentUserId={user?.id}
-                    isAdmin={!!isAdmin}
-                  />
+                <div key={comment.id} className="list-item comment-card" style={{ position: 'relative' }}>
+                  <div className="comment-action-row">
+                    <LikeButton postType="music_comment" postId={comment.id} initialLiked={!!comment.liked} initialCount={comment.like_count || 0} size="sm" />
+                    <DeleteCommentButton
+                      inline
+                      commentId={comment.id}
+                      parentId={id}
+                      type="music"
+                      authorUserId={comment.author_user_id}
+                      currentUserId={user?.id}
+                      isAdmin={!!isAdmin}
+                    />
+                  </div>
                   <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
                   <div
                     className="list-meta"

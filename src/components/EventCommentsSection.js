@@ -6,6 +6,7 @@ import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatDateTime } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import DeleteCommentButton from './DeleteCommentButton';
+import LikeButton from './LikeButton';
 
 export default function EventCommentsSection({
   eventId,
@@ -153,15 +154,19 @@ export default function EventCommentsSection({
             const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
             const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
             return (
-              <div key={c.id} className="list-item" style={{ position: 'relative' }}>
-                <DeleteCommentButton
-                  commentId={c.id}
-                  parentId={eventId}
-                  type="event"
-                  authorUserId={c.author_user_id}
-                  currentUserId={user?.id}
-                  isAdmin={!!isAdmin}
-                />
+              <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
+                <div className="comment-action-row">
+                  <LikeButton postType="event_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                  <DeleteCommentButton
+                    inline
+                    commentId={c.id}
+                    parentId={eventId}
+                    type="event"
+                    authorUserId={c.author_user_id}
+                    currentUserId={user?.id}
+                    isAdmin={!!isAdmin}
+                  />
+                </div>
                 <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
                 <div
                   className="list-meta"

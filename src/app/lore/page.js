@@ -33,13 +33,14 @@ export default async function LorePage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM post_comments WHERE post_id = posts.id AND is_deleted = 0), posts.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM post_comments WHERE post_id = posts.id AND is_deleted = 0), posts.created_at) AS last_activity_at,
+                COALESCE(posts.is_pinned, 0) AS is_pinned
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = 'lore'
            ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-         ORDER BY posts.created_at DESC
+         ORDER BY is_pinned DESC, posts.created_at DESC
          LIMIT 50`
       )
       .all();

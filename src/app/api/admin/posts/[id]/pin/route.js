@@ -1,0 +1,65 @@
+import { NextResponse } from 'next/server';
+import { getDb } from '../../../../../../lib/db';
+import { getSessionUser } from '../../../../../../lib/auth';
+import { isAdminUser } from '../../../../../../lib/admin';
+
+const VALID_TYPES = ['forum_thread', 'timeline_update', 'post', 'event', 'music_post', 'project', 'dev_log'];
+const TABLE_MAP = {
+  forum_thread: 'forum_threads',
+  timeline_update: 'timeline_updates',
+  post: 'posts',
+  event: 'events',
+  music_post: 'music_posts',
+  project: 'projects',
+  dev_log: 'dev_logs'
+};
+
+export async function POST(request, { params }) {
+  const user = await getSessionUser();
+  if (!user || !isAdminUser(user)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+  }
+
+  let body = {};
+  try {
+    body = await request.json();
+  } catch (e) {
+    // Optional body
+  }
+  const type = String(body.type || '').trim();
+  if (!type || !VALID_TYPES.includes(type)) {
+    return NextResponse.json({ error: 'Invalid type. Use one of: ' + VALID_TYPES.join(', ') }, { status: 400 });
+  }
+
+  const table = TABLE_MAP[type];
+  if (!table) {
+    return NextResponse.json({ error: 'Unknown type' }, { status: 400 });
+  }
+
+  const db = await getDb();
+  try {
+    const row = await db
+      .prepare(`SELECT id, is_pinned FROM ${table} WHERE id = ?`)
+      .bind(id)
+      .first();
+
+    if (!row) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    const nextPinned = row.is_pinned ? 0 : 1;
+    await db
+      .prepare(`UPDATE ${table} SET is_pinned = ? WHERE id = ?`)
+      .bind(nextPinned, id)
+      .run();
+
+    return NextResponse.json({ id, type, is_pinned: nextPinned === 1 });
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to toggle pin' }, { status: 500 });
+  }
+}

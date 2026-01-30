@@ -35,13 +35,14 @@ export default async function DevLogPage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count,
-                COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at
+                COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at,
+                COALESCE(dev_logs.is_pinned, 0) AS is_pinned
          FROM dev_logs
          JOIN users ON users.id = dev_logs.author_user_id
          WHERE 1 = 1
            ${hiddenFilter}
            AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
-         ORDER BY dev_logs.created_at DESC
+         ORDER BY is_pinned DESC, dev_logs.created_at DESC
          LIMIT 50`
       )
       .all();
@@ -59,10 +60,11 @@ export default async function DevLogPage({ searchParams }) {
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM dev_log_comments WHERE dev_log_comments.log_id = dev_logs.id AND dev_log_comments.is_deleted = 0) AS comment_count,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count,
-                  COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at
+                  COALESCE((SELECT MAX(created_at) FROM dev_log_comments WHERE log_id = dev_logs.id AND is_deleted = 0), dev_logs.created_at) AS last_activity_at,
+                  COALESCE(dev_logs.is_pinned, 0) AS is_pinned
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
-           ORDER BY dev_logs.created_at DESC
+           ORDER BY is_pinned DESC, dev_logs.created_at DESC
            LIMIT 50`
         )
         .all();

@@ -8,6 +8,7 @@ import { formatDateTime } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import ReplyFormWrapper from './ReplyFormWrapper';
 import DeleteCommentButton from './DeleteCommentButton';
+import LikeButton from './LikeButton';
 
 export default function ProjectRepliesSection({
   projectId,
@@ -86,18 +87,22 @@ export default function ProjectRepliesSection({
       return (
         <div
           key={r.id}
-          className={`list-item${isChild ? ' reply-item--child' : ''}`}
+          className={`list-item comment-card${isChild ? ' reply-item--child' : ''}`}
           id={`reply-${r.id}`}
           style={{ position: 'relative' }}
         >
-          <DeleteCommentButton
-            commentId={r.id}
-            parentId={projectId}
-            type="project"
-            authorUserId={r.author_user_id}
-            currentUserId={user?.id}
-            isAdmin={!!isAdmin}
-          />
+          <div className="comment-action-row">
+            <LikeButton postType="project_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
+            <DeleteCommentButton
+              inline
+              commentId={r.id}
+              parentId={projectId}
+              type="project"
+              authorUserId={r.author_user_id}
+              currentUserId={user?.id}
+              isAdmin={!!isAdmin}
+            />
+          </div>
           <div className="post-body" dangerouslySetInnerHTML={{ __html: r.body_html || r.body }} />
           {r.image_key && (
             <div style={{ marginTop: '12px' }}>

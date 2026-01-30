@@ -27,6 +27,7 @@ export default async function AnnouncementsPage({ searchParams }) {
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                 timeline_updates.created_at, timeline_updates.image_key,
                 COALESCE(timeline_updates.views, 0) AS views,
+                COALESCE(timeline_updates.is_pinned, 0) AS is_pinned,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0) AS comment_count,
@@ -37,7 +38,7 @@ export default async function AnnouncementsPage({ searchParams }) {
          WHERE timeline_updates.moved_to_id IS NULL
            ${hiddenFilter}
            AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
-         ORDER BY timeline_updates.created_at DESC
+         ORDER BY is_pinned DESC, timeline_updates.created_at DESC
          LIMIT 50`
       )
       .all();
@@ -48,6 +49,7 @@ export default async function AnnouncementsPage({ searchParams }) {
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                 timeline_updates.created_at, timeline_updates.image_key,
                 COALESCE(timeline_updates.views, 0) AS views,
+                COALESCE(timeline_updates.is_pinned, 0) AS is_pinned,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM timeline_comments WHERE timeline_comments.update_id = timeline_updates.id AND timeline_comments.is_deleted = 0) AS comment_count,
@@ -55,7 +57,7 @@ export default async function AnnouncementsPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM timeline_comments WHERE update_id = timeline_updates.id AND is_deleted = 0), timeline_updates.created_at) AS last_activity_at
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
-         ORDER BY timeline_updates.created_at DESC
+         ORDER BY is_pinned DESC, timeline_updates.created_at DESC
          LIMIT 50`
       )
       .all();

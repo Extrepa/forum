@@ -54,6 +54,7 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
                 const colorIndex = usernameColorMap.get(row.author_name) ?? getUsernameColorIndex(row.author_name, { preferredColorIndex: preferredColor });
                 const href = `/projects/${row.id}`;
                 const statusIcons = [];
+                if (row.is_pinned) statusIcons.push('📌');
                 if (row.is_unread) statusIcons.push('🆕');
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>

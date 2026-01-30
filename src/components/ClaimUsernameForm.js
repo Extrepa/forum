@@ -131,6 +131,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [notifyCommentEnabled, setNotifyCommentEnabled] = useState(true);
   const [notifyAdminNewUserEnabled, setNotifyAdminNewUserEnabled] = useState(false);
   const [notifyAdminNewPostEnabled, setNotifyAdminNewPostEnabled] = useState(false);
+  const [notifyAdminNewReplyEnabled, setNotifyAdminNewReplyEnabled] = useState(false);
   const [uiLoreEnabled, setUiLoreEnabled] = useState(false);
   const [uiColorMode, setUiColorMode] = useState(0);
   const [uiBorderColor, setUiBorderColor] = useState('#34e1ff');
@@ -168,6 +169,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
         setNotifyAdminNewUserEnabled(!!user?.notifyAdminNewUserEnabled);
         setNotifyAdminNewPostEnabled(!!user?.notifyAdminNewPostEnabled);
+        setNotifyAdminNewReplyEnabled(!!user?.notifyAdminNewReplyEnabled);
         setUiLoreEnabled(!!user?.uiLoreEnabled);
         setLoreEnabled(!!user?.uiLoreEnabled);
         setUiColorMode(user?.uiColorMode ?? 0);
@@ -211,6 +213,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setNotifyCommentEnabled(user?.notifyCommentEnabled ?? true);
       setNotifyAdminNewUserEnabled(!!user?.notifyAdminNewUserEnabled);
       setNotifyAdminNewPostEnabled(!!user?.notifyAdminNewPostEnabled);
+      setNotifyAdminNewReplyEnabled(!!user?.notifyAdminNewReplyEnabled);
       setUiLoreEnabled(!!user?.uiLoreEnabled);
       setLoreEnabled(!!user?.uiLoreEnabled);
       setUiColorMode(user?.uiColorMode ?? 0);
@@ -303,7 +306,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
           replyEnabled: notifyReplyEnabled,
           commentEnabled: notifyCommentEnabled,
           adminNewUserEnabled: notifyAdminNewUserEnabled,
-          adminNewPostEnabled: notifyAdminNewPostEnabled
+          adminNewPostEnabled: notifyAdminNewPostEnabled,
+          adminNewReplyEnabled: notifyAdminNewReplyEnabled
         })
       });
       const payload = await response.json();
@@ -762,6 +766,14 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       type="checkbox"
                       checked={notifyAdminNewPostEnabled}
                       onChange={(e) => setNotifyAdminNewPostEnabled(e.target.checked)}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>New forum replies</span>
+                    <input
+                      type="checkbox"
+                      checked={notifyAdminNewReplyEnabled}
+                      onChange={(e) => setNotifyAdminNewReplyEnabled(e.target.checked)}
                     />
                   </label>
                   <button 
