@@ -8,47 +8,49 @@ export default function HomeStats({ stats, recentPosts = [] }) {
   }
 
   return (
-    <section className="card">
+    <section className="card home-stats">
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Stats</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+      <div className="home-stats-grid">
         {/* Total Posts Card */}
         <div
-          className="card"
+          className="card home-stats-card"
           style={{
             padding: '16px',
             border: '1px solid rgba(52, 225, 255, 0.2)',
-            background: 'rgba(4, 16, 23, 0.6)'
+            background: 'rgba(4, 16, 23, 0.6)',
+            minWidth: 0
           }}
         >
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px' }}>
+          <div className="home-stats-number" style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px' }}>
             {stats.totalPosts || 0}
           </div>
-          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
+          <div className="home-stats-label" style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
             Total Posts
           </div>
-          <div className="muted" style={{ fontSize: '12px' }}>
+          <div className="muted home-stats-sublabel" style={{ fontSize: '12px' }}>
             Across all sections
           </div>
         </div>
 
         {/* Active Users Card - Two Columns */}
         <div
-          className="card"
+          className="card home-stats-card"
           style={{
             padding: '16px',
             border: '1px solid rgba(52, 225, 255, 0.2)',
-            background: 'rgba(4, 16, 23, 0.6)'
+            background: 'rgba(4, 16, 23, 0.6)',
+            minWidth: 0
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+          <div className="home-stats-label" style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
             Active Users
           </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-            <div style={{ flex: '1' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+          <div className="home-stats-two-col" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <div style={{ flex: '1', minWidth: 0 }}>
+              <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.totalUsers || 0}
               </div>
-              <div className="muted" style={{ fontSize: '11px' }}>
+              <div className="muted home-stats-sublabel" style={{ fontSize: '11px' }}>
                 Total signed up
               </div>
             </div>
@@ -57,11 +59,11 @@ export default function HomeStats({ stats, recentPosts = [] }) {
               background: 'rgba(52, 225, 255, 0.2)', 
               alignSelf: 'stretch' 
             }} />
-            <div style={{ flex: '1' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+            <div style={{ flex: '1', minWidth: 0 }}>
+              <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.activeUsers || 0}
               </div>
-              <div className="muted" style={{ fontSize: '11px' }}>
+              <div className="muted home-stats-sublabel" style={{ fontSize: '11px' }}>
                 Currently active
               </div>
             </div>
@@ -70,28 +72,29 @@ export default function HomeStats({ stats, recentPosts = [] }) {
 
         {/* Recent Activity Card - Two Columns (Posts | Replies) */}
         <div
-          className="card"
+          className="card home-stats-card"
           style={{
             padding: '16px',
             border: '1px solid rgba(52, 225, 255, 0.2)',
             background: 'rgba(4, 16, 23, 0.6)',
-            position: 'relative'
+            position: 'relative',
+            minWidth: 0
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <div style={{ fontSize: '14px', fontWeight: '600' }}>
+            <div className="home-stats-label" style={{ fontSize: '14px', fontWeight: '600' }}>
               Recent Activity
             </div>
-            <div className="muted" style={{ fontSize: '11px' }}>
+            <div className="muted home-stats-sublabel" style={{ fontSize: '11px' }}>
               Last 24 hours
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-            <div style={{ flex: '1' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+          <div className="home-stats-two-col" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <div style={{ flex: '1', minWidth: 0 }}>
+              <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.recentPostsCount || 0}
               </div>
-              <div className="muted" style={{ fontSize: '11px' }}>
+              <div className="muted home-stats-sublabel" style={{ fontSize: '11px' }}>
                 Posts
               </div>
             </div>
@@ -100,11 +103,11 @@ export default function HomeStats({ stats, recentPosts = [] }) {
               background: 'rgba(52, 225, 255, 0.2)', 
               alignSelf: 'stretch' 
             }} />
-            <div style={{ flex: '1' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
+            <div style={{ flex: '1', minWidth: 0 }}>
+              <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.recentRepliesCount || 0}
               </div>
-              <div className="muted" style={{ fontSize: '11px' }}>
+              <div className="muted home-stats-sublabel" style={{ fontSize: '11px' }}>
                 Replies
               </div>
             </div>

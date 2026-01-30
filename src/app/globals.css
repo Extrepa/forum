@@ -1874,6 +1874,42 @@ span:has(.username) + .status-badge {
   font-style: italic;
 }
 
+/* Homepage Stats: always 3 columns in one row; shrink on small viewports */
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-stats-card {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .home-stats-grid {
+    gap: 8px;
+  }
+  .home-stats-card {
+    padding: 10px !important;
+  }
+  .home-stats-card .home-stats-sublabel,
+  .home-stats-card .muted.home-stats-sublabel {
+    font-size: 10px !important;
+  }
+  .home-stats-card .home-stats-label {
+    font-size: 12px !important;
+  }
+  .home-stats-card .home-stats-number {
+    font-size: 1.5rem !important;
+  }
+  .home-stats-card .home-stats-number-sm {
+    font-size: 1.25rem !important;
+  }
+  .home-stats-card .home-stats-two-col {
+    gap: 8px;
+  }
+}
+
 .post-header {
   display: flex;
   align-items: center;

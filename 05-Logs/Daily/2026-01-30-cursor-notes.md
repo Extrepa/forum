@@ -157,3 +157,12 @@ Desktop condensed layout put "by username at time" next to the views on the righ
 - **File:** `05-Logs/Development/2026-01-30-development-post-07.md`
 - **Scope:** All changes since dev update #6 (2026-01-29): Easter egg (brief, not-signed-in only), pins everywhere, likes on comments/replies, admin pin API, admin new-reply pref, admin audit fields prep, PostMetaBar condensed layout, feed/last-activity/attendee UI, header/nav spacing, full reload after sign-in, sign-in copy.
 - **Style:** Matches #5/#6 (New Features, Enhancements, Bug Fixes, Technical, Known Issues).
+
+---
+
+## Homepage Stats: single row on small viewports
+
+- **Goal:** Stats cards (Total Posts, Active Users, Recent Activity) stay in one row on mobile/small viewports instead of wrapping.
+- **Changes:**
+  - **HomeStats.js:** Grid changed from `repeat(auto-fit, minmax(200px, 1fr))` to fixed 3-column layout via class `home-stats-grid`; cards use `home-stats-card` with `minWidth: 0` so they can shrink. Added classes `home-stats-number`, `home-stats-label`, `home-stats-sublabel`, `home-stats-number-sm`, `home-stats-two-col` for responsive scaling.
+  - **globals.css:** `.home-stats-grid` uses `grid-template-columns: repeat(3, minmax(0, 1fr))`; `.home-stats-card { overflow: hidden }`. At `max-width: 640px`, reduced gap, padding, and font sizes for stats numbers/labels so three cards fit in one row.
