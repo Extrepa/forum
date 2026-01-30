@@ -32,7 +32,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
           </div>
         </div>
 
-        {/* Active Users Card - Two Columns */}
+        {/* Active Users Card - Two Columns on desktop, inline on mobile */}
         <div
           className="card home-stats-card"
           style={{
@@ -45,7 +45,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
           <div className="home-stats-label" style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
             Active Users
           </div>
-          <div className="home-stats-two-col" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div className="home-stats-two-col home-stats-active-users" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div style={{ flex: '1', minWidth: 0 }}>
               <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.totalUsers || 0}
@@ -54,7 +54,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
                 Total signed up
               </div>
             </div>
-            <div style={{ 
+            <div className="home-stats-divider" style={{ 
               width: '1px', 
               background: 'rgba(52, 225, 255, 0.2)', 
               alignSelf: 'stretch' 
@@ -68,9 +68,20 @@ export default function HomeStats({ stats, recentPosts = [] }) {
               </div>
             </div>
           </div>
+          <div className="home-stats-inline home-stats-active-users-inline" style={{ display: 'none' }}>
+            <span className="home-stats-inline-item">
+              <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.totalUsers || 0}</span>
+              <span className="muted home-stats-sublabel"> total</span>
+            </span>
+            <span className="muted" style={{ margin: '0 6px' }}>·</span>
+            <span className="home-stats-inline-item">
+              <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.activeUsers || 0}</span>
+              <span className="muted home-stats-sublabel"> active</span>
+            </span>
+          </div>
         </div>
 
-        {/* Recent Activity Card - Two Columns (Posts | Replies) */}
+        {/* Recent Activity Card - Two Columns on desktop, inline on mobile */}
         <div
           className="card home-stats-card"
           style={{
@@ -89,7 +100,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
               Last 24 hours
             </div>
           </div>
-          <div className="home-stats-two-col" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div className="home-stats-two-col home-stats-recent-activity" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div style={{ flex: '1', minWidth: 0 }}>
               <div className="home-stats-number home-stats-number-sm" style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>
                 {stats.recentPostsCount || 0}
@@ -98,7 +109,7 @@ export default function HomeStats({ stats, recentPosts = [] }) {
                 Posts
               </div>
             </div>
-            <div style={{ 
+            <div className="home-stats-divider" style={{ 
               width: '1px', 
               background: 'rgba(52, 225, 255, 0.2)', 
               alignSelf: 'stretch' 
@@ -111,6 +122,17 @@ export default function HomeStats({ stats, recentPosts = [] }) {
                 Replies
               </div>
             </div>
+          </div>
+          <div className="home-stats-inline home-stats-recent-inline" style={{ display: 'none' }}>
+            <span className="home-stats-inline-item">
+              <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentPostsCount || 0}</span>
+              <span className="muted home-stats-sublabel"> post{(stats.recentPostsCount || 0) !== 1 ? 's' : ''}</span>
+            </span>
+            <span className="muted" style={{ margin: '0 6px' }}>·</span>
+            <span className="home-stats-inline-item">
+              <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentRepliesCount || 0}</span>
+              <span className="muted home-stats-sublabel"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'}</span>
+            </span>
           </div>
           {recentPosts && recentPosts.length > 0 && (
             <div style={{ 

@@ -1908,6 +1908,22 @@ span:has(.username) + .status-badge {
   .home-stats-card .home-stats-two-col {
     gap: 8px;
   }
+  /* On small screens: use inline format for Active Users and Recent Activity */
+  .home-stats-active-users,
+  .home-stats-recent-activity {
+    display: none !important;
+  }
+  .home-stats-active-users-inline,
+  .home-stats-recent-inline {
+    display: flex !important;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 14px;
+    margin-top: -4px;
+  }
+  .home-stats-inline .home-stats-number {
+    font-size: 1.25rem !important;
+  }
 }
 
 .post-header {

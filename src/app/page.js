@@ -99,6 +99,7 @@ export default async function HomePage({ searchParams }) {
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
        WHERE timeline_updates.moved_to_id IS NULL
+         AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
        ORDER BY timeline_updates.created_at DESC
        LIMIT 1`,
       [],
@@ -107,6 +108,7 @@ export default async function HomePage({ searchParams }) {
               users.preferred_username_color_index AS author_color_preference
        FROM timeline_updates
        JOIN users ON users.id = timeline_updates.author_user_id
+       WHERE (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
        ORDER BY timeline_updates.created_at DESC
        LIMIT 1`,
       []
@@ -560,6 +562,7 @@ export default async function HomePage({ searchParams }) {
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.image_key IS NOT NULL
          AND forum_threads.moved_to_id IS NULL
+         AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
        ORDER BY forum_threads.created_at DESC
        LIMIT 1`,
       [],
@@ -569,6 +572,7 @@ export default async function HomePage({ searchParams }) {
        FROM forum_threads
        JOIN users ON users.id = forum_threads.author_user_id
        WHERE forum_threads.image_key IS NOT NULL
+         AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
        ORDER BY forum_threads.created_at DESC
        LIMIT 1`,
       []
@@ -590,6 +594,7 @@ export default async function HomePage({ searchParams }) {
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('art', 'nostalgia')
+         AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
          AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
        ORDER BY posts.created_at DESC
        LIMIT 1`,
@@ -600,6 +605,7 @@ export default async function HomePage({ searchParams }) {
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('art', 'nostalgia')
+         AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
        ORDER BY posts.created_at DESC
        LIMIT 1`,
       []
@@ -656,6 +662,7 @@ export default async function HomePage({ searchParams }) {
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('bugs', 'rant')
+         AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
          AND (${hasUsername ? '1=1' : 'posts.is_private = 0'})
        ORDER BY posts.created_at DESC
        LIMIT 1`,
@@ -666,6 +673,7 @@ export default async function HomePage({ searchParams }) {
        FROM posts
        JOIN users ON users.id = posts.author_user_id
        WHERE posts.type IN ('bugs', 'rant')
+         AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
        ORDER BY posts.created_at DESC
        LIMIT 1`,
       []
@@ -735,6 +743,7 @@ export default async function HomePage({ searchParams }) {
                   users.preferred_username_color_index AS author_color_preference
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
+           WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
            ORDER BY dev_logs.created_at DESC
            LIMIT 1`,
           []
@@ -840,6 +849,7 @@ export default async function HomePage({ searchParams }) {
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('lore', 'memories')
+             AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            ORDER BY posts.created_at DESC
            LIMIT 1`,
           [],
@@ -849,6 +859,7 @@ export default async function HomePage({ searchParams }) {
            FROM posts
            JOIN users ON users.id = posts.author_user_id
            WHERE posts.type IN ('lore', 'memories')
+             AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            ORDER BY posts.created_at DESC
            LIMIT 1`,
           []
