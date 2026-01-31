@@ -220,6 +220,14 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 - **2026-01-30 (first):** `Homepage stats mobile layout; is_deleted filter for recent activity queries` — inline format for Active Users/Recent Activity on mobile, is_deleted filters on section recent-activity queries. Pushed to main, deployed to production.
 - **2026-01-30 (second):** Stats mobile layout changed to stack vertically (1 column) instead of 3 cramped columns; removed inline markup, two-col layout used with full-width cards.
 
+### Stats combined card: spacing and separators
+- **Issue:** Stats text looked cramped; separators ran into numbers; spacing inconsistent.
+- **Fix:** Added spaces around · separators (" · "); increased gap between items (10px); moved number styling to CSS; added gap between number and label within items.
+
+### Feed PostMetaBar: last activity wrapping on mobile
+- **Issue:** Long "Last activity by X at date" lines overflowed horizontally, getting cut off.
+- **Fix:** Removed whiteSpace: nowrap from mobile stats and last activity; PostMetaBar mobile last-activity block now display: block, width: 100%; added overflow-wrap/word-break so text wraps; post-meta-row2 and children get min-width: 0 for proper flex shrinking.
+
 ### Feed page mobile stretch fix
 - **Issue:** Feed page still stretching on mobile.
 - **Fix:** (1) Feed header paragraph had `minWidth: '200px'` — changed to `0` so it can shrink. (2) Added mobile CSS: `body { overflow-x: hidden; width: 100% }`, `.site { width: 100%; min-width: 0; max-width: 100vw }`, `main { min-width: 0; overflow-x: hidden }`, `.list` and `.list-item { min-width: 0 }` to prevent flex/grid children from expanding the layout.

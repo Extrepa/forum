@@ -14,20 +14,20 @@ export default function HomeStats({ stats, recentPosts = [] }) {
       <div className="home-stats-combined">
         <div className="home-stats-combined-row">
           <span className="home-stats-combined-item">
-            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.totalPosts || 0}</span>
+            <span className="home-stats-number">{stats.totalPosts || 0}</span>
             <span className="muted"> posts</span>
           </span>
-          <span className="muted home-stats-combined-sep">·</span>
+          <span className="home-stats-combined-sep" aria-hidden> · </span>
           <span className="home-stats-combined-item">
-            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.totalUsers || 0}</span>
+            <span className="home-stats-number">{stats.totalUsers || 0}</span>
             <span className="muted"> users</span>
             <span className="muted"> ({stats.activeUsers || 0} active)</span>
           </span>
-          <span className="muted home-stats-combined-sep">·</span>
+          <span className="home-stats-combined-sep" aria-hidden> · </span>
           <span className="home-stats-combined-item">
-            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentPostsCount || 0}</span>
+            <span className="home-stats-number">{stats.recentPostsCount || 0}</span>
             <span className="muted"> post{(stats.recentPostsCount || 0) !== 1 ? 's' : ''}, </span>
-            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentRepliesCount || 0}</span>
+            <span className="home-stats-number">{stats.recentRepliesCount || 0}</span>
             <span className="muted"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'} (24h)</span>
           </span>
         </div>

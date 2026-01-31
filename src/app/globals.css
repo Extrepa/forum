@@ -1487,12 +1487,14 @@ button:hover {
   }
   .post-meta-stats-desktop {
     display: inline !important;
+    white-space: nowrap;
   }
   .post-meta-stats-mobile {
     display: none !important;
   }
   .post-meta-last-activity {
     display: inline !important;
+    white-space: nowrap;
   }
   .post-meta-last-activity-mobile {
     display: none !important;
@@ -1525,7 +1527,26 @@ button:hover {
     display: none !important;
   }
   .post-meta-last-activity-mobile {
-    display: flex !important;
+    display: block !important;
+  }
+  /* Allow last activity and stats to wrap on mobile */
+  .post-meta-last-activity-text {
+    display: block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  .post-meta-stats-mobile,
+  .post-meta-stats-condensed-row1 {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .post-meta-row2 {
+    min-width: 0;
+  }
+  .post-meta-row2 > span {
+    min-width: 0;
+    overflow-wrap: break-word;
   }
   .post-meta-date-mobile-only {
     display: inline !important;
@@ -1925,23 +1946,29 @@ span:has(.username) + .status-badge {
   .home-stats-combined-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 8px;
+    align-items: baseline;
+    gap: 4px 10px;
     font-size: 13px;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
   .home-stats-combined-item {
     display: inline-flex;
     align-items: baseline;
+    gap: 2px;
   }
 
   .home-stats-combined-item .home-stats-number {
     font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
   }
 
   .home-stats-combined-sep {
-    font-size: 10px;
+    color: var(--muted);
+    opacity: 0.6;
+    font-size: 12px;
+    user-select: none;
   }
 
   .home-stats-combined-recent {

@@ -621,11 +621,6 @@ export default async function FeedPage() {
                                 ({formatRelativeEventDate(item.startsAt)})
                               </span>
                             ) : null}
-                            {item.attendeeCount > 0 ? (
-                              <span className="muted" style={{ marginLeft: '6px', color: 'var(--errl-accent-3)' }}>
-                                · {item.attendeeCount} attending
-                              </span>
-                            ) : null}
                           </span>
                         </div>
                       </div>
