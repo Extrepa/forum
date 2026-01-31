@@ -4,11 +4,6 @@ main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
-# Increase CPU time limit to avoid "Worker exceeded CPU time limit" on heavy pages (e.g. homepage with many DB queries)
-# Default is 30s; 60s gives headroom for Next.js SSR + D1 on complex routes
-[limits]
-cpu_ms = 60000
-
 # Production (Default)
 [[d1_databases]]
 binding = "DB"
