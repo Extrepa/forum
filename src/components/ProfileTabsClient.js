@@ -29,38 +29,26 @@ export default function ProfileTabsClient({
 }) {
   const tabs = useMemo(() => PROFILE_TABS, []);
   const [activeTab, setActiveTab] = useState('stats');
+  const activeIndex = tabs.findIndex(t => t.id === activeTab);
 
   return (
     <div className="profile-tabs-wrapper">
-      <div className="profile-tabs-strip profile-tabs-strip--spread">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={activeTab === tab.id ? 'profile-tab profile-tab--active' : 'profile-tab'}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="profile-tab-content">
+      <div className="profile-tab-content profile-tab-content--above">
       {activeTab === 'stats' && (
         <div>
           {stats ? (
-            <div className="profile-stats-block" style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)' }}>
+            <div className="profile-stats-block profile-stats-block--grid">
               <div className="profile-stats-grid">
                 <span className="profile-stat">
-                  <span className="profile-stat-label">Portal entry:</span>{' '}
-                  <span className="date-only-mobile">{stats.joinDateShort}</span>
-                  <span className="date-with-time-desktop">{stats.joinDateLong}</span>
+                  <span className="profile-stat-label">Portal entry</span>
+                  <span className="profile-stat-value date-only-mobile">{stats.joinDateShort}</span>
+                  <span className="profile-stat-value date-with-time-desktop">{stats.joinDateLong}</span>
                 </span>
-                <span className="profile-stat"><span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> threads</span>
-                <span className="profile-stat"><span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> replies</span>
-                <span className="profile-stat"><span style={{ color: getRarityColor(stats.profileViews), fontWeight: '600' }}>{stats.profileViews}</span> visits</span>
-                <span className="profile-stat"><span style={{ color: getRarityColor(stats.timeSpentMinutes), fontWeight: '600' }}>{stats.timeSpentMinutes}</span> min</span>
-                <span className="profile-stat"><span style={{ color: getRarityColor(stats.avatarEditMinutes), fontWeight: '600' }}>{stats.avatarEditMinutes}</span> avatar min</span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span><span className="profile-stat-label">threads</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span><span className="profile-stat-label">replies</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews), fontWeight: '600' }}>{stats.profileViews}</span><span className="profile-stat-label">visits</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes), fontWeight: '600' }}>{stats.timeSpentMinutes}</span><span className="profile-stat-label">min on site</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes), fontWeight: '600' }}>{stats.avatarEditMinutes}</span><span className="profile-stat-label">avatar min</span></span>
               </div>
             </div>
           ) : (
@@ -157,6 +145,31 @@ export default function ProfileTabsClient({
         </div>
       )}
 
+      </div>
+
+      <div className="tabs-pill" role="tablist" aria-label="Profile sections">
+        <div className="tabs-pill-inner">
+          <div
+            className="tabs-pill-indicator"
+            style={{
+              width: `${100 / tabs.length}%`,
+              transform: `translateX(${activeIndex * 100}%)`,
+            }}
+            aria-hidden
+          />
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={activeTab === tab.id ? 'profile-tab profile-tab--active' : 'profile-tab'}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

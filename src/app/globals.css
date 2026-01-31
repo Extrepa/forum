@@ -904,7 +904,7 @@ main {
   margin-top: 12px;
 }
 
-/* Edit profile: single card with inner tabs */
+/* Edit profile: single card with inner tabs, pill at bottom */
 .account-edit-card {
   padding: 16px;
   background: rgba(2, 7, 10, 0.4);
@@ -913,26 +913,16 @@ main {
   min-width: 0;
 }
 
-.account-edit-tabs-strip {
+.account-edit-card--tabs-bottom {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
+  flex-direction: column;
+  gap: 0;
+}
+
+.account-edit-card--tabs-bottom .account-edit-tab-content--above {
+  flex: 1 1 auto;
   margin-bottom: 12px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.account-edit-tabs-strip--spread .account-edit-tab {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: none;
-}
-
-.account-edit-tabs-strip::-webkit-scrollbar {
-  display: none;
+  min-height: 80px;
 }
 
 .account-edit-tab {
@@ -945,7 +935,7 @@ main {
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   min-height: 40px;
   touch-action: manipulation;
 }
@@ -1064,24 +1054,6 @@ main {
 
   .account-edit-card {
     padding: 12px 14px;
-  }
-
-  .account-edit-tabs-strip {
-    padding-bottom: 6px;
-    margin-bottom: 10px;
-    gap: 6px;
-  }
-
-  .account-edit-tabs-strip--spread .account-edit-tab {
-    flex: 1 1 auto;
-    min-width: 64px;
-    max-width: none;
-  }
-
-  .account-edit-tab {
-    padding: 6px 12px;
-    font-size: 12px;
-    min-height: 36px;
   }
 
   /* Make edit button smaller on mobile */
@@ -1815,10 +1787,79 @@ button:hover {
   max-width: 280px;
 }
 
-/* Profile tabs: strip scrolls on mobile */
+/* Profile tabs: content above, pill at bottom */
 .profile-tabs-wrapper {
   margin-top: 24px;
   min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.profile-tab-content {
+  padding-bottom: 8px;
+  min-height: 80px;
+}
+
+.profile-tab-content--above {
+  flex: 1 1 auto;
+  margin-bottom: 12px;
+}
+
+/* Giant pill: tabs in one row, sliding indicator */
+.tabs-pill {
+  flex: 0 0 auto;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(2, 7, 10, 0.5);
+  border: 1px solid rgba(52, 225, 255, 0.25);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-pill::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs-pill-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  position: relative;
+  min-width: min-content;
+  gap: 0;
+}
+
+.tabs-pill-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: rgba(52, 225, 255, 0.2);
+  border: 1px solid rgba(52, 225, 255, 0.4);
+  pointer-events: none;
+  transition: transform 0.25s ease-out;
+  z-index: 0;
+}
+
+.tabs-pill .profile-tab,
+.tabs-pill .account-edit-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+}
+
+.tabs-pill .profile-tab--active,
+.tabs-pill .account-edit-tab--active {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .profile-tabs-strip {
@@ -1853,7 +1894,7 @@ button:hover {
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   min-height: 40px;
   touch-action: manipulation;
 }
@@ -1870,31 +1911,39 @@ button:hover {
   color: var(--ink);
 }
 
-.profile-tab-content {
-  padding-bottom: 8px;
-  min-height: 80px;
-}
-
 .profile-stats-block {
   font-size: 13px;
 }
 
+.profile-stats-block--grid {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+}
+
 .profile-stats-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px 24px;
+  align-items: start;
 }
 
 .profile-stat {
-  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-size: 13px;
 }
 
 .profile-stat-label {
-  margin-left: 4px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.profile-stat-value {
+  font-size: 14px;
+  color: var(--ink);
 }
 
 /* Mobile: tighten layout – less padding/gap, stacked header, compact tabs area */
@@ -1932,22 +1981,20 @@ button:hover {
     margin-top: 16px;
   }
 
-  .profile-tabs-strip {
-    padding-bottom: 6px;
+  .profile-tab-content--above {
     margin-bottom: 10px;
-    gap: 6px;
   }
 
-  .profile-tabs-strip--spread .profile-tab {
-    flex: 1 1 auto;
-    min-width: 64px;
-    max-width: none;
+  .tabs-pill {
+    padding: 5px;
   }
 
-  .profile-tab {
-    padding: 6px 12px;
+  .tabs-pill .profile-tab,
+  .tabs-pill .account-edit-tab {
+    padding: 6px 10px;
     font-size: 12px;
     min-height: 36px;
+    min-width: 64px;
   }
 
   .profile-tab-content {
@@ -1955,17 +2002,21 @@ button:hover {
     padding-bottom: 4px;
   }
 
-  .profile-stats-block {
-    padding: 10px 12px !important;
-    margin-bottom: 12px !important;
+  .profile-stats-block--grid {
+    padding: 12px 14px !important;
   }
 
   .profile-stats-grid {
-    gap: 8px 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 16px;
   }
 
   .profile-stat {
     font-size: 12px;
+  }
+
+  .profile-stat-value {
+    font-size: 13px;
   }
 
   .profile-song-link {

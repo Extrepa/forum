@@ -501,8 +501,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { id: 'gallery', label: 'Gallery' },
     { id: 'notes', label: 'Notes' },
     { id: 'stats', label: 'Stats' },
+    { id: 'activity', label: 'Activity' },
   ];
   const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
+  const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
 
   return (
     <section className="card account-card">
@@ -595,20 +597,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <p className="muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
             Edit how your profile appears to others. To see your public profile, use &quot;View my profile&quot; above.
           </p>
-          <div className="account-edit-card">
-            <div className="account-edit-tabs-strip account-edit-tabs-strip--spread">
-              {EDIT_PROFILE_SUB_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setEditProfileSubTab(tab.id)}
-                  className={editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div className="account-edit-tab-content">
+          <div className="account-edit-card account-edit-card--tabs-bottom">
+            <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'profile' && (
                 <div className="account-edit-panel">
                 <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
@@ -1172,29 +1162,36 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               {editProfileSubTab === 'stats' && (
                 <div className="account-edit-panel">
                   <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
-                  <div style={{ padding: '16px', background: 'rgba(2, 7, 10, 0.4)', borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.2)', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                    {(() => {
-                      const getRarityColor = (value) => {
-                        if (value === 0) return 'var(--muted)';
-                        if (value < 10) return 'var(--accent)';
-                        if (value < 100) return '#00f5a0';
-                        if (value < 1000) return '#5b8def';
-                        return '#b794f6';
-                      };
-                      return (
-                        <>
-                          <div><span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}<span style={{ color: 'var(--accent)' }}><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></div>
-                          <div><span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span style={{ color: 'var(--muted)' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span></div>
-                          <div><span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span style={{ color: 'var(--muted)' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span></div>
-                          <div><span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span> <span style={{ color: 'var(--muted)' }}>total contributions</span></div>
-                          <div><span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span></div>
-                          <div><span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span></div>
-                          <div><span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span></div>
-                        </>
-                      );
-                    })()}
+                  <div className="profile-stats-block profile-stats-block--grid">
+                    <div className="profile-stats-grid">
+                      {(() => {
+                        const getRarityColor = (value) => {
+                          if (value === 0) return 'var(--muted)';
+                          if (value < 10) return 'var(--accent)';
+                          if (value < 100) return '#00f5a0';
+                          if (value < 1000) return '#5b8def';
+                          return '#b794f6';
+                        };
+                        return (
+                          <>
+                            <span className="profile-stat"><span className="profile-stat-label">Portal entry</span><span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span><span className="profile-stat-label">{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span><span className="profile-stat-label">{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span><span className="profile-stat-label">total contributions</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span><span className="profile-stat-label">{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span><span className="profile-stat-label">{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span><span className="profile-stat-label">{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span></span>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
-                  <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
+                </div>
+              )}
+
+              {editProfileSubTab === 'activity' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Recent Activity</h2>
                   {stats.recentActivity && stats.recentActivity.length > 0 ? (
                     <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
                       {stats.recentActivity.map((item) => {
@@ -1238,6 +1235,31 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   )}
                 </div>
               )}
+
+            </div>
+            <div className="tabs-pill" role="tablist" aria-label="Edit profile sections">
+              <div className="tabs-pill-inner">
+                <div
+                  className="tabs-pill-indicator"
+                  style={{
+                    width: `${100 / EDIT_PROFILE_SUB_TABS.length}%`,
+                    transform: `translateX(${editProfileSubTabIndex * 100}%)`,
+                  }}
+                  aria-hidden
+                />
+                {EDIT_PROFILE_SUB_TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={editProfileSubTab === tab.id}
+                    onClick={() => setEditProfileSubTab(tab.id)}
+                    className={editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
