@@ -230,8 +230,8 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 
 ### Worker CPU time limit (Error 1102)
 - **Issue:** Homepage GET / triggered "Worker exceeded CPU time limit" (Error 1102).
-- **Fix 1:** Added `[limits] cpu_ms = 60000` to `wrangler.toml` to raise the limit from the default 30s to 60s. Note: Workers Free plan has a hard 10ms limit; this change applies to Workers Paid.
-- **Fix 2:** Parallelized homepage section data fetches in `src/app/page.js`. All 28 DB queries (counts and recents for timeline, forum, events, music, projects, shitposts, artNostalgia, bugsRant, devlog, loreMemories) now run in a single `Promise.all` instead of sequentially, reducing wall time and CPU usage.
+- **Fix (first):** Parallelized homepage section data fetches in `src/app/page.js`. All 28 DB queries now run in a single `Promise.all` instead of sequentially.
+- **Fix (second, 1102 still happening):** Stats block (totalUsers, activeUsers, recentPostsCount, recentRepliesCount, recentActivity) was still sequential. Parallelized all 5 in one `Promise.all`. Replaced author lookup loop (up to 15 awaits) with single batch `WHERE id IN (...)` query. Replaced uniqueParentAuthors loop with batch `WHERE username IN (...)` query.
 
 ### Feed page mobile stretch fix
 - **Issue:** Feed page still stretching on mobile.

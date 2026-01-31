@@ -92,5 +92,6 @@ Additional fixes and polish applied after the above:
 - **Feed mobile stretch:** Feed page no longer stretches on mobile—body/site/main overflow constraints, feed header `minWidth` fix, and list/list-item `min-width: 0` so content stays within viewport.
 - **Feed post meta wrapping:** Last activity lines and stats on feed post cards now wrap on mobile instead of overflowing (removed `white-space: nowrap`, added `overflow-wrap`).
 - **Event attendee duplicate:** Removed duplicate "X attending" from the event details line on feed; it’s only shown in the bottom row with the attendee list.
+- **Worker CPU limit (Error 1102):** If you hit "Worker exceeded resource limits" on the homepage while the site was down—the homepage was doing 28 sequential DB queries and blowing past the Workers Free 10ms CPU cap. Fixed by parallelizing all section fetches into a single `Promise.all`. See `docs/02-Deployment/WORKER_CPU_LIMIT_ERROR_1102.md` for details.
 
 Thanks for testing and pushing the forum forward. If anything feels off, drop a note in Bugs or a dev post and I will prioritize it.
