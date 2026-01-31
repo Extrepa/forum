@@ -8,6 +8,9 @@ export async function GET(request) {
   const url = new URL(request.url);
   const debug = url.searchParams.get('debug') === '1';
   const { requestId } = await getEdgeContext();
+  if (requestId) {
+    console.info('edge-request', { route: '/api/status', requestId });
+  }
 
   try {
     const db = await getDb();

@@ -6,6 +6,9 @@ export async function GET(request) {
   const url = new URL(request.url);
   const debug = url.searchParams.get('debug') === '1';
   const { requestId } = await getEdgeContext();
+  if (requestId) {
+    console.info('edge-request', { route: '/api/auth/me', requestId });
+  }
 
   const user = await getSessionUser();
   if (!user) {
