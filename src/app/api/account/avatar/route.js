@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { getUploadsBucket, buildImageKey } from '../../../../lib/uploads';
-import { ungzipSync } from 'fflate';
+import { gunzipSync } from 'fflate';
 
 const base64ToUint8 = (str) => {
   if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
@@ -23,7 +23,7 @@ const decodeSvgPayload = (svg, encoding) => {
   if (!encoding) return svg;
   if (encoding === 'gzip+base64') {
     const compressed = base64ToUint8(svg);
-    const decompressed = ungzipSync(compressed);
+    const decompressed = gunzipSync(compressed);
     return new TextDecoder().decode(decompressed);
   }
   return svg;
