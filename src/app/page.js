@@ -645,43 +645,60 @@ if (hasUsername && sectionData) {
     const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
     const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
 
-    // Run all stats queries in parallel to stay under Workers CPU limit
-    const postsUnion = `SELECT COUNT(*) as count FROM (
-      SELECT created_at FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM timeline_updates WHERE created_at > ?
-      UNION ALL SELECT created_at FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-    )`;
-    const repliesUnion = `SELECT COUNT(*) as count FROM (
-      SELECT created_at FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-      UNION ALL SELECT created_at FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)
-    )`;
-    const bind24 = [last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours];
+    const safeCount = async (sql, binds = []) => {
+      try {
+        const stmt = db.prepare(sql);
+        const bound = binds.length ? stmt.bind(...binds) : stmt;
+        const row = await bound.first();
+        return Number(row?.count) || 0;
+      } catch (e) {
+        return 0;
+      }
+    };
 
-    const [totalUsersResult, activeUsersResult, postsCountResult, repliesCountResult] = await Promise.all([
-      db.prepare('SELECT COUNT(*) as count FROM users').first().catch(() => null),
-      db.prepare('SELECT last_seen FROM users LIMIT 1').first()
-        .then(() => db.prepare('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?').bind(fiveMinutesAgo).first())
-        .catch(() => ({ count: 0 })),
-      db.prepare(postsUnion).bind(...bind24).first().catch(() => ({ count: 0 })),
-      db.prepare(repliesUnion).bind(...bind24).first().catch(() => ({ count: 0 }))
+    const [
+      totalUsersCount,
+      activeUsersCount,
+      forumPosts24,
+      eventPosts24,
+      musicPosts24,
+      projectPosts24,
+      devLogPosts24,
+      timelinePosts24,
+      sharedPosts24,
+      forumReplies24,
+      eventReplies24,
+      musicReplies24,
+      projectReplies24,
+      devLogReplies24,
+      timelineReplies24,
+      sharedReplies24
+    ] = await Promise.all([
+      safeCount('SELECT COUNT(*) as count FROM users'),
+      safeCount('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?', [fiveMinutesAgo]),
+      safeCount('SELECT COUNT(*) as count FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM timeline_updates WHERE created_at > ?', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
+      safeCount('SELECT COUNT(*) as count FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours])
     ]);
 
-    const recentPostsCount = Number(postsCountResult?.count) || 0;
-    const recentRepliesCount = Number(repliesCountResult?.count) || 0;
+    const recentPostsCount = forumPosts24 + eventPosts24 + musicPosts24 + projectPosts24 + devLogPosts24 + timelinePosts24 + sharedPosts24;
+    const recentRepliesCount = forumReplies24 + eventReplies24 + musicReplies24 + projectReplies24 + devLogReplies24 + timelineReplies24 + sharedReplies24;
 
     stats = {
       totalPosts,
-      totalUsers: totalUsersResult?.count || 0,
-      activeUsers: activeUsersResult?.count || 0,
+      totalUsers: totalUsersCount,
+      activeUsers: activeUsersCount,
       recentPostsCount,
       recentRepliesCount,
       recentActivity: recentPostsCount + recentRepliesCount
