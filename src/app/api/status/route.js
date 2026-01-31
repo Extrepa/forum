@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { getDb } from '../../../lib/db';
+import { getEdgeContext } from '../../../lib/edgeContext';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   const url = new URL(request.url);
   const debug = url.searchParams.get('debug') === '1';
-  const requestId = debug ? (await headers()).get('x-errl-request-id') : null;
+  const { requestId } = debug ? await getEdgeContext() : { requestId: null };
 
   try {
     const db = await getDb();
