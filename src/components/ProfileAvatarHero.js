@@ -51,8 +51,8 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
   }, []);
 
   // Subtle floating animation for when not hovering or on mobile
-  const translateScalar = isHovering ? 12 : 8;
-  const rotationScalar = isHovering ? 4 : 2.5;
+  const translateScalar = 18;
+  const rotationScalar = 6;
 
   const floatingAnim = `
     @keyframes floatingFace {
