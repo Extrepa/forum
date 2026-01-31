@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import AvatarImage from './AvatarImage';
 import { getAvatarUrl } from '../lib/media';
 
 export default function ProfileAvatarHero({ avatarKey, userColor }) {
@@ -51,6 +51,9 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
   }, []);
 
   // Subtle floating animation for when not hovering or on mobile
+  const translateScalar = isHovering ? 12 : 8;
+  const rotationScalar = isHovering ? 4 : 2.5;
+
   const floatingAnim = `
     @keyframes floatingFace {
       0%, 100% { transform: translate(0, 0); }
@@ -64,6 +67,8 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
       100% { transform: rotateY(360deg); }
     }
   `;
+
+  const avatarUrl = getAvatarUrl(avatarKey);
 
   return (
     <div 
@@ -91,7 +96,7 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
         inset: 0,
         borderRadius: '50%',
         background: `radial-gradient(circle, ${userColor}33 0%, transparent 70%)`,
-        transform: `translate(${coords.x * 10}px, ${coords.y * 9}px) scale(${isHovering ? 1.05 : 1})`,
+        transform: `translate(${coords.x * 6}px, ${coords.y * 5}px) scale(${isHovering ? 1.05 : 1})`,
         transition: isHovering ? 'transform 0.15s ease-out' : 'transform 0.5s ease-out',
         pointerEvents: 'none',
         zIndex: 0
@@ -103,7 +108,7 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
         style={{
           position: 'relative',
           zIndex: 1,
-          transform: `translate(${coords.x * 18}px, ${coords.y * 18}px) rotateX(${coords.y * -6}deg) rotateY(${coords.x * 6}deg)`,
+          transform: `translate(${coords.x * translateScalar}px, ${coords.y * translateScalar}px) rotateX(${coords.y * -rotationScalar}deg) rotateY(${coords.x * rotationScalar}deg)`,
           transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.8s ease-out',
           cursor: 'pointer'
         }}
@@ -114,12 +119,11 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
             animation: isSpinning ? 'coinSpin 0.9s ease-out' : (!isHovering ? 'floatingFace 6s ease-in-out infinite' : 'none')
           }}
         >
-          <Image
-            src={getAvatarUrl(avatarKey)}
-            alt=""
-            width={160}
-            height={160}
-            unoptimized
+          <AvatarImage
+            src={avatarUrl}
+            alt="Profile avatar"
+            size={160}
+            loading="eager"
             style={{
               width: '160px',
               height: '160px',

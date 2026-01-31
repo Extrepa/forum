@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import AvatarImage from './AvatarImage';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { getAvatarUrl } from '../lib/media';
 import UserPopover from './UserPopover';
@@ -90,13 +90,12 @@ export default function Username({
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
       >
         {avatarUrl && (
-          <Image 
-            src={avatarUrl} 
-            alt="" 
+          <AvatarImage
+            src={avatarUrl}
+            alt={`${safeName}'s avatar`}
+            size={24}
             className="username-avatar"
-            width={24}
-            height={24}
-            unoptimized
+            loading="lazy"
           />
         )}
         <span>{safeName}</span>

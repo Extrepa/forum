@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../lib/auth';
 export const dynamic = 'force-dynamic';
 
 const MINUTE_MS = 60 * 1000;
+const MAX_MINUTES_PER_PING = 2;
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -29,8 +30,18 @@ export async function POST(request) {
         .bind(user.id)
         .first();
 
-      const lastSeen = row?.avatar_edit_last_seen || 0;
-      const minutesToAdd = lastSeen > 0 ? Math.floor((now - lastSeen) / MINUTE_MS) : 0;
+      const lastSeen = Number(row?.avatar_edit_last_seen || 0);
+      if (lastSeen <= 0) {
+        await db
+          .prepare('UPDATE users SET avatar_edit_last_seen = ? WHERE id = ?')
+          .bind(now, user.id)
+          .run();
+        return NextResponse.json({ ok: true, minutesAdded: 0 });
+      }
+
+      const elapsedMs = Math.max(0, now - lastSeen);
+      const rawMinutes = Math.floor(elapsedMs / MINUTE_MS);
+      const minutesToAdd = Math.min(MAX_MINUTES_PER_PING, rawMinutes);
 
       if (isInitial) {
         await db

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import AvatarImage from './AvatarImage';
 import { getAvatarUrl } from '../lib/media';
 import { createPortal } from 'react-dom';
 
@@ -149,12 +149,11 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
       ) : (
         <div style={{ position: 'relative', width: '64px', height: '64px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
-          <Image
+          <AvatarImage
             src={avatarUrl}
-            alt={username}
-            width={64}
-            height={64}
-            unoptimized
+            alt={`${username}'s avatar`}
+            size={64}
+            loading="lazy"
             style={{
               width: '64px',
               height: '64px',

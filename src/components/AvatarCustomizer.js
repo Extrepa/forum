@@ -147,8 +147,11 @@ const INITIAL_LAYERS = [
 
 const PALETTE = INITIAL_PALETTE; // Kept for logic compatibility
 const FINISHES = ['solid', 'glow', 'glitter', 'static', 'gradient'];
+const OUTLINE_FINISHES = ['solid', 'glow', 'glitter', 'static', 'gradient'];
 
-const LARGE_SVG_THRESHOLD = 1.5 * 1024 * 1024;
+const LARGE_SVG_THRESHOLD = 1 * 1024 * 1024;
+const MAX_IMAGE_IMPORT_SIZE = 5 * 1024 * 1024;
+const IMAGE_FILL_ACCEPT = 'image/*,.gif,.webp';
 
 const arrayBufferToBase64 = (buffer) => {
   let binary = '';
@@ -513,6 +516,27 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     return null;
   };
 
+  const getFinishFilter = (layer, target) => {
+    const finish = target === 'fill' ? layer.finish : layer.strokeFinish;
+    if (!finish) return '';
+    if (finish === 'glow') {
+      return `url(#glow-fx-${layer.id})`;
+    }
+    if (finish === 'glitter') {
+      return 'url(#glitter-fx)';
+    }
+    if (finish === 'static') {
+      return `url(#static-fx-${layer.id})`;
+    }
+    if (finish === 'gradient') {
+      const gradientId = target === 'fill' ? getGradientId(layer) : getStrokeGradientId(layer);
+      if (gradientId === 'chrome') {
+        return `url(#chrome-reflect-${layer.id})`;
+      }
+    }
+    return '';
+  };
+
   const getSVGPoint = (e) => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
@@ -745,7 +769,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       e.target.value = '';
       return;
     }
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = MAX_IMAGE_IMPORT_SIZE;
     if (file.size > maxSize) {
       const limitLabel = '5MB';
       alert(`Image too large. Please use an image under ${limitLabel}.`);
@@ -1059,7 +1083,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
           }}
         >
           <defs>
-            {layers.filter((layer) => layer.finish === 'glow').map((layer) => (
+            {layers.filter((layer) => layer.finish === 'glow' || layer.strokeFinish === 'glow').map((layer) => (
               <filter key={`glow-${layer.id}`} id={`glow-fx-${layer.id}`} x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation={layer.glowIntensity ?? 28} result="blur" />
                 <feComposite in="blur" in2="SourceAlpha" operator="out" result="glow" />
@@ -1078,7 +1102,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <feComposite in="sparkle" in2="SourceAlpha" operator="in" />
               <feBlend in="SourceGraphic" mode="screen" />
             </filter>
-            {layers.filter((layer) => layer.finish === 'static').map((layer) => {
+            {layers.filter((layer) => layer.finish === 'static' || layer.strokeFinish === 'static').map((layer) => {
               const roughness = Math.min(80, Math.max(10, layer.staticRoughness ?? 45));
               const baseFrequency = 0.03 + (roughness / 100) * 0.25;
               const animateFrequency = baseFrequency + 0.06;
@@ -1095,7 +1119,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 </filter>
               );
             })}
-            {layers.filter((layer) => layer.finish === 'gradient' && getGradientId(layer) === 'chrome').map((layer) => {
+            {layers.filter((layer) => (layer.finish === 'gradient' && getGradientId(layer) === 'chrome') || (layer.strokeFinish === 'gradient' && getStrokeGradientId(layer) === 'chrome')).map((layer) => {
               const reflectiveness = Math.min(100, Math.max(10, layer.chromeReflectiveness ?? 50));
               const floodOpacity = 0.1 + (reflectiveness / 100) * 0.45;
               const blur = 2 + (reflectiveness / 100) * 3;
@@ -1131,55 +1155,69 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
             ))}
           </defs>
           
-          {layers.map((layer) => {
-            const bounds = layer.type === 'import' ? { x: 250, y: 250, width: 500, height: 500 } : getPathBounds(layer.d);
-            const gradientId = getGradientId(layer);
-            const gradientDirection = layer.gradientDirection || 'lr';
-            const gradientUrl = gradientId ? `url(#${gradientId}-${gradientDirection})` : layer.gradientUrl;
-            return (
-              <g
-                key={layer.id}
-                transform={`translate(${layer.x}, ${layer.y}) translate(${cx}, ${cy}) scale(${layer.scale * (layer.flipX || 1)}, ${layer.scale * (layer.flipY || 1)}) rotate(${layer.rotation}) translate(${-cx}, ${-cy})`}
-                onMouseDown={(e) => handleMouseDown(e, layer.id)}
-                onContextMenu={(e) => handleContextMenu(e, layer.id)}
-                onDoubleClick={() => randomizeLayer(layer.id)}
-                onTouchStart={(e) => handleTouchStartLayer(e, layer.id)}
-                onTouchEnd={(e) => handleTouchEndLayer(e, layer.id)}
-                style={{ cursor: layer.id === 'face' ? 'default' : 'move' }}
-              >
-                {layer.type === 'import' ? (
-                  <image href={layer.url} x="250" y="250" width="500" height="500" />
-                ) : (
-                  <path
-                    d={layer.d}
-                    fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? gradientUrl : layer.color)}
-                    filter={
-                      layer.finish === 'glow' ? `url(#glow-fx-${layer.id})` :
-                      layer.finish === 'glitter' ? 'url(#glitter-fx)' :
-                      layer.finish === 'static' ? `url(#static-fx-${layer.id})` :
-                      (layer.finish === 'gradient' && getGradientId(layer) === 'chrome') ? `url(#chrome-reflect-${layer.id})` :
-                      ''
-                    }
-                    stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
-                    strokeWidth={layer.strokeWidth || 4}
-                    style={{ transition: 'fill 0.3s ease' }}
-                  />
-                )}
-                {selectedLayerId === layer.id && layer.id !== 'face' && (
-                  <rect 
-                    x={bounds.x - 5} 
-                    y={bounds.y - 5} 
-                    width={bounds.width + 10} 
-                    height={bounds.height + 10} 
-                    fill="none" 
-                    stroke="var(--accent)" 
-                    strokeWidth="4" 
-                    strokeDasharray="20,20" 
-                  />
-                )}
-              </g>
-            );
-          })}
+            {layers.map((layer) => {
+              const bounds = layer.type === 'import' ? { x: 250, y: 250, width: 500, height: 500 } : getPathBounds(layer.d);
+              const gradientId = getGradientId(layer);
+              const gradientDirection = layer.gradientDirection || 'lr';
+              const gradientUrl = gradientId ? `url(#${gradientId}-${gradientDirection})` : layer.gradientUrl;
+              const strokeGradientId = getStrokeGradientId(layer);
+              const strokeGradientDirection = layer.strokeGradientDirection || 'lr';
+              const strokeGradientUrl = strokeGradientId ? `url(#${strokeGradientId}-${strokeGradientDirection})` : layer.strokeGradientUrl;
+              const fillColor = layer.finish === 'image' && layer.imageUrl
+                ? `url(#img-fill-${layer.id})`
+                : (layer.finish === 'gradient' ? gradientUrl : layer.color);
+              const strokeColor = layer.strokeFinish === 'gradient'
+                ? (strokeGradientUrl || gradientUrl || layer.stroke || 'var(--line)')
+                : (layer.stroke || 'var(--line)');
+              const fillFilter = getFinishFilter(layer, 'fill');
+              const strokeFilter = getFinishFilter(layer, 'stroke');
+              return (
+                <g
+                  key={layer.id}
+                  transform={`translate(${layer.x}, ${layer.y}) translate(${cx}, ${cy}) scale(${layer.scale * (layer.flipX || 1)}, ${layer.scale * (layer.flipY || 1)}) rotate(${layer.rotation}) translate(${-cx}, ${-cy})`}
+                  onMouseDown={(e) => handleMouseDown(e, layer.id)}
+                  onContextMenu={(e) => handleContextMenu(e, layer.id)}
+                  onDoubleClick={() => randomizeLayer(layer.id)}
+                  onTouchStart={(e) => handleTouchStartLayer(e, layer.id)}
+                  onTouchEnd={(e) => handleTouchEndLayer(e, layer.id)}
+                  style={{ cursor: layer.id === 'face' ? 'default' : 'move' }}
+                >
+                  {layer.type === 'import' ? (
+                    <image href={layer.url} x="250" y="250" width="500" height="500" />
+                  ) : (
+                    <>
+                      <path
+                        d={layer.d}
+                        fill={fillColor}
+                        filter={fillFilter || undefined}
+                        stroke="none"
+                        style={{ transition: 'fill 0.3s ease' }}
+                      />
+                      <path
+                        d={layer.d}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth={layer.strokeWidth || 4}
+                        filter={strokeFilter || undefined}
+                        style={{ transition: 'stroke 0.3s ease' }}
+                      />
+                    </>
+                  )}
+                  {selectedLayerId === layer.id && layer.id !== 'face' && (
+                    <rect 
+                      x={bounds.x - 5} 
+                      y={bounds.y - 5} 
+                      width={bounds.width + 10} 
+                      height={bounds.height + 10} 
+                      fill="none" 
+                      stroke="var(--accent)" 
+                      strokeWidth="4" 
+                      strokeDasharray="20,20" 
+                    />
+                  )}
+                </g>
+              );
+            })}
         </svg>
 
         {/* Action Bar */}
@@ -1640,7 +1678,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <input
                     ref={imageFillInputRef}
                     type="file"
-                  accept="image/*,.gif,.webp"
+                    accept={IMAGE_FILL_ACCEPT}
                     onChange={handleImageFillImport}
                     style={{ display: 'none' }}
                   />
@@ -1907,33 +1945,37 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OUTLINE FINISH</label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
-                  {['solid', 'gradient'].map(f => (
-                    <button
-                      key={`outline-${f}`}
-                      onClick={() => {
-                        if (f === 'gradient') {
-                          const nextId = getStrokeGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
-                          const nextDir = selectedLayer.strokeGradientDirection || 'lr';
-                          handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientId: nextId, strokeGradientDirection: nextDir, strokeGradientUrl: `url(#${nextId}-${nextDir})` });
-                          return;
-                        }
-                        handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
-                      }}
-                      title={`Apply ${f.toUpperCase()} to Frame`}
-                      style={{ 
-                        fontSize: '10px', 
-                        padding: '4px 0', 
-                        background: (selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                        color: (selectedLayer.strokeFinish || 'solid') === f ? '#001018' : 'var(--ink)', 
-                        border: '1px solid ' + ((selectedLayer.strokeFinish || 'solid') === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                        borderRadius: '999px', cursor: 'pointer', minHeight: 0,
-                        fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
-                      }}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
+                  {OUTLINE_FINISHES.map(f => {
+                    const isActive = (selectedLayer.strokeFinish || 'solid') === f;
+                    const label = f === 'static' ? 'STATIC' : f.toUpperCase();
+                    return (
+                      <button
+                        key={`outline-${f}`}
+                        onClick={() => {
+                          if (f === 'gradient') {
+                            const nextId = getStrokeGradientId(selectedLayer) || GRADIENTS[0]?.id || 'rainbow';
+                            const nextDir = selectedLayer.strokeGradientDirection || 'lr';
+                            handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientId: nextId, strokeGradientDirection: nextDir, strokeGradientUrl: `url(#${nextId}-${nextDir})` });
+                            return;
+                          }
+                          handleLayerChange(selectedLayer.id, { strokeFinish: f, strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined });
+                        }}
+                        title={`Apply ${label} to Frame`}
+                        style={{ 
+                          fontSize: '10px', 
+                          padding: '4px 0', 
+                          background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                          color: isActive ? '#001018' : 'var(--ink)', 
+                          border: '1px solid ' + (isActive ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                          borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
                 {(selectedLayer.strokeFinish || 'solid') === 'gradient' && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
@@ -1969,7 +2011,7 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 <input
                   type="range"
                   min="1"
-                  max={selectedLayer.id === 'face' ? 40 : 15}
+                  max={selectedLayer.id === 'face' ? 25 : 15}
                   step="1"
                   value={selectedLayer.strokeWidth || 4}
                   onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value, 10) })}

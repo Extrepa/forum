@@ -9,6 +9,7 @@ import ClaimUsernameForm from '../../components/ClaimUsernameForm';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
+import AvatarImage from '../../components/AvatarImage';
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -524,12 +525,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
                       {user.avatar_key ? (
                         <div style={{ position: 'relative' }}>
-                          <Image
+                          <AvatarImage
                             src={getAvatarUrl(user.avatar_key)}
                             alt="Current Avatar"
-                            width={96}
-                            height={96}
-                            unoptimized
+                            size={96}
+                            loading="eager"
                             style={{
                               width: '96px',
                               height: '96px',
@@ -548,12 +548,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {!isEditingAvatar && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                         <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                        <Image
+                        <AvatarImage
                           src={getAvatarUrl(user.avatar_key)}
                           alt="Mini avatar preview"
-                          width={24}
-                          height={24}
-                          unoptimized
+                          size={24}
+                          loading="lazy"
                           style={{
                             width: '24px',
                             height: '24px',
