@@ -8,6 +8,8 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const spinTimeoutRef = useRef(null);
 
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
@@ -28,6 +30,26 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
     setIsHovering(true);
   };
 
+  const handleFaceClick = () => {
+    if (spinTimeoutRef.current) {
+      clearTimeout(spinTimeoutRef.current);
+    }
+    setIsSpinning(true);
+    spinTimeoutRef.current = setTimeout(() => {
+      setIsSpinning(false);
+      spinTimeoutRef.current = null;
+    }, 900);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current) {
+        clearTimeout(spinTimeoutRef.current);
+        spinTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Subtle floating animation for when not hovering or on mobile
   const floatingAnim = `
     @keyframes floatingFace {
@@ -35,6 +57,11 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
       25% { transform: translate(2px, -3px); }
       50% { transform: translate(-1px, 2px); }
       75% { transform: translate(-2px, -1px); }
+    }
+    @keyframes coinSpin {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(180deg) scaleX(1.02); }
+      100% { transform: rotateY(360deg); }
     }
   `;
 
@@ -64,33 +91,43 @@ export default function ProfileAvatarHero({ avatarKey, userColor }) {
         inset: 0,
         borderRadius: '50%',
         background: `radial-gradient(circle, ${userColor}33 0%, transparent 70%)`,
-        transform: `translate(${coords.x * 15}px, ${coords.y * 15}px) scale(${isHovering ? 1.1 : 1})`,
-        transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.6s ease-out',
+        transform: `translate(${coords.x * 10}px, ${coords.y * 9}px) scale(${isHovering ? 1.05 : 1})`,
+        transition: isHovering ? 'transform 0.15s ease-out' : 'transform 0.5s ease-out',
         pointerEvents: 'none',
         zIndex: 0
       }} />
 
       {/* The Face - moves more for parallax effect */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        transform: `translate(${coords.x * 30}px, ${coords.y * 30}px) rotateX(${coords.y * -10}deg) rotateY(${coords.x * 10}deg)`,
-        transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.8s ease-out',
-        animation: !isHovering ? 'floatingFace 6s ease-in-out infinite' : 'none'
-      }}>
-        <Image
-          src={getAvatarUrl(avatarKey)}
-          alt=""
-          width={160}
-          height={160}
-          unoptimized
+      <div
+        onClick={handleFaceClick}
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          transform: `translate(${coords.x * 18}px, ${coords.y * 18}px) rotateX(${coords.y * -6}deg) rotateY(${coords.x * 6}deg)`,
+          transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.8s ease-out',
+          cursor: 'pointer'
+        }}
+      >
+        <div
           style={{
-            width: '160px',
-            height: '160px',
-            display: 'block',
-            filter: `drop-shadow(0 0 10px ${userColor}44)`
+            transformStyle: 'preserve-3d',
+            animation: isSpinning ? 'coinSpin 0.9s ease-out' : (!isHovering ? 'floatingFace 6s ease-in-out infinite' : 'none')
           }}
-        />
+        >
+          <Image
+            src={getAvatarUrl(avatarKey)}
+            alt=""
+            width={160}
+            height={160}
+            unoptimized
+            style={{
+              width: '160px',
+              height: '160px',
+              display: 'block',
+              filter: `drop-shadow(0 0 10px ${userColor}44)`
+            }}
+          />
+        </div>
       </div>
     </div>
   );

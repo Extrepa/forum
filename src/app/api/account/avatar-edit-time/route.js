@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 const MINUTE_MS = 60 * 1000;
 
-export async function POST() {
+export async function POST(request) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -15,6 +15,13 @@ export async function POST() {
   try {
     const db = await getDb();
     const now = Date.now();
+    let body = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      body = {};
+    }
+    const isInitial = Boolean(body?.initial);
 
     try {
       const row = await db
@@ -24,6 +31,14 @@ export async function POST() {
 
       const lastSeen = row?.avatar_edit_last_seen || 0;
       const minutesToAdd = lastSeen > 0 ? Math.floor((now - lastSeen) / MINUTE_MS) : 0;
+
+      if (isInitial) {
+        await db
+          .prepare('UPDATE users SET avatar_edit_last_seen = ? WHERE id = ?')
+          .bind(now, user.id)
+          .run();
+        return NextResponse.json({ ok: true, minutesAdded: 0 });
+      }
 
       if (minutesToAdd > 0) {
         const threshold = now - MINUTE_MS;

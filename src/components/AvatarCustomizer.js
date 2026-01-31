@@ -26,7 +26,8 @@ const GRADIENTS = [
   { id: 'rainbow', name: 'Rainbow', url: 'url(#rainbow-lr)', preview: 'linear-gradient(90deg, #ff0040, #ffa600, #ffee00, #00f11d, #00a2ff, #6f4dff, #ff00b1)' },
   { id: 'fire', name: 'Fire', url: 'url(#fire-lr)', preview: 'linear-gradient(180deg, #ff4d00, #ff9e00, #ff0000)' },
   { id: 'ocean', name: 'Ocean', url: 'url(#ocean-lr)', preview: 'linear-gradient(135deg, #00d4ff, #0055ff, #00ff95)' },
-  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-lr)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' }
+  { id: 'toxic', name: 'Toxic', url: 'url(#toxic-lr)', preview: 'linear-gradient(90deg, #c3ff00, #34d399, #00ff00)' },
+  { id: 'chrome', name: 'Chrome', url: 'url(#chrome-lr)', preview: 'linear-gradient(90deg, #f5f5f5, #ffffff, #d1d1d1, #bfbfbf)' }
 ];
 
 const GRADIENT_DIRECTIONS = [
@@ -66,6 +67,15 @@ const renderGradientStops = (id) => {
           <stop offset="100%" stopColor="#00ff00"><animate attributeName="stop-color" values="#00ff00;#c3ff00;#00ff00" dur="1.5s" repeatCount="indefinite" /></stop>
         </>
       );
+    case 'chrome':
+      return (
+        <>
+          <stop offset="0%" stopColor="#f5f5f5"><animate attributeName="stop-color" values="#f5f5f5;#d4d4d4;#f5f5f5" dur="3s" repeatCount="indefinite" /></stop>
+          <stop offset="45%" stopColor="#ffffff"><animate attributeName="stop-color" values="#ffffff;#e3e3e3;#ffffff" dur="2s" repeatCount="indefinite" /></stop>
+          <stop offset="65%" stopColor="#c8c8c8"><animate attributeName="stop-color" values="#c8c8c8;#b1b1b1;#c8c8c8" dur="3.2s" repeatCount="indefinite" /></stop>
+          <stop offset="100%" stopColor="#b0b0b0"><animate attributeName="stop-color" values="#b0b0b0;#d0d0d0;#b0b0b0" dur="3.6s" repeatCount="indefinite" /></stop>
+        </>
+      );
     default:
       return null;
   }
@@ -79,7 +89,9 @@ const INITIAL_LAYERS = [
     color: '#ffffff',
     finish: 'solid',
     stroke: '#e5eef7',
-    strokeWidth: 4,
+    strokeWidth: 25,
+    staticRoughness: 45,
+    chromeReflectiveness: 60,
     x: 0,
     y: 0,
     scale: 1,
@@ -93,6 +105,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 4,
+    staticRoughness: 35,
+    chromeReflectiveness: 45,
     x: 0,
     y: 0,
     scale: 1,
@@ -106,6 +120,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 4,
+    staticRoughness: 35,
+    chromeReflectiveness: 45,
     x: 0,
     y: 0,
     scale: 1,
@@ -119,6 +135,8 @@ const INITIAL_LAYERS = [
     finish: 'solid',
     stroke: '#e5eef7',
     strokeWidth: 4,
+    staticRoughness: 25,
+    chromeReflectiveness: 35,
     x: 0,
     y: 0,
     scale: 1,
@@ -127,7 +145,7 @@ const INITIAL_LAYERS = [
 ];
 
 const PALETTE = INITIAL_PALETTE; // Kept for logic compatibility
-const FINISHES = ['solid', 'glow', 'glitter', 'gradient'];
+const FINISHES = ['solid', 'glow', 'glitter', 'static', 'gradient'];
 
 function getPathBounds(d) {
   const pts = d.match(/[ML]\d+\s\d+/g) || [];
@@ -220,10 +238,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const color = rand(palette);
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
+      const staticRoughness = Math.floor(Math.random() * 51) + 25;
+      const chromeReflectiveness = Math.floor(Math.random() * 41) + 40;
       const gradientPick = finish === 'gradient' ? rand(GRADIENTS) : null;
       const gradientUrl = gradientPick ? gradientPick.url : undefined;
       const gradientId = gradientPick ? gradientPick.id : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
+      return { ...l, color, finish, stroke, strokeWidth, staticRoughness, chromeReflectiveness, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -237,10 +257,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
       const color = rand(palette);
       const stroke = rand(palette);
       const strokeWidth = Math.floor(Math.random() * 6) + 2;
+      const staticRoughness = Math.floor(Math.random() * 51) + 25;
+      const chromeReflectiveness = Math.floor(Math.random() * 41) + 40;
       const gradientPick = finish === 'gradient' ? rand(GRADIENTS) : null;
       const gradientUrl = gradientPick ? gradientPick.url : undefined;
       const gradientId = gradientPick ? gradientPick.id : undefined;
-      return { ...l, color, finish, stroke, strokeWidth, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
+      return { ...l, color, finish, stroke, strokeWidth, staticRoughness, chromeReflectiveness, gradientUrl, gradientId, gradientDirection: gradientPick ? 'lr' : undefined, strokeFinish: 'solid', strokeGradientUrl: undefined, strokeGradientId: undefined, strokeGradientDirection: undefined };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -252,17 +274,19 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
     const nextLayers = INITIAL_LAYERS.map((l) => {
       const fillColor = l.color || '#000000';
       const outlineColor = l.stroke || '#ffffff';
-      return { 
-        ...l, 
-        color: fillColor, 
-        finish: l.finish || 'solid', 
-        stroke: outlineColor, 
-        strokeWidth: l.strokeWidth || 4, 
-        gradientUrl: l.gradientUrl,
-        gradientId: l.gradientId,
-        strokeFinish: l.strokeFinish || 'solid', 
-        strokeGradientUrl: l.strokeGradientUrl 
-      };
+    return { 
+      ...l, 
+      color: fillColor, 
+      finish: l.finish || 'solid', 
+      stroke: outlineColor, 
+      strokeWidth: l.strokeWidth || 4, 
+      staticRoughness: l.staticRoughness ?? 45,
+      chromeReflectiveness: l.chromeReflectiveness ?? 50,
+      gradientUrl: l.gradientUrl,
+      gradientId: l.gradientId,
+      strokeFinish: l.strokeFinish || 'solid', 
+      strokeGradientUrl: l.strokeGradientUrl 
+    };
     });
     setLayers(nextLayers);
     pushHistory(nextLayers);
@@ -679,14 +703,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const handleImageFillImport = (e) => {
     const file = e.target.files?.[0];
     if (!file || !selectedLayerId) return;
-    if (!file.type.startsWith('image/')) {
+    const isImage = file.type.startsWith('image/');
+    const isWebpByName = file.name?.toLowerCase().endsWith('.webp');
+    if (!isImage && !isWebpByName) {
       alert('Please upload a valid image file.');
       e.target.value = '';
       return;
     }
-    const maxSize = selectedLayerId === 'face' ? 1536 * 1024 : 512 * 1024;
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      const limitLabel = selectedLayerId === 'face' ? '1.5MB' : '512KB';
+      const limitLabel = '5MB';
       alert(`Image too large. Please use an image under ${limitLabel}.`);
       e.target.value = '';
       return;
@@ -1017,6 +1043,38 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               <feComposite in="sparkle" in2="SourceAlpha" operator="in" />
               <feBlend in="SourceGraphic" mode="screen" />
             </filter>
+            {layers.filter((layer) => layer.finish === 'static').map((layer) => {
+              const roughness = Math.min(80, Math.max(10, layer.staticRoughness ?? 45));
+              const baseFrequency = 0.03 + (roughness / 100) * 0.25;
+              const animateFrequency = baseFrequency + 0.06;
+              const seed = 4 + Math.floor(roughness / 5);
+              return (
+                <filter key={`static-${layer.id}`} id={`static-fx-${layer.id}`} x="-50%" y="-50%" width="200%" height="200%">
+                  <feTurbulence type="fractalNoise" baseFrequency={baseFrequency} numOctaves="3" seed={seed} result="noise">
+                    <animate attributeName="baseFrequency" values={`${baseFrequency};${animateFrequency};${baseFrequency}`} dur="2.4s" repeatCount="indefinite" />
+                    <animate attributeName="seed" values={`${seed};${seed + 3};${seed}`} dur="1.6s" repeatCount="indefinite" />
+                  </feTurbulence>
+                  <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.65 0" result="staticTint" />
+                  <feComposite in="staticTint" in2="SourceAlpha" operator="in" result="staticMask" />
+                  <feBlend in="SourceGraphic" in2="staticMask" mode="screen" />
+                </filter>
+              );
+            })}
+            {layers.filter((layer) => layer.finish === 'gradient' && getGradientId(layer) === 'chrome').map((layer) => {
+              const reflectiveness = Math.min(100, Math.max(10, layer.chromeReflectiveness ?? 50));
+              const floodOpacity = 0.1 + (reflectiveness / 100) * 0.45;
+              const blur = 2 + (reflectiveness / 100) * 3;
+              const offset = Math.max(4, 16 - (reflectiveness / 100) * 8);
+              return (
+                <filter key={`chrome-${layer.id}`} id={`chrome-reflect-${layer.id}`} x="-40%" y="-40%" width="180%" height="180%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation={blur} result="blur" />
+                  <feOffset in="blur" dx={offset} dy={-offset / 2} result="highlight" />
+                  <feFlood floodColor="#ffffff" floodOpacity={floodOpacity} result="shine" />
+                  <feComposite in="shine" in2="highlight" operator="in" result="shineMask" />
+                  <feBlend in="SourceGraphic" in2="shineMask" mode="screen" />
+                </filter>
+              );
+            })}
             {GRADIENTS.map((gradient) => (
               GRADIENT_DIRECTIONS.map((dir) => (
                 <linearGradient key={`${gradient.id}-${dir.id}`} id={`${gradient.id}-${dir.id}`} x1={dir.x1} y1={dir.y1} x2={dir.x2} y2={dir.y2}>
@@ -1060,7 +1118,13 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <path
                     d={layer.d}
                     fill={layer.finish === 'image' && layer.imageUrl ? `url(#img-fill-${layer.id})` : (layer.finish === 'gradient' ? gradientUrl : layer.color)}
-                    filter={layer.finish === 'glow' ? `url(#glow-fx-${layer.id})` : layer.finish === 'glitter' ? 'url(#glitter-fx)' : ''}
+                    filter={
+                      layer.finish === 'glow' ? `url(#glow-fx-${layer.id})` :
+                      layer.finish === 'glitter' ? 'url(#glitter-fx)' :
+                      layer.finish === 'static' ? `url(#static-fx-${layer.id})` :
+                      (layer.finish === 'gradient' && getGradientId(layer) === 'chrome') ? `url(#chrome-reflect-${layer.id})` :
+                      ''
+                    }
                     stroke={layer.strokeFinish === 'gradient' ? (layer.strokeGradientUrl || gradientUrl || layer.stroke || 'var(--line)') : (layer.stroke || 'var(--line)')}
                     strokeWidth={layer.strokeWidth || 4}
                     style={{ transition: 'fill 0.3s ease' }}
@@ -1485,24 +1549,37 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
 
               {selectedLayer.type !== 'import' && (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                    {['solid', 'glow', 'glitter'].map(f => (
-                      <button
-                        key={f}
-                        onClick={() => handleLayerChange(selectedLayer.id, { finish: f, imageUrl: undefined })}
-                        title={`Apply ${f.toUpperCase()} Surface`}
-                        style={{ 
-                          fontSize: '9px', padding: '8px 2px', 
-                          background: selectedLayer.finish === f ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
-                          color: selectedLayer.finish === f ? '#001018' : 'var(--ink)', 
-                          border: '1px solid ' + (selectedLayer.finish === f ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                          borderRadius: '8px', cursor: 'pointer', minHeight: 0,
-                          fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {f.toUpperCase()}
-                      </button>
-                    ))}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
+                    {['solid', 'glow', 'glitter', 'static'].map(f => {
+                      const isStatic = f === 'static';
+                      const isActive = selectedLayer.finish === f;
+                      return (
+                        <button
+                          key={f}
+                          onClick={() => handleLayerChange(selectedLayer.id, {
+                            finish: f,
+                            imageUrl: undefined,
+                            ...(isStatic ? {
+                              gradientId: undefined,
+                              gradientUrl: undefined,
+                              gradientDirection: undefined,
+                              staticRoughness: selectedLayer.staticRoughness ?? 45
+                            } : {})
+                          })}
+                          title={`Apply ${f.toUpperCase()} Surface`}
+                          style={{ 
+                            fontSize: '9px', padding: '8px 2px', 
+                            background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                            color: isActive ? '#001018' : 'var(--ink)', 
+                            border: '1px solid ' + (isActive ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
+                            borderRadius: '8px', cursor: 'pointer', minHeight: 0,
+                            fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {isStatic ? 'STATIC' : f.toUpperCase()}
+                        </button>
+                      );
+                    })}
                     <button
                       type="button"
                       onClick={() => imageFillInputRef.current?.click()}
@@ -1527,11 +1604,11 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <input
                     ref={imageFillInputRef}
                     type="file"
-                    accept="image/*,.gif"
+                  accept="image/*,.gif,.webp"
                     onChange={handleImageFillImport}
                     style={{ display: 'none' }}
                   />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
                     {GRADIENTS.map(g => (
                       <button
                         key={g.id}
@@ -1605,6 +1682,44 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                                 );
                               })}
                             </div>
+                          </div>
+                        )}
+
+                        {selectedLayer.finish === 'static' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '0px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>STATIC ROUGHNESS</label>
+                              <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.staticRoughness ?? 45}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="80"
+                              step="1"
+                              value={selectedLayer.staticRoughness ?? 45}
+                              onChange={(e) => handleLayerChange(selectedLayer.id, { staticRoughness: parseInt(e.target.value, 10) })}
+                              title="Dial the static roughness"
+                              style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }}
+                            />
+                          </div>
+                        )}
+
+                        {selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === 'chrome' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '0px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>REFLECT</label>
+                              <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.chromeReflectiveness ?? 50}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="100"
+                              step="1"
+                              value={selectedLayer.chromeReflectiveness ?? 50}
+                              onChange={(e) => handleLayerChange(selectedLayer.id, { chromeReflectiveness: parseInt(e.target.value, 10) })}
+                              title="Boost chrome reflectiveness"
+                              style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }}
+                            />
                           </div>
                         )}
 
@@ -1815,7 +1930,16 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                   <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>THICKNESS</label>
                   <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.strokeWidth || 4}px</span>
                 </div>
-                <input type="range" min="1" max="15" step="1" value={selectedLayer.strokeWidth || 4} onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value) })} title="Adjust Frame Thickness" style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }} />
+                <input
+                  type="range"
+                  min="1"
+                  max={selectedLayer.id === 'face' ? 40 : 15}
+                  step="1"
+                  value={selectedLayer.strokeWidth || 4}
+                  onChange={(e) => handleLayerChange(selectedLayer.id, { strokeWidth: parseInt(e.target.value, 10) })}
+                  title="Adjust Frame Thickness"
+                  style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }}
+                />
               </div>
             </>
           )}

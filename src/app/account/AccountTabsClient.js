@@ -120,17 +120,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       return;
     }
     let active = true;
-    const sendPing = () => {
-      if (!active) return;
-      fetch('/api/account/avatar-edit-time', { method: 'POST', keepalive: true }).catch(() => {});
+    const sendPing = (initial = false) => {
+      if (!active && !initial) return;
+      fetch('/api/account/avatar-edit-time', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initial })
+      }).catch(() => {});
     };
 
-    sendPing();
-    const interval = setInterval(sendPing, 60000);
+    sendPing(true);
+    const interval = setInterval(() => sendPing(false), 60000);
     return () => {
+      sendPing(false);
       active = false;
       clearInterval(interval);
-      fetch('/api/account/avatar-edit-time', { method: 'POST', keepalive: true }).catch(() => {});
     };
   }, [isEditingAvatar]);
 
