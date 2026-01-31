@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Username from '../../components/Username';
@@ -37,6 +38,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }));
   });
   const [openDropdowns, setOpenDropdowns] = useState({});
+  const [isEditingExtras, setIsEditingExtras] = useState(false);
+  const [profileMoodText, setProfileMoodText] = useState(initialStats?.profileMoodText ?? '');
+  const [profileMoodEmoji, setProfileMoodEmoji] = useState(initialStats?.profileMoodEmoji ?? '');
+  const [profileHeadline, setProfileHeadline] = useState(initialStats?.profileHeadline ?? '');
+  const [profileSongUrl, setProfileSongUrl] = useState(initialStats?.profileSongUrl ?? '');
+  const [profileSongProvider, setProfileSongProvider] = useState(initialStats?.profileSongProvider ?? '');
+  const [profileSongAutoplay, setProfileSongAutoplay] = useState(Boolean(initialStats?.profileSongAutoplayEnabled));
+  const [extrasStatus, setExtrasStatus] = useState({ type: 'idle', message: null });
   const avatarInitialState = useMemo(() => {
     if (!user?.avatar_state) return null;
     try {
@@ -74,6 +83,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 url: linkMap[platform] || ''
               })));
             }
+            // Do not overwrite profile extras here - they are synced from initialStats and after save (to avoid overwriting in-progress edit when poll runs)
           }
         } catch (e) {
           // Silently fail - stats will just be stale
@@ -288,6 +298,57 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     })));
   };
 
+  const handleSaveExtras = async (e) => {
+    e?.preventDefault?.();
+    setExtrasStatus({ type: 'loading', message: null });
+    try {
+      const res = await fetch('/api/account/profile-extras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_mood_text: profileMoodText.trim(),
+          profile_mood_emoji: profileMoodEmoji.trim(),
+          profile_headline: profileHeadline.trim(),
+          profile_song_url: profileSongUrl.trim(),
+          profile_song_provider: profileSongProvider.trim() || null,
+          profile_song_autoplay_enabled: profileSongAutoplay,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setExtrasStatus({ type: 'error', message: data.error || 'Save failed' });
+        return;
+      }
+      setExtrasStatus({ type: 'success', message: 'Saved.' });
+      setIsEditingExtras(false);
+      const refreshRes = await fetch('/api/account/stats');
+      if (refreshRes.ok) {
+        const refreshed = await refreshRes.json();
+        setStats(refreshed);
+        setProfileMoodText(refreshed.profileMoodText ?? '');
+        setProfileMoodEmoji(refreshed.profileMoodEmoji ?? '');
+        setProfileHeadline(refreshed.profileHeadline ?? '');
+        setProfileSongUrl(refreshed.profileSongUrl ?? '');
+        setProfileSongProvider(refreshed.profileSongProvider ?? '');
+        setProfileSongAutoplay(Boolean(refreshed.profileSongAutoplayEnabled));
+      }
+      setTimeout(() => setExtrasStatus({ type: 'idle', message: null }), 2000);
+    } catch (err) {
+      setExtrasStatus({ type: 'error', message: 'Network error' });
+    }
+  };
+
+  const handleCancelExtras = () => {
+    setExtrasStatus({ type: 'idle', message: null });
+    setIsEditingExtras(false);
+    setProfileMoodText(stats?.profileMoodText ?? '');
+    setProfileMoodEmoji(stats?.profileMoodEmoji ?? '');
+    setProfileHeadline(stats?.profileHeadline ?? '');
+    setProfileSongUrl(stats?.profileSongUrl ?? '');
+    setProfileSongProvider(stats?.profileSongProvider ?? '');
+    setProfileSongAutoplay(Boolean(stats?.profileSongAutoplayEnabled));
+  };
+
   const colorOptions = [
     { index: null, name: 'Auto (Default)', color: '#34E1FF' },
     { index: 0, name: 'Cyan', color: '#34E1FF' },
@@ -434,9 +495,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   return (
-    <section className="card account-profile-card">
+    <section className="card account-card">
+      {user?.username && (
+        <div className="account-view-profile-row" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '8px' }}>
+          <span className="muted" style={{ fontSize: '13px' }}>Your public profile is a separate page.</span>
+          <Link
+            href={`/profile/${encodeURIComponent(user.username)}`}
+            className="account-view-profile-link"
+            style={{
+              fontSize: '13px',
+              fontWeight: '600',
+              color: 'var(--accent)',
+              textDecoration: 'none',
+            }}
+          >
+            View my profile
+          </Link>
+        </div>
+      )}
       <div
-        className="account-profile-tabs"
+        className="account-tabs"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
@@ -468,7 +546,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             fontWeight: activeTab === 'profile' ? '600' : '400'
           }}
         >
-          Profile
+          Edit profile
         </button>
       </div>
 
@@ -504,9 +582,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
-          {/* Two Column Layout */}
+          <p className="muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
+            Edit how your profile appears to others. To see your public profile, use &quot;View my profile&quot; above.
+          </p>
+          {/* Two Column Layout: Edit profile form */}
           <div className="account-columns" style={{ marginBottom: '24px' }}>
-            {/* Left Column: Profile Card */}
             <div className="account-col">
               <div style={{ 
                 padding: '16px', 
@@ -518,7 +598,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 gap: '12px',
                 minWidth: 0
               }}>
-                <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
+                <h2 className="section-title" style={{ margin: 0 }}>Edit profile</h2>
                 {/* Custom Avatar */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -565,7 +645,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                   <button
                     type="button"
-                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); }}
+                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
                     disabled={isEditingAvatar}
                     title="Modify your neural representation"
                     style={{
@@ -723,6 +803,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => {
                       setIsEditingUsername(true);
                       setIsEditingSocials(false);
+                      setIsEditingExtras(false);
                       setNewUsername(user.username);
                       setSelectedColorIndex(user.preferred_username_color_index ?? null);
                       setUsernameStatus({ type: 'idle', message: null });
@@ -952,6 +1033,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     onClick={() => {
                       setIsEditingSocials(true);
                       setIsEditingUsername(false);
+                      setIsEditingExtras(false);
                       setNewUsername(user.username);
                       setSelectedColorIndex(user.preferred_username_color_index ?? null);
                       setUsernameStatus({ type: 'idle', message: null });
@@ -991,13 +1073,138 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </button>
                 </div>
 
+                {/* Mood & Song (profile extras) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mood & Song</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingExtras(true);
+                        setIsEditingUsername(false);
+                        setIsEditingSocials(false);
+                        setUsernameStatus({ type: 'idle', message: null });
+                        setColorStatus({ type: 'idle', message: null });
+                      }}
+                      disabled={isEditingExtras}
+                      style={{
+                        borderRadius: '999px',
+                        border: 'none',
+                        background: isEditingExtras ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                        color: '#001018',
+                        cursor: isEditingExtras ? 'default' : 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        padding: '2px 10px',
+                        lineHeight: '1.2',
+                        opacity: isEditingExtras ? 0.6 : 1,
+                      }}
+                    >
+                      {isEditingExtras ? 'Editing…' : 'Edit Mood & Song'}
+                    </button>
+                  </div>
+                  {!isEditingExtras ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
+                      {(profileMoodText || profileMoodEmoji) && (
+                        <div>
+                          <span style={{ color: 'var(--muted)' }}>Mood:</span>{' '}
+                          <span>{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText}</span>
+                        </div>
+                      )}
+                      {profileHeadline && (
+                        <div>
+                          <span style={{ color: 'var(--muted)' }}>Headline:</span>{' '}
+                          <span>{profileHeadline}</span>
+                        </div>
+                      )}
+                      {(profileSongUrl || profileSongProvider) && (
+                        <div>
+                          <span style={{ color: 'var(--muted)' }}>Song:</span>{' '}
+                          <span>{profileSongProvider ? profileSongProvider.charAt(0).toUpperCase() + profileSongProvider.slice(1) : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span>
+                          {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}
+                        </div>
+                      )}
+                      {!profileMoodText && !profileMoodEmoji && !profileHeadline && !profileSongUrl && (
+                        <div className="muted" style={{ fontSize: '12px' }}>No mood or song set. Click Edit to add.</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood text</label>
+                        <input
+                          type="text"
+                          value={profileMoodText}
+                          onChange={(e) => setProfileMoodText(e.target.value)}
+                          placeholder="e.g. Chillin"
+                          maxLength={200}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood emoji (optional)</label>
+                        <input
+                          type="text"
+                          value={profileMoodEmoji}
+                          onChange={(e) => setProfileMoodEmoji(e.target.value)}
+                          placeholder="e.g. "
+                          maxLength={20}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Headline (optional)</label>
+                        <input
+                          type="text"
+                          value={profileHeadline}
+                          onChange={(e) => setProfileHeadline(e.target.value)}
+                          placeholder="Short tagline"
+                          maxLength={300}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label>
+                        <input
+                          type="url"
+                          value={profileSongUrl}
+                          onChange={(e) => setProfileSongUrl(e.target.value)}
+                          placeholder="https://soundcloud.com/..."
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label>
+                        <select
+                          value={profileSongProvider || ''}
+                          onChange={(e) => setProfileSongProvider(e.target.value)}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        >
+                          <option value="">—</option>
+                          <option value="soundcloud">SoundCloud</option>
+                          <option value="spotify">Spotify</option>
+                          <option value="youtube">YouTube</option>
+                        </select>
+                      </div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={profileSongAutoplay}
+                          onChange={(e) => setProfileSongAutoplay(e.target.checked)}
+                        />
+                        <span>Autoplay song on profile (off by default)</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
                 {/* Save / Cancel row */}
-                {(isEditingUsername || isEditingSocials) && (
+                {(isEditingUsername || isEditingSocials || isEditingExtras) && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
                     <button
                       type="button"
-                      onClick={isEditingUsername ? handleSaveUsername : handleSaveSocials}
-                      disabled={usernameStatus.type === 'loading'}
+                      onClick={isEditingExtras ? handleSaveExtras : (isEditingUsername ? handleSaveUsername : handleSaveSocials)}
+                      disabled={usernameStatus.type === 'loading' || extrasStatus.type === 'loading'}
                       style={{
                         fontSize: '12px',
                         padding: '6px 12px',
@@ -1006,17 +1213,17 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         border: 'none',
                         borderRadius: '6px',
                         color: 'var(--bg)',
-                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                        opacity: usernameStatus.type === 'loading' ? 0.6 : 1,
+                        cursor: (usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 'not-allowed' : 'pointer',
+                        opacity: (usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 0.6 : 1,
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                      {(usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 'Saving…' : 'Save'}
                     </button>
                     <button
                       type="button"
-                      onClick={isEditingUsername ? handleCancelUsername : handleCancelSocials}
-                      disabled={usernameStatus.type === 'loading'}
+                      onClick={isEditingExtras ? handleCancelExtras : (isEditingUsername ? handleCancelUsername : handleCancelSocials)}
+                      disabled={usernameStatus.type === 'loading' || extrasStatus.type === 'loading'}
                       style={{
                         fontSize: '12px',
                         padding: '6px 12px',
@@ -1034,12 +1241,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 )}
 
-                {usernameStatus.message && (
+                {(usernameStatus.message || extrasStatus.message) && (
                   <div style={{
                     fontSize: '12px',
-                    color: usernameStatus.type === 'error' ? '#ff6b6b' : usernameStatus.type === 'success' ? '#00f5a0' : 'var(--muted)'
+                    color: (usernameStatus.type === 'error' || extrasStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success' || extrasStatus.type === 'success') ? '#00f5a0' : 'var(--muted)'
                   }}>
-                    {usernameStatus.message}
+                    {usernameStatus.message || extrasStatus.message}
                   </div>
                 )}
 

@@ -270,11 +270,15 @@ export default function NotificationsMenu({
             type="button"
             onClick={() => {
               onClose();
-              router.push('/account?tab=profile');
+              if (currentUsername) {
+                router.push(`/profile/${encodeURIComponent(currentUsername)}`);
+              } else {
+                router.push('/account?tab=profile');
+              }
             }}
             style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
-            Profile
+            View my profile
           </button>
         </div>
       </div>

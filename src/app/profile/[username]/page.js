@@ -1,13 +1,14 @@
-import { redirect } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime, formatDate } from '../../../lib/dates';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
+import { isProfileFlagEnabled } from '../../../lib/featureFlags';
 import Breadcrumbs from '../../../components/Breadcrumbs';
-import ClaimUsernameForm from '../../../components/ClaimUsernameForm';
 import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
+import ProfileTabsClient from '../../../components/ProfileTabsClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,11 @@ export default async function ProfilePage({ params }) {
   try {
     profileUser = await db
       .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
+        `SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes,
+          profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+          profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+          profile_headline
+          FROM users WHERE username_norm = ?`
       )
       .bind(username.toLowerCase())
       .first();
@@ -63,11 +68,6 @@ export default async function ProfilePage({ params }) {
   }
 
   const isOwnProfile = currentUser?.id === profileUser.id;
-
-  // If viewing own profile, redirect to account page
-  if (currentUser && isOwnProfile) {
-    redirect('/account?tab=profile');
-  }
 
   const colorIndex = getUsernameColorIndex(profileUser.username, { preferredColorIndex: profileUser.preferred_username_color_index });
   const USERNAME_COLORS = [
@@ -519,254 +519,205 @@ export default async function ProfilePage({ params }) {
     );
   };
 
+  const moodText = profileUser?.profile_mood_text?.trim() || '';
+  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || '';
+  const profileHeadline = profileUser?.profile_headline?.trim() || '';
+  const songUrl = profileUser?.profile_song_url?.trim() || '';
+  const songProvider = profileUser?.profile_song_provider?.trim() || '';
+  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled);
+
+  const songProviderLabel = songProvider
+    ? songProvider.charAt(0).toUpperCase() + songProvider.slice(1)
+    : 'Song';
+
+  const activityItems = (stats.recentActivity || []).map((item) => {
+    let href = '#';
+    if (item.type === 'thread') {
+      const postType = item.postType || item.post_type;
+      if (postType === 'forum_thread') href = `/lobby/${item.id}`;
+      else if (postType === 'dev_log') href = `/devlog/${item.id}`;
+      else if (postType === 'music_post') href = `/music/${item.id}`;
+      else if (postType === 'project') href = `/projects/${item.id}`;
+      else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
+      else if (postType === 'event') href = `/events/${item.id}`;
+      else if (['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories'].includes(postType)) href = `/${postType}/${item.id}`;
+    } else {
+      const replyType = item.replyType || item.reply_type;
+      const threadId = item.thread_id;
+      if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
+      else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
+      else if (replyType === 'music_comment') href = `/music/${threadId}`;
+      else if (replyType === 'project_reply') href = `/projects/${threadId}`;
+      else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
+      else if (replyType === 'event_comment') href = `/events/${threadId}`;
+      else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `/${item.post_type || item.postType}/${threadId}`;
+    }
+    const postType = item.postType || item.post_type;
+    const replyType = item.replyType || item.reply_type;
+    const section = getSectionLabel(postType, replyType);
+    const title = item.type === 'thread' ? item.title : item.thread_title;
+    const timeStr = formatDateTime(item.created_at);
+    return {
+      key: `${item.type}-${item.id}`,
+      type: item.type,
+      href,
+      section,
+      title,
+      timeStr,
+    };
+  });
+
+  const latelyLinks = profileLinks
+    .map((link) => {
+      const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
+      if (!linkObj.url) return null;
+      const platformLabel = linkObj.platform ? linkObj.platform.toUpperCase() : 'LINK';
+      const username = linkObj.platform ? extractUsername(linkObj.platform, linkObj.url) : null;
+      return {
+        url: linkObj.url,
+        label: username ? `${platformLabel}: ${username}` : linkObj.url,
+        category: linkObj.platform ? `${platformLabel} LINK` : 'LINK',
+      };
+    })
+    .filter(Boolean);
+
+
+  const statsForTabs = {
+    threadCount: stats.threadCount,
+    replyCount: stats.replyCount,
+    joinDateShort: formatDate(profileUser.created_at),
+    joinDateLong: formatDateTime(profileUser.created_at),
+    profileViews: stats.profileViews || 0,
+    timeSpentMinutes: stats.timeSpentMinutes || 0,
+    avatarEditMinutes: stats.avatarEditMinutes || 0,
+  };
 
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
-        <section className="card" style={{ paddingTop: '16px' }}>
-          {/* Two Column Layout */}
-          <div className="account-columns" style={{ marginBottom: '24px' }}>
-          {/* Left Column: Username, Color, and Social Links */}
-          <div className="account-col">
-            <div style={{ 
-              padding: '16px', 
-              background: 'rgba(2, 7, 10, 0.4)', 
-              borderRadius: '12px', 
-              border: '1px solid rgba(52, 225, 255, 0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-            <h2 className="section-title" style={{ marginBottom: '4px' }}>Profile</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Profile Header with Big Avatar */}
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                gap: '8px', 
-                marginBottom: '8px',
-                padding: '0'
-              }}>
-                <ProfileAvatarHero 
-                  avatarKey={profileUser.avatar_key} 
-                  userColor={userColor} 
-                />
-                
-                <div style={{ textAlign: 'center' }}>
-                  <Username
-                    name={profileUser.username}
-                    colorIndex={colorIndex}
-                    href={null}
-                    style={{ 
-                      fontSize: '32px', 
-                      fontWeight: '800',
-                      letterSpacing: '-0.02em',
-                      textShadow: `0 0 20px ${userColor}44`
-                    }}
-                  />
-                  <div style={{ 
-                    marginTop: '2px', 
-                    color: roleColor,
-                    textShadow: '0 0 10px currentColor',
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em'
-                  }}>
-                    {roleLabel}
-                  </div>
+      <section className="card profile-card" style={{ paddingTop: '16px' }}>
+        {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
+        <div className="profile-card-header">
+          <div className="profile-card-header-avatar">
+            <ProfileAvatarHero
+              avatarKey={profileUser.avatar_key}
+              userColor={userColor}
+            />
+          </div>
+          <div className="profile-card-header-meta">
+            <Username
+              name={profileUser.username}
+              colorIndex={colorIndex}
+              href={null}
+              style={{
+                fontSize: 'clamp(24px, 5vw, 32px)',
+                fontWeight: '800',
+                letterSpacing: '-0.02em',
+                textShadow: `0 0 20px ${userColor}44`,
+              }}
+            />
+            <div style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+              {roleLabel}
+            </div>
+            {/* Mood or song (compact); gated by feature flags */}
+            <div className="profile-card-mood-song">
+              {isProfileFlagEnabled('profile_mood') && moodText ? (
+                <div className="profile-mood-chip">
+                  {moodEmoji && <span>{moodEmoji}</span>}
+                  <span>{moodText}</span>
                 </div>
-              </div>
-
-              {/* Social Links Display */}
-              {profileLinks.length > 0 && (
-                <div>
-                  <strong>Socials:</strong>
-                  <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                    {profileLinks.map((link, idx) => {
-                      const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
-                      if (!linkObj.platform || !linkObj.url) return null;
-                      const username = extractUsername(linkObj.platform, linkObj.url);
-                      const isSoundCloud = linkObj.platform === 'soundcloud';
-                      return (
-                        <a
-                          key={idx}
-                          href={linkObj.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            border: isSoundCloud
-                              ? '1px solid rgba(255, 107, 0, 0.3)'
-                              : '1px solid rgba(52, 225, 255, 0.3)',
-                            background: isSoundCloud
-                              ? 'rgba(255, 107, 0, 0.05)'
-                              : 'rgba(52, 225, 255, 0.05)',
-                            color: 'var(--accent)',
-                            textDecoration: 'none',
-                            fontSize: '13px',
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer',
-                            width: 'fit-content'
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {getPlatformIcon(linkObj.platform)}
-                          </span>
-                          {username && (
-                            <span style={{ color: 'var(--ink)', fontSize: '13px', whiteSpace: 'nowrap' }}>{username}</span>
-                          )}
-                        </a>
-                      );
-                    })}
-                  </div>
+              ) : null}
+              {isProfileFlagEnabled('profile_music') && songUrl ? (
+                <div className="profile-song-compact">
+                  <span className="profile-song-provider">{songProviderLabel}</span>
+                  <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
+                    {songUrl}
+                  </a>
                 </div>
+              ) : null}
+              {(!isProfileFlagEnabled('profile_mood') || !moodText) && (!isProfileFlagEnabled('profile_music') || !songUrl) && (
+                <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
               )}
             </div>
-            </div>
+            {profileHeadline ? (
+              <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{profileHeadline}</div>
+            ) : null}
+            {profileLinks.length > 0 ? (
+              <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                {profileLinks.map((link, idx) => {
+                  const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
+                  if (!linkObj.platform || !linkObj.url) return null;
+                  const un = extractUsername(linkObj.platform, linkObj.url);
+                  const isSoundCloud = linkObj.platform === 'soundcloud';
+                  return (
+                    <a
+                      key={idx}
+                      href={linkObj.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)',
+                        background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)',
+                        color: 'var(--accent)',
+                        textDecoration: 'none',
+                        fontSize: '12px',
+                      }}
+                    >
+                      {getPlatformIcon(linkObj.platform)}
+                      {un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
-
-          {/* Right Column: Stats */}
-          <div className="account-col">
-            <div style={{ 
-              padding: '16px', 
-              background: 'rgba(2, 7, 10, 0.4)', 
-              borderRadius: '12px', 
-              border: '1px solid rgba(52, 225, 255, 0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              textAlign: 'right'
-            }}>
-            <h2 className="section-title" style={{ marginBottom: '4px', textAlign: 'right' }}>Stats</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
-              {(() => {
-                // RPG-style rarity color function
-                const getRarityColor = (value) => {
-                  if (value === 0) return 'var(--muted)';
-                  if (value < 10) return 'var(--accent)'; // Common - cyan
-                  if (value < 100) return '#00f5a0'; // Uncommon - green
-                  if (value < 1000) return '#5b8def'; // Rare - blue
-                  return '#b794f6'; // Epic - purple
-                };
-
-                return (
-                    <>
-                      <div>
-                        <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
-                        <span style={{ color: 'var(--accent)' }}>
-                          <span className="date-only-mobile">{formatDate(profileUser.created_at)}</span>
-                          <span className="date-with-time-desktop">{formatDateTime(profileUser.created_at)}</span>
-                        </span>
-                      </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
-                    </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span>
-                      <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span>
-                    </div>
-                  </>
-                );
-              })()}
+          {isOwnProfile && (
+            <div className="profile-card-header-actions">
+              <Link
+                href="/account?tab=profile"
+                className="profile-edit-profile-link"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(52, 225, 255, 0.4)',
+                  background: 'rgba(52, 225, 255, 0.1)',
+                  color: 'var(--accent)',
+                  textDecoration: 'none',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Edit profile
+              </Link>
             </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {profileUser.profile_bio && (
-          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        {profileUser.profile_bio ? (
+          <div className="profile-card-bio" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <strong>Bio:</strong>
             <p style={{ marginTop: '4px', whiteSpace: 'pre-wrap' }}>{profileUser.profile_bio}</p>
           </div>
-        )}
+        ) : null}
 
-        {stats.recentActivity && stats.recentActivity.length > 0 ? (
-          <div style={{ marginTop: '24px' }}>
-            <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
-            <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
-              {stats.recentActivity.map((item) => {
-                let href = '#';
-                if (item.type === 'thread') {
-                  const postType = item.postType || item.post_type;
-                  if (postType === 'forum_thread') href = `/lobby/${item.id}`;
-                  else if (postType === 'dev_log') href = `/devlog/${item.id}`;
-                  else if (postType === 'music_post') href = `/music/${item.id}`;
-                  else if (postType === 'project') href = `/projects/${item.id}`;
-                  else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
-                  else if (postType === 'event') href = `/events/${item.id}`;
-                  else if (['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories'].includes(postType)) href = `/${postType}/${item.id}`;
-                } else {
-                  const replyType = item.replyType || item.reply_type;
-                  const threadId = item.thread_id;
-                  if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
-                  else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
-                  else if (replyType === 'music_comment') href = `/music/${threadId}`;
-                  else if (replyType === 'project_reply') href = `/projects/${threadId}`;
-                  else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
-                  else if (replyType === 'event_comment') href = `/events/${threadId}`;
-                  else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `/${item.post_type || item.postType}/${threadId}`;
-                }
-                const postType = item.postType || item.post_type;
-                const replyType = item.replyType || item.reply_type;
-                const section = getSectionLabel(postType, replyType);
-                const title = item.type === 'thread' ? item.title : item.thread_title;
-                const timeStr = formatDateTime(item.created_at);
-                return (
-                  <a
-                    key={`${item.type}-${item.id}`}
-                    href={href}
-                    className="profile-activity-item"
-                  >
-                    {item.type === 'thread' ? (
-                      <>
-                        <span className="activity-label">Posted</span>
-                        <span className="activity-title" title={title}>{title}</span>
-                        <span className="activity-label">in</span>
-                        <span className="activity-section">{section}</span>
-                        <span className="activity-label">at</span>
-                        <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="activity-label">Replied to</span>
-                        <span className="activity-title" title={title}>{title}</span>
-                        <span className="activity-label">at</span>
-                        <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
-                      </>
-                    )}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div style={{ marginTop: '24px' }}>
-            <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
-            <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
-          </div>
-        )}
+        <ProfileTabsClient
+          activityItems={activityItems}
+          hasActivity={activityItems.length > 0}
+          latelyLinks={latelyLinks}
+          galleryCount={0}
+          notesCount={0}
+          filesEnabled={false}
+          stats={statsForTabs}
+        />
       </section>
     </div>
   );

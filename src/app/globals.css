@@ -801,9 +801,13 @@ main {
 }
 
 /* Allow account/profile card to shrink with viewport like header */
-.account-profile-card {
+.account-card {
   min-width: 0;
   width: 100%;
+}
+
+.account-view-profile-link:hover {
+  text-decoration: underline;
 }
 
 .section-title {
@@ -1615,6 +1619,254 @@ button:hover {
 
 .grid-tiles {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Profile card: single unified card with header + tabs */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 16px;
+  background: rgba(2, 7, 10, 0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+}
+
+/* Desktop: use wide space – more padding/gap, single-row tab strip */
+@media (min-width: 769px) {
+  .profile-card-header {
+    padding: 20px 24px;
+    gap: 28px;
+  }
+
+  .profile-tabs-strip {
+    flex-wrap: nowrap;
+  }
+}
+
+.profile-card-header-avatar {
+  flex-shrink: 0;
+}
+
+.profile-card-header-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-card-header-actions {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-left: auto;
+}
+
+.profile-edit-profile-link:hover {
+  background: rgba(52, 225, 255, 0.18);
+  border-color: rgba(52, 225, 255, 0.6);
+}
+
+.profile-card-mood-song {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.profile-mood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.3);
+  background: rgba(52, 225, 255, 0.08);
+  font-size: 13px;
+}
+
+.profile-song-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(52, 225, 255, 0.3);
+  background: rgba(2, 7, 10, 0.6);
+  font-size: 12px;
+}
+
+.profile-song-provider {
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-song-link {
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+/* Profile tabs: strip scrolls on mobile */
+.profile-tabs-wrapper {
+  margin-top: 24px;
+  min-height: 120px;
+}
+
+.profile-tabs-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.profile-tabs-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-tab {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+  color: var(--muted);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.profile-tab--active {
+  border-color: rgba(52, 225, 255, 0.6);
+  background: rgba(52, 225, 255, 0.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.profile-tab:hover {
+  border-color: rgba(52, 225, 255, 0.4);
+  color: var(--ink);
+}
+
+.profile-tab-content {
+  padding-bottom: 8px;
+  min-height: 80px;
+}
+
+.profile-stats-block {
+  font-size: 13px;
+}
+
+.profile-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: baseline;
+}
+
+.profile-stat {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.profile-stat-label {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Mobile: tighten layout – less padding/gap, stacked header, compact tabs area */
+@media (max-width: 768px) {
+  .profile-card-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .profile-card-header-meta {
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-card-mood-song {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .profile-socials-inline {
+    justify-content: center;
+  }
+
+  .profile-card-header-actions {
+    margin-left: 0;
+    align-self: center;
+    margin-top: 4px;
+  }
+
+  .profile-tabs-wrapper {
+    margin-top: 16px;
+  }
+
+  .profile-tabs-strip {
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+
+  .profile-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .profile-tab-content {
+    min-height: 60px;
+    padding-bottom: 4px;
+  }
+
+  .profile-stats-block {
+    padding: 10px 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .profile-stats-grid {
+    gap: 8px 14px;
+  }
+
+  .profile-stat {
+    font-size: 12px;
+  }
+
+  .profile-song-link {
+    max-width: 100%;
+  }
+
+  .profile-card-bio {
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+  }
 }
 
 /* Skinny one-row activity cards for profile/account Recent Activity */

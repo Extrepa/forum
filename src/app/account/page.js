@@ -213,17 +213,30 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .all();
 
-      // Get user info including profile links (graceful fallback if new columns aren't present)
+      // Get user info including profile links and profile extras (graceful fallback if new columns aren't present)
       try {
         userInfo = await db
-          .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes FROM users WHERE id = ?')
+          .prepare(
+            `SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes,
+             profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+             profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+             profile_headline
+             FROM users WHERE id = ?`
+          )
           .bind(user.id)
           .first();
       } catch (e) {
-        userInfo = await db
-          .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
-          .bind(user.id)
-          .first();
+        try {
+          userInfo = await db
+            .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes FROM users WHERE id = ?')
+            .bind(user.id)
+            .first();
+        } catch (e2) {
+          userInfo = await db
+            .prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?')
+            .bind(user.id)
+            .first();
+        }
       }
 
       // Merge and sort recent activity
@@ -274,6 +287,12 @@ export default async function AccountPage({ searchParams }) {
         profileViews: userInfo?.profile_views || 0,
         timeSpentMinutes: userInfo?.time_spent_minutes || 0,
         avatarEditMinutes: userInfo?.avatar_edit_minutes || 0,
+        profileMoodText: userInfo?.profile_mood_text ?? '',
+        profileMoodEmoji: userInfo?.profile_mood_emoji ?? '',
+        profileSongUrl: userInfo?.profile_song_url ?? '',
+        profileSongProvider: userInfo?.profile_song_provider ?? '',
+        profileSongAutoplayEnabled: Boolean(userInfo?.profile_song_autoplay_enabled),
+        profileHeadline: userInfo?.profile_headline ?? '',
       };
     } catch (e) {
       // Fallback if queries fail
@@ -288,6 +307,12 @@ export default async function AccountPage({ searchParams }) {
         profileViews: userInfo?.profile_views || 0,
         timeSpentMinutes: userInfo?.time_spent_minutes || 0,
         avatarEditMinutes: userInfo?.avatar_edit_minutes || 0,
+        profileMoodText: userInfo?.profile_mood_text ?? '',
+        profileMoodEmoji: userInfo?.profile_mood_emoji ?? '',
+        profileSongUrl: userInfo?.profile_song_url ?? '',
+        profileSongProvider: userInfo?.profile_song_provider ?? '',
+        profileSongAutoplayEnabled: Boolean(userInfo?.profile_song_autoplay_enabled),
+        profileHeadline: userInfo?.profile_headline ?? '',
       };
     }
   }
