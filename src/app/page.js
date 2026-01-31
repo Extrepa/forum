@@ -11,7 +11,6 @@ import {
 } from '../lib/forum-texts';
 import HomeWelcome from '../components/HomeWelcome';
 import HomeStats from '../components/HomeStats';
-import HomeRecentFeed from '../components/HomeRecentFeed';
 import HomeSectionCard from '../components/HomeSectionCard';
 
 export const dynamic = 'force-dynamic';
@@ -628,7 +627,6 @@ export default async function HomePage({ searchParams }) {
 
 // Calculate stats and recent posts for signed-in users (parallelized for CPU limit)
 let stats = null;
-let recentPosts = [];
 if (hasUsername && sectionData) {
   const db = await getDb();
   try {
@@ -668,31 +666,13 @@ if (hasUsername && sectionData) {
     )`;
     const bind24 = [last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours, last24Hours];
 
-    const activityUnionSql = `SELECT 'forum_post' as activity_type, forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.author_user_id, NULL as parent_id, NULL as parent_title, NULL as parent_author, 'forum' as section FROM forum_threads WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND forum_threads.created_at > ?
-      UNION ALL SELECT 'forum_reply', forum_replies.id, NULL, forum_replies.created_at, forum_replies.author_user_id, forum_threads.id, forum_threads.title, thread_users.username, 'forum' FROM forum_replies JOIN forum_threads ON forum_threads.id = forum_replies.thread_id JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL) AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND forum_replies.created_at > ?
-      UNION ALL SELECT 'event_post', events.id, events.title, events.created_at, events.author_user_id, NULL, NULL, NULL, 'event' FROM events WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL) AND events.created_at > ?
-      UNION ALL SELECT 'event_comment', event_comments.id, NULL, event_comments.created_at, event_comments.author_user_id, events.id, events.title, event_users.username, 'event' FROM event_comments JOIN events ON events.id = event_comments.event_id JOIN users AS event_users ON event_users.id = events.author_user_id WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL) AND (events.is_deleted = 0 OR events.is_deleted IS NULL) AND event_comments.created_at > ?
-      UNION ALL SELECT 'music_post', music_posts.id, music_posts.title, music_posts.created_at, music_posts.author_user_id, NULL, NULL, NULL, 'music' FROM music_posts WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL) AND music_posts.created_at > ?
-      UNION ALL SELECT 'music_comment', music_comments.id, NULL, music_comments.created_at, music_comments.author_user_id, music_posts.id, music_posts.title, music_users.username, 'music' FROM music_comments JOIN music_posts ON music_posts.id = music_comments.post_id JOIN users AS music_users ON music_users.id = music_posts.author_user_id WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL) AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL) AND music_comments.created_at > ?
-      UNION ALL SELECT 'project_post', projects.id, projects.title, projects.created_at, projects.author_user_id, NULL, NULL, NULL, 'project' FROM projects WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL) AND projects.created_at > ?
-      UNION ALL SELECT 'project_reply', project_replies.id, NULL, project_replies.created_at, project_replies.author_user_id, projects.id, projects.title, project_users.username, 'project' FROM project_replies JOIN projects ON projects.id = project_replies.project_id JOIN users AS project_users ON project_users.id = projects.author_user_id WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL) AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL) AND project_replies.created_at > ?
-      UNION ALL SELECT 'devlog_post', dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.author_user_id, NULL, NULL, NULL, 'devlog' FROM dev_logs WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) AND dev_logs.created_at > ?
-      UNION ALL SELECT 'devlog_comment', dev_log_comments.id, NULL, dev_log_comments.created_at, dev_log_comments.author_user_id, dev_logs.id, dev_logs.title, devlog_users.username, 'devlog' FROM dev_log_comments JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id JOIN users AS devlog_users ON devlog_users.id = dev_logs.author_user_id WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL) AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) AND dev_log_comments.created_at > ?
-      UNION ALL SELECT 'timeline_post', timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.author_user_id, NULL, NULL, NULL, 'announcements' FROM timeline_updates WHERE timeline_updates.created_at > ?
-      UNION ALL SELECT 'timeline_comment', timeline_comments.id, NULL, timeline_comments.created_at, timeline_comments.author_user_id, timeline_updates.id, timeline_updates.title, timeline_users.username, 'announcements' FROM timeline_comments JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id JOIN users AS timeline_users ON timeline_users.id = timeline_updates.author_user_id WHERE (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL) AND timeline_comments.created_at > ?
-      UNION ALL SELECT 'post_post', posts.id, posts.title, posts.created_at, posts.author_user_id, NULL, NULL, NULL, CASE WHEN posts.type='art' THEN 'art' WHEN posts.type='nostalgia' THEN 'nostalgia' WHEN posts.type='bugs' THEN 'bugs' WHEN posts.type='rant' THEN 'rant' WHEN posts.type='lore' THEN 'lore' WHEN posts.type='memories' THEN 'memories' ELSE 'posts' END FROM posts WHERE (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND posts.created_at > ?
-      UNION ALL SELECT 'post_comment', post_comments.id, NULL, post_comments.created_at, post_comments.author_user_id, posts.id, posts.title, post_users.username, CASE WHEN posts.type='art' THEN 'art' WHEN posts.type='nostalgia' THEN 'nostalgia' WHEN posts.type='bugs' THEN 'bugs' WHEN posts.type='rant' THEN 'rant' WHEN posts.type='lore' THEN 'lore' WHEN posts.type='memories' THEN 'memories' ELSE 'posts' END FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND post_comments.created_at > ?
-      ORDER BY created_at DESC LIMIT 15`;
-    const bind14 = Array(14).fill(last24Hours);
-
-    const [totalUsersResult, activeUsersResult, postsCountResult, repliesCountResult, recentActivityResult] = await Promise.all([
+    const [totalUsersResult, activeUsersResult, postsCountResult, repliesCountResult] = await Promise.all([
       db.prepare('SELECT COUNT(*) as count FROM users').first().catch(() => null),
       db.prepare('SELECT last_seen FROM users LIMIT 1').first()
         .then(() => db.prepare('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?').bind(fiveMinutesAgo).first())
         .catch(() => ({ count: 0 })),
       db.prepare(postsUnion).bind(...bind24).first().catch(() => ({ count: 0 })),
-      db.prepare(repliesUnion).bind(...bind24).first().catch(() => ({ count: 0 })),
-      db.prepare(activityUnionSql).bind(...bind14).all().catch(() => ({ results: [] }))
+      db.prepare(repliesUnion).bind(...bind24).first().catch(() => ({ count: 0 }))
     ]);
 
     const recentPostsCount = Number(postsCountResult?.count) || 0;
@@ -706,42 +686,6 @@ if (hasUsername && sectionData) {
       recentRepliesCount,
       recentActivity: recentPostsCount + recentRepliesCount
     };
-
-    // Batch-fetch author info for recent activity (1 query instead of up to 15)
-    const authorIds = recentActivityResult?.results?.length
-      ? [...new Set(recentActivityResult.results.map(a => a.author_user_id).filter(Boolean))]
-      : [];
-    let authorMap = new Map();
-    if (authorIds.length > 0) {
-      const placeholders = authorIds.map(() => '?').join(',');
-      const authorRows = await db.prepare(`SELECT id, username, preferred_username_color_index FROM users WHERE id IN (${placeholders})`).bind(...authorIds).all();
-      for (const row of authorRows?.results || []) {
-        authorMap.set(row.id, { username: row.username || 'Unknown', preferred_username_color_index: row.preferred_username_color_index });
-      }
-    }
-
-    if (recentActivityResult?.results && recentActivityResult.results.length > 0) {
-      for (const activity of recentActivityResult.results) {
-        const author = authorMap.get(activity.author_user_id);
-        recentPosts.push({
-          id: activity.id,
-          title: activity.title || activity.parent_title || 'Untitled',
-          author_name: author?.username || 'Unknown',
-          author_color_preference: author?.preferred_username_color_index !== null && author?.preferred_username_color_index !== undefined ? Number(author.preferred_username_color_index) : null,
-          created_at: activity.created_at,
-          timeAgo: formatTimeAgo(activity.created_at),
-          section: activity.section,
-          activity_type: activity.activity_type,
-          parent_title: activity.parent_title,
-          parent_author: activity.parent_author,
-          href: activity.activity_type.includes('_post')
-            ? `/${activity.section}/${activity.id}`
-            : activity.activity_type.includes('forum_reply')
-            ? `/lobby/${activity.parent_id || activity.id}?reply=${activity.id}`
-            : `/${activity.section}/${activity.parent_id || activity.id}`
-        });
-      }
-    }
     } catch (e) {
       // Fallback if queries fail
       stats = {
@@ -755,11 +699,8 @@ if (hasUsername && sectionData) {
     }
   }
 
-  // Collect all usernames from recentPosts and sectionData
-  const allUsernames = [
-    ...recentPosts.map(p => p.author_name),
-    ...recentPosts.map(p => p.parent_author).filter(Boolean)
-  ].filter(Boolean);
+  // Collect all usernames from sectionData
+  const allUsernames = [];
   
   // Collect usernames from sectionData
   if (sectionData) {
@@ -821,13 +762,6 @@ if (hasUsername && sectionData) {
   
   // Build map of username -> preferred color index
   const preferredColors = new Map();
-  
-  // From recentPosts
-  recentPosts.forEach(p => {
-    if (p.author_name && p.author_color_preference !== null && p.author_color_preference !== undefined) {
-      preferredColors.set(p.author_name, Number(p.author_color_preference));
-    }
-  });
   
   // From sectionData
   if (sectionData) {
@@ -910,23 +844,6 @@ if (hasUsername && sectionData) {
       if (sectionData.loreMemories.recent.activityAuthor && sectionData.loreMemories.recent.activityAuthorColorPreference !== null && sectionData.loreMemories.recent.activityAuthorColorPreference !== undefined) {
         preferredColors.set(sectionData.loreMemories.recent.activityAuthor, Number(sectionData.loreMemories.recent.activityAuthorColorPreference));
       }
-    }
-  }
-  
-  // Batch-fetch parent author color preferences (1 query instead of N)
-  const uniqueParentAuthors = [...new Set(recentPosts.map(p => p.parent_author).filter(Boolean))];
-  if (uniqueParentAuthors.length > 0) {
-    try {
-      const db = await getDb();
-      const placeholders = uniqueParentAuthors.map(() => '?').join(',');
-      const parentRows = await db.prepare(`SELECT username, preferred_username_color_index FROM users WHERE username IN (${placeholders})`).bind(...uniqueParentAuthors).all();
-      for (const row of parentRows?.results || []) {
-        if (row?.preferred_username_color_index !== null && row?.preferred_username_color_index !== undefined) {
-          preferredColors.set(row.username, Number(row.preferred_username_color_index));
-        }
-      }
-    } catch (e) {
-      // DB might not be available
     }
   }
   
@@ -1049,8 +966,7 @@ if (hasUsername && sectionData) {
       {hasUsername && (
         <>
           <HomeWelcome user={user} greetingParts={greetingParts} fallbackText={fallbackGreetingText} />
-          <HomeStats stats={stats} recentPosts={recentPosts} />
-          <HomeRecentFeed recentPosts={recentPosts} usernameColorMap={usernameColorMap} preferredColors={preferredColors} />
+          <HomeStats stats={stats} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">

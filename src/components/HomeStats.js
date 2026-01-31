@@ -1,8 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-
-export default function HomeStats({ stats, recentPosts = [] }) {
+export default function HomeStats({ stats }) {
   if (!stats) {
     return null;
   }
@@ -27,21 +25,6 @@ export default function HomeStats({ stats, recentPosts = [] }) {
           <span className="home-stats-number">{stats.recentRepliesCount || 0}</span>
           <span className="muted"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'} in last 24h</span>
         </div>
-        {recentPosts && recentPosts.length > 0 && (
-          <div className="home-stats-combined-recent">
-            {recentPosts.slice(0, 3).map((post) => (
-              <Link
-                key={post.id}
-                href={post.href || '#'}
-                className="home-stats-combined-link"
-                onMouseEnter={(e) => { e.target.style.color = 'var(--accent)'; }}
-                onMouseLeave={(e) => { e.target.style.color = 'var(--muted)'; }}
-              >
-                {post.title || 'Untitled'} · <span suppressHydrationWarning>{post.timeAgo || 'just now'}</span>
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
       {/* Desktop: three cards */}
       <div className="home-stats-grid">
@@ -146,40 +129,6 @@ export default function HomeStats({ stats, recentPosts = [] }) {
               </div>
             </div>
           </div>
-          {recentPosts && recentPosts.length > 0 && (
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '6px', 
-              marginTop: '8px',
-              paddingTop: '8px',
-              borderTop: '1px solid rgba(52, 225, 255, 0.1)'
-            }}>
-              {recentPosts.slice(0, 5).map((post) => (
-                <Link
-                  key={post.id}
-                  href={post.href || '#'}
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--muted)',
-                    textDecoration: 'none',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    transition: 'color 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = 'var(--accent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = 'var(--muted)';
-                  }}
-                >
-                  {post.title || 'Untitled'} · <span suppressHydrationWarning>{post.timeAgo || 'just now'}</span>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </section>
