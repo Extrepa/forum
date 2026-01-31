@@ -4,6 +4,7 @@ export function middleware(request) {
   const requestId = request.headers.get('x-errl-request-id') || crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-errl-request-id', requestId);
+  requestHeaders.set('x-errl-edge', 'worker');
 
   const response = NextResponse.next({
     request: {
