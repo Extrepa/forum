@@ -87,5 +87,10 @@ Additional fixes and polish applied after the above:
 - **Explore Sections:** Post count in top-right of section cards, "Latest drip:" label, Errl-themed empty message when no recent activity.
 - **Section counts:** Homepage section post counts exclude deleted posts (`is_deleted = 0 OR is_deleted IS NULL` in all relevant COUNT queries).
 - **Stats cards:** Homepage Stats (Total Posts, Active Users, Recent Activity) stay in one row on small viewports; responsive scaling so three cards fit and remain readable.
+- **Stats on mobile:** On small viewports, the three stats cards are replaced with one compact card showing three stacked rows: "13 posts across all sections", "8 users (1 active)", "1 post, 1 reply in last 24h"—plus up to 3 recent post links. Each row on its own line with light dividers.
+- **Recent activity queries:** Section recent-activity queries (Timeline, Shitposts, Art & Nostalgia, Bugs & Rants, Devlog, Lore & Memories) now filter out deleted items to match the counts.
+- **Feed mobile stretch:** Feed page no longer stretches on mobile—body/site/main overflow constraints, feed header `minWidth` fix, and list/list-item `min-width: 0` so content stays within viewport.
+- **Feed post meta wrapping:** Last activity lines and stats on feed post cards now wrap on mobile instead of overflowing (removed `white-space: nowrap`, added `overflow-wrap`).
+- **Event attendee duplicate:** Removed duplicate "X attending" from the event details line on feed; it’s only shown in the bottom row with the attendee list.
 
 Thanks for testing and pushing the forum forward. If anything feels off, drop a note in Bugs or a dev post and I will prioritize it.

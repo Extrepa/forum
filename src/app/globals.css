@@ -1944,31 +1944,20 @@ span:has(.username) + .status-badge {
   }
 
   .home-stats-combined-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 10px;
+    display: block;
     font-size: 13px;
     line-height: 1.5;
+    padding: 4px 0;
   }
 
-  .home-stats-combined-item {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 2px;
+  .home-stats-combined-row:not(:last-child) {
+    border-bottom: 1px solid rgba(52, 225, 255, 0.1);
   }
 
-  .home-stats-combined-item .home-stats-number {
+  .home-stats-combined-row .home-stats-number {
     font-size: 1rem;
     font-weight: 700;
     color: var(--accent);
-  }
-
-  .home-stats-combined-sep {
-    color: var(--muted);
-    opacity: 0.6;
-    font-size: 12px;
-    user-select: none;
   }
 
   .home-stats-combined-recent {

@@ -10,26 +10,22 @@ export default function HomeStats({ stats, recentPosts = [] }) {
   return (
     <section className="card home-stats">
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Stats</h3>
-      {/* Mobile: single combined card */}
+      {/* Mobile: single card with three stacked rows */}
       <div className="home-stats-combined">
         <div className="home-stats-combined-row">
-          <span className="home-stats-combined-item">
-            <span className="home-stats-number">{stats.totalPosts || 0}</span>
-            <span className="muted"> posts</span>
-          </span>
-          <span className="home-stats-combined-sep" aria-hidden> · </span>
-          <span className="home-stats-combined-item">
-            <span className="home-stats-number">{stats.totalUsers || 0}</span>
-            <span className="muted"> users</span>
-            <span className="muted"> ({stats.activeUsers || 0} active)</span>
-          </span>
-          <span className="home-stats-combined-sep" aria-hidden> · </span>
-          <span className="home-stats-combined-item">
-            <span className="home-stats-number">{stats.recentPostsCount || 0}</span>
-            <span className="muted"> post{(stats.recentPostsCount || 0) !== 1 ? 's' : ''}, </span>
-            <span className="home-stats-number">{stats.recentRepliesCount || 0}</span>
-            <span className="muted"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'} (24h)</span>
-          </span>
+          <span className="home-stats-number">{stats.totalPosts || 0}</span>
+          <span className="muted"> posts across all sections</span>
+        </div>
+        <div className="home-stats-combined-row">
+          <span className="home-stats-number">{stats.totalUsers || 0}</span>
+          <span className="muted"> users</span>
+          <span className="muted"> ({stats.activeUsers || 0} active)</span>
+        </div>
+        <div className="home-stats-combined-row">
+          <span className="home-stats-number">{stats.recentPostsCount || 0}</span>
+          <span className="muted"> post{(stats.recentPostsCount || 0) !== 1 ? 's' : ''}, </span>
+          <span className="home-stats-number">{stats.recentRepliesCount || 0}</span>
+          <span className="muted"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'} in last 24h</span>
         </div>
         {recentPosts && recentPosts.length > 0 && (
           <div className="home-stats-combined-recent">
