@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '../../../../lib/auth';
+import { getEdgeContext } from '../../../../lib/edgeContext';
 
-export async function GET() {
+export async function GET(request) {
+  const url = new URL(request.url);
+  const debug = url.searchParams.get('debug') === '1';
+  const { requestId } = debug ? await getEdgeContext() : { requestId: null };
+
   const user = await getSessionUser();
   if (!user) {
-    return NextResponse.json({ user: null });
+    return NextResponse.json({
+      user: null,
+      ...(debug ? { requestId } : {})
+    });
   }
   return NextResponse.json({
     user: {
@@ -31,6 +39,7 @@ export async function GET() {
       uiInvertColors: !!user.ui_invert_colors,
       defaultLandingPage: user.default_landing_page ?? 'home',
       preferredUsernameColorIndex: user.preferred_username_color_index ?? null
-    }
+    },
+    ...(debug ? { requestId } : {})
   });
 }
