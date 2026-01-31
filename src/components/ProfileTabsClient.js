@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react';
 
-const DEFAULT_TABS = [
+const PROFILE_TABS = [
+  { id: 'stats', label: 'Stats' },
   { id: 'activity', label: 'Activity' },
-  { id: 'lately', label: 'Lately' },
+  { id: 'socials', label: 'Socials' },
   { id: 'gallery', label: 'Gallery' },
   { id: 'notes', label: 'Notes' },
-  { id: 'files', label: 'Files' },
 ];
 
 function getRarityColor(value) {
@@ -27,14 +27,12 @@ export default function ProfileTabsClient({
   filesEnabled,
   stats,
 }) {
-  const tabs = useMemo(() => {
-    return DEFAULT_TABS.filter(tab => (tab.id === 'files' ? filesEnabled : true));
-  }, [filesEnabled]);
-  const [activeTab, setActiveTab] = useState('activity');
+  const tabs = useMemo(() => PROFILE_TABS, []);
+  const [activeTab, setActiveTab] = useState('stats');
 
   return (
     <div className="profile-tabs-wrapper">
-      <div className="profile-tabs-strip">
+      <div className="profile-tabs-strip profile-tabs-strip--spread">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -48,11 +46,10 @@ export default function ProfileTabsClient({
       </div>
 
       <div className="profile-tab-content">
-      {activeTab === 'activity' && (
+      {activeTab === 'stats' && (
         <div>
           {stats ? (
-            <div className="profile-stats-block" style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)' }}>
-              <h4 className="section-title" style={{ fontSize: '14px', marginBottom: '10px' }}>Stats</h4>
+            <div className="profile-stats-block" style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.2)', background: 'rgba(2, 7, 10, 0.4)' }}>
               <div className="profile-stats-grid">
                 <span className="profile-stat">
                   <span className="profile-stat-label">Portal entry:</span>{' '}
@@ -66,7 +63,14 @@ export default function ProfileTabsClient({
                 <span className="profile-stat"><span style={{ color: getRarityColor(stats.avatarEditMinutes), fontWeight: '600' }}>{stats.avatarEditMinutes}</span> avatar min</span>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className="muted" style={{ padding: '12px' }}>No stats available.</div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'activity' && (
+        <div>
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
           {hasActivity ? (
             <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
@@ -98,9 +102,9 @@ export default function ProfileTabsClient({
         </div>
       )}
 
-      {activeTab === 'lately' && (
+      {activeTab === 'socials' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Lately</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Socials</h4>
           {latelyLinks.length > 0 ? (
             <div style={{ display: 'grid', gap: '8px' }}>
               {latelyLinks.map(link => (
@@ -129,7 +133,7 @@ export default function ProfileTabsClient({
             </div>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>
-              No lately items yet. Add links, tracks, or posts to show what you&apos;re into.
+              No socials added yet. Edit your profile to add links.
             </div>
           )}
         </div>
@@ -153,14 +157,6 @@ export default function ProfileTabsClient({
         </div>
       )}
 
-      {activeTab === 'files' && filesEnabled && (
-        <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Files</h4>
-          <div className="muted" style={{ padding: '12px' }}>
-            File storage is not enabled yet for this profile.
-          </div>
-        </div>
-      )}
       </div>
     </div>
   );

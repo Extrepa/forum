@@ -494,6 +494,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     boxSizing: 'border-box'
   };
 
+  const EDIT_PROFILE_SUB_TABS = [
+    { id: 'profile', label: 'Profile' },
+    { id: 'mood', label: 'Mood & Song' },
+    { id: 'socials', label: 'Socials' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'notes', label: 'Notes' },
+    { id: 'stats', label: 'Stats' },
+  ];
+  const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
+
   return (
     <section className="card account-card">
       {user?.username && (
@@ -585,20 +595,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <p className="muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
             Edit how your profile appears to others. To see your public profile, use &quot;View my profile&quot; above.
           </p>
-          {/* Two Column Layout: Edit profile form */}
-          <div className="account-columns" style={{ marginBottom: '24px' }}>
-            <div className="account-col">
-              <div style={{ 
-                padding: '16px', 
-                background: 'rgba(2, 7, 10, 0.4)', 
-                borderRadius: '12px', 
-                border: '1px solid rgba(52, 225, 255, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                minWidth: 0
-              }}>
-                <h2 className="section-title" style={{ margin: 0 }}>Edit profile</h2>
+          <div className="account-edit-card">
+            <div className="account-edit-tabs-strip account-edit-tabs-strip--spread">
+              {EDIT_PROFILE_SUB_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setEditProfileSubTab(tab.id)}
+                  className={editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="account-edit-tab-content">
+              {editProfileSubTab === 'profile' && (
+                <div className="account-edit-panel">
+                <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
                 {/* Custom Avatar */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -843,6 +856,66 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </button>
                 </div>
 
+                {isEditingUsername && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
+                    <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: usernameStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+                      {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                    </button>
+                    <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Cancel</button>
+                  </div>
+                )}
+                {usernameStatus.message && editProfileSubTab === 'profile' && (
+                  <div style={{ fontSize: '12px', color: (usernameStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success') ? '#00f5a0' : 'var(--muted)' }}>{usernameStatus.message}</div>
+                )}
+                </div>
+                </div>
+              )}
+
+              {editProfileSubTab === 'mood' && (
+                <div className="account-edit-panel">
+                <h2 className="section-title" style={{ margin: 0 }}>Mood & Song</h2>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  <span className="muted" style={{ fontSize: '13px' }}>Shown on your public profile header.</span>
+                  <button
+                    type="button"
+                    onClick={() => { setIsEditingExtras(true); setIsEditingUsername(false); setIsEditingSocials(false); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                    disabled={isEditingExtras}
+                    style={{ borderRadius: '999px', border: 'none', background: isEditingExtras ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingExtras ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '2px 10px', lineHeight: '1.2', opacity: isEditingExtras ? 0.6 : 1 }}
+                  >
+                    {isEditingExtras ? 'Editing…' : 'Edit Mood & Song'}
+                  </button>
+                </div>
+                {!isEditingExtras ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
+                    {(profileMoodText || profileMoodEmoji) && <div><span style={{ color: 'var(--muted)' }}>Mood:</span> <span>{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText}</span></div>}
+                    {profileHeadline && <div><span style={{ color: 'var(--muted)' }}>Headline:</span> <span>{profileHeadline}</span></div>}
+                    {(profileSongUrl || profileSongProvider) && <div><span style={{ color: 'var(--muted)' }}>Song:</span> <span>{profileSongProvider ? profileSongProvider.charAt(0).toUpperCase() + profileSongProvider.slice(1) : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span> {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}</div>}
+                    {!profileMoodText && !profileMoodEmoji && !profileHeadline && !profileSongUrl && <div className="muted" style={{ fontSize: '12px' }}>No mood or song set. Click Edit to add.</div>}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood text</label><input type="text" value={profileMoodText} onChange={(e) => setProfileMoodText(e.target.value)} placeholder="e.g. Chillin" maxLength={200} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood emoji (optional)</label><input type="text" value={profileMoodEmoji} onChange={(e) => setProfileMoodEmoji(e.target.value)} placeholder="e.g. " maxLength={20} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Headline (optional)</label><input type="text" value={profileHeadline} onChange={(e) => setProfileHeadline(e.target.value)} placeholder="Short tagline" maxLength={300} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label><input type="url" value={profileSongUrl} onChange={(e) => setProfileSongUrl(e.target.value)} placeholder="https://soundcloud.com/..." style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label><select value={profileSongProvider || ''} onChange={(e) => setProfileSongProvider(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}><option value="">—</option><option value="soundcloud">SoundCloud</option><option value="spotify">Spotify</option><option value="youtube">YouTube</option></select></div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
+                  </div>
+                )}
+                {isEditingExtras && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
+                    <button type="button" onClick={handleSaveExtras} disabled={extrasStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: extrasStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: extrasStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>{extrasStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                    <button type="button" onClick={handleCancelExtras} disabled={extrasStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: extrasStatus.type === 'loading' ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Cancel</button>
+                  </div>
+                )}
+                {extrasStatus.message && <div style={{ fontSize: '12px', color: (extrasStatus.type === 'error') ? '#ff6b6b' : (extrasStatus.type === 'success') ? '#00f5a0' : 'var(--muted)' }}>{extrasStatus.message}</div>}
+                </div>
+              )}
+
+              {editProfileSubTab === 'socials' && (
+                <div className="account-edit-panel">
+                <h2 className="section-title" style={{ margin: 0 }}>Socials</h2>
+                <p className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>These links appear on your profile in the Socials tab (Lately).</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ minWidth: 0 }}>
                     {/* Social Links Display - only show when NOT editing socials */}
@@ -1072,317 +1145,101 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     Edit Socials
                   </button>
                 </div>
-
-                {/* Mood & Song (profile extras) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mood & Song</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingExtras(true);
-                        setIsEditingUsername(false);
-                        setIsEditingSocials(false);
-                        setUsernameStatus({ type: 'idle', message: null });
-                        setColorStatus({ type: 'idle', message: null });
-                      }}
-                      disabled={isEditingExtras}
-                      style={{
-                        borderRadius: '999px',
-                        border: 'none',
-                        background: isEditingExtras ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-                        color: '#001018',
-                        cursor: isEditingExtras ? 'default' : 'pointer',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        padding: '2px 10px',
-                        lineHeight: '1.2',
-                        opacity: isEditingExtras ? 0.6 : 1,
-                      }}
-                    >
-                      {isEditingExtras ? 'Editing…' : 'Edit Mood & Song'}
-                    </button>
+                {isEditingSocials && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
+                    <button type="button" onClick={handleSaveSocials} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: usernameStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                    <button type="button" onClick={handleCancelSocials} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Cancel</button>
                   </div>
-                  {!isEditingExtras ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
-                      {(profileMoodText || profileMoodEmoji) && (
-                        <div>
-                          <span style={{ color: 'var(--muted)' }}>Mood:</span>{' '}
-                          <span>{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText}</span>
-                        </div>
-                      )}
-                      {profileHeadline && (
-                        <div>
-                          <span style={{ color: 'var(--muted)' }}>Headline:</span>{' '}
-                          <span>{profileHeadline}</span>
-                        </div>
-                      )}
-                      {(profileSongUrl || profileSongProvider) && (
-                        <div>
-                          <span style={{ color: 'var(--muted)' }}>Song:</span>{' '}
-                          <span>{profileSongProvider ? profileSongProvider.charAt(0).toUpperCase() + profileSongProvider.slice(1) : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span>
-                          {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}
-                        </div>
-                      )}
-                      {!profileMoodText && !profileMoodEmoji && !profileHeadline && !profileSongUrl && (
-                        <div className="muted" style={{ fontSize: '12px' }}>No mood or song set. Click Edit to add.</div>
-                      )}
+                )}
+                {usernameStatus.message && editProfileSubTab === 'socials' && <div style={{ fontSize: '12px', color: (usernameStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success') ? '#00f5a0' : 'var(--muted)' }}>{usernameStatus.message}</div>}
+                </div>
+              )}
+
+              {editProfileSubTab === 'gallery' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Gallery</h2>
+                  <p className="muted" style={{ fontSize: '13px' }}>Upload images to show in the Gallery tab on your profile. Coming soon.</p>
+                </div>
+              )}
+
+              {editProfileSubTab === 'notes' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Notes</h2>
+                  <p className="muted" style={{ fontSize: '13px' }}>Add notes to show in the Notes tab on your profile. Coming soon.</p>
+                </div>
+              )}
+
+              {editProfileSubTab === 'stats' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
+                  <div style={{ padding: '16px', background: 'rgba(2, 7, 10, 0.4)', borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.2)', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                    {(() => {
+                      const getRarityColor = (value) => {
+                        if (value === 0) return 'var(--muted)';
+                        if (value < 10) return 'var(--accent)';
+                        if (value < 100) return '#00f5a0';
+                        if (value < 1000) return '#5b8def';
+                        return '#b794f6';
+                      };
+                      return (
+                        <>
+                          <div><span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}<span style={{ color: 'var(--accent)' }}><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></div>
+                          <div><span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span style={{ color: 'var(--muted)' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span></div>
+                          <div><span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span style={{ color: 'var(--muted)' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span></div>
+                          <div><span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span> <span style={{ color: 'var(--muted)' }}>total contributions</span></div>
+                          <div><span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span></div>
+                          <div><span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span></div>
+                          <div><span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span style={{ color: 'var(--muted)' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span></div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
+                  {stats.recentActivity && stats.recentActivity.length > 0 ? (
+                    <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
+                      {stats.recentActivity.map((item) => {
+                        let href = '#';
+                        if (item.type === 'thread') {
+                          const postType = item.postType || item.post_type;
+                          if (postType === 'forum_thread') href = `/lobby/${item.id}`;
+                          else if (postType === 'dev_log') href = `/devlog/${item.id}`;
+                          else if (postType === 'music_post') href = `/music/${item.id}`;
+                          else if (postType === 'project') href = `/projects/${item.id}`;
+                          else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
+                          else if (postType === 'event') href = `/events/${item.id}`;
+                        } else {
+                          const replyType = item.replyType || item.reply_type;
+                          const threadId = item.thread_id;
+                          if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
+                          else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
+                          else if (replyType === 'music_comment') href = `/music/${threadId}`;
+                          else if (replyType === 'project_reply') href = `/projects/${threadId}`;
+                          else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
+                          else if (replyType === 'event_comment') href = `/events/${threadId}`;
+                        }
+                        const postType = item.postType || item.post_type;
+                        const replyType = item.replyType || item.reply_type;
+                        const section = getSectionLabel(postType, replyType);
+                        const title = item.type === 'thread' ? item.title : item.thread_title;
+                        const timeStr = formatDateTime(item.created_at);
+                        return (
+                          <a key={`${item.type}-${item.id}`} href={href} className="profile-activity-item">
+                            {item.type === 'thread' ? (
+                              <><span className="activity-label">Posted</span><span className="activity-title" title={title}>{title}</span><span className="activity-label">in</span><span className="activity-section">{section}</span><span className="activity-label">at</span><span className="activity-meta" suppressHydrationWarning>{timeStr}</span></>
+                            ) : (
+                              <><span className="activity-label">Replied to</span><span className="activity-title" title={title}>{title}</span><span className="activity-label">at</span><span className="activity-meta" suppressHydrationWarning>{timeStr}</span></>
+                            )}
+                          </a>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <div>
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood text</label>
-                        <input
-                          type="text"
-                          value={profileMoodText}
-                          onChange={(e) => setProfileMoodText(e.target.value)}
-                          placeholder="e.g. Chillin"
-                          maxLength={200}
-                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood emoji (optional)</label>
-                        <input
-                          type="text"
-                          value={profileMoodEmoji}
-                          onChange={(e) => setProfileMoodEmoji(e.target.value)}
-                          placeholder="e.g. "
-                          maxLength={20}
-                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Headline (optional)</label>
-                        <input
-                          type="text"
-                          value={profileHeadline}
-                          onChange={(e) => setProfileHeadline(e.target.value)}
-                          placeholder="Short tagline"
-                          maxLength={300}
-                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label>
-                        <input
-                          type="url"
-                          value={profileSongUrl}
-                          onChange={(e) => setProfileSongUrl(e.target.value)}
-                          placeholder="https://soundcloud.com/..."
-                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label>
-                        <select
-                          value={profileSongProvider || ''}
-                          onChange={(e) => setProfileSongProvider(e.target.value)}
-                          style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
-                        >
-                          <option value="">—</option>
-                          <option value="soundcloud">SoundCloud</option>
-                          <option value="spotify">Spotify</option>
-                          <option value="youtube">YouTube</option>
-                        </select>
-                      </div>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={profileSongAutoplay}
-                          onChange={(e) => setProfileSongAutoplay(e.target.checked)}
-                        />
-                        <span>Autoplay song on profile (off by default)</span>
-                      </label>
-                    </div>
+                    <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
                   )}
                 </div>
-
-                {/* Save / Cancel row */}
-                {(isEditingUsername || isEditingSocials || isEditingExtras) && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={isEditingExtras ? handleSaveExtras : (isEditingUsername ? handleSaveUsername : handleSaveSocials)}
-                      disabled={usernameStatus.type === 'loading' || extrasStatus.type === 'loading'}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 12px',
-                        flex: '1 1 auto',
-                        background: 'var(--accent)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: 'var(--bg)',
-                        cursor: (usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 'not-allowed' : 'pointer',
-                        opacity: (usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 0.6 : 1,
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {(usernameStatus.type === 'loading' || extrasStatus.type === 'loading') ? 'Saving…' : 'Save'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={isEditingExtras ? handleCancelExtras : (isEditingUsername ? handleCancelUsername : handleCancelSocials)}
-                      disabled={usernameStatus.type === 'loading' || extrasStatus.type === 'loading'}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 12px',
-                        flex: '1 1 auto',
-                        background: 'transparent',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        borderRadius: '6px',
-                        color: 'var(--muted)',
-                        cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-
-                {(usernameStatus.message || extrasStatus.message) && (
-                  <div style={{
-                    fontSize: '12px',
-                    color: (usernameStatus.type === 'error' || extrasStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success' || extrasStatus.type === 'success') ? '#00f5a0' : 'var(--muted)'
-                  }}>
-                    {usernameStatus.message || extrasStatus.message}
-                  </div>
-                )}
-
-              </div>
-            </div>
-            </div>
-
-            {/* Right Column: Stats Card */}
-            <div className="account-col">
-              <div style={{ 
-                padding: '16px', 
-                background: 'rgba(2, 7, 10, 0.4)', 
-                borderRadius: '12px', 
-                border: '1px solid rgba(52, 225, 255, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                textAlign: 'right'
-              }}>
-                <h2 className="section-title" style={{ margin: 0, textAlign: 'right' }}>Stats</h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'right' }}>
-                  {(() => {
-                    // RPG-style rarity color function
-                    const getRarityColor = (value) => {
-                      if (value === 0) return 'var(--muted)';
-                      if (value < 10) return 'var(--accent)'; // Common - cyan
-                      if (value < 100) return '#00f5a0'; // Uncommon - green
-                      if (value < 1000) return '#5b8def'; // Rare - blue
-                      return '#b794f6'; // Epic - purple
-                    };
-
-                    return (
-                      <>
-                        <div>
-                          <span style={{ color: 'var(--muted)' }}>Portal entry date:</span>{' '}
-                          <span style={{ color: 'var(--accent)' }}>
-                            <span className="date-only-mobile">{formatDate(stats.joinDate)}</span>
-                            <span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
-                          </span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>total contributions</span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span>
-                        </div>
-                        <div>
-                          <span style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span>
-                          <span style={{ color: 'var(--muted)', marginLeft: '6px' }}>{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
+              )}
             </div>
           </div>
-
-          {/* Recent Activity */}
-          {stats.recentActivity && stats.recentActivity.length > 0 ? (
-            <div>
-              <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
-              <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
-                {stats.recentActivity.map((item) => {
-                  let href = '#';
-                  if (item.type === 'thread') {
-                    const postType = item.postType || item.post_type;
-                    if (postType === 'forum_thread') href = `/lobby/${item.id}`;
-                    else if (postType === 'dev_log') href = `/devlog/${item.id}`;
-                    else if (postType === 'music_post') href = `/music/${item.id}`;
-                    else if (postType === 'project') href = `/projects/${item.id}`;
-                    else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
-                    else if (postType === 'event') href = `/events/${item.id}`;
-                  } else {
-                    const replyType = item.replyType || item.reply_type;
-                    const threadId = item.thread_id;
-                    if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
-                    else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
-                    else if (replyType === 'music_comment') href = `/music/${threadId}`;
-                    else if (replyType === 'project_reply') href = `/projects/${threadId}`;
-                    else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
-                    else if (replyType === 'event_comment') href = `/events/${threadId}`;
-                  }
-                  const postType = item.postType || item.post_type;
-                  const replyType = item.replyType || item.reply_type;
-                  const section = getSectionLabel(postType, replyType);
-                  const title = item.type === 'thread' ? item.title : item.thread_title;
-                  const timeStr = formatDateTime(item.created_at);
-                  return (
-                    <a
-                      key={`${item.type}-${item.id}`}
-                      href={href}
-                      className="profile-activity-item"
-                    >
-                      {item.type === 'thread' ? (
-                        <>
-                          <span className="activity-label">Posted</span>
-                          <span className="activity-title" title={title}>{title}</span>
-                          <span className="activity-label">in</span>
-                          <span className="activity-section">{section}</span>
-                          <span className="activity-label">at</span>
-                          <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="activity-label">Replied to</span>
-                          <span className="activity-title" title={title}>{title}</span>
-                          <span className="activity-label">at</span>
-                          <span className="activity-meta" suppressHydrationWarning>{timeStr}</span>
-                        </>
-                      )}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px', borderBottom: 'none' }}>Recent Activity</h4>
-              <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
-            </div>
-          )}
         </div>
       )}
     </section>

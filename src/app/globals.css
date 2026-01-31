@@ -904,6 +904,76 @@ main {
   margin-top: 12px;
 }
 
+/* Edit profile: single card with inner tabs */
+.account-edit-card {
+  padding: 16px;
+  background: rgba(2, 7, 10, 0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  min-width: 0;
+}
+
+.account-edit-tabs-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.account-edit-tabs-strip--spread .account-edit-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+}
+
+.account-edit-tabs-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.account-edit-tab {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(2, 7, 10, 0.4);
+  color: var(--muted);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.account-edit-tab--active {
+  border-color: rgba(52, 225, 255, 0.6);
+  background: rgba(52, 225, 255, 0.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.account-edit-tab:hover {
+  border-color: rgba(52, 225, 255, 0.4);
+  color: var(--ink);
+}
+
+.account-edit-tab-content {
+  padding-bottom: 8px;
+  min-height: 80px;
+}
+
+.account-edit-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
 .color-picker-btn {
   position: relative;
   aspect-ratio: 1 / 1 !important;
@@ -990,6 +1060,28 @@ main {
 
   .account-columns {
     grid-template-columns: 1fr;
+  }
+
+  .account-edit-card {
+    padding: 12px 14px;
+  }
+
+  .account-edit-tabs-strip {
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+
+  .account-edit-tabs-strip--spread .account-edit-tab {
+    flex: 1 1 auto;
+    min-width: 64px;
+    max-width: none;
+  }
+
+  .account-edit-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 36px;
   }
 
   /* Make edit button smaller on mobile */
@@ -1638,7 +1730,7 @@ button:hover {
   border: 1px solid rgba(52, 225, 255, 0.2);
 }
 
-/* Desktop: use wide space – more padding/gap, single-row tab strip */
+/* Desktop: use wide space – more padding/gap, single-row tab strip spread across row */
 @media (min-width: 769px) {
   .profile-card-header {
     padding: 20px 24px;
@@ -1647,6 +1739,11 @@ button:hover {
 
   .profile-tabs-strip {
     flex-wrap: nowrap;
+  }
+
+  .profile-tabs-strip--spread .profile-tab {
+    flex: 1 1 0;
+    min-width: 60px;
   }
 }
 
@@ -1734,6 +1831,12 @@ button:hover {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+}
+
+.profile-tabs-strip--spread .profile-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
 }
 
 .profile-tabs-strip::-webkit-scrollbar {
@@ -1833,6 +1936,12 @@ button:hover {
     padding-bottom: 6px;
     margin-bottom: 10px;
     gap: 6px;
+  }
+
+  .profile-tabs-strip--spread .profile-tab {
+    flex: 1 1 auto;
+    min-width: 64px;
+    max-width: none;
   }
 
   .profile-tab {

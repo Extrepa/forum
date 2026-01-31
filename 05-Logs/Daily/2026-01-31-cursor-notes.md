@@ -36,3 +36,34 @@ Implemented the profile additions forward plan (single card, layout refactor, Ph
 - Phase 4: `user_files` (gated) + Files tab.
 
 Migration 0054 already exists; apply in target environments when ready.
+
+---
+
+## Edit profile: single card with inner tabs (2026-01-31)
+
+Refactored the Edit profile section (Account > Edit profile) into a single card with inner tabs so all editing places live in one card.
+
+### Changes
+
+- **Single card** – Replaced the two-column layout (left: form, right: Stats) with one `.account-edit-card` containing a tab strip and tab content.
+- **Inner tabs** – Profile | Mood & Song | Socials | Gallery | Notes | Stats. Each tab shows one panel; Save/Cancel is per-tab where applicable.
+- **Profile tab** – Avatar + username + color; Edit Avatar / Edit Username; Save/Cancel when editing username.
+- **Mood & Song tab** – Display or form for mood, headline, song URL/provider/autoplay; Edit Mood & Song; Save/Cancel when editing extras.
+- **Socials tab** – Lately & Socials links (display or form); Edit Socials; Save/Cancel when editing socials.
+- **Gallery / Notes tabs** – Placeholder copy (“Coming soon”).
+- **Stats tab** – Stats block (portal entry, threads, replies, visits, time, avatar min) + Recent Activity list.
+- **CSS** – `.account-edit-card`, `.account-edit-tabs-strip`, `.account-edit-tabs-strip--spread`, `.account-edit-tab`, `.account-edit-tab--active`, `.account-edit-tab-content`, `.account-edit-panel` in `globals.css`; mobile tweaks in `@media (max-width: 640px)`.
+
+### Files touched
+
+- `src/app/account/AccountTabsClient.js` (state `editProfileSubTab`, `EDIT_PROFILE_SUB_TABS`, tab panels; removed two-column layout and duplicate Mood & Song block)
+- `src/app/globals.css` (account-edit-card and tab styles, mobile)
+
+### Verification (double-check)
+
+- **Structure** – Edit profile block: outer div → `.account-edit-card` → tab strip (6 buttons) → `.account-edit-tab-content` → six conditional panels. Each panel is a single `.account-edit-panel`; Profile panel has correct nesting (account-edit-panel → avatar grid → AvatarCustomizer conditional → flex column → username grid → Save/Cancel/message). Closing tags: `</div></div></div>)}` then `</section>`; no leftover or dead code.
+- **State** – `editProfileSubTab` defaults to `'profile'`; `EDIT_PROFILE_SUB_TABS` has ids `profile`, `mood`, `socials`, `gallery`, `notes`, `stats`. All six used in conditionals. `usernameStatus` shared for Profile and Socials save; message shown only when `editProfileSubTab === 'profile'` or `=== 'socials'` respectively, so no cross-tab message leak.
+- **CSS** – Every class used in AccountTabsClient exists in globals.css: `.account-edit-card`, `.account-edit-tabs-strip`, `.account-edit-tabs-strip--spread`, `.account-edit-tab`, `.account-edit-tab--active`, `.account-edit-tab-content`, `.account-edit-panel`. Mobile overrides at 640px: card padding, strip gap/margin, tab flex/min-width, tab padding/font-size/min-height.
+- **Handlers** – Profile: `handleSaveUsername`, `handleCancelUsername`. Mood: `handleSaveExtras`, `handleCancelExtras`. Socials: `handleSaveSocials`, `handleCancelSocials`. Edit buttons clear other edit modes (e.g. Edit Username sets `isEditingSocials(false)`, `isEditingExtras(false)`).
+- **Stats tab** – Uses `stats` from props/state (refreshed when Edit profile tab is active); `formatDateTime`, `formatDate`, `getSectionLabel` used for activity links; `profile-activity-list` and `profile-activity-item` classes reused from profile page.
+- **Follow-up** – Gallery and Notes tabs are placeholders only. When implementing: add upload/editor UI and wire to APIs; consider syncing `editProfileSubTab` with URL (e.g. `?tab=profile&edit=socials`) if deep-linking is needed.
