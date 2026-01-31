@@ -4,6 +4,10 @@ main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
+# Workers Paid: 30s CPU default (vs 10ms on Free). Explicit limit for clarity.
+[limits]
+cpu_ms = 30000
+
 # Production (Default)
 [[d1_databases]]
 binding = "DB"

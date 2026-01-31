@@ -34,7 +34,7 @@ Cloudflare Workers Free has a hard 10ms CPU cap. The homepage was blowing past i
 | Workers Free | 10ms (fixed) | **No** – Cloudflare API returns error 100328 |
 | Workers Paid  | 30s default, up to 5 min | Yes |
 
-On Free, you can’t raise the limit. Parallelizing queries is the main way to stay under 10ms.
+**Current setup:** Site runs on Workers Paid. `wrangler.toml` sets `cpu_ms = 30000` (30s). The parallelization in `page.js` remains—it improves response time regardless of the limit.
 
 ## If It Happens Again
 
@@ -47,3 +47,4 @@ On Free, you can’t raise the limit. Parallelizing queries is the main way to s
 ## Files Changed
 
 - `src/app/page.js` – Section data fetches use `Promise.all`; stats + recent activity also parallelized; author lookups batched (1 query instead of up to 15)
+- `wrangler.toml` – `[limits] cpu_ms = 30000` (Workers Paid; 30s CPU per request)
