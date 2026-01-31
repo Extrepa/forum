@@ -228,6 +228,11 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 - **Issue:** Long "Last activity by X at date" lines overflowed horizontally, getting cut off.
 - **Fix:** Removed whiteSpace: nowrap from mobile stats and last activity; PostMetaBar mobile last-activity block now display: block, width: 100%; added overflow-wrap/word-break so text wraps; post-meta-row2 and children get min-width: 0 for proper flex shrinking.
 
+### Worker CPU time limit (Error 1102)
+- **Issue:** Homepage GET / triggered "Worker exceeded CPU time limit" (Error 1102).
+- **Fix 1:** Added `[limits] cpu_ms = 60000` to `wrangler.toml` to raise the limit from the default 30s to 60s. Note: Workers Free plan has a hard 10ms limit; this change applies to Workers Paid.
+- **Fix 2:** Parallelized homepage section data fetches in `src/app/page.js`. All 28 DB queries (counts and recents for timeline, forum, events, music, projects, shitposts, artNostalgia, bugsRant, devlog, loreMemories) now run in a single `Promise.all` instead of sequentially, reducing wall time and CPU usage.
+
 ### Feed page mobile stretch fix
 - **Issue:** Feed page still stretching on mobile.
 - **Fix:** (1) Feed header paragraph had `minWidth: '200px'` — changed to `0` so it can shrink. (2) Added mobile CSS: `body { overflow-x: hidden; width: 100% }`, `.site { width: 100%; min-width: 0; max-width: 100vw }`, `main { min-width: 0; overflow-x: hidden }`, `.list` and `.list-item { min-width: 0 }` to prevent flex/grid children from expanding the layout.
