@@ -94,4 +94,10 @@ Additional fixes and polish applied after the above:
 - **Event attendee duplicate:** Removed duplicate "X attending" from the event details line on feed; it’s only shown in the bottom row with the attendee list.
 - **Worker CPU limit (Error 1102):** If you hit "Worker exceeded resource limits" on the homepage while the site was down—the homepage was doing 28 sequential DB queries and blowing past the Workers Free 10ms CPU cap. Fixed by parallelizing all section fetches into a single `Promise.all`. See `docs/02-Deployment/WORKER_CPU_LIMIT_ERROR_1102.md` for details.
 
+## Recent tweaks (Jan 31, 2026)
+
+- **Edge instrumentation:** Added a lightweight middleware to tag every request with `x-errl-request-id` and an `x-errl-edge` marker, plus an `edgeContext` helper and Cloudflare env typings so future edge features read the headers and metadata in one place. The `/api/status` and `/api/auth/me` routes now log the request ID (and expose it when `?debug=1`) so we can link logs to user-visible requests, and the `docs/Edge-Plan.md` file captures how we want to evolve the edge layer.
+- **Home page simplification:** Removed the “Recent Activity” list from HomeStats and the page query since the section cards already show recent content; the “Recent Activity” stat now keeps showing the post/reply counts only.
+- **24h activity counts:** Replaced the UNION-based “last 24 hours” counts with individual per-table `COUNT(*)` queries so D1 no longer hits the compound select limit and the stats card reflects run-time activity again.
+
 Thanks for testing and pushing the forum forward. If anything feels off, drop a note in Bugs or a dev post and I will prioritize it.
