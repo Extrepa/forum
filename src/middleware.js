@@ -13,7 +13,6 @@ export function middleware(request) {
   });
 
   response.headers.set('x-errl-request-id', requestId);
-  response.headers.set('x-errl-edge', 'worker');
 
   return response;
 }
