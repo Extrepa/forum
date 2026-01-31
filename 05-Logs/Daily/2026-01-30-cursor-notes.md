@@ -201,10 +201,17 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 - **Issue:** Stats cards wrapped to two rows on mobile.
 - **Fix:** Fixed 3-column grid (`repeat(3, minmax(0, 1fr))`), `home-stats-card` with `minWidth: 0` and responsive classes; at `max-width: 640px` reduced gap, padding, and font sizes so all three cards stay in one row.
 
-### Homepage Stats: inline format on mobile for Active Users & Recent Activity
-- **Issue:** On smallest viewports, Active Users showed cramped "8 total / 1 active" and Recent Activity showed cramped "1 post / 1 reply" in two-column layout.
-- **Fix:** At `max-width: 640px`, Active Users and Recent Activity cards switch to compact inline format: "8 total · 1 active" and "1 post · 1 reply". Two-col layout hidden, inline layout shown via CSS.
+### Homepage Stats: mobile layout (stack vertically)
+- **Issue:** Three stats cards side-by-side on mobile were cramped; inline format still looked odd.
+- **Fix:** At `max-width: 640px`, stats grid switches to single column (`grid-template-columns: 1fr`). Cards stack vertically with full width; two-col layout for Active Users and Recent Activity has room to display properly. Removed unused inline markup.
 
 ### Homepage section "recent activity" queries: add is_deleted filter
 - **Issue:** Timeline, Shitposts, Art & Nostalgia, Bugs & Rants, Devlog (fallback), and Lore & Memories recent-activity queries lacked `is_deleted` filter; count queries had it, causing deleted items to appear as recent activity.
 - **Fix:** Added `AND (table.is_deleted = 0 OR table.is_deleted IS NULL)` to all affected recent-activity queries in `src/app/page.js` (timelineRecent, shitpostsRecent, artNostalgiaRecentPost, bugsRantRecentPost, devlogRecentPost fallback, loreMemoriesRecentPost).
+
+---
+
+## Deploys
+
+- **2026-01-30 (first):** `Homepage stats mobile layout; is_deleted filter for recent activity queries` — inline format for Active Users/Recent Activity on mobile, is_deleted filters on section recent-activity queries. Pushed to main, deployed to production.
+- **2026-01-30 (second):** Stats mobile layout changed to stack vertically (1 column) instead of 3 cramped columns; removed inline markup, two-col layout used with full-width cards.
