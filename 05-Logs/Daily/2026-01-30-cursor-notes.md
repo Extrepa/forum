@@ -236,3 +236,79 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 ### Feed page mobile stretch fix
 - **Issue:** Feed page still stretching on mobile.
 - **Fix:** (1) Feed header paragraph had `minWidth: '200px'` — changed to `0` so it can shrink. (2) Added mobile CSS: `body { overflow-x: hidden; width: 100% }`, `.site { width: 100%; min-width: 0; max-width: 100vw }`, `main { min-width: 0; overflow-x: hidden }`, `.list` and `.list-item { min-width: 0 }` to prevent flex/grid children from expanding the layout.
+
+---
+
+## ProfileAvatarHero parallax fix
+
+### Issue
+The parallax transform values for the profile avatar had been refactored into conditional scalars. The original code applied constant (18, 6) transformation regardless of hover state, but the refactored code used:
+- `translateScalar = isHovering ? 18 : 8`
+- `rotationScalar = isHovering ? 6 : 2.5`
+
+This reduced parallax responsiveness when not hovering, which was unintended — the subtle behavior was only meant for the CSS `floatingFace` animation, not the mouse-follow parallax.
+
+### Fix
+Changed conditional scalars to constants in `src/components/ProfileAvatarHero.js`:
+- `const translateScalar = 18;`
+- `const rotationScalar = 6;`
+
+This restores the original behavior: strong parallax effect (18, 6) regardless of hover state.
+
+---
+
+## Avatar edit minutes update (Extrepa)
+
+### Command run
+```bash
+npx wrangler d1 execute errl_forum_db --command "UPDATE users SET avatar_edit_minutes = 200 WHERE username_norm = 'extrepa';"
+```
+
+- Applied to **local** D1 database only
+- For production, run with `--remote` flag
+
+---
+
+## Deploy (feat/avatar-updates branch merged to main)
+
+### Commit
+```
+fix: restore constant parallax scalars in ProfileAvatarHero
+
+Restore original parallax behavior with constant (18, 6) transform values
+regardless of hover state, ensuring consistent pronounced parallax effect.
+```
+
+### Branch merge
+- Merged `feat/avatar-updates` into `main` (fast-forward)
+- Pushed to origin/main
+
+### Files changed (from entire avatar-updates branch)
+- `src/app/account/AccountTabsClient.js`: AvatarImage component usage
+- `src/app/api/account/avatar-edit-time/route.js`: MAX_MINUTES_PER_PING cap (2 min), improved lastSeen handling
+- `src/components/AvatarCustomizer.js`: Outline finishes (glow, glitter, static, gradient), separate fill/stroke paths, getFinishFilter helper, constants extracted
+- `src/components/AvatarImage.js`: New component (native img, lazy loading, size prop)
+- `src/components/ProfileAvatarHero.js`: AvatarImage usage, constant parallax scalars
+- `src/components/UserPopover.js`: AvatarImage usage
+- `src/components/Username.js`: AvatarImage usage
+
+### Production deployment
+- Build successful (Next.js 15.5.9)
+- 39 new/modified assets uploaded to Cloudflare
+- Worker deployed: `errl-portal-forum.extrepatho.workers.dev`
+- Version ID: `edcc60d3-9d5c-419d-9890-665bf951d6ea`
+
+---
+
+## Avatar Customizer UI refinements
+
+### REFLECT control: slider → +/- buttons
+- **Issue:** Chrome reflectiveness used a slider, inconsistent with GLOW, SCALE, ROTATE controls which use +/- buttons.
+- **Fix:** Replaced slider with +/- buttons (±5 per click, range 10-100%). Uses same grid layout and button styling as other controls.
+
+### OUTLINE FINISH buttons: match FILL tab styling
+- **Issue:** Outline finish buttons used pill shape (`borderRadius: 999px`) and different sizing, looked inconsistent with fill finish buttons.
+- **Fix:** Updated to match fill tab buttons:
+  - `borderRadius: '8px'` (was `999px`)
+  - `padding: '8px 2px'` (was `4px 0`)
+  - `fontSize: '9px'` (was `10px`)

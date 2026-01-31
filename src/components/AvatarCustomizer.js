@@ -1779,21 +1779,27 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         )}
 
                         {selectedLayer.finish === 'gradient' && getGradientId(selectedLayer) === 'chrome' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '0px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>REFLECT</label>
-                              <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold' }}>{selectedLayer.chromeReflectiveness ?? 50}%</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2px', alignItems: 'center', marginTop: '0px', minHeight: '12px' }}>
+                            <label style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, padding: 0, margin: 0 }}>REFLECT</label>
+                            <span style={{ fontSize: '9px', color: 'var(--accent)', fontWeight: 'bold', textAlign: 'center', lineHeight: 1 }}>{selectedLayer.chromeReflectiveness ?? 50}%</span>
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { chromeReflectiveness: Math.max(10, (selectedLayer.chromeReflectiveness ?? 50) - 5) })}
+                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                                title="Reduce Reflectiveness"
+                              >
+                                −
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLayerChange(selectedLayer.id, { chromeReflectiveness: Math.min(100, (selectedLayer.chromeReflectiveness ?? 50) + 5) })}
+                                style={{ width: '24px', height: '24px', minWidth: '24px', maxWidth: '24px', minHeight: '24px', maxHeight: '24px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--accent)', cursor: 'pointer', padding: 0, lineHeight: '24px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', flex: '0 0 auto', overflow: 'hidden' }}
+                                title="Boost Reflectiveness"
+                              >
+                                +
+                              </button>
                             </div>
-                            <input
-                              type="range"
-                              min="10"
-                              max="100"
-                              step="1"
-                              value={selectedLayer.chromeReflectiveness ?? 50}
-                              onChange={(e) => handleLayerChange(selectedLayer.id, { chromeReflectiveness: parseInt(e.target.value, 10) })}
-                              title="Boost chrome reflectiveness"
-                              style={{ width: '100%', accentColor: 'var(--accent)', height: '8px', cursor: 'pointer', margin: 0 }}
-                            />
                           </div>
                         )}
 
@@ -1963,12 +1969,12 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                         }}
                         title={`Apply ${label} to Frame`}
                         style={{ 
-                          fontSize: '10px', 
-                          padding: '4px 0', 
+                          fontSize: '9px', 
+                          padding: '8px 2px', 
                           background: isActive ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
                           color: isActive ? '#001018' : 'var(--ink)', 
                           border: '1px solid ' + (isActive ? 'var(--accent)' : 'rgba(52, 225, 255, 0.2)'), 
-                          borderRadius: '999px', cursor: 'pointer', minHeight: 0,
+                          borderRadius: '8px', cursor: 'pointer', minHeight: 0,
                           fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.2s ease'
                         }}
                       >
