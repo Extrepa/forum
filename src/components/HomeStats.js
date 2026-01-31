@@ -10,6 +10,44 @@ export default function HomeStats({ stats, recentPosts = [] }) {
   return (
     <section className="card home-stats">
       <h3 className="section-title" style={{ marginBottom: '16px' }}>Stats</h3>
+      {/* Mobile: single combined card */}
+      <div className="home-stats-combined">
+        <div className="home-stats-combined-row">
+          <span className="home-stats-combined-item">
+            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.totalPosts || 0}</span>
+            <span className="muted"> posts</span>
+          </span>
+          <span className="muted home-stats-combined-sep">·</span>
+          <span className="home-stats-combined-item">
+            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.totalUsers || 0}</span>
+            <span className="muted"> users</span>
+            <span className="muted"> ({stats.activeUsers || 0} active)</span>
+          </span>
+          <span className="muted home-stats-combined-sep">·</span>
+          <span className="home-stats-combined-item">
+            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentPostsCount || 0}</span>
+            <span className="muted"> post{(stats.recentPostsCount || 0) !== 1 ? 's' : ''}, </span>
+            <span className="home-stats-number" style={{ color: 'var(--accent)', fontWeight: '700' }}>{stats.recentRepliesCount || 0}</span>
+            <span className="muted"> repl{(stats.recentRepliesCount || 0) !== 1 ? 'ies' : 'y'} (24h)</span>
+          </span>
+        </div>
+        {recentPosts && recentPosts.length > 0 && (
+          <div className="home-stats-combined-recent">
+            {recentPosts.slice(0, 3).map((post) => (
+              <Link
+                key={post.id}
+                href={post.href || '#'}
+                className="home-stats-combined-link"
+                onMouseEnter={(e) => { e.target.style.color = 'var(--accent)'; }}
+                onMouseLeave={(e) => { e.target.style.color = 'var(--muted)'; }}
+              >
+                {post.title || 'Untitled'} · <span suppressHydrationWarning>{post.timeAgo || 'just now'}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Desktop: three cards */}
       <div className="home-stats-grid">
         {/* Total Posts Card */}
         <div

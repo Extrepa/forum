@@ -205,6 +205,10 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 - **Issue:** Three stats cards side-by-side on mobile were cramped; inline format still looked odd.
 - **Fix:** At `max-width: 640px`, stats grid switches to single column (`grid-template-columns: 1fr`). Cards stack vertically with full width; two-col layout for Active Users and Recent Activity has room to display properly. Removed unused inline markup.
 
+### Homepage Stats: single combined card on mobile
+- **Issue:** Three stacked stats cards still take up too much vertical space on mobile.
+- **Fix:** At `max-width: 640px`, replace three cards with one compact combined card: "13 posts · 8 users (1 active) · 1 post, 1 reply (24h)" plus up to 3 recent post links. Desktop keeps the three-card layout.
+
 ### Homepage section "recent activity" queries: add is_deleted filter
 - **Issue:** Timeline, Shitposts, Art & Nostalgia, Bugs & Rants, Devlog (fallback), and Lore & Memories recent-activity queries lacked `is_deleted` filter; count queries had it, causing deleted items to appear as recent activity.
 - **Fix:** Added `AND (table.is_deleted = 0 OR table.is_deleted IS NULL)` to all affected recent-activity queries in `src/app/page.js` (timelineRecent, shitpostsRecent, artNostalgiaRecentPost, bugsRantRecentPost, devlogRecentPost fallback, loreMemoriesRecentPost).
@@ -215,3 +219,7 @@ Consolidated notes for all changes made in this session (post–dev update #7):
 
 - **2026-01-30 (first):** `Homepage stats mobile layout; is_deleted filter for recent activity queries` — inline format for Active Users/Recent Activity on mobile, is_deleted filters on section recent-activity queries. Pushed to main, deployed to production.
 - **2026-01-30 (second):** Stats mobile layout changed to stack vertically (1 column) instead of 3 cramped columns; removed inline markup, two-col layout used with full-width cards.
+
+### Feed page mobile stretch fix
+- **Issue:** Feed page still stretching on mobile.
+- **Fix:** (1) Feed header paragraph had `minWidth: '200px'` — changed to `0` so it can shrink. (2) Added mobile CSS: `body { overflow-x: hidden; width: 100% }`, `.site { width: 100%; min-width: 0; max-width: 100vw }`, `main { min-width: 0; overflow-x: hidden }`, `.list` and `.list-item { min-width: 0 }` to prevent flex/grid children from expanding the layout.

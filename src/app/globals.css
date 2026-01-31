@@ -949,8 +949,31 @@ main {
     overflow-x: hidden;
   }
 
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
   .site {
     padding: 16px 12px 32px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100vw;
+  }
+
+  main {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  /* Feed page: prevent header row from forcing width */
+  .feed-header-desc {
+    min-width: 0 !important;
+  }
+
+  .list,
+  .list-item {
+    min-width: 0;
   }
 
   .forum-title {
@@ -1874,7 +1897,11 @@ span:has(.username) + .status-badge {
   font-style: italic;
 }
 
-/* Homepage Stats: always 3 columns in one row; shrink on small viewports */
+/* Homepage Stats: 3 cards on desktop */
+.home-stats-combined {
+  display: none;
+}
+
 .home-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1886,28 +1913,58 @@ span:has(.username) + .status-badge {
 }
 
 @media (max-width: 640px) {
+  /* Mobile: single combined card, hide the three cards */
+  .home-stats-combined {
+    display: block;
+    padding: 12px 14px;
+    border: 1px solid rgba(52, 225, 255, 0.2);
+    background: rgba(4, 16, 23, 0.6);
+    border-radius: var(--radius);
+  }
+
+  .home-stats-combined-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .home-stats-combined-item {
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  .home-stats-combined-item .home-stats-number {
+    font-size: 1rem;
+  }
+
+  .home-stats-combined-sep {
+    font-size: 10px;
+  }
+
+  .home-stats-combined-recent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(52, 225, 255, 0.1);
+  }
+
+  .home-stats-combined-link {
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
   .home-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .home-stats-card {
-    padding: 14px !important;
-  }
-  .home-stats-card .home-stats-sublabel,
-  .home-stats-card .muted.home-stats-sublabel {
-    font-size: 10px !important;
-  }
-  .home-stats-card .home-stats-label {
-    font-size: 12px !important;
-  }
-  .home-stats-card .home-stats-number {
-    font-size: 1.5rem !important;
-  }
-  .home-stats-card .home-stats-number-sm {
-    font-size: 1.25rem !important;
-  }
-  .home-stats-card .home-stats-two-col {
-    gap: 12px;
+    display: none;
   }
 }
 
