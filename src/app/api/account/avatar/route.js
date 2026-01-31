@@ -2,6 +2,32 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { getUploadsBucket, buildImageKey } from '../../../../lib/uploads';
+import { ungzipSync } from 'fflate';
+
+const base64ToUint8 = (str) => {
+  if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+    return new Uint8Array(Buffer.from(str, 'base64'));
+  }
+  if (typeof globalThis?.atob === 'function') {
+    const binary = globalThis.atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+  throw new Error('Unable to decode base64 string');
+};
+
+const decodeSvgPayload = (svg, encoding) => {
+  if (!encoding) return svg;
+  if (encoding === 'gzip+base64') {
+    const compressed = base64ToUint8(svg);
+    const decompressed = ungzipSync(compressed);
+    return new TextDecoder().decode(decompressed);
+  }
+  return svg;
+};
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -11,9 +37,10 @@ export async function POST(request) {
   }
 
   try {
-    const { svg, state } = await request.json();
+    const { svg, state, encoding } = await request.json();
 
-    if (!svg) {
+    const finalSvg = decodeSvgPayload(svg, encoding);
+    if (!finalSvg) {
       return NextResponse.json({ error: 'Missing SVG content' }, { status: 400 });
     }
 
@@ -24,7 +51,7 @@ export async function POST(request) {
     const fileName = `avatar-${user.id}.svg`;
     const imageKey = buildImageKey('avatars', fileName);
     
-    await bucket.put(imageKey, svg, {
+    await bucket.put(imageKey, finalSvg, {
       httpMetadata: {
         contentType: 'image/svg+xml',
       }

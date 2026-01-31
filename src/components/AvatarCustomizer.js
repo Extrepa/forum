@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { gzipSync } from 'fflate';
 
 const INITIAL_PALETTE = [
   '#ffffff',
@@ -146,6 +147,39 @@ const INITIAL_LAYERS = [
 
 const PALETTE = INITIAL_PALETTE; // Kept for logic compatibility
 const FINISHES = ['solid', 'glow', 'glitter', 'static', 'gradient'];
+
+const LARGE_SVG_THRESHOLD = 1.5 * 1024 * 1024;
+
+const arrayBufferToBase64 = (buffer) => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+};
+
+const compressSvgPayload = (svg) => {
+  if (svg.length <= LARGE_SVG_THRESHOLD) return null;
+  try {
+    const encoded = new TextEncoder().encode(svg);
+    const compressed = gzipSync(encoded);
+    return arrayBufferToBase64(compressed);
+  } catch (error) {
+    console.warn('Failed to compress SVG payload, sending uncompressed', error);
+    return null;
+  }
+};
+
+const buildSvgPayload = (svg) => {
+  const compressed = compressSvgPayload(svg);
+  if (!compressed) {
+    return svg;
+  }
+  return { svg: compressed, encoding: 'gzip+base64' };
+};
 
 function getPathBounds(d) {
   const pts = d.match(/[ML]\d+\s\d+/g) || [];
@@ -328,7 +362,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const handleSave = useCallback(() => {
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(svgRef.current);
-    onSave(svgString, { layers });
+    const svgPayload = buildSvgPayload(svgString);
+    onSave(svgPayload, { layers });
   }, [layers, onSave]);
 
   const cx = 561.5;
@@ -1295,7 +1330,8 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
                 };
                 svgClone.setAttribute('viewBox', computeFaceViewBox() || computeDomBBox() || computeSceneViewBox());
                 const svgString = serializer.serializeToString(svgClone);
-                onSave(svgString, { layers });
+                const svgPayload = buildSvgPayload(svgString);
+                onSave(svgPayload, { layers });
               }}
               title="Upload Profile: Sync changes to the network"
               style={{ 

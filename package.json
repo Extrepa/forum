@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.17",
+    "fflate": "^0.8.2",
     "marked": "^12.0.2",
     "next": "15.5.9",
     "react": "18.3.1",

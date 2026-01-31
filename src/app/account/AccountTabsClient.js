@@ -234,12 +234,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   };
 
-  const handleAvatarSave = async (svg, avatarState) => {
+  const handleAvatarSave = async (svgPayload, avatarState) => {
+    const payload = typeof svgPayload === 'string'
+      ? { svg: svgPayload, encoding: undefined }
+      : svgPayload;
     try {
       const res = await fetch('/api/account/avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ svg, state: avatarState })
+        body: JSON.stringify({
+          svg: payload.svg,
+          state: avatarState,
+          encoding: payload.encoding
+        })
       });
       if (res.ok) {
         setIsEditingAvatar(false);
