@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   const url = new URL(request.url);
   const debug = url.searchParams.get('debug') === '1';
-  const { requestId } = debug ? await getEdgeContext() : { requestId: null };
+  const { requestId } = await getEdgeContext();
 
   try {
     const db = await getDb();
