@@ -892,6 +892,17 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </div>
                 <div className="account-profile-preview-row-1-right">
                   <div className="account-profile-preview-user-info">
+                    {!isEditingUsername && (
+                      <button
+                        type="button"
+                        onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                        disabled={isEditingAvatar}
+                        className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
+                        style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
+                      >
+                        Edit Avatar
+                      </button>
+                    )}
                     <div className="account-username-row">
                       <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
                       {!isEditingUsername ? (
@@ -904,31 +915,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           Edit Username
                         </button>
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'flex-end' }}>
+                        <div className="edit-username-form" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'flex-end' }}>
                           <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
                           <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
                           <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
                         </div>
                       )}
                     </div>
-                    {!isEditingUsername && (
-                      <button
-                        type="button"
-                        onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                        disabled={isEditingAvatar}
-                        className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
-                        style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
-                      >
-                        Edit Avatar
-                      </button>
-                    )}
                     {isEditingUsername && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                         {colorOptions.map((option) => {
                           const isSelected = selectedColorIndex === option.index;
                           const disabled = usernameStatus.type === 'loading';
                           return (
-                            <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                            <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} className="color-picker-btn" style={{ minHeight: 0, width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
                           );
                         })}
                       </div>

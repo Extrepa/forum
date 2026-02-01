@@ -991,7 +991,7 @@ main {
 }
 
 .account-profile-preview {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   min-width: 0;
   overflow: visible;
   display: flex;
@@ -1058,6 +1058,7 @@ main {
   justify-content: flex-start;
   gap: 12px;
   width: 100%;
+  padding-left: 112px; /* 96px avatar + 16px gap */
 }
 .account-profile-preview-user-info {
   display: flex;
@@ -1067,7 +1068,7 @@ main {
   width: 100%;
   flex: 1;
   position: relative;
-  gap: 8px; /* Increased spacing */
+  gap: 12px; /* Increased spacing */
   line-height: 1.2;
 }
 .account-profile-preview-user-info > * {
@@ -1095,12 +1096,12 @@ main {
 }
 .account-profile-preview-row-1 .account-username-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center; /* Ensures content inside is centered as a column */
+  justify-content: center;
   width: 100%;
-  gap: 8px; /* Spacing between username and buttons */
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
   position: relative;
 }
 .account-profile-preview-row-1 .account-username-row .username {
@@ -1395,7 +1396,6 @@ main {
 .account-edit-tab:hover {
   border-color: var(--accent);
   color: var(--accent);
-  transform: scale(1.03);
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.5);
 }
 
@@ -1794,7 +1794,6 @@ button {
 }
 
 button:hover {
-  transform: translateY(-1px) scale(1.01);
   box-shadow: 0 0 24px rgba(255, 52, 245, 0.55);
 }
 
@@ -5988,3 +5987,5 @@ header::before {
   }
 
 }
+.color-picker-btn:hover { transform: none; }
+.edit-username-form { flex-wrap: nowrap !important; }

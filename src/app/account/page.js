@@ -26,7 +26,7 @@ export default async function AccountPage({ searchParams }) {
         <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/account', label: 'Account' }]} />
         <div className="page-top-row-right">
           {user?.username && (
-            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="button">
+            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="profile-edit-profile-link">
               View Public Profile
             </Link>
           )}
