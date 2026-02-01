@@ -954,6 +954,15 @@ main {
   }
 }
 
+/* Prevent username from wrapping one letter per line in mini-preview */
+.account-profile-preview .profile-card-header-meta .username {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
 .account-profile-preview--two-col .account-profile-preview-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(200px, 320px);
@@ -1921,16 +1930,20 @@ button:hover {
   min-width: 40px;
   min-height: 40px;
   border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
-  background-color: rgba(52, 225, 255, 0.9);
-  color: #001018;
+  border: 2px solid rgba(52, 225, 255, 0.8);
+  background: linear-gradient(135deg, rgba(52, 225, 255, 0.95), rgba(255, 52, 245, 0.95));
+  background-color: rgba(52, 225, 255, 0.95);
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.profile-song-player-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .profile-song-player-btn:hover {
@@ -1990,8 +2003,8 @@ button:hover {
   flex-shrink: 0;
 }
 .profile-song-player--compact .profile-song-player-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   display: block;
 }
 .profile-song-player--compact .profile-song-player-label {
@@ -2265,6 +2278,16 @@ button:hover {
 
   .account-profile-preview .profile-card-mood-song {
     align-items: center;
+  }
+
+  .account-profile-preview .profile-card-header-meta {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .account-profile-preview .profile-song-player-bar {
+    min-width: 0;
+    flex-wrap: nowrap;
   }
 
   .profile-card-header-meta {

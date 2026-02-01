@@ -144,6 +144,19 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
 
   const handleToggle = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (provider === 'soundcloud' && soundcloudWidget && typeof soundcloudWidget.getPaused === 'function') {
+      soundcloudWidget.getPaused((paused) => {
+        if (paused) {
+          soundcloudWidget.play();
+          setIsPlaying(true);
+        } else {
+          soundcloudWidget.pause();
+          setIsPlaying(false);
+        }
+      });
+      return;
+    }
     if (isPlaying) {
       handlePause();
     } else {
@@ -166,16 +179,19 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           title={isPlaying ? 'Pause' : 'Play'}
           aria-label={isPlaying ? 'Pause' : 'Play'}
           aria-pressed={isPlaying}
-          style={compact ? { minWidth: 32, minHeight: 32, flexShrink: 0 } : undefined}
+          style={{
+            ...(compact ? { minWidth: 32, minHeight: 32, flexShrink: 0 } : {}),
+            color: '#ffffff',
+          }}
         >
           {isPlaying ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true" focusable="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
               <title>Pause</title>
               <rect x="6" y="4" width="4" height="16" rx="1" />
               <rect x="14" y="4" width="4" height="16" rx="1" />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true" focusable="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
               <title>Play</title>
               <path d="M8 5v14l11-7z" />
             </svg>
