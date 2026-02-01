@@ -4,7 +4,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { getStatsForUser } from '../../../lib/stats';
 import { formatDateTime, formatDate } from '../../../lib/dates';
-import { safeEmbedFromUrl } from '../../../lib/embeds';
+import ProfileSongPlayer from '../../../components/ProfileSongPlayer';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import { isProfileFlagEnabled } from '../../../lib/featureFlags';
@@ -432,22 +432,14 @@ export default async function ProfilePage({ params }) {
                 <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
               )}
             </div>
-            {isProfileFlagEnabled('profile_music') && songUrl && (songProvider === 'youtube' || songProvider === 'soundcloud') && (() => {
-              const embed = safeEmbedFromUrl(songProvider, songUrl, 'auto', songAutoplayEnabled);
-              if (!embed) return null;
-              return (
-                <div className={`embed-frame ${embed.aspect}`} style={{ marginTop: '12px', width: '100%', maxWidth: '400px' }}>
-                  <iframe
-                    src={embed.src}
-                    title="Profile song"
-                    allow={embed.allow}
-                    allowFullScreen={embed.allowFullScreen}
-                    style={{ width: '100%', border: 'none', borderRadius: '8px' }}
-                    {...(embed.height ? { height: embed.height, minHeight: embed.height } : {})}
-                  />
-                </div>
-              );
-            })()}
+            {isProfileFlagEnabled('profile_music') && songUrl && (songProvider === 'youtube' || songProvider === 'soundcloud') && (
+              <ProfileSongPlayer
+                provider={songProvider}
+                songUrl={songUrl}
+                autoPlay={songAutoplayEnabled}
+                providerLabel={songProviderLabel}
+              />
+            )}
             {profileHeadline ? (
               <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{profileHeadline}</div>
             ) : null}

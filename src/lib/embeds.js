@@ -1,4 +1,4 @@
-function parseYouTubeId(url) {
+export function parseYouTubeId(url) {
   try {
     const parsed = new URL(url);
     if (parsed.hostname === 'youtu.be') {
