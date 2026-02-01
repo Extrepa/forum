@@ -1085,6 +1085,10 @@ main {
     text-align: center; /* Ensure text is centered */
   }
 
+  .account-edit-card--tabs-bottom {
+    margin-bottom: 0; /* Reduce gap on mobile */
+  }
+
   /* Mobile Player Adjustments */
   .profile-song-player {
     width: 100% !important; /* Ensure player takes full width on mobile */
@@ -1094,19 +1098,19 @@ main {
 
 /* Player Outline Colors */
 .profile-song-player--soundcloud {
-  --ui-border-color: rgba(255, 107, 0, 0.6); /* Orange */
-  border-color: var(--ui-border-color);
-  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4);
+  --neon-default-gradient: rgba(255, 107, 0, 0.9); /* Orange */
+  --neon-default-glow-1: rgba(255, 107, 0, 0.4); /* Orange glow */
+  --neon-default-glow-2: rgba(255, 107, 0, 0.2); /* Lighter orange glow */
 }
 .profile-song-player--youtube {
-  --ui-border-color: rgba(255, 0, 0, 0.6); /* Red */
-  border-color: var(--ui-border-color);
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+  --neon-default-gradient: rgba(255, 0, 0, 0.9); /* Red */
+  --neon-default-glow-1: rgba(255, 0, 0, 0.4); /* Red glow */
+  --neon-default-glow-2: rgba(255, 0, 0, 0.2); /* Lighter red glow */
 }
 .profile-song-player--spotify {
-  --ui-border-color: rgba(30, 215, 96, 0.6); /* Green */
-  border-color: var(--ui-border-color);
-  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4);
+  --neon-default-gradient: rgba(30, 215, 96, 0.9); /* Green */
+  --neon-default-glow-1: rgba(30, 215, 96, 0.4); /* Green glow */
+  --neon-default-glow-2: rgba(30, 215, 96, 0.2); /* Lighter green glow */
 }
 
 /* Public Profile Desktop Layout (Mood/Song Block) */
@@ -4548,12 +4552,7 @@ header::before,
 .profile-card::before,
 .account-edit-card::before,
 .neon-outline-card::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
+  --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
     rgba(255, 52, 245, 0.9),
@@ -4561,6 +4560,12 @@ header::before,
     rgba(0, 245, 160, 0.9),
     rgba(52, 225, 255, 0.9)
   );
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--neon-default-gradient); /* Use variable */
   background-size: 300% 300%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -4578,13 +4583,15 @@ header::after,
 .profile-card::after,
 .account-edit-card::after,
 .neon-outline-card::after {
+  --neon-default-glow-1: rgba(52, 225, 255, 0.18);
+  --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   box-shadow:
-    0 0 24px rgba(52, 225, 255, 0.18),
-    0 0 32px rgba(255, 52, 245, 0.12);
+    0 0 24px var(--neon-default-glow-1), /* Use variable */
+    0 0 32px var(--neon-default-glow-2); /* Use variable */
   opacity: 0.8;
   pointer-events: none;
 }
