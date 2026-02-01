@@ -139,3 +139,12 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Symptom:** Song and mood show "Saved" in edit profile but disappear after refresh or on public profile.
 - **Cause:** Migration 0054 has not been applied to the remote D1 database; UPDATE/SELECT on the new columns fail or fall back to empty.
 - **Action:** Run migration 0054 on the environment you test against: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql` (add `--env preview` if using preview env). After that, mood/song will persist and show on refresh and public profile.
+
+---
+
+## Mood & Song still not saving (read-back, GET, client fallback)
+
+- **profile-extras POST:** After UPDATE, run a SELECT to read back the row and return that in the response (so client gets what's actually in DB). If SELECT throws, return 500.
+- **profile-extras GET:** New GET handler returns current mood/song/headline from DB for the logged-in user; use to verify persistence (e.g. open `/api/account/profile-extras` while logged in).
+- **AccountTabsClient:** When stats refresh returns no mood/song (`!apiHasExtras`), fetch GET `/api/account/profile-extras` and merge into stats + form state so the Mood & Song tab shows DB values even when stats API omits extras.
+- **Files:** `src/app/api/account/profile-extras/route.js`, `src/app/account/AccountTabsClient.js`.

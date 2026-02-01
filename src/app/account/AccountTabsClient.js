@@ -145,6 +145,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 profileSongAutoplayEnabled: prev.profileSongAutoplayEnabled ?? false,
               };
             });
+            // If stats didn't return mood/song, try GET profile-extras (reads DB directly) and merge
+            if (!apiHasExtras) {
+              try {
+                const extrasRes = await fetch('/api/account/profile-extras');
+                if (extrasRes.ok) {
+                  const extras = await extrasRes.json();
+                  const hasExtras = (extras.profileSongUrl ?? '') !== '' || (extras.profileMoodText ?? '') !== '';
+                  if (hasExtras) {
+                    setStats((prev) => prev ? { ...prev, ...extras } : prev);
+                    setProfileMoodText(extras.profileMoodText ?? '');
+                    setProfileMoodEmoji(extras.profileMoodEmoji ?? '');
+                    setProfileHeadline(extras.profileHeadline ?? '');
+                    setProfileSongUrl(extras.profileSongUrl ?? '');
+                    setProfileSongProvider(extras.profileSongProvider ?? '');
+                    setProfileSongAutoplay(Boolean(extras.profileSongAutoplayEnabled));
+                  }
+                }
+              } catch (_) {}
+            }
             if (data.profileLinks) {
               const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
               const linkMap = {};

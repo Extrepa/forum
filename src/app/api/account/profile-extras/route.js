@@ -81,6 +81,23 @@ export async function POST(request) {
         user.id
       )
       .run();
+    // Read back from DB to verify write; if this fails, columns may be missing
+    const row = await db
+      .prepare(
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline FROM users WHERE id = ?`
+      )
+      .bind(user.id)
+      .first();
+    const payload = {
+      ok: true,
+      profileMoodText: row?.profile_mood_text ?? moodText ?? '',
+      profileMoodEmoji: row?.profile_mood_emoji ?? moodEmoji ?? '',
+      profileHeadline: row?.profile_headline ?? headline ?? '',
+      profileSongUrl: row?.profile_song_url ?? songUrl ?? '',
+      profileSongProvider: row?.profile_song_provider ?? songProvider ?? '',
+      profileSongAutoplayEnabled: row?.profile_song_autoplay_enabled != null ? Boolean(row.profile_song_autoplay_enabled) : songAutoplayEnabled,
+    };
+    return NextResponse.json(payload);
   } catch (e) {
     console.error('profile-extras update failed', e?.message ?? e, e);
     return NextResponse.json(
@@ -88,14 +105,39 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+}
 
-  return NextResponse.json({
-    ok: true,
-    profileMoodText: moodText || '',
-    profileMoodEmoji: moodEmoji || '',
-    profileHeadline: headline || '',
-    profileSongUrl: songUrl || '',
-    profileSongProvider: songProvider || '',
-    profileSongAutoplayEnabled: songAutoplayEnabled,
-  });
+export async function GET() {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  let db;
+  try {
+    db = await getDb();
+  } catch (e) {
+    return NextResponse.json({ error: 'database unavailable' }, { status: 503 });
+  }
+  try {
+    const row = await db
+      .prepare(
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline FROM users WHERE id = ?`
+      )
+      .bind(user.id)
+      .first();
+    return NextResponse.json({
+      profileMoodText: row?.profile_mood_text ?? '',
+      profileMoodEmoji: row?.profile_mood_emoji ?? '',
+      profileHeadline: row?.profile_headline ?? '',
+      profileSongUrl: row?.profile_song_url ?? '',
+      profileSongProvider: row?.profile_song_provider ?? '',
+      profileSongAutoplayEnabled: Boolean(row?.profile_song_autoplay_enabled),
+    });
+  } catch (e) {
+    console.error('profile-extras GET failed', e?.message ?? e);
+    return NextResponse.json(
+      { error: 'read failed', hint: 'Ensure migration 0054 has been applied.' },
+      { status: 500 }
+    );
+  }
 }

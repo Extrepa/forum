@@ -11,8 +11,8 @@ export async function GET() {
 
   const db = await getDb();
   const stats = await getStatsForUser(db, user.id);
-  return NextResponse.json({
-    ...stats,
-    joinDate: stats.joinDate ?? user.created_at,
-  });
+  return NextResponse.json(
+    { ...stats, joinDate: stats.joinDate ?? user.created_at },
+    { headers: { 'Cache-Control': 'no-store' } }
+  );
 }
