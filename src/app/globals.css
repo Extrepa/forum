@@ -1890,15 +1890,19 @@ button:hover {
   box-shadow: 0 0 16px rgba(52, 225, 255, 0.15);
   margin-bottom: 8px;
   min-width: 0;
+  min-height: 44px;
   flex-wrap: wrap;
 }
 
 .profile-song-player-btn {
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
+  background-color: rgba(52, 225, 255, 0.9);
   color: #001018;
   cursor: pointer;
   display: flex;

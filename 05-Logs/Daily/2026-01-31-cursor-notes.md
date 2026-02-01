@@ -1,5 +1,12 @@
 # 2026-01-31 cursor notes
 
+## Profile song player, layout, default tab — all fixes implemented and documented
+
+- **Notes file:** `05-Logs/Daily/2026-01-31-profile-song-and-default-tab-fixes.md` — full list of fixes, files touched, and verification checklist.
+- **Summary:** (1) Profile header order: username → role → mood → song; mood/song stack vertically. (2) Compact song player: little play box (play/pause + label + song name) on profile and account mini-preview; max-width 280px; embed hidden off-screen. (3) Autoplay on profile; pause works (YouTube onStateChange sync, hidden embed off-screen + bar z-index so button is clickable). (4) Mood centered on small viewports (768px media query). (5) Default profile tab: when user has not set a default, no tab selected on load (resolvedInitial = null, pill hidden, no content until visitor clicks a tab).
+
+---
+
 ## Edit profile: Activity tab, Stats tab, unified stats labels
 
 - **Activity tab (edit profile):** Restored Activity tab on edit profile. Built `activityItems` from `stats.recentActivity` in `AccountTabsClient` (same shape as public profile: key, type, href, section, title, timeStr) using existing `getSectionLabel` and `formatDateTime`. Extended `getSectionLabel` for art/bugs/rant/nostalgia/lore/memories/post_comment. Activity tab panel renders the same recent-activity list as the public profile (Posted/Replied to + title + section + time).

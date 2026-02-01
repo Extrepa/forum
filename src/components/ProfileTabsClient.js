@@ -55,14 +55,14 @@ export default function ProfileTabsClient({
 }) {
   const router = useRouter();
   const tabs = useMemo(() => PROFILE_TABS, []);
-  const resolvedInitial = initialTab && VALID_TAB_IDS.includes(initialTab) ? initialTab : 'stats';
+  const resolvedInitial = initialTab && VALID_TAB_IDS.includes(initialTab) ? initialTab : null;
   const [activeTab, setActiveTab] = useState(resolvedInitial);
   const [guestbookList, setGuestbookList] = useState(guestbookEntries);
   const [guestbookContent, setGuestbookContent] = useState('');
   const [guestbookSubmitting, setGuestbookSubmitting] = useState(false);
   const [guestbookError, setGuestbookError] = useState(null);
   const [galleryModalEntry, setGalleryModalEntry] = useState(null);
-  const activeIndex = tabs.findIndex(t => t.id === activeTab);
+  const activeIndex = activeTab == null ? -1 : tabs.findIndex(t => t.id === activeTab);
   const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
 
   useEffect(() => {
@@ -394,8 +394,9 @@ export default function ProfileTabsClient({
           <div
             className="tabs-pill-indicator"
             style={{
-              width: `${100 / tabs.length}%`,
-              transform: `translateX(${activeIndex * 100}%)`,
+              width: activeIndex >= 0 ? `${100 / tabs.length}%` : 0,
+              transform: activeIndex >= 0 ? `translateX(${activeIndex * 100}%)` : 'translateX(-100%)',
+              opacity: activeIndex >= 0 ? 1 : 0,
             }}
             aria-hidden
           />

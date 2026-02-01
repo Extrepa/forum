@@ -151,8 +151,8 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   const barContent = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
 
   return (
-    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', ...(compact ? {} : { width: '100%', maxWidth: '400px' }) }}>
-      <div className="profile-song-player-bar">
+    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', position: 'relative', ...(compact ? {} : { width: '100%', maxWidth: '400px' }) }}>
+      <div className="profile-song-player-bar" style={{ position: 'relative', zIndex: 1 }}>
         <button
           type="button"
           onClick={handleToggle}
@@ -188,7 +188,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
       {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
-          style={compact ? { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : undefined}
+          style={compact ? { position: 'absolute', left: -9999, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : undefined}
           aria-hidden={compact}
         >
           <iframe
@@ -211,7 +211,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         <div
           id={youtubeId}
           className="embed-frame profile-song-player-embed"
-          style={compact ? { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : { height: 166, minHeight: 166 }}
+          style={compact ? { position: 'absolute', left: -9999, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : { height: 166, minHeight: 166 }}
           aria-hidden={compact}
         />
       )}
