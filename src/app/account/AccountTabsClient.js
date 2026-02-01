@@ -549,11 +549,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { id: 'gallery', label: 'Gallery' },
     { id: 'guestbook', label: 'Guestbook' },
     { id: 'mood', label: 'Mood & Song' },
-    { id: 'profile', label: 'Profile' },
     { id: 'socials', label: 'Socials' },
     { id: 'stats', label: 'Stats' },
   ];
-  const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
+  const [editProfileSubTab, setEditProfileSubTab] = useState('activity');
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
@@ -669,15 +668,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       setDefaultTabSaving(false);
     }
   };
-  const DEFAULT_TAB_OPTIONS = [
-    { value: 'none', label: 'None (profile card only)' },
-    { value: 'stats', label: 'Stats' },
-    { value: 'activity', label: 'Activity' },
-    { value: 'socials', label: 'Socials' },
-    { value: 'gallery', label: 'Gallery' },
-    { value: 'guestbook', label: 'Guestbook' },
-  ];
-
   return (
     <section className="card account-card">
       <div
@@ -768,6 +758,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   ) : (
                     <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
                   )}
+                  <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
+                  </div>
                 </div>
                 <div className="profile-card-header-meta" style={{ flex: 1, minWidth: 0 }}>
                   <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
@@ -797,12 +791,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       </div>
                     );
                   })()}
-                  {/* Profile controls in top section: mini preview, Edit Avatar, Edit Username, color */}
+                  {/* Edit Avatar + Edit Username + Color in same section as avatar/username */}
                   <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
-                    </div>
                     <button
                       type="button"
                       onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
@@ -829,13 +819,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0' }}>{usernameStatus.message}</span>}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
-                      {colorOptions.map((option) => {
-                        const isSelected = (isEditingUsername ? selectedColorIndex : (user.preferred_username_color_index ?? null)) === option.index;
-                        const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                      {isEditingUsername ? (
+                        colorOptions.map((option) => {
+                          const isSelected = selectedColorIndex === option.index;
+                          const disabled = usernameStatus.type === 'loading';
+                          return (
+                            <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                          );
+                        })
+                      ) : (() => {
+                        const currentIndex = user.preferred_username_color_index ?? null;
+                        const chosen = colorOptions.find(o => o.index === currentIndex);
+                        const bg = chosen ? (chosen.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : chosen.color) : (colorOptions[0]?.color || '#34E1FF');
                         return (
-                          <button key={option.index ?? 'auto'} type="button" onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                          <span title={chosen?.name} style={{ width: 18, height: 18, borderRadius: '50%', border: 'none', background: bg, display: 'inline-block', flexShrink: 0 }} aria-hidden />
                         );
-                      })}
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -849,37 +848,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {editProfileSubTab && (
             <div className="account-edit-tab-content account-edit-tab-content--above">
-              {editProfileSubTab === 'profile' && (
-                <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
-                  <div className="account-display-settings-inline" style={{ marginTop: '8px' }}>
-                    <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
-                    <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
-                      <span>Default section on your profile:</span>
-                      <select
-                        value={defaultProfileTab || 'none'}
-                        onChange={(e) => handleDefaultTabChange(e.target.value)}
-                        disabled={defaultTabSaving}
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(52, 225, 255, 0.3)',
-                          background: 'rgba(2, 7, 10, 0.6)',
-                          color: 'var(--ink)',
-                          fontSize: '13px',
-                          minWidth: '140px',
-                        }}
-                      >
-                        {DEFAULT_TAB_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {editProfileSubTab === 'mood' && (
                 <div className="account-edit-panel">
                 <h2 className="section-title" style={{ margin: 0 }}>Mood & Song</h2>
@@ -923,7 +891,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'socials' && (
                 <div className="account-edit-panel">
-                <h2 className="section-title" style={{ margin: 0 }}>Socials</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                  <h2 className="section-title" style={{ margin: 0 }}>Socials</h2>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={defaultProfileTab === 'socials'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'socials' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
+                    <span>Set as profile default</span>
+                  </label>
+                </div>
                 <p className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>These links appear on your profile in the Socials tab (Lately).</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ minWidth: 0 }}>
@@ -1181,7 +1155,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'gallery' && (
                 <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Gallery</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
+                    <h2 className="section-title" style={{ margin: 0 }}>Gallery</h2>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={defaultProfileTab === 'gallery'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'gallery' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
+                      <span>Set as profile default</span>
+                    </label>
+                  </div>
                   <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
                   <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
@@ -1260,7 +1240,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Guestbook</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
+                    <h2 className="section-title" style={{ margin: 0 }}>Guestbook</h2>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={defaultProfileTab === 'guestbook'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'guestbook' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
+                      <span>Set as profile default</span>
+                    </label>
+                  </div>
                   <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Messages from visitors appear in the Guestbook tab on your profile. You can delete any message here.</p>
                   {guestbookEntries.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1313,7 +1299,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'stats' && (
                 <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                    <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={defaultProfileTab === 'stats'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'stats' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
+                      <span>Set as profile default</span>
+                    </label>
+                  </div>
                   {stats ? (
                     <div className="profile-stats-block profile-stats-block--grid" style={{ marginTop: '8px' }}>
                       <div className="profile-stats-grid">
@@ -1338,7 +1330,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'activity' && (
                 <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Recent activity</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                    <h2 className="section-title" style={{ margin: 0 }}>Recent activity</h2>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={defaultProfileTab === 'activity'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'activity' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
+                      <span>Set as profile default</span>
+                    </label>
+                  </div>
                   {activityItems.length > 0 ? (
                     <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '8px' }}>
                       {activityItems.map(item => (

@@ -27,3 +27,17 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/components/ProfileTa
 - **Profile page / ProfileTabsClient:** Section has inline `minWidth: 0`, `maxWidth: '100%'`, `boxSizing: 'border-box'`. ProfileTabsClient root and tab-content div have inline `minWidth: 0`, `maxWidth: '100%'` for consistency.
 
 Files touched: `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src/components/ProfileTabsClient.js`.
+
+---
+
+## Edit profile layout, color display, Profile tab removal, active tab style, Errl border
+
+- **Mini preview under avatar:** Moved "Mini preview" label + 24px avatar from the controls row into `profile-card-header-avatar`, directly under the 96px avatar. Edit Avatar and Edit Username remain in the meta column (same section as username) in a single row with Color.
+- **Edit Avatar / Edit Username in same section:** Kept both buttons in the meta column after mood/socials, in one row with Color. No separate disconnected row.
+- **Color when not editing:** When `!isEditingUsername`, show only the chosen color: a single `<span>` (18px circle) with the resolved color from `colorOptions` (or Auto gradient), no border/outline. When editing username, show full row of color swatches with outline on selected; `handleDefaultTabChange` unchanged.
+- **Profile tab removed:** Removed `{ id: 'profile', label: 'Profile' }` from `EDIT_PROFILE_SUB_TABS`. Default tab set to `'activity'`. Deleted the entire `editProfileSubTab === 'profile'` panel (dropdown "Default section on your profile"). Removed unused `DEFAULT_TAB_OPTIONS`.
+- **Default-tab checkbox per tab:** For Activity, Gallery, Guestbook, Socials, and Stats panels: added a header row with section title on the left and "Set as profile default" checkbox on the right. Checkbox `checked={defaultProfileTab === tabId}`, `onChange={(e) => handleDefaultTabChange(e.target.checked ? tabId : 'none')}`. Mood & Song has no checkbox (no public Mood tab). Only one tab can be default; unchecking sets default to `'none'` (null).
+- **Active tab styling (glow + fill + neon purple/pink):** `.tabs-pill .profile-tab--active` and `.tabs-pill .account-edit-tab--active`: `background: rgba(255, 52, 245, 0.2)`, `border: 1px solid rgba(255, 52, 245, 0.8)`, `box-shadow: 0 0 12px rgba(255, 52, 245, 0.5)`. Same for standalone `.profile-tab--active` and `.account-edit-tab--active`. Hover for `.profile-tab` and `.account-edit-tab` updated to purple/pink border for consistency.
+- **Errl border:** User meant "Errl border" (not URL). Applied same animated gradient border as `.card` to the tab switcher: added `.tabs-pill::before` and `.tabs-pill::after` to the existing Errl border selectors (neonChase gradient + glow). `.tabs-pill` given `position: relative` and `isolation: isolate`; `.tabs-pill::before` given `animation-duration: 5.5s`. Edit profile card and public profile card already use `.card` (section with `card account-card` / `card profile-card`), so they already have the Errl border; no change. Added `.tabs-pill` to `[data-ui-color-mode="2"]` overrides so static border mode applies to the pill.
+
+Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.

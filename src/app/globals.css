@@ -71,7 +71,8 @@
 [data-ui-color-mode="2"] .list-item::before,
 [data-ui-color-mode="2"] .footer-tagline-bar::before,
 [data-ui-color-mode="2"] .scroll-to-top-button::before,
-[data-ui-color-mode="2"] .notifications-popover-errl.card::before {
+[data-ui-color-mode="2"] .notifications-popover-errl.card::before,
+[data-ui-color-mode="2"] .tabs-pill::before {
   background: var(--ui-border-color) !important;
   animation: none !important;
   opacity: 0.8 !important;
@@ -82,7 +83,8 @@
 [data-ui-color-mode="2"] .list-item::after,
 [data-ui-color-mode="2"] .footer-tagline-bar::after,
 [data-ui-color-mode="2"] .scroll-to-top-button::after,
-[data-ui-color-mode="2"] .notifications-popover-errl.card::after {
+[data-ui-color-mode="2"] .notifications-popover-errl.card::after,
+[data-ui-color-mode="2"] .tabs-pill::after {
   box-shadow: 0 0 15px var(--ui-border-color) !important;
   opacity: 0.4 !important;
 }
@@ -983,14 +985,15 @@ main {
 }
 
 .account-edit-tab--active {
-  border-color: rgba(52, 225, 255, 0.6);
-  background: rgba(52, 225, 255, 0.15);
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(255, 52, 245, 0.2);
   color: var(--accent);
   font-weight: 600;
+  box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }
 
 .account-edit-tab:hover {
-  border-color: rgba(52, 225, 255, 0.4);
+  border-color: rgba(255, 52, 245, 0.5);
   color: var(--ink);
 }
 
@@ -1877,7 +1880,7 @@ button:hover {
   min-width: 0;
 }
 
-/* Giant pill: tabs in one row, sliding indicator */
+/* Giant pill: tabs in one row, sliding indicator; Errl border */
 .tabs-pill {
   flex: 0 0 auto;
   padding: 6px;
@@ -1890,6 +1893,8 @@ button:hover {
   scrollbar-width: none;
   max-width: 100%;
   min-width: 0;
+  position: relative;
+  isolation: isolate;
 }
 
 .tabs-pill::-webkit-scrollbar {
@@ -1929,10 +1934,11 @@ button:hover {
 
 .tabs-pill .profile-tab--active,
 .tabs-pill .account-edit-tab--active {
-  background: transparent;
-  border: none;
+  background: rgba(255, 52, 245, 0.2);
+  border: 1px solid rgba(255, 52, 245, 0.8);
   color: var(--accent);
   font-weight: 600;
+  box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }
 
 .profile-tabs-strip {
@@ -1973,14 +1979,15 @@ button:hover {
 }
 
 .profile-tab--active {
-  border-color: rgba(52, 225, 255, 0.6);
-  background: rgba(52, 225, 255, 0.15);
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(255, 52, 245, 0.2);
   color: var(--accent);
   font-weight: 600;
+  box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }
 
 .profile-tab:hover {
-  border-color: rgba(52, 225, 255, 0.4);
+  border-color: rgba(255, 52, 245, 0.5);
   color: var(--ink);
 }
 
@@ -3809,7 +3816,8 @@ footer {
 
 header::before,
 .card::before,
-.list-item::before {
+.list-item::before,
+.tabs-pill::before {
   content: "";
   position: absolute;
   inset: -1px;
@@ -3835,7 +3843,8 @@ header::before,
 
 header::after,
 .card::after,
-.list-item::after {
+.list-item::after,
+.tabs-pill::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -3885,6 +3894,10 @@ header::before {
 
 .list-item:nth-child(3)::before {
   animation-duration: 6.4s;
+}
+
+.tabs-pill::before {
+  animation-duration: 5.5s;
 }
 
 /* Tablet breakpoint */
