@@ -1,5 +1,16 @@
 # 2026-01-31 cursor notes
 
+## Account page: Edit Avatar/Username order, overflow, button size
+
+- **Button order:** In edit profile mini-preview, "Edit Avatar" is now on top and "Edit Username" on bottom (desktop and mobile). Swapped JSX order in `AccountTabsClient.js`.
+- **Top Account/Edit profile tabs:** `.account-tabs` and its buttons now use `overflow: hidden`, `text-overflow: ellipsis`, `white-space: nowrap`, and `box-sizing: border-box` so labels don’t overflow on small viewports. In the narrow (≤480px) media block, top tab button font-size set to 12px.
+- **Tab row / card:** `.account-edit-card--tabs-bottom` has explicit `overflow-y: visible`; `.account-edit-card` and `.tabs-pill` already have `overflow-x: hidden` / `overflow-x: auto` so the pill scrolls inside the card.
+- **Edit Username / Edit Avatar on mobile:** `.account-profile-preview .account-edit-profile-btn` in the 768px media block now has `max-width: 100%` and `box-sizing: border-box` so buttons don’t push content off-screen on small viewports.
+
+Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
 ## Profile song player, layout, default tab — all fixes implemented and documented
 
 - **Notes file:** `05-Logs/Daily/2026-01-31-profile-song-and-default-tab-fixes.md` — full list of fixes, files touched, and verification checklist.

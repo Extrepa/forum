@@ -954,20 +954,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <>
                         <button
                           type="button"
-                          onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
-                          className="account-edit-profile-btn"
-                          style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}
-                        >
-                          Edit Username
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
                           disabled={isEditingAvatar}
                           className="account-edit-profile-btn"
                           style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
                         >
                           Edit Avatar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                          className="account-edit-profile-btn"
+                          style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}
+                        >
+                          Edit Username
                         </button>
                       </>
                     ) : (

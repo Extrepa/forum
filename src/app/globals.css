@@ -933,6 +933,7 @@ main {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* Top Account / Edit profile tab row: prevent horizontal overflow on mobile */
@@ -940,9 +941,13 @@ main {
   max-width: 100%;
   min-width: 0;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 .account-tabs button {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-profile-preview {
@@ -2297,9 +2302,11 @@ button:hover {
 
   .account-profile-preview .account-edit-profile-btn {
     min-width: 0;
+    max-width: 100%;
     width: auto;
     padding: 4px 10px;
     font-size: 11px;
+    box-sizing: border-box;
   }
 
   .account-profile-preview .account-profile-preview-header .profile-card-header-meta {
@@ -2455,7 +2462,7 @@ button:hover {
   }
   .account-tabs button {
     padding: 6px 8px;
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
