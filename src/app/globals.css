@@ -992,9 +992,7 @@ main {
 
 .account-profile-preview {
   position: relative;
-  padding: 16px; /* Base padding */
-  padding-left: 130px; /* Accommodate avatar (96px + 16px left + 18px gap) */
-  padding-right: 120px; /* Accommodate buttons (100px + 16px right) */
+  padding: 16px; /* Uniform padding */
   margin-bottom: 8px;
   min-width: 0;
   display: flex;
@@ -1005,12 +1003,13 @@ main {
   background: rgba(1, 6, 12, 0.8);
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
   min-height: 150px; /* Ensure enough height for positioned elements */
+  justify-content: center; /* Center content vertically */
 }
 
 .account-profile-preview-avatar-container {
   position: absolute;
-  left: 16px; /* Adjusted from 20px padding */
-  top: 16px; /* Adjusted from 20px padding */
+  left: 16px; /* Match new uniform padding */
+  top: 16px; /* Match new uniform padding */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1032,8 +1031,8 @@ main {
 
 .account-profile-preview-buttons-container {
   position: absolute;
-  right: 16px; /* Adjusted from 20px padding */
-  top: 16px; /* Adjusted from 20px padding */
+  right: 16px; /* Match new uniform padding */
+  top: 16px; /* Match new uniform padding */
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1134,7 +1133,7 @@ main {
     width: 100%; /* Allow player to take full width of its column */
     max-width: 450px; /* Adjust max-width to allow slightly larger player, considering card padding */
     justify-content: flex-end; /* Align player to right */
-    align-items: flex-end; /* Ensure player aligns to top-right within its column */
+    align-items: flex-start; /* Ensure player aligns to top-right within its column */
   }
 }
 
