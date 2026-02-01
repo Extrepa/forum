@@ -1134,7 +1134,7 @@ main {
 
 /* Song section below all rows - fit content width exactly, centered */
 .account-profile-preview-song {
-  margin-top: 8px;
+  margin-top: 2px;
   min-width: 0;
   width: fit-content;
   max-width: 100%;
@@ -1365,29 +1365,32 @@ main {
 .account-edit-tab {
   flex: 0 0 auto;
   border-radius: 999px;
-  border: 1px solid rgba(52, 225, 255, 0.2);
+  border: 1px solid var(--accent);
   background: rgba(2, 7, 10, 0.4);
-  color: var(--muted);
+  color: var(--accent);
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
   min-height: 40px;
   touch-action: manipulation;
+  box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
 }
 
 .account-edit-tab--active {
-  border-color: rgba(255, 52, 245, 0.8);
+  border-color: var(--errl-accent-2);
   background: rgba(255, 52, 245, 0.2);
-  color: var(--accent);
+  color: var(--errl-accent-2);
   font-weight: 600;
   box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }
 
 .account-edit-tab:hover {
-  border-color: rgba(255, 52, 245, 0.5);
+  border-color: var(--accent);
   color: var(--ink);
+  transform: scale(1.03);
+  box-shadow: 0 0 12px rgba(52, 225, 255, 0.5);
 }
 
 .account-edit-tab-content {
@@ -2543,16 +2546,7 @@ button:hover {
 }
 
 .tabs-pill-indicator {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: 999px;
-  background: rgba(52, 225, 255, 0.2);
-  border: 1px solid rgba(52, 225, 255, 0.4);
-  pointer-events: none;
-  transition: transform 0.25s ease-out;
-  z-index: 0;
+  display: none;
 }
 
 .tabs-pill .profile-tab,

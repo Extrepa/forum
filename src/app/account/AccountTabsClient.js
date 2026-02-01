@@ -788,7 +788,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   };
   return (
-    <section className="card account-card">
+    <section className="card account-card neon-outline-card">
       <div
         className="account-tabs"
         style={{
@@ -867,9 +867,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
-          <div className="account-edit-card account-edit-card--tabs-bottom">
+          <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
-            <div className="account-profile-preview neon-outline-card">
+            <div className="account-profile-preview">
               {/* Row 1: Avatar + Mini Preview (left) | Username + Edit Avatar (right) */}
               <div className="account-profile-preview-row-1">
                 <div className="account-profile-preview-avatar-container">
@@ -942,13 +942,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     )}
                     {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
                     {/* Role directly under username */}
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0px', textAlign: 'center' }}>{roleLabel}</div>
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', textAlign: 'center' }}>{roleLabel}</div>
                     {/* Mood directly under role */}
                     {(stats.profileMoodText || stats.profileMoodEmoji) && (
                       <div
                         className="profile-mood-chip"
                         style={{
-                          marginTop: '0px',
+                          marginTop: '2px',
                           alignSelf: 'center',
                           ...accountMoodChipStyle,
                         }}
@@ -1601,7 +1601,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             </div>
             )}
-            <div className="tabs-pill" role="tablist" aria-label="Edit profile sections">
+            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections">
               <div className="tabs-pill-inner">
                 <div
                   className="tabs-pill-indicator"
