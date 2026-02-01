@@ -919,6 +919,16 @@ main {
   gap: 0;
 }
 
+.account-profile-preview {
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.account-profile-hint {
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
 .account-edit-card--tabs-bottom .account-edit-tab-content--above {
   flex: 1 1 auto;
   margin-bottom: 12px;

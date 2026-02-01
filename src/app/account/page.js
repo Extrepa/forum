@@ -220,7 +220,7 @@ export default async function AccountPage({ searchParams }) {
             `SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes,
              profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
              profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-             profile_headline
+             profile_headline, default_profile_tab
              FROM users WHERE id = ?`
           )
           .bind(user.id)
@@ -293,6 +293,7 @@ export default async function AccountPage({ searchParams }) {
         profileSongProvider: userInfo?.profile_song_provider ?? '',
         profileSongAutoplayEnabled: Boolean(userInfo?.profile_song_autoplay_enabled),
         profileHeadline: userInfo?.profile_headline ?? '',
+        defaultProfileTab: userInfo?.default_profile_tab ?? null,
       };
     } catch (e) {
       // Fallback if queries fail
@@ -313,6 +314,7 @@ export default async function AccountPage({ searchParams }) {
         profileSongProvider: userInfo?.profile_song_provider ?? '',
         profileSongAutoplayEnabled: Boolean(userInfo?.profile_song_autoplay_enabled),
         profileHeadline: userInfo?.profile_headline ?? '',
+        defaultProfileTab: userInfo?.default_profile_tab ?? null,
       };
     }
   }

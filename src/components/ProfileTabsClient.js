@@ -7,7 +7,7 @@ const PROFILE_TABS = [
   { id: 'activity', label: 'Activity' },
   { id: 'socials', label: 'Socials' },
   { id: 'gallery', label: 'Gallery' },
-  { id: 'notes', label: 'Notes' },
+  { id: 'guestbook', label: 'Guestbook' },
 ];
 
 function getRarityColor(value) {
@@ -18,6 +18,8 @@ function getRarityColor(value) {
   return '#b794f6';
 }
 
+const VALID_TAB_IDS = ['stats', 'activity', 'socials', 'gallery', 'guestbook'];
+
 export default function ProfileTabsClient({
   activityItems,
   hasActivity,
@@ -26,9 +28,11 @@ export default function ProfileTabsClient({
   notesCount,
   filesEnabled,
   stats,
+  initialTab,
 }) {
   const tabs = useMemo(() => PROFILE_TABS, []);
-  const [activeTab, setActiveTab] = useState('stats');
+  const resolvedInitial = initialTab && VALID_TAB_IDS.includes(initialTab) ? initialTab : 'stats';
+  const [activeTab, setActiveTab] = useState(resolvedInitial);
   const activeIndex = tabs.findIndex(t => t.id === activeTab);
 
   return (
@@ -136,11 +140,11 @@ export default function ProfileTabsClient({
         </div>
       )}
 
-      {activeTab === 'notes' && (
+      {activeTab === 'guestbook' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Notes</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Guestbook</h4>
           <div className="muted" style={{ padding: '12px' }}>
-            {notesCount > 0 ? `${notesCount} note${notesCount === 1 ? '' : 's'} on file.` : 'No notes yet. Private notes live here first.'}
+            {notesCount > 0 ? `${notesCount} message${notesCount === 1 ? '' : 's'}.` : 'No messages yet. Your guestbook is ready for visitors.'}
           </div>
         </div>
       )}

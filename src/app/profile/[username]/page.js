@@ -41,7 +41,7 @@ export default async function ProfilePage({ params }) {
         `SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes,
           profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
           profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-          profile_headline
+          profile_headline, default_profile_tab
           FROM users WHERE username_norm = ?`
       )
       .bind(username.toLowerCase())
@@ -642,39 +642,47 @@ export default async function ProfilePage({ params }) {
             {profileHeadline ? (
               <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{profileHeadline}</div>
             ) : null}
-            {profileLinks.length > 0 ? (
-              <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                {profileLinks.map((link, idx) => {
-                  const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
-                  if (!linkObj.platform || !linkObj.url) return null;
-                  const un = extractUsername(linkObj.platform, linkObj.url);
-                  const isSoundCloud = linkObj.platform === 'soundcloud';
-                  return (
-                    <a
-                      key={idx}
-                      href={linkObj.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)',
-                        background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)',
-                        color: 'var(--accent)',
-                        textDecoration: 'none',
-                        fontSize: '12px',
-                      }}
-                    >
-                      {getPlatformIcon(linkObj.platform)}
-                      {un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
-                    </a>
-                  );
-                })}
-              </div>
-            ) : null}
+            {(() => {
+              const validLinks = profileLinks.filter(l => {
+                const o = typeof l === 'object' ? l : { url: l, platform: null };
+                return o.platform && o.url;
+              });
+              const featuredLinks = validLinks.filter(l => l.featured);
+              const cardLinks = featuredLinks.length > 0 ? featuredLinks.slice(0, 5) : validLinks.slice(0, 5);
+              if (cardLinks.length === 0) return null;
+              return (
+                <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                  {cardLinks.map((link, idx) => {
+                    const linkObj = typeof link === 'object' ? link : { url: link, platform: null };
+                    const un = extractUsername(linkObj.platform, linkObj.url);
+                    const isSoundCloud = linkObj.platform === 'soundcloud';
+                    return (
+                      <a
+                        key={idx}
+                        href={linkObj.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)',
+                          background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)',
+                          color: 'var(--accent)',
+                          textDecoration: 'none',
+                          fontSize: '12px',
+                        }}
+                      >
+                        {getPlatformIcon(linkObj.platform)}
+                        {un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
+                      </a>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
           {isOwnProfile && (
             <div className="profile-card-header-actions">
@@ -717,6 +725,7 @@ export default async function ProfilePage({ params }) {
           notesCount={0}
           filesEnabled={false}
           stats={statsForTabs}
+          initialTab={profileUser.default_profile_tab === 'none' || !profileUser.default_profile_tab ? null : profileUser.default_profile_tab || 'stats'}
         />
       </section>
     </div>

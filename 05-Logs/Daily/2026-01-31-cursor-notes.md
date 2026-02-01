@@ -94,3 +94,42 @@ Per user feedback: tabs at bottom of card, giant pill with sliding indicator, St
 - **AccountTabsClient** – Order: `account-edit-card--tabs-bottom` (flex column) → `account-edit-tab-content--above` (flex: 1) → 7 panels (profile, mood, socials, gallery, notes, stats, activity) → closing div → `tabs-pill` with indicator (`width: 100/7%`, `transform: translateX(editProfileSubTabIndex*100%)`) and 7 buttons. Stats panel: only `profile-stats-block--grid` + `profile-stats-grid` (no Recent Activity). Activity panel: only recent activity list. `editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab)`; valid 0–6. No linter errors.
 - **CSS** – `.profile-tabs-wrapper`: display flex, flex-direction column, min-height 120px. `.profile-tab-content--above`: flex 1 1 auto, margin-bottom 12px. `.tabs-pill`: flex 0 0 auto, overflow-x auto, border-radius 999px. `.tabs-pill-inner`: flex, flex-wrap nowrap, position relative, min-width min-content. `.tabs-pill-indicator`: absolute, left 0, transition transform 0.25s. `.profile-stats-grid`: grid, repeat(auto-fill, minmax(160px, 1fr)). Mobile (768px): profile-stats-grid 2 columns; tabs-pill tab min-width 64px, smaller padding/font.
 - **Edge case** – If `activeTab`/`editProfileSubTab` ever didn’t match a tab id, `findIndex` would return -1 and the indicator would use `translateX(-100%)`. State is only set from tab buttons so this is theoretical; optional guard: `Math.max(0, findIndex(...))`.
+
+---
+
+## Phase 8: Default profile tab + Profile display settings (2026-01-31)
+
+Default tab selector and "Profile display settings" card so users can choose which tab their public profile opens to.
+
+### Changes
+
+- **Migration** – `migrations/0055_add_default_profile_tab.sql`: added `users.default_profile_tab` (VARCHAR(20) DEFAULT NULL). Values: none | stats | activity | socials | gallery | guestbook.
+- **API** – `src/app/api/account/default-profile-tab/route.js`: POST body `default_profile_tab`; validated against allowed list; UPDATE users SET default_profile_tab.
+- **Stats / account data** – `src/app/api/account/stats/route.js` and `src/app/account/page.js`: SELECT and return `defaultProfileTab` from user row.
+- **Account UI** – `AccountTabsClient.js`: "Profile display settings" card (below profile preview, above inner tabs) with a dropdown for default profile tab; state `defaultProfileTab`, `defaultTabSaving`; `handleDefaultTabChange` POSTs to default-profile-tab API and updates local stats.
+- **Profile page** – `src/app/profile/[username]/page.js`: passes `initialTab={profileUser.default_profile_tab ...}` to `ProfileTabsClient`.
+- **ProfileTabsClient** – Accepts `initialTab` prop; `VALID_TAB_IDS`; initial `activeTab` = `initialTab` if valid, else `'stats'`.
+
+### Files touched
+
+- `migrations/0055_add_default_profile_tab.sql` (new)
+- `src/app/api/account/default-profile-tab/route.js` (new)
+- `src/app/api/account/stats/route.js`, `src/app/account/page.js` (default_profile_tab in query and response)
+- `src/app/account/AccountTabsClient.js` (display settings card, default tab state and handler)
+- `src/app/profile/[username]/page.js` (initialTab prop)
+- `src/components/ProfileTabsClient.js` (initialTab, resolvedInitial for activeTab)
+
+### Verification
+
+- Profile page passes `initialTab`; when `default_profile_tab` is set and valid, profile opens on that tab; otherwise Stats. Account Edit profile shows display settings card and dropdown; save updates API and stats. No linter errors on changed files.
+
+### Deferred (optional / later)
+
+- **Phase 5** – Profile cover image (optional scope): not implemented.
+- **Phase 3** – Avatar glow clipping + GIF/WebP playback: not implemented.
+
+### Double-check (same session)
+
+- **ProfileTabsClient** – Wired `initialTab` prop: component now accepts `initialTab`, validates against `VALID_TAB_IDS`, and sets initial `activeTab` to `resolvedInitial` (valid tab or `'stats'`). Profile page was already passing `initialTab`; fix ensures it is used.
+- **AccountTabsClient** – Fixed two JSX errors in profile preview stats block: missing `</strong>` before `</span>` on replyCount and profileViews lines (build was failing).
+- **Build** – `npm run build` completes successfully after fixes.

@@ -24,19 +24,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [colorStatus, setColorStatus] = useState({ type: 'idle', message: null });
   const [socialLinks, setSocialLinks] = useState(() => {
     const links = initialStats?.profileLinks || [];
-    // Initialize with empty entries for each platform (5 platforms)
     const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
     const linkMap = {};
     links.forEach(link => {
       if (typeof link === 'object' && link.platform && link.url) {
-        linkMap[link.platform] = link.url;
+        linkMap[link.platform] = { url: link.url, featured: Boolean(link.featured) };
       }
     });
     return platforms.map(platform => ({
       platform,
-      url: linkMap[platform] || ''
+      url: linkMap[platform]?.url || '',
+      featured: linkMap[platform]?.featured ?? false
     }));
   });
+  const FEATURED_SOCIALS_MAX = 5;
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [isEditingExtras, setIsEditingExtras] = useState(false);
   const [profileMoodText, setProfileMoodText] = useState(initialStats?.profileMoodText ?? '');
@@ -75,12 +76,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               const linkMap = {};
               data.profileLinks.forEach(link => {
                 if (typeof link === 'object' && link.platform && link.url) {
-                  linkMap[link.platform] = link.url;
+                  linkMap[link.platform] = { url: link.url, featured: Boolean(link.featured) };
                 }
               });
               setSocialLinks(platforms.map(platform => ({
                 platform,
-                url: linkMap[platform] || ''
+                url: linkMap[platform]?.url || '',
+                featured: linkMap[platform]?.featured ?? false
               })));
             }
             // Do not overwrite profile extras here - they are synced from initialStats and after save (to avoid overwriting in-progress edit when poll runs)
@@ -208,13 +210,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     const currentLinks = stats?.profileLinks || [];
     const linksToSave = socialLinks
       .filter(link => link.url.trim())
-      .map(link => ({ platform: link.platform, url: link.url.trim() }));
+      .map(link => ({ platform: link.platform, url: link.url.trim(), featured: Boolean(link.featured) }));
     
     // Normalize current links to same format
     const normalizedCurrentLinks = Array.isArray(currentLinks) 
       ? currentLinks
           .filter(link => typeof link === 'object' && link.platform && link.url)
-          .map(link => ({ platform: link.platform, url: link.url.trim() }))
+          .map(link => ({ platform: link.platform, url: link.url.trim(), featured: Boolean(link.featured) }))
       : [];
     
     const linksChanged = JSON.stringify(linksToSave.sort((a, b) => a.platform.localeCompare(b.platform))) !== 
@@ -283,18 +285,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
     setIsEditingSocials(false);
-    // Reset social links to original values
     const links = initialStats?.profileLinks || [];
     const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
     const linkMap = {};
     links.forEach(link => {
       if (typeof link === 'object' && link.platform && link.url) {
-        linkMap[link.platform] = link.url;
+        linkMap[link.platform] = { url: link.url, featured: Boolean(link.featured) };
       }
     });
     setSocialLinks(platforms.map(platform => ({
       platform,
-      url: linkMap[platform] || ''
+      url: linkMap[platform]?.url || '',
+      featured: linkMap[platform]?.featured ?? false
     })));
   };
 
@@ -499,39 +501,55 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { id: 'mood', label: 'Mood & Song' },
     { id: 'socials', label: 'Socials' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'notes', label: 'Notes' },
+    { id: 'guestbook', label: 'Guestbook' },
     { id: 'stats', label: 'Stats' },
     { id: 'activity', label: 'Activity' },
   ];
-  const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
+  const [editProfileSubTab, setEditProfileSubTab] = useState(null);
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
+  const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
+  const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
+  const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
+  const [defaultTabSaving, setDefaultTabSaving] = useState(false);
+  useEffect(() => {
+    if (stats?.defaultProfileTab !== undefined) setDefaultProfileTab(stats.defaultProfileTab ?? null);
+  }, [stats?.defaultProfileTab]);
+  const handleDefaultTabChange = async (value) => {
+    const v = value === 'none' || value === '' ? null : value;
+    setDefaultProfileTab(v);
+    setDefaultTabSaving(true);
+    try {
+      const res = await fetch('/api/account/default-profile-tab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ default_profile_tab: v }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStats(prev => prev ? { ...prev, defaultProfileTab: data.default_profile_tab } : prev);
+      }
+    } finally {
+      setDefaultTabSaving(false);
+    }
+  };
+  const DEFAULT_TAB_OPTIONS = [
+    { value: 'none', label: 'None (profile card only)' },
+    { value: 'stats', label: 'Stats' },
+    { value: 'activity', label: 'Activity' },
+    { value: 'socials', label: 'Socials' },
+    { value: 'gallery', label: 'Gallery' },
+    { value: 'guestbook', label: 'Guestbook' },
+  ];
 
   return (
     <section className="card account-card">
-      {user?.username && (
-        <div className="account-view-profile-row" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '8px' }}>
-          <span className="muted" style={{ fontSize: '13px' }}>Your public profile is a separate page.</span>
-          <Link
-            href={`/profile/${encodeURIComponent(user.username)}`}
-            className="account-view-profile-link"
-            style={{
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--accent)',
-              textDecoration: 'none',
-            }}
-          >
-            View my profile
-          </Link>
-        </div>
-      )}
       <div
         className="account-tabs"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
           gap: '12px',
-          marginBottom: '16px',
+          marginBottom: activeTab === 'profile' ? '8px' : '16px',
           width: '100%',
           minWidth: 0
         }}
@@ -561,6 +579,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           Edit profile
         </button>
       </div>
+
+      {activeTab === 'profile' && user?.username && (
+        <p className="account-profile-hint muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
+          Edit how your profile appears to others ·{' '}
+          <Link href={`/profile/${encodeURIComponent(user.username)}`} className="account-view-profile-link" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: '500' }}>
+            View public profile
+          </Link>
+        </p>
+      )}
 
       {activeTab === 'account' && (
         <div>
@@ -594,10 +621,101 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
-          <p className="muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
-            Edit how your profile appears to others. To see your public profile, use &quot;View my profile&quot; above.
-          </p>
           <div className="account-edit-card account-edit-card--tabs-bottom">
+            {/* Profile preview card – read-only, always visible */}
+            <div className="account-profile-preview">
+              <div className="profile-card-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
+                <div className="profile-card-header-avatar">
+                  {user.avatar_key ? (
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
+                  ) : (
+                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
+                  )}
+                </div>
+                <div className="profile-card-header-meta">
+                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                  <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
+                    {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
+                    {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
+                    {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+                  </div>
+                  {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
+                  {(() => {
+                    const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
+                    const featuredLinks = allLinks.filter(l => l.featured);
+                    const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
+                    if (linksToShow.length === 0) return null;
+                    return (
+                      <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {linksToShow.map((link) => {
+                          const un = extractUsername(link.platform, link.url);
+                          const isSoundCloud = link.platform === 'soundcloud';
+                          return (
+                            <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
+                              {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+              <div className="account-preview-stats" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', gap: '12px 20px', fontSize: '13px', color: 'var(--muted)' }}>
+                <span><span style={{ color: 'var(--accent)' }}>{formatDate(stats.joinDate)}</span> joined</span>
+                <span><strong style={{ color: 'var(--ink)' }}>{stats.threadCount}</strong> threads</span>
+                <span><strong style={{ color: 'var(--ink)' }}>{stats.replyCount}</strong> replies</span>
+                <span><strong style={{ color: 'var(--ink)' }}>{stats.profileViews || 0}</strong> visits</span>
+              </div>
+              {stats.recentActivity && stats.recentActivity.length > 0 && (
+                <div className="account-preview-activity" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <h4 className="section-title" style={{ fontSize: '14px', marginBottom: '8px' }}>Recent activity</h4>
+                  <div className="profile-activity-list" style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                    {stats.recentActivity.slice(0, 5).map((item) => {
+                      let href = '#';
+                      if (item.type === 'thread') { const pt = item.postType || item.post_type; if (pt === 'forum_thread') href = `/lobby/${item.id}`; else if (pt === 'dev_log') href = `/devlog/${item.id}`; else if (pt === 'music_post') href = `/music/${item.id}`; else if (pt === 'project') href = `/projects/${item.id}`; else if (pt === 'timeline_update') href = `/announcements/${item.id}`; else if (pt === 'event') href = `/events/${item.id}`; }
+                      else { const rt = item.replyType || item.reply_type; const tid = item.thread_id; if (rt === 'forum_reply') href = `/lobby/${tid}`; else if (rt === 'dev_log_comment') href = `/devlog/${tid}`; else if (rt === 'music_comment') href = `/music/${tid}`; else if (rt === 'project_reply') href = `/projects/${tid}`; else if (rt === 'timeline_comment') href = `/announcements/${tid}`; else if (rt === 'event_comment') href = `/events/${tid}`; }
+                      const section = getSectionLabel(item.postType || item.post_type, item.replyType || item.reply_type);
+                      const title = item.type === 'thread' ? item.title : item.thread_title;
+                      return (
+                        <a key={`${item.type}-${item.id}`} href={href} className="profile-activity-item" style={{ padding: '6px 0', fontSize: '12px' }}>
+                          {item.type === 'thread' ? <>Posted <span className="activity-title">{title}</span> in {section}</> : <>Replied to <span className="activity-title">{title}</span></>}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="account-display-settings" style={{ marginBottom: '16px', padding: '12px 14px', background: 'rgba(2, 7, 10, 0.3)', borderRadius: '10px', border: '1px solid rgba(52, 225, 255, 0.15)' }}>
+              <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
+              <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
+                <span>Default section on your profile:</span>
+                <select
+                  value={defaultProfileTab || 'none'}
+                  onChange={(e) => handleDefaultTabChange(e.target.value)}
+                  disabled={defaultTabSaving}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(52, 225, 255, 0.3)',
+                    background: 'rgba(2, 7, 10, 0.6)',
+                    color: 'var(--ink)',
+                    fontSize: '13px',
+                    minWidth: '140px',
+                  }}
+                >
+                  {DEFAULT_TAB_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
+              </label>
+            </div>
+
+            {editProfileSubTab !== null && (
             <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'profile' && (
                 <div className="account-edit-panel">
@@ -983,8 +1101,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {isEditingSocials && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
                         <strong style={{ fontSize: '14px' }}>Social Links:</strong>
-                        {socialLinks.map((link, index) => (
-                          <div key={link.platform} style={{ display: 'flex', gap: '6px', alignItems: 'center', position: 'relative' }}>
+                        <p className="muted" style={{ fontSize: '12px', marginTop: '-2px' }}>Check &quot;Show on profile card&quot; to display up to {FEATURED_SOCIALS_MAX} links on your main profile card.</p>
+                        {socialLinks.map((link, index) => {
+                          const featuredCount = socialLinks.filter(l => l.featured).length;
+                          const atFeaturedMax = featuredCount >= FEATURED_SOCIALS_MAX && !link.featured;
+                          return (
+                          <div key={link.platform} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', position: 'relative' }}>
                             <div style={{ position: 'relative', flexShrink: 0 }} data-dropdown-container>
                               <button
                                 type="button"
@@ -1086,8 +1208,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 minWidth: 0
                               }}
                             />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted)', cursor: usernameStatus.type === 'loading' ? 'default' : 'pointer', flexShrink: 0 }}>
+                              <input
+                                type="checkbox"
+                                checked={link.featured || false}
+                                onChange={(e) => { if (e.target.checked && atFeaturedMax) return; handleSocialLinkChange(index, 'featured', e.target.checked); }}
+                                disabled={usernameStatus.type === 'loading'}
+                                style={{ margin: 0 }}
+                              />
+                              <span>Show on profile card{atFeaturedMax ? ' (max reached)' : ''}</span>
+                            </label>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -1152,10 +1285,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </div>
               )}
 
-              {editProfileSubTab === 'notes' && (
+              {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Notes</h2>
-                  <p className="muted" style={{ fontSize: '13px' }}>Add notes to show in the Notes tab on your profile. Coming soon.</p>
+                  <h2 className="section-title" style={{ margin: 0 }}>Guestbook</h2>
+                  <p className="muted" style={{ fontSize: '13px' }}>Messages from visitors appear in the Guestbook tab on your profile. Coming soon.</p>
                 </div>
               )}
 
@@ -1174,13 +1307,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         };
                         return (
                           <>
-                            <span className="profile-stat"><span className="profile-stat-label">Portal entry</span><span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span><span className="profile-stat-label">{stats.threadCount === 1 ? 'thread started' : 'threads started'}</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span><span className="profile-stat-label">{stats.replyCount === 1 ? 'reply contributed' : 'replies contributed'}</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount + stats.replyCount), fontWeight: '600' }}>{stats.threadCount + stats.replyCount}</span><span className="profile-stat-label">total contributions</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span><span className="profile-stat-label">{(stats.profileViews || 0) === 1 ? 'profile visit' : 'profile visits'}</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span><span className="profile-stat-label">{(stats.timeSpentMinutes || 0) === 1 ? 'minute on site' : 'minutes on site'}</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span><span className="profile-stat-label">{(stats.avatarEditMinutes || 0) === 1 ? 'minute editing avatar' : 'minutes editing avatar'}</span></span>
+                            <span className="profile-stat"><span className="profile-stat-label">Portal entry</span> <span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span className="profile-stat-label">threads</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span className="profile-stat-label">replies</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span className="profile-stat-label">visits</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span className="profile-stat-label">min on site</span></span>
+                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span className="profile-stat-label">avatar min</span></span>
                           </>
                         );
                       })()}
@@ -1237,13 +1369,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               )}
 
             </div>
+            )}
             <div className="tabs-pill" role="tablist" aria-label="Edit profile sections">
               <div className="tabs-pill-inner">
                 <div
                   className="tabs-pill-indicator"
                   style={{
                     width: `${100 / EDIT_PROFILE_SUB_TABS.length}%`,
-                    transform: `translateX(${editProfileSubTabIndex * 100}%)`,
+                    transform: `translateX(${editProfileSubTabIndex >= 0 ? editProfileSubTabIndex * 100 : 0}%)`,
+                    opacity: editProfileSubTabIndex >= 0 ? 1 : 0,
                   }}
                   aria-hidden
                 />
