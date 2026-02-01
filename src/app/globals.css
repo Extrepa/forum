@@ -814,7 +814,7 @@ main {
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: visible;
   overflow-y: visible;
   scrollbar-width: none; /* Hide scrollbar on Firefox */
 }
@@ -980,7 +980,7 @@ main {
 .account-tabs {
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: visible;
   box-sizing: border-box;
 }
 .account-tabs button {
@@ -1061,7 +1061,7 @@ main {
   width: 100%;
   flex: 1;
   position: relative;
-  gap: 10px;
+  gap: 4px;
   line-height: 1.2;
 }
 .account-profile-preview-user-info > * {
@@ -1388,7 +1388,7 @@ main {
 
 .account-edit-tab:hover {
   border-color: var(--accent);
-  color: var(--ink);
+  color: var(--accent);
   transform: scale(1.03);
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.5);
 }
@@ -2269,7 +2269,6 @@ button:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 280px;
   word-break: break-all;
 }
 
@@ -2404,9 +2403,8 @@ button:hover {
 
 /* Compact profile player: little play box (play/pause + song name), not full-width bar */
 .profile-song-player--compact {
-  width: auto;
+  width: fit-content;
   min-width: min-content;
-  max-width: 280px;
 }
 .profile-song-player--compact .profile-song-player-bar {
   margin-bottom: 0;
@@ -2563,7 +2561,7 @@ button:hover {
 .tabs-pill .account-edit-tab--active {
   background: rgba(255, 52, 245, 0.2);
   border: 1px solid rgba(255, 52, 245, 0.8);
-  color: var(--accent);
+  color: var(--errl-accent-2);
   font-weight: 600;
   box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }

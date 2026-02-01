@@ -942,13 +942,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     )}
                     {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
                     {/* Role directly under username */}
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', textAlign: 'center' }}>{roleLabel}</div>
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0px', textAlign: 'center' }}>{roleLabel}</div>
                     {/* Mood directly under role */}
                     {(stats.profileMoodText || stats.profileMoodEmoji) && (
                       <div
                         className="profile-mood-chip"
                         style={{
-                          marginTop: '2px',
+                          marginTop: '0px',
                           alignSelf: 'center',
                           ...accountMoodChipStyle,
                         }}
