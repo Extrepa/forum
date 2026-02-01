@@ -1027,23 +1027,21 @@ main {
   text-align: center;
 }
 .account-profile-preview-row-1 .account-username-row {
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   width: 100%;
   align-items: center;
-  position: relative;
+  gap: 12px;
 }
 .account-profile-preview-row-1 .account-username-row .username {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  grid-column: 2;
   text-align: center;
-  pointer-events: auto;
+  justify-self: center;
 }
 .account-edit-avatar-btn--desktop {
-  margin-left: auto;
+  grid-column: 3;
+  justify-self: flex-end;
   flex-shrink: 0;
-  position: relative;
-  z-index: 1;
 }
 .account-edit-username-btn {
   align-self: flex-end !important;
@@ -1132,6 +1130,11 @@ main {
   flex-wrap: wrap;
   width: 100%;
 }
+.account-profile-preview-row-1 .account-username-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+}
 .account-username-row .username {
   min-width: 0;
 }
@@ -1149,9 +1152,10 @@ main {
 
 /* Desktop: compact layout - rows aligned with avatar, center username/role/mood, buttons right */
 @media (min-width: 769px) {
-  .account-username-row {
+  .account-profile-preview-row-1 .account-username-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     flex-wrap: nowrap;
-    justify-content: space-between;
   }
   .account-profile-preview-row-1-right {
     align-items: center;
@@ -1162,10 +1166,13 @@ main {
     text-align: center;
   }
   .account-profile-preview-row-1 .account-username-row .username {
+    grid-column: 2;
     text-align: center;
+    justify-self: center;
   }
   .account-edit-avatar-btn--desktop {
-    margin-left: auto;
+    grid-column: 3;
+    justify-self: flex-end;
   }
   .account-edit-username-btn {
     align-self: flex-end !important;
@@ -2612,9 +2619,19 @@ button:hover {
   }
 
   .account-profile-preview-row-1 .account-username-row {
+    display: flex;
     width: 100%;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
+  }
+  .account-profile-preview-row-1 .account-username-row .username {
+    grid-column: auto;
+    justify-self: auto;
+  }
+  .account-profile-preview-row-1 .account-edit-avatar-btn--desktop {
+    grid-column: auto;
+    justify-self: auto;
   }
 
   /* Mobile: Edit Avatar button in top right corner */
