@@ -368,11 +368,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          profile_mood_text: profileMoodText.trim(),
-          profile_mood_emoji: profileMoodEmoji.trim(),
-          profile_headline: profileHeadline.trim(),
-          profile_song_url: profileSongUrl.trim(),
-          profile_song_provider: profileSongProvider.trim() || null,
+          profile_mood_text: (profileMoodText ?? '').trim(),
+          profile_mood_emoji: (profileMoodEmoji ?? '').trim(),
+          profile_headline: (profileHeadline ?? '').trim(),
+          profile_song_url: (profileSongUrl ?? '').trim(),
+          profile_song_provider: (profileSongProvider ?? '').trim() || null,
           profile_song_autoplay_enabled: profileSongAutoplay,
         }),
       });
@@ -383,6 +383,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       }
       setExtrasStatus({ type: 'success', message: 'Saved.' });
       setIsEditingExtras(false);
+      const moodText = (profileMoodText ?? '').trim();
+      const moodEmoji = (profileMoodEmoji ?? '').trim();
+      const headline = (profileHeadline ?? '').trim();
+      const songUrl = (profileSongUrl ?? '').trim();
+      const songProvider = (profileSongProvider ?? '').trim() || null;
+      setStats((prev) => ({
+        ...prev,
+        profileMoodText: moodText,
+        profileMoodEmoji: moodEmoji,
+        profileHeadline: headline,
+        profileSongUrl: songUrl,
+        profileSongProvider: songProvider,
+        profileSongAutoplayEnabled: profileSongAutoplay,
+      }));
+      setProfileMoodText(moodText);
+      setProfileMoodEmoji(moodEmoji);
+      setProfileHeadline(headline);
+      setProfileSongUrl(songUrl);
+      setProfileSongProvider(songProvider || '');
+      setProfileSongAutoplay(profileSongAutoplay);
       const refreshRes = await fetch('/api/account/stats');
       if (refreshRes.ok) {
         const refreshed = await refreshRes.json();
@@ -840,7 +860,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                     {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
                   </div>
-                  <div className="account-profile-preview-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, alignItems: 'flex-start' }}>
+                  <div className="account-profile-preview-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, alignItems: 'stretch', minWidth: '130px' }}>
                     {!isEditingUsername ? (
                       <>
                         <button
@@ -1301,21 +1321,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                    <h2 className="section-title" style={{ margin: 0 }}>Notes</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: 0 }}>
+                    <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Notes</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'guestbook'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'guestbook' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '4px', marginTop: '2px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
                   {guestbookEntries.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {guestbookEntries.map((entry) => (
                         <div
                           key={entry.id}
                           style={{
-                            padding: '12px 14px',
+                            position: 'relative',
+                            padding: '10px 14px 10px 14px',
+                            paddingRight: '56px',
                             borderRadius: '10px',
                             border: '1px solid rgba(52, 225, 255, 0.15)',
                             background: 'rgba(2, 7, 10, 0.35)',
@@ -1325,32 +1347,30 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             alignItems: 'flex-start',
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
-                              <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
-                              <span className="muted" style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleGuestbookDelete(entry.id)}
-                              disabled={guestbookDeletingId === entry.id}
-                              style={{
-                                fontSize: '11px',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                border: '1px solid rgba(255, 107, 0, 0.4)',
-                                background: 'rgba(255, 107, 0, 0.1)',
-                                color: '#ff6b6b',
-                                cursor: guestbookDeletingId === entry.id ? 'not-allowed' : 'pointer',
-                                opacity: guestbookDeletingId === entry.id ? 0.6 : 1,
-                                flexShrink: 0,
-                                whiteSpace: 'nowrap',
-                                width: 'max-content',
-                                minWidth: 52,
-                              }}
-                            >
-                              {guestbookDeletingId === entry.id ? '…' : 'Delete'}
-                            </button>
+                          <button
+                            type="button"
+                            onClick={() => handleGuestbookDelete(entry.id)}
+                            disabled={guestbookDeletingId === entry.id}
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              right: '8px',
+                              fontSize: '10px',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: '1px solid rgba(255, 107, 0, 0.4)',
+                              background: 'rgba(255, 107, 0, 0.1)',
+                              color: '#ff6b6b',
+                              cursor: guestbookDeletingId === entry.id ? 'not-allowed' : 'pointer',
+                              opacity: guestbookDeletingId === entry.id ? 0.6 : 1,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {guestbookDeletingId === entry.id ? '…' : 'Delete'}
+                          </button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
+                            <span className="muted" style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
                           </div>
                           <p style={{ margin: 0, fontSize: '14px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{entry.content}</p>
                         </div>

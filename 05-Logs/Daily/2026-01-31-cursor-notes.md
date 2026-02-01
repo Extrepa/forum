@@ -122,3 +122,12 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Public profile tab padding:** ProfileTabsClient section titles for Recent Activity, Socials, and Gallery still had marginBottom: '12px'; only Notes had 4px. Changed all four to marginBottom: '4px' so padding is consistent on public profile (Activity, Socials, Gallery, Notes). Added .profile-tab-content--above .section-title { margin-bottom: 4px } in globals.css as fallback.
 - **Gallery labels (edit profile):** "Image" and "Caption (optional)" were still className="muted". Set inline color: '#F5FFB7' (yellow-ish, matches forum role-user / post accent) so they stand out.
 - **Verification:** Edit buttons have class account-edit-profile-btn and CSS min-width 130px at 769px+. Avatar glow uses .profile-card and .profile-card-header-avatar overflow: visible. Notes delete button has fontSize 11px, padding 2px 6px, minWidth 52. Stats use Number() in profile, account, API. Default tab save uses non-optimistic update and fallback queries.
+
+---
+
+## profile-extras 500 (Mood & Song save)
+
+- **API:** Wrapped `getDb()` in try/catch; on failure return 503 with "database unavailable". On UPDATE failure log `e?.message ?? e` and return 500 with hint: "Ensure migration 0054_add_profile_mood_song_headline has been applied."
+- **Client:** Mood & Song save payload uses `(profileMoodText ?? '').trim()` (and same for emoji, headline, song URL, provider) so undefined never reaches `.trim()` and JSON is always valid.
+- **Cause of 500:** Most likely migration 0054 not applied on D1 (columns `profile_mood_text`, `profile_mood_emoji`, `profile_headline`, etc. missing). Apply with: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql` (or without `--remote` for local).
+- **Files:** `src/app/api/account/profile-extras/route.js`, `src/app/account/AccountTabsClient.js`.

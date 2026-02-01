@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime, formatDate } from '../../../lib/dates';
+import { safeEmbedFromUrl } from '../../../lib/embeds';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import { isProfileFlagEnabled } from '../../../lib/featureFlags';
@@ -651,7 +652,32 @@ export default async function ProfilePage({ params }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', minWidth: 0 }}>
+        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
+        {isOwnProfile && (
+          <Link
+            href="/account?tab=profile"
+            className="profile-edit-profile-link"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: '1px solid rgba(52, 225, 255, 0.4)',
+              background: 'rgba(52, 225, 255, 0.1)',
+              color: 'var(--accent)',
+              textDecoration: 'none',
+              fontSize: '13px',
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            Edit profile
+          </Link>
+        )}
+      </div>
       <section className="card profile-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
         <div className="profile-card-header">
@@ -696,6 +722,22 @@ export default async function ProfilePage({ params }) {
                 <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
               )}
             </div>
+            {isProfileFlagEnabled('profile_music') && songUrl && (songProvider === 'youtube' || songProvider === 'soundcloud') && (() => {
+              const embed = safeEmbedFromUrl(songProvider, songUrl, 'auto', songAutoplayEnabled);
+              if (!embed) return null;
+              return (
+                <div className={`embed-frame ${embed.aspect}`} style={{ marginTop: '12px', width: '100%', maxWidth: '400px' }}>
+                  <iframe
+                    src={embed.src}
+                    title="Profile song"
+                    allow={embed.allow}
+                    allowFullScreen={embed.allowFullScreen}
+                    style={{ width: '100%', border: 'none', borderRadius: '8px' }}
+                    {...(embed.height ? { height: embed.height, minHeight: embed.height } : {})}
+                  />
+                </div>
+              );
+            })()}
             {profileHeadline ? (
               <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{profileHeadline}</div>
             ) : null}
@@ -740,30 +782,6 @@ export default async function ProfilePage({ params }) {
               );
             })()}
           </div>
-          {isOwnProfile && (
-            <div className="profile-card-header-actions">
-              <Link
-                href="/account?tab=profile"
-                className="profile-edit-profile-link"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(52, 225, 255, 0.4)',
-                  background: 'rgba(52, 225, 255, 0.1)',
-                  color: 'var(--accent)',
-                  textDecoration: 'none',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Edit profile
-              </Link>
-            </div>
-          )}
         </div>
 
         {profileUser.profile_bio ? (

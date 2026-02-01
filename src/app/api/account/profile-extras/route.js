@@ -49,7 +49,14 @@ export async function POST(request) {
     songProvider = 'soundcloud';
   }
 
-  const db = await getDb();
+  let db;
+  try {
+    db = await getDb();
+  } catch (e) {
+    console.error('profile-extras getDb failed', e);
+    return NextResponse.json({ error: 'database unavailable' }, { status: 503 });
+  }
+
   try {
     await db
       .prepare(
@@ -75,8 +82,11 @@ export async function POST(request) {
       )
       .run();
   } catch (e) {
-    console.error('profile-extras update failed', e);
-    return NextResponse.json({ error: 'update failed' }, { status: 500 });
+    console.error('profile-extras update failed', e?.message ?? e, e);
+    return NextResponse.json(
+      { error: 'update failed', hint: 'Ensure migration 0054_add_profile_mood_song_headline has been applied.' },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true });

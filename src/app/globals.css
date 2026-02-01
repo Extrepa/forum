@@ -1014,11 +1014,11 @@ main {
   margin-bottom: 4px;
 }
 
-/* Edit Username / Edit Avatar same width on desktop */
-@media (min-width: 769px) {
-  .account-edit-profile-btn {
-    min-width: 130px;
-  }
+/* Edit Username / Edit Avatar same width on all viewports */
+.account-edit-profile-btn {
+  min-width: 130px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .color-picker-btn {
