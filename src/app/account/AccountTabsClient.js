@@ -970,7 +970,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         type="button"
                         onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
                         className="account-edit-profile-btn account-edit-username-btn"
-                        style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '4px', alignSelf: 'flex-end' }}
+                        style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '0px', alignSelf: 'flex-end' }}
                       >
                         Edit Username
                       </button>
@@ -988,10 +988,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     )}
                     {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
                     {/* Role directly under username */}
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', textAlign: 'center' }}>{roleLabel}</div>
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0px', textAlign: 'center' }}>{roleLabel}</div>
                     {/* Mood directly under role */}
                     {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                      <div className="profile-mood-chip" style={{ marginTop: '2px', alignSelf: 'center' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
+                      <div className="profile-mood-chip" style={{ marginTop: '0px', alignSelf: 'center' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
                     )}
                   </div>
                 </div>
