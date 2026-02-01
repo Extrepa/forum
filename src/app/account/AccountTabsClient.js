@@ -1585,7 +1585,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </label>
                   </div>
                   {activityItems.length > 0 ? (
-                    <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '4px' }}>
+                    <div className="profile-activity-list" style={{ marginTop: '4px' }}>
                       {activityItems.map(item => (
                         <a key={item.key} href={item.href} className="profile-activity-item">
                           {item.type === 'thread' ? (

@@ -1,5 +1,15 @@
 # 2026-01-31 cursor notes
 
+## Account: desktop centering, scrollbars removed, A/B button row (2026-02-01)
+
+- **Desktop centering:** On min-width 1025px, `.account-card` has `max-width: 800px`, `margin-left: auto`, `margin-right: auto` so the account card is more centered in the viewport.
+- **Scrollbars removed:** (1) Recent activity list on account edit no longer uses `profile-activity-list--scrollable`; the list grows and only the window scrolls, so no inner scrollbar in that section. (2) `main` has `overflow-y: visible` and `overflow-x: hidden` so the main content area does not create an inner scrollbar.
+- **Edit Avatar (A) / Edit Username (B):** A remains in the same row as avatar + mini preview (right side). B remains in the same row as the username (right side). On desktop (min-width 769px), `.account-username-row` has `flex-wrap: nowrap` so Edit Username stays on the right of the username and does not wrap below.
+
+Files: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
 ## Account edit profile: button placement and scrollbar (2026-02-01)
 
 - **Layout restructure:** Profile preview now has (1) Row 1: avatar + mini preview (left), Edit Avatar button (right). (2) Meta block: username row with Username (left) and Edit Username button (right), then role, mood, song, headline. Edit Avatar is in the same row as the avatar and mini preview; Edit Username is in the same row as the username (between username and role visually).

@@ -793,6 +793,8 @@ main {
   margin-top: 18px;
   display: grid;
   gap: 20px;
+  overflow-y: visible;
+  overflow-x: hidden;
 }
 
 .card {
@@ -813,6 +815,15 @@ main {
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
+}
+
+/* Desktop: center the account card with a narrower max-width so content is more centered */
+@media (min-width: 1025px) {
+  .account-card {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .account-view-profile-link:hover {
@@ -1003,6 +1014,13 @@ main {
 .account-edit-avatar-btn,
 .account-edit-username-btn {
   flex-shrink: 0;
+}
+
+/* Desktop: keep Edit Username (B) in same row as username, no wrap */
+@media (min-width: 769px) {
+  .account-username-row {
+    flex-wrap: nowrap;
+  }
 }
 
 .account-profile-preview .profile-card-header-meta,
