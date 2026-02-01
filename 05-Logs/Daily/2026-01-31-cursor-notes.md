@@ -148,3 +148,52 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **profile-extras GET:** New GET handler returns current mood/song/headline from DB for the logged-in user; use to verify persistence (e.g. open `/api/account/profile-extras` while logged in).
 - **AccountTabsClient:** When stats refresh returns no mood/song (`!apiHasExtras`), fetch GET `/api/account/profile-extras` and merge into stats + form state so the Mood & Song tab shows DB values even when stats API omits extras.
 - **Files:** `src/app/api/account/profile-extras/route.js`, `src/app/account/AccountTabsClient.js`.
+
+---
+
+## Session verification and notes (check all work)
+
+### 1. Mood & song persistence
+
+- **stats.js:** Base user query (no profile-extras columns) + separate extras query; merge when both succeed. Stats never fail if migration 0054 not applied; mood/song populated when columns exist.
+- **profile/[username]/page.js:** Same pattern: base user row, then extras query by `profileUser.id`; merge into profileUser.
+- **profile-extras API:** POST does UPDATE then read-back SELECT; returns DB row in response. GET returns current mood/song/headline for logged-in user. Count check: POST validates before upload; GET/SELECT use same columns.
+- **ProfileMoodSongBlock (client):** Renders mood/song/player from server props; when server data empty and `isOwnProfile`, fetches GET `/api/account/profile-extras` and updates display so public profile can show mood/song even when server-side extras query failed.
+- **AccountTabsClient:** After stats refresh, if `!apiHasExtras` fetches GET profile-extras and merges into stats + form state. Save handler uses POST response and merge-with-prev on stats refresh.
+- **Migration 0054:** Comment at top: "duplicate column name" = already applied; safe to ignore. Columns: profile_mood_text, profile_mood_emoji, profile_mood_updated_at, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline.
+
+### 2. Song link and player
+
+- **Song link stretching:** `.profile-card-mood-song .profile-song-link` has white-space: normal, word-break: break-all, overflow-wrap: break-word, max-width: 100%. `.profile-song-player-link` has white-space: nowrap, text-overflow: ellipsis, overflow: hidden; bar shows truncated URL (42 chars + "…"), full URL in title.
+- **ProfileSongPlayer:** Play/pause bar + embed (SoundCloud iframe or YouTube YT.Player). Used on public profile (ProfileMoodSongBlock) and edit profile mini preview (AccountTabsClient). Autoplay: embed URL has auto_play/autoplay; on READY, SoundCloud calls widget.play() after 150ms; YouTube onReady calls player.playVideo() after 150ms. Browsers may still block autoplay with sound until user interaction.
+- **embeds.js:** parseYouTubeId exported for ProfileSongPlayer. safeEmbedFromUrl(type, url, style, autoPlay) used for iframe src.
+
+### 3. Gallery
+
+- **Limit 10:** Profile page SELECT LIMIT 10; GET /api/account/gallery LIMIT 10; GET /api/user/[username]/gallery LIMIT 10; POST checks count before insert, returns 400 "Gallery limited to 10 uploads" when count >= 10.
+- **Layout:** 5 columns (gridTemplateColumns repeat(5, 1fr)), square cells (aspectRatio: 1). ProfileTabsClient and AccountTabsClient use displayedGalleryEntries = galleryEntries.slice(0, 10).
+- **Modal:** Click thumbnail sets galleryModalEntry; overlay with full image, caption, close button; backdrop click or Escape closes. ProfileTabsClient and AccountTabsClient both have modal.
+- **AccountTabsClient:** Upload disabled when galleryEntries.length >= 10; button "Max 10"; galleryUploadError shown on 400; handleGalleryUpload checks count and API error.
+
+### 4. Edit profile layout
+
+- **globals.css:** @media (max-width: 600px) account-profile-preview header stacks: flex-direction column, avatar centered, meta-actions column full width, actions row. Mood/song are in profile-card-header-meta (username, role, mood, song) so they appear under role on narrow viewports.
+- **768px block:** Restored full rules (profile-card-header-meta, profile-card-mood-song, etc.) so 600px block only adds stacking for account edit preview.
+
+### 5. Files touched (this session)
+
+- **API:** `src/app/api/account/profile-extras/route.js`, `src/app/api/account/stats/route.js`, `src/app/api/account/gallery/route.js`, `src/app/api/user/[username]/gallery/route.js`
+- **Lib:** `src/lib/stats.js`, `src/lib/embeds.js`
+- **Pages:** `src/app/profile/[username]/page.js`, `src/app/account/page.js` (unchanged; account uses getStatsForUser)
+- **Components:** `src/components/ProfileSongPlayer.js`, `src/components/ProfileMoodSongBlock.js`, `src/components/ProfileTabsClient.js`, `src/app/account/AccountTabsClient.js`
+- **Styles:** `src/app/globals.css`
+- **Migrations:** `migrations/0054_add_profile_mood_song_headline.sql` (comment only)
+
+### 6. Verification checklist
+
+- [ ] Migration 0054 applied on target D1 (or duplicate column = already applied).
+- [ ] Save mood/song in edit profile; refresh account page and open public profile: mood/song visible (or GET profile-extras returns data when server stats omit it).
+- [ ] Profile song player: play/pause toggles; autoplay attempts on load when enabled (may be blocked by browser).
+- [ ] Gallery: upload until 10; 11th upload rejected with message; grid 5 columns, squares; click opens modal, close by backdrop or button.
+- [ ] Edit profile on narrow viewport (≤600px): header stacks, mood/song under role.
+- [ ] Song link in player bar: truncated text, no stretched URL; full URL in tooltip.

@@ -47,7 +47,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           widget.bind(window.SC.Widget.Events.READY, () => {
             setSoundcloudWidget(widget);
             setReady(true);
-            if (autoPlay) widget.play();
+            if (autoPlay) setTimeout(() => { try { widget.play(); } catch (_) {} }, 150);
           });
           widget.bind(window.SC.Widget.Events.PLAY, () => setIsPlaying(true));
           widget.bind(window.SC.Widget.Events.PAUSE, () => setIsPlaying(false));
@@ -77,8 +77,10 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         playerVars: { autoplay: autoPlay ? 1 : 0, modestbranding: 1 },
         events: {
           onReady(e) {
-            setYoutubePlayer(e.target);
+            const playerInstance = e.target;
+            setYoutubePlayer(playerInstance);
             setReady(true);
+            if (autoPlay) setTimeout(() => { try { playerInstance.playVideo?.(); } catch (_) {} }, 150);
           },
         },
       });
@@ -124,6 +126,8 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
     else handlePlay();
   };
 
+  const linkLabel = songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl;
+
   if (!embed && provider !== 'youtube') return null;
   if (provider === 'youtube' && !videoId) return null;
 
@@ -154,9 +158,9 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           target="_blank"
           rel="noopener noreferrer"
           className="profile-song-player-link"
-          style={{ wordBreak: 'break-all' }}
+          title={songUrl}
         >
-          {songUrl}
+          {linkLabel}
         </a>
       </div>
       {provider === 'soundcloud' && embed && (

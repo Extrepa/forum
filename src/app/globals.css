@@ -1931,9 +1931,10 @@ button:hover {
   color: var(--ink);
   text-decoration: none;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-all;
+  white-space: nowrap;
   flex: 1;
 }
 
@@ -2196,6 +2197,32 @@ button:hover {
 
   .profile-tab-content--above {
     margin-bottom: 10px;
+  }
+}
+
+/* Narrow viewports: stack edit profile so mood/song are clearly under role (not under avatar) */
+@media (max-width: 600px) {
+  .account-profile-preview .profile-card-header.account-profile-preview-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .account-profile-preview .profile-card-header-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .account-profile-preview .account-profile-preview-meta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .account-profile-preview .account-profile-preview-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .tabs-pill {
