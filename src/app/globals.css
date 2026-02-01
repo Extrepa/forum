@@ -1138,8 +1138,8 @@ main {
 
 @media (min-width: 769px) {
   .profile-mood-song-block-desktop-layout {
-    flex-direction: row; /* Two columns on desktop */
-    justify-content: space-between;
+    display: grid; /* Use grid for two columns */
+    grid-template-columns: 1fr auto; /* Left column fills space, right column auto-sized */
     align-items: flex-start;
     gap: 32px;
     height: 100%; /* Ensure layout fills parent height */
@@ -1152,22 +1152,17 @@ main {
   }
 
   .profile-mood-song-block-right-column {
-    position: relative; /* Establish positioning context for absolute player */
-    flex: 0 0 450px; /* Give it a fixed width for the player */
     height: 100%; /* Right column fills height */
-    display: flex; /* Make it a flex container */
+    display: flex; /* Make it a flex container to align its content */
     flex-direction: column; /* Stack its children */
-    align-items: flex-start; /* Align contents to top */
-    justify-content: flex-start; /* Align contents to start */
+    align-items: flex-end; /* Align player to right */
+    justify-content: flex-start; /* Align player to top */
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
-    position: absolute; /* Lock to top-right corner of its parent */
-    top: 0;
-    right: 0;
     height: 100%; /* Player fills height of right column */
     width: 100%; /* Player fills width of right column */
-    max-width: none; /* Remove max-width restriction for full fill */
+    max-width: 450px; /* Re-introduce max-width to control player size */
     margin-top: 0; /* Remove top margin */
     border-radius: 8px; /* Ensure player maintains rounded corners */
   }
