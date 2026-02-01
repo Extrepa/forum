@@ -48,10 +48,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
   const [dragSize, setDragSize] = useState({ width: 0, height: 0 });
   const [dragLabel, setDragLabel] = useState('Feed');
   const [mounted, setMounted] = useState(false);
+  const [eggIframeSrc, setEggIframeSrc] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setEggIframeSrc(`${window.location.origin}/easter-eggs/errl-bubbles-header.html`);
+    }
+  }, [mounted]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -464,12 +471,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
         document.body
       ) : null}
 
-      {eggActive ? (
-        <div className="header-easter-egg-overlay" aria-hidden="true">
+      {mounted && eggActive && eggIframeSrc ? (
+        <div className="header-easter-egg-overlay" aria-hidden="true" suppressHydrationWarning>
           <iframe
+            key="egg-active"
             className="header-easter-egg-iframe"
             title="Errl's Bubble Blitz"
-            src="/easter-eggs/errl-bubbles-header.html"
+            src={eggIframeSrc}
           />
         </div>
       ) : null}

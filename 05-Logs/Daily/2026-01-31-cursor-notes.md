@@ -41,3 +41,19 @@ Files touched: `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src
 - **Errl border:** User meant "Errl border" (not URL). Applied same animated gradient border as `.card` to the tab switcher: added `.tabs-pill::before` and `.tabs-pill::after` to the existing Errl border selectors (neonChase gradient + glow). `.tabs-pill` given `position: relative` and `isolation: isolate`; `.tabs-pill::before` given `animation-duration: 5.5s`. Edit profile card and public profile card already use `.card` (section with `card account-card` / `card profile-card`), so they already have the Errl border; no change. Added `.tabs-pill` to `[data-ui-color-mode="2"]` overrides so static border mode applies to the pill.
 
 Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
+## Easter egg iframe not loading
+
+- **Iframe src:** SiteHeader now sets easter-egg iframe `src` client-side from `window.location.origin + '/easter-eggs/errl-bubbles-header.html'` so the HTML loads with an absolute same-origin URL (avoids base-path issues in dev/preview). Iframe only renders when `eggIframeSrc` is set (after mount).
+- **CSP in HTML:** Added a permissive meta CSP in `public/easter-eggs/errl-bubbles-header.html` so script/style/font sources (esm.sh, unpkg, Tailwind, Google Fonts) are allowed if the host injects a strict CSP.
+- **Files:** `src/components/SiteHeader.js`, `public/easter-eggs/errl-bubbles-header.html`.
+
+---
+
+## Easter egg: React 418 hydration + Babel targets.esmodules
+
+- **React 418 (hydration):** Easter-egg overlay now renders only when `mounted && eggActive && eggIframeSrc`, so the overlay is never in the server tree and hydration stays consistent. Added `suppressHydrationWarning` on the overlay div as a safeguard.
+- **Babel error (`.targets["esmodules"] must be a boolean`):** Pinned Babel standalone in the easter-egg HTML to `@babel/standalone@7.24.10` so we don't hit Babel 8's stricter targets validation from unpkg latest.
+- **Files:** `src/components/SiteHeader.js`, `public/easter-eggs/errl-bubbles-header.html`.
