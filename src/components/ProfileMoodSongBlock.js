@@ -73,7 +73,14 @@ export default function ProfileMoodSongBlock({
             <span>{moodText}</span>
           </div>
         )}
-        {hasSong ? (
+        {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud') ? (
+          <ProfileSongPlayer
+            provider={songProvider}
+            songUrl={songUrl}
+            autoPlay
+            providerLabel={songProviderLabel}
+          />
+        ) : hasSong ? (
           <div className="profile-song-compact">
             <span className="profile-song-provider">{songProviderLabel}</span>
             <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
