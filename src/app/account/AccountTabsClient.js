@@ -826,14 +826,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         </button>
       </div>
 
-      {activeTab === 'profile' && user?.username && (
-        <p className="account-profile-hint muted" style={{ marginBottom: '16px', fontSize: '13px' }}>
-          Edit how your profile appears to others ·{' '}
-          <Link href={`/profile/${encodeURIComponent(user.username)}`} className="account-view-profile-link" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: '500' }}>
-            View public profile
-          </Link>
-        </p>
-      )}
+
 
       {activeTab === 'account' && (
         <div>
@@ -904,12 +897,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       {!isEditingUsername ? (
                         <button
                           type="button"
-                          onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                          disabled={isEditingAvatar}
-                          className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
-                          style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
+                          onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                          className="account-edit-profile-btn account-edit-username-btn"
+                          style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '0px', alignSelf: 'flex-end' }}
                         >
-                          Edit Avatar
+                          Edit Username
                         </button>
                       ) : (
                         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
@@ -922,11 +914,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {!isEditingUsername && (
                       <button
                         type="button"
-                        onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
-                        className="account-edit-profile-btn account-edit-username-btn"
-                        style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '0px', alignSelf: 'flex-end' }}
+                        onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                        disabled={isEditingAvatar}
+                        className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
+                        style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
                       >
-                        Edit Username
+                        Edit Avatar
                       </button>
                     )}
                     {isEditingUsername && (

@@ -996,7 +996,7 @@ main {
   overflow: visible;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px; /* Adjusted from 14px */
   border-radius: 18px;
   border: 1px solid rgba(52, 225, 255, 0.25);
   background: rgba(1, 6, 12, 0.8);
@@ -1013,6 +1013,7 @@ main {
   gap: 16px;
   min-width: 0;
   margin-bottom: 8px;
+  position: relative; /* Added for positioning context */
 }
 .account-profile-preview-avatar-container {
   display: flex;
@@ -1021,6 +1022,10 @@ main {
   justify-content: flex-start;
   flex-shrink: 0;
   align-self: stretch;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
 }
 .account-profile-preview-row-1 .profile-card-header-avatar {
   display: flex;
@@ -1052,6 +1057,7 @@ main {
   position: relative;
   justify-content: flex-start;
   gap: 12px;
+  width: 100%;
 }
 .account-profile-preview-user-info {
   display: flex;
@@ -1091,9 +1097,10 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
   position: relative;
 }
 .account-profile-preview-row-1 .account-username-row .username {
@@ -1134,7 +1141,6 @@ main {
 
 /* Song section below all rows - fit content width exactly, centered */
 .account-profile-preview-song {
-  margin-top: 2px;
   min-width: 0;
   width: fit-content;
   max-width: 100%;
@@ -1380,7 +1386,7 @@ main {
 
 .account-edit-tab--active {
   border-color: var(--errl-accent-2);
-  background: rgba(255, 52, 245, 0.2);
+  background: transparent;
   color: var(--errl-accent-2);
   font-weight: 600;
   box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
@@ -2559,7 +2565,7 @@ button:hover {
 
 .tabs-pill .profile-tab--active,
 .tabs-pill .account-edit-tab--active {
-  background: rgba(255, 52, 245, 0.2);
+  background: transparent;
   border: 1px solid rgba(255, 52, 245, 0.8);
   color: var(--errl-accent-2);
   font-weight: 600;

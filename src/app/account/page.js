@@ -1,4 +1,5 @@
 import Breadcrumbs from '../../components/Breadcrumbs';
+import Link from 'next/link';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { getStatsForUser } from '../../lib/stats';
@@ -21,7 +22,16 @@ export default async function AccountPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/account', label: 'Account' }]} />
+      <div className="page-top-row">
+        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/account', label: 'Account' }]} />
+        <div className="page-top-row-right">
+          {user?.username && (
+            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="button">
+              View Public Profile
+            </Link>
+          )}
+        </div>
+      </div>
       <AccountTabsClient 
         activeTab={activeTab}
         user={user}
