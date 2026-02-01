@@ -5789,8 +5789,8 @@ header::before {
 
 @media (max-width: 640px) {
   .account-profile-preview {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 0;
+    padding-right: 0;
   }
   .account-profile-preview-avatar-container {
     position: static;
