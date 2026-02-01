@@ -607,7 +607,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const EDIT_PROFILE_SUB_TABS = [
     { id: 'activity', label: 'Activity' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'guestbook', label: 'Guestbook' },
+    { id: 'guestbook', label: 'Notes' },
     { id: 'mood', label: 'Mood & Song' },
     { id: 'socials', label: 'Socials' },
     { id: 'stats', label: 'Stats' },
@@ -809,9 +809,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom">
-            {/* Top section: avatar + meta, then profile controls (mini preview, Edit Avatar, Edit Username, color) */}
+            {/* Top section: avatar | (meta + actions). Mobile: buttons to right of avatar/username. Desktop: Edit Username right of username, Edit Avatar below. */}
             <div className="account-profile-preview">
-              <div className="profile-card-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
+              <div className="profile-card-header account-profile-preview-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
                 <div className="profile-card-header-avatar">
                   {user.avatar_key ? (
                     <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
@@ -823,38 +823,52 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
                   </div>
                 </div>
-                <div className="profile-card-header-meta" style={{ flex: 1, minWidth: 0 }}>
-                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
-                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
-                  <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
-                    {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
-                    {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
-                    {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+                <div className="account-profile-preview-meta-actions" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '12px' }}>
+                  <div className="profile-card-header-meta" style={{ flex: 1, minWidth: 0 }}>
+                    <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                    <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
+                      {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
+                      {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
+                      {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+                    </div>
+                    {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
                   </div>
-                  {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
-                  <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                      disabled={isEditingAvatar}
-                      style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
-                    >
-                      Edit Avatar
-                    </button>
+                  <div className="account-profile-preview-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, alignItems: 'flex-start' }}>
                     {!isEditingUsername ? (
-                      <button type="button" onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }} style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}>Edit Username</button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                          style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}
+                        >
+                          Edit Username
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                          disabled={isEditingAvatar}
+                          style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
+                        >
+                          Edit Avatar
+                        </button>
+                      </>
                     ) : (
                       <>
-                        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
-                        <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
-                        <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
-                        {colorOptions.map((option) => {
-                          const isSelected = selectedColorIndex === option.index;
-                          const disabled = usernameStatus.type === 'loading';
-                          return (
-                            <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
-                          );
-                        })}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                          <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
+                          <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                          <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          {colorOptions.map((option) => {
+                            const isSelected = selectedColorIndex === option.index;
+                            const disabled = usernameStatus.type === 'loading';
+                            return (
+                              <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                            );
+                          })}
+                        </div>
                         {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0' }}>{usernameStatus.message}</span>}
                       </>
                     )}
@@ -1280,13 +1294,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
-                    <h2 className="section-title" style={{ margin: 0 }}>Guestbook</h2>
+                    <h2 className="section-title" style={{ margin: 0 }}>Notes</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'guestbook'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'guestbook' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Messages from visitors appear in the Guestbook tab on your profile. You can delete any message here.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
                   {guestbookEntries.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {guestbookEntries.map((entry) => (
@@ -1302,7 +1316,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             gap: '8px',
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
                               <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
@@ -1322,6 +1336,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 opacity: guestbookDeletingId === entry.id ? 0.6 : 1,
                                 flexShrink: 0,
                                 whiteSpace: 'nowrap',
+                                width: 'max-content',
+                                minWidth: 70,
                               }}
                             >
                               {guestbookDeletingId === entry.id ? 'Deleting…' : 'Delete'}
@@ -1332,7 +1348,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       ))}
                     </div>
                   ) : (
-                    <div className="muted" style={{ padding: '12px' }}>No messages yet. Visitors can leave a message on your profile&apos;s Guestbook tab.</div>
+                    <div className="muted" style={{ padding: '12px' }}>No messages yet. Visitors can leave a message on your profile&apos;s Notes tab.</div>
                   )}
                 </div>
               )}

@@ -45,13 +45,31 @@ export default async function AccountPage({ searchParams }) {
         .prepare('SELECT COUNT(*) as count FROM events WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)')
         .bind(user.id)
         .first();
+
+      let postsCount = 0;
+      let postCommentsCount = 0;
+      try {
+        const postsRows = await db
+          .prepare('SELECT COUNT(*) as count FROM posts WHERE author_user_id = ? AND type IN (\'art\',\'bugs\',\'rant\',\'nostalgia\',\'lore\',\'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)')
+          .bind(user.id)
+          .first();
+        const postCommentsRows = await db
+          .prepare('SELECT COUNT(*) as count FROM post_comments WHERE author_user_id = ? AND is_deleted = 0')
+          .bind(user.id)
+          .first();
+        postsCount = postsRows?.count || 0;
+        postCommentsCount = postCommentsRows?.count || 0;
+      } catch (e) {
+        // posts / post_comments tables may not exist (migration 0017)
+      }
       
       const threadCount = (forumThreads?.count || 0) + 
                           (devLogs?.count || 0) + 
                           (musicPosts?.count || 0) + 
                           (projects?.count || 0) + 
                           (timelineUpdates?.count || 0) + 
-                          (events?.count || 0);
+                          (events?.count || 0) + 
+                          postsCount;
       
       // Get reply count from all comment types
       const forumReplies = await db
@@ -89,7 +107,8 @@ export default async function AccountPage({ searchParams }) {
                          (musicComments?.count || 0) + 
                          (projectReplies?.count || 0) + 
                          (timelineComments?.count || 0) + 
-                         (eventComments?.count || 0);
+                         (eventComments?.count || 0) + 
+                         postCommentsCount;
 
       // Get recent activity from all post types (last 10 items total)
       const recentForumThreads = await db

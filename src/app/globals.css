@@ -2036,6 +2036,24 @@ button:hover {
     gap: 12px;
   }
 
+  /* Account edit preview: keep row so Edit Avatar/Username stay to the right of avatar/username */
+  .account-profile-preview .profile-card-header.account-profile-preview-header {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .account-profile-preview .account-profile-preview-meta-actions {
+    min-width: 0;
+  }
+
+  .account-profile-preview .account-profile-preview-header .profile-card-header-meta {
+    align-items: flex-start;
+    text-align: left;
+  }
+
   .profile-card-header-meta {
     align-items: center;
     text-align: center;

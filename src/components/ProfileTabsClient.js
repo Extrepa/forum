@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 const PROFILE_TABS = [
   { id: 'activity', label: 'Activity' },
   { id: 'gallery', label: 'Gallery' },
-  { id: 'guestbook', label: 'Guestbook' },
+  { id: 'guestbook', label: 'Notes' },
   { id: 'socials', label: 'Socials' },
   { id: 'stats', label: 'Stats' },
 ];
@@ -222,7 +222,7 @@ export default function ProfileTabsClient({
 
       {activeTab === 'guestbook' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Guestbook</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Notes</h4>
           {canLeaveMessage && profileUsername && (
             <form onSubmit={handleLeaveMessage} style={{ marginBottom: '16px' }}>
               <textarea
@@ -287,7 +287,7 @@ export default function ProfileTabsClient({
             </div>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>
-              No messages yet. Your guestbook is ready for visitors.
+              No messages yet. Your notes are ready for visitors.
             </div>
           )}
         </div>

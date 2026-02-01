@@ -68,3 +68,13 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Guestbook delete button:** Left column (author + date) has `flex: 1`, `minWidth: 0`; Delete button has `whiteSpace: 'nowrap'` so it does not stretch on small viewports.
 - **Mood dropdown:** Replaced Mood text and Mood emoji inputs with a single Mood select. `MOOD_OPTIONS`: 50 entries (1 None + 25 Errl-themed with Errl emojis + 24 general). One pick sets both `profile_mood_text` and `profile_mood_emoji`. Legacy/custom values show as "Custom" option until user picks a new mood.
 - **Files:** `src/app/account/AccountTabsClient.js`, `src/app/profile/[username]/page.js`, `src/app/api/account/stats/route.js`.
+
+---
+
+## Edit profile: button layout, Notes rename, delete button, stats match
+
+- **Edit Avatar / Edit Username layout:** Moved buttons into a separate actions column. Structure: `[avatar] [meta + actions]` where meta = username, role, mood/song, headline and actions = Edit Username then Edit Avatar (stacked). Mobile: account preview header stays row (override in globals.css so `.account-profile-preview .profile-card-header.account-profile-preview-header` keeps `flex-direction: row`, `align-items: flex-start`, `text-align: left` on max-width 768px) so buttons stay to the right of avatar/username and align vertically. Desktop: same row layout with Edit Username and Edit Avatar in right column.
+- **Guestbook delete button:** Row uses `alignItems: 'center'`; left div `flex: 1`, `minWidth: 0`; Delete button has `width: 'max-content'`, `minWidth: 70`, `whiteSpace: 'nowrap'`, `flexShrink: 0` so it does not stretch and listing stays compact.
+- **Rename Guestbook to Notes:** Display label only. Tab id and API remain `guestbook`. In AccountTabsClient and ProfileTabsClient: tab label "Guestbook" -> "Notes"; section titles and copy ("Guestbook tab", "Your guestbook...") -> "Notes tab", "Your notes...".
+- **Stats match (profile vs edit):** Initial account page load builds stats in `account/page.js` without postsCount/postCommentsCount; profile page and `/api/account/stats` include them. Added same postsCount and postCommentsCount logic (try/catch for posts/post_comments) to `account/page.js` so threadCount and replyCount match profile page and API on first load.
+- **Files:** `src/app/account/AccountTabsClient.js`, `src/app/account/page.js`, `src/app/globals.css`, `src/components/ProfileTabsClient.js`.
