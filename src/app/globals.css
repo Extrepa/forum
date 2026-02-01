@@ -1821,9 +1821,9 @@ button:hover {
 
 .profile-card-mood-song {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   margin-top: 6px;
   min-width: 0;
 }
@@ -1945,6 +1945,27 @@ button:hover {
 .profile-song-player-embed {
   border-radius: 12px;
   overflow: hidden;
+}
+
+/* Compact profile player: tiny bar only (play/pause + song name) */
+.profile-song-player--compact .profile-song-player-bar {
+  margin-bottom: 0;
+  padding: 6px 10px;
+  gap: 8px;
+}
+.profile-song-player--compact .profile-song-player-btn {
+  width: 32px;
+  height: 32px;
+}
+.profile-song-player--compact .profile-song-player-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.profile-song-player--compact .profile-song-player-label {
+  font-size: 10px;
+}
+.profile-song-player--compact .profile-song-player-link {
+  font-size: 12px;
 }
 
 .profile-socials-inline {

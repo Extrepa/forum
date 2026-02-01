@@ -25,7 +25,17 @@ function loadScript(src) {
   });
 }
 
-export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false, providerLabel = 'Song' }) {
+function songNameFromUrl(url) {
+  try {
+    const path = new URL(url).pathname;
+    const segment = path.split('/').filter(Boolean).pop() || '';
+    return segment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'Song';
+  } catch {
+    return 'Song';
+  }
+}
+
+export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false, providerLabel = 'Song', compact = false }) {
   const iframeRef = useRef(null);
   const youtubeId = useId();
   const [soundcloudWidget, setSoundcloudWidget] = useState(null);
@@ -35,6 +45,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
 
   const embed = safeEmbedFromUrl(provider, songUrl, 'auto', autoPlay);
   const videoId = provider === 'youtube' ? parseYouTubeId(songUrl) : null;
+  const songName = songNameFromUrl(songUrl);
 
   // SoundCloud: load API and bind to iframe
   useEffect(() => {
@@ -126,13 +137,13 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
     else handlePlay();
   };
 
-  const linkLabel = songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl;
-
   if (!embed && provider !== 'youtube') return null;
   if (provider === 'youtube' && !videoId) return null;
 
+  const barContent = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
+
   return (
-    <div className="profile-song-player" style={{ marginTop: '12px', width: '100%', maxWidth: '400px' }}>
+    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', width: '100%', maxWidth: compact ? '100%' : '400px' }}>
       <div className="profile-song-player-bar">
         <button
           type="button"
@@ -153,18 +164,25 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           )}
         </button>
         <span className="profile-song-player-label">{providerLabel}</span>
-        <a
-          href={songUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-song-player-link"
-          title={songUrl}
-        >
-          {linkLabel}
-        </a>
+        <span className="profile-song-player-name">
+          {compact ? (
+            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-player-link" title={songUrl}>
+              {barContent}
+            </a>
+          ) : (
+            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-player-link" title={songUrl}>
+              {barContent}
+            </a>
+          )}
+        </span>
       </div>
+      {/* Embed hidden when compact; kept in DOM for playback */}
       {provider === 'soundcloud' && embed && (
-        <div className={`embed-frame profile-song-player-embed ${embed.aspect}`}>
+        <div
+          className={`embed-frame profile-song-player-embed ${embed.aspect}`}
+          style={compact ? { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : undefined}
+          aria-hidden={compact}
+        >
           <iframe
             ref={iframeRef}
             src={embed.src}
@@ -177,7 +195,12 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         </div>
       )}
       {provider === 'youtube' && (
-        <div id={youtubeId} className="embed-frame profile-song-player-embed" style={{ height: 166, minHeight: 166 }} />
+        <div
+          id={youtubeId}
+          className="embed-frame profile-song-player-embed"
+          style={compact ? { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : { height: 166, minHeight: 166 }}
+          aria-hidden={compact}
+        />
       )}
     </div>
   );
