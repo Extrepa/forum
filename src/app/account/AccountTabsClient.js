@@ -904,7 +904,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           Edit Username
                         </button>
                       ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'flex-end' }}>
                           <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
                           <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
                           <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>

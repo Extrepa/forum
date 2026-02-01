@@ -1067,7 +1067,7 @@ main {
   width: 100%;
   flex: 1;
   position: relative;
-  gap: 4px;
+  gap: 8px; /* Increased spacing */
   line-height: 1.2;
 }
 .account-profile-preview-user-info > * {
@@ -1095,11 +1095,11 @@ main {
 }
 .account-profile-preview-row-1 .account-username-row {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* Ensures content inside is centered as a column */
   width: 100%;
-  gap: 8px;
+  gap: 8px; /* Spacing between username and buttons */
   flex-wrap: wrap;
   position: relative;
 }
@@ -1199,13 +1199,13 @@ main {
 }
 .account-username-row {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  flex-wrap: wrap;
+  justify-content: center; /* Ensures content inside is centered as a column */
   width: 100%;
+  gap: 8px; /* Spacing between username and buttons */
+  flex-wrap: wrap;
+  position: relative;
 }
 .account-profile-preview-row-1 .account-username-row {
   display: grid;
