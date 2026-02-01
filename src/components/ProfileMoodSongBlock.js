@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProfileSongPlayer from './ProfileSongPlayer';
 import { isProfileFlagEnabled } from '../lib/featureFlags';
+import { getMoodChipStyle } from '../lib/moodThemes';
 
 /**
  * Renders mood/song/player on public profile. When server didn't return mood/song
@@ -29,6 +30,8 @@ export default function ProfileMoodSongBlock({
 
   const hasMood = isProfileFlagEnabled('profile_mood') && (moodText || moodEmoji);
   const hasSong = isProfileFlagEnabled('profile_music') && songUrl;
+  const moodDescriptor = (moodText?.trim() || moodEmoji?.trim() || '');
+  const moodChipStyle = getMoodChipStyle(moodDescriptor);
   const songProviderLabel = songProvider
     ? songProvider.charAt(0).toUpperCase() + songProvider.slice(1)
     : (initialSongProviderLabel ?? 'Song');
@@ -65,7 +68,7 @@ export default function ProfileMoodSongBlock({
     <>
       <div className="profile-card-mood-song">
         {hasMood && (
-          <div className="profile-mood-chip">
+          <div className="profile-mood-chip" style={moodChipStyle}>
             {moodEmoji && <span>{moodEmoji}</span>}
             <span>{moodText}</span>
           </div>

@@ -387,7 +387,7 @@ export default async function ProfilePage({ params }) {
           </Link>
         )}
       </div>
-      <section className="card profile-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+      <section className="card profile-card neon-outline-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
         <div className="profile-card-header">
           <div className="profile-card-header-avatar">

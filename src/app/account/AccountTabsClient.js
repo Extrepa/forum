@@ -12,6 +12,7 @@ import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
 import ProfileSongPlayer from '../../components/ProfileSongPlayer';
+import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
 
 function getRarityColor(value) {
   if (value === 0) return 'var(--muted)';
@@ -20,58 +21,6 @@ function getRarityColor(value) {
   if (value < 1000) return '#5b8def';
   return '#b794f6';
 }
-
-const MOOD_OPTIONS = [
-  { value: '', text: '', emoji: '' },
-  { value: 'chillin', text: 'Chillin', emoji: '\u{1F60C}' },
-  { value: 'vibing', text: 'Vibing', emoji: '\u2728' },
-  { value: 'drippy', text: 'Drippy', emoji: '\u{1F4A7}' },
-  { value: 'weird', text: 'Weird', emoji: '\u{1F92A}' },
-  { value: 'building', text: 'Building', emoji: '\u{1F6E0}\uFE0F' },
-  { value: 'lost-in-the-sauce', text: 'Lost in the sauce', emoji: '\u{1F525}' },
-  { value: 'on-fire', text: 'On fire', emoji: '\u{1F525}' },
-  { value: 'creative', text: 'Creative', emoji: '\u{1F3A8}' },
-  { value: 'flow', text: 'Flow', emoji: '\u{1F30A}' },
-  { value: 'sparkly', text: 'Sparkly', emoji: '\u2728' },
-  { value: 'night-mood', text: 'Night mood', emoji: '\u{1F319}' },
-  { value: 'rainbow', text: 'Rainbow', emoji: '\u{1F308}' },
-  { value: 'music', text: 'Music', emoji: '\u{1F3B5}' },
-  { value: 'coffee', text: 'Coffee', emoji: '\u2615' },
-  { value: 'blossom', text: 'Blossom', emoji: '\u{1F338}' },
-  { value: 'butterfly', text: 'Butterfly', emoji: '\u{1F98B}' },
-  { value: 'dizzy', text: 'Dizzy', emoji: '\u{1F4AB}' },
-  { value: 'determined', text: 'Determined', emoji: '\u{1F624}' },
-  { value: 'strong', text: 'Strong', emoji: '\u{1F4AA}' },
-  { value: 'cosmic', text: 'Cosmic', emoji: '\u{1F30C}' },
-  { value: 'lightning', text: 'Lightning', emoji: '\u26A1' },
-  { value: 'neon', text: 'Neon', emoji: '\u{1F49C}' },
-  { value: 'liminal', text: 'Liminal', emoji: '\u{1F6AA}' },
-  { value: 'glow', text: 'Glow', emoji: '\u2728' },
-  { value: 'alive', text: 'Alive', emoji: '\u{1F49A}' },
-  { value: 'happy', text: 'Happy', emoji: '\u{1F60A}' },
-  { value: 'thinking', text: 'Thinking', emoji: '\u{1F914}' },
-  { value: 'cool', text: 'Cool', emoji: '\u{1F60E}' },
-  { value: 'moved', text: 'Moved', emoji: '\u{1F979}' },
-  { value: 'tired', text: 'Tired', emoji: '\u{1F634}' },
-  { value: 'soft', text: 'Soft', emoji: '\u{1F97A}' },
-  { value: 'silly', text: 'Silly', emoji: '\u{1F643}' },
-  { value: 'dark', text: 'Dark', emoji: '\u{1F5A4}' },
-  { value: 'grateful', text: 'Grateful', emoji: '\u{1F64F}' },
-  { value: 'peaceful', text: 'Peaceful', emoji: '\u{1F9D8}' },
-  { value: 'curious', text: 'Curious', emoji: '\u{1F928}' },
-  { value: 'dreamy', text: 'Dreamy', emoji: '\u{1F4AD}' },
-  { value: 'cozy', text: 'Cozy', emoji: '\u{1F6CB}\uFE0F' },
-  { value: 'grounded', text: 'Grounded', emoji: '\u{1F30D}' },
-  { value: 'focused', text: 'Focused', emoji: '\u{1F3AF}' },
-  { value: 'hyped', text: 'Hyped', emoji: '\u{1F389}' },
-  { value: 'blessed', text: 'Blessed', emoji: '\u{1F607}' },
-  { value: 'chill', text: 'Chill', emoji: '\u{1F60C}' },
-  { value: 'shy', text: 'Shy', emoji: '\u{1F648}' },
-  { value: 'excited', text: 'Excited', emoji: '\u{1F929}' },
-  { value: 'relaxed', text: 'Relaxed', emoji: '\u{1F60C}' },
-  { value: 'hopeful', text: 'Hopeful', emoji: '\u{1F331}' },
-  { value: 'love', text: 'Love', emoji: '\u2764\uFE0F' },
-];
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -121,6 +70,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const handleTabChange = (tab) => {
     router.push(`/account?tab=${tab}`, { scroll: false });
   };
+
+  const accountMoodDescriptor = stats
+    ? (stats.profileMoodText?.trim() || stats.profileMoodEmoji?.trim() || '')
+    : '';
+  const accountMoodChipStyle = getMoodChipStyle(accountMoodDescriptor);
 
   // Refresh stats when tab becomes active or on focus
   useEffect(() => {
@@ -915,7 +869,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
-            <div className="account-profile-preview">
+            <div className="account-profile-preview neon-outline-card">
               {/* Row 1: Avatar + Mini Preview (left) | Username + Edit Avatar (right) */}
               <div className="account-profile-preview-row-1">
                 <div className="account-profile-preview-avatar-container">
@@ -991,7 +945,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0px', textAlign: 'center' }}>{roleLabel}</div>
                     {/* Mood directly under role */}
                     {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                      <div className="profile-mood-chip" style={{ marginTop: '0px', alignSelf: 'center' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
+                      <div
+                        className="profile-mood-chip"
+                        style={{
+                          marginTop: '0px',
+                          alignSelf: 'center',
+                          ...accountMoodChipStyle,
+                        }}
+                      >
+                        <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
+                      </div>
                     )}
                   </div>
                 </div>
