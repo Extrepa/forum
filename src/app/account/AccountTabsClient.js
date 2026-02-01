@@ -871,14 +871,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   ) : (
                     <div className="no-avatar-placeholder">No avatar</div>
                   )}
+                  <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" />
+                  </div>
                 </div>
               </div>
 
               <div className="account-profile-preview-buttons-container">
                 <button
                   type="button"
-                  onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
-                  className="account-edit-profile-btn account-edit-username-btn"
+                  onClick={() => { setIsEditingUsername(true); setIsEditingAvatar(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                  className="account-edit-profile-btn account-edit-profile-btn--small account-edit-username-btn"
                 >
                   Edit Username
                 </button>
@@ -886,7 +890,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   type="button"
                   onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
                   disabled={isEditingAvatar}
-                  className="account-edit-profile-btn account-edit-avatar-btn"
+                  className="account-edit-profile-btn account-edit-profile-btn--small account-edit-avatar-btn"
                 >
                   Edit Avatar
                 </button>
@@ -902,6 +906,30 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 )}
               </div>
             </div>
+            {isEditingUsername && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'center' }}>
+                    <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
+                    <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                    <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                    {colorOptions.map((option) => {
+                        const isSelected = selectedColorIndex === option.index;
+                        const disabled = usernameStatus.type === 'loading';
+                        return (
+                        <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} className="color-picker-btn" style={{ minHeight: 0, width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                        );
+                    })}
+                </div>
+                {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block', textAlign: 'center' }}>{usernameStatus.message}</span>}
+              </div>
+            )}
+            {isEditingAvatar && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
+              </div>
+            )}
 
             {editProfileSubTab && (
             <div className="account-edit-tab-content account-edit-tab-content--above">

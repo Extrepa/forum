@@ -992,7 +992,9 @@ main {
 
 .account-profile-preview {
   position: relative;
-  padding: 20px;
+  padding: 16px; /* Base padding */
+  padding-left: 130px; /* Accommodate avatar (96px + 16px left + 18px gap) */
+  padding-right: 120px; /* Accommodate buttons (100px + 16px right) */
   margin-bottom: 8px;
   min-width: 0;
   display: flex;
@@ -1007,8 +1009,8 @@ main {
 
 .account-profile-preview-avatar-container {
   position: absolute;
-  left: 20px;
-  top: 20px;
+  left: 16px; /* Adjusted from 20px padding */
+  top: 16px; /* Adjusted from 20px padding */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1030,8 +1032,8 @@ main {
 
 .account-profile-preview-buttons-container {
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: 16px; /* Adjusted from 20px padding */
+  top: 16px; /* Adjusted from 20px padding */
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1053,197 +1055,14 @@ main {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
 }
-.account-profile-preview-user-info .account-username-row {
-  margin-bottom: 0 !important;
-  margin-top: 0 !important;
-  line-height: 1.2;
-}
-.account-profile-preview-user-info .account-edit-username-btn {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-.account-profile-preview-user-info > div[style*="color"],
-.account-profile-preview-user-info > div[style*="textTransform"] {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  line-height: 1.2;
-}
-.account-profile-preview-user-info .profile-mood-chip {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-.account-profile-preview-row-1 .account-username-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 12px;
-  flex-wrap: nowrap;
-  position: relative;
-}
-.account-profile-preview-row-1 .account-username-row .username {
-  text-align: center;
-  display: inline-block;
+
+.account-edit-profile-btn--small {
+  padding: 4px 10px; /* Adjusted padding */
+  font-size: 11px; /* Smaller font size */
+  min-width: 80px; /* Smaller min-width */
   width: auto;
-  max-width: 100%;
-  margin: 0;
-  line-height: 1.2;
-}
-.account-profile-preview-user-info .account-username-row .username {
-  margin-bottom: 0 !important;
-}
-.account-edit-avatar-btn--desktop {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  flex-shrink: 0;
-}
-.account-edit-username-btn {
-  align-self: flex-end !important;
-  margin-left: auto;
-}
-/* Desktop: hide mobile Edit Avatar button, show desktop one */
-.account-edit-avatar-btn--mobile {
-  display: none;
-}
-.account-edit-avatar-btn--desktop {
-  display: block;
-}
-.account-profile-preview-avatar-action {
-  flex-shrink: 0;
-  align-self: center;
-  margin-left: auto;
-}
-
-
-/* Song section below all rows - fit content width exactly, centered */
-.account-profile-preview-song {
-  min-width: 0;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  justify-content: center;
-}
-.account-profile-preview-song .profile-song-player--compact {
-  max-width: 100%;
-  width: fit-content;
-  min-width: min-content;
-  display: inline-flex;
-  flex-direction: column;
-}
-.account-profile-preview-song .profile-song-player-bar {
-  width: fit-content;
-  max-width: 100%;
-  min-width: min-content !important;
-  display: inline-flex;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-.account-profile-preview-song .profile-song-player--compact .profile-song-player-bar {
-  min-width: min-content !important;
-}
-.account-profile-preview-song .profile-song-player-name,
-.account-profile-preview-song .profile-song-player-link {
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: normal !important;
-  word-break: break-word;
-  flex: 0 1 auto;
-  min-width: 0;
-}
-.account-profile-preview-song .profile-song-compact {
-  max-width: 100%;
-  width: fit-content;
-  min-width: min-content;
-  display: inline-flex;
-  box-sizing: border-box;
-}
-.account-profile-preview-song .profile-song-compact .profile-song-link {
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: normal !important;
-  word-break: break-word;
-}
-
-/* Meta: username row (username left, Edit Username right), then role, mood, song, headline */
-.account-profile-preview-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0;
-}
-.account-username-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; /* Ensures content inside is centered as a column */
-  width: 100%;
-  gap: 8px; /* Spacing between username and buttons */
-  flex-wrap: wrap;
-  position: relative;
-}
-.account-profile-preview-row-1 .account-username-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 12px;
-}
-.account-username-row .username {
-  min-width: 0;
-}
-.account-edit-avatar-btn,
-.account-edit-username-btn {
-  flex-shrink: 0;
-  width: auto !important;
-  max-width: 100%;
-}
-.account-edit-username-btn {
-  min-width: 0;
-  max-width: 140px;
-  margin-left: auto;
-}
-
-/* Desktop: compact layout - avatar stretches to match content height, username/role/mood centered, buttons right */
-@media (min-width: 769px) {
-  .account-profile-preview-row-1 {
-    align-items: stretch;
-  }
-  .account-profile-preview-avatar-container {
-    align-self: stretch;
-  }
-  .account-profile-preview-row-1 .account-username-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: nowrap;
-    position: relative;
-  }
-  .account-profile-preview-row-1-right {
-    align-items: center;
-    text-align: center;
-  }
-  .account-profile-preview-user-info {
-    align-items: center;
-    text-align: center;
-  }
-  .account-profile-preview-row-1 .account-username-row .username {
-    text-align: center;
-    display: inline-block;
-    width: auto;
-  }
-  .account-edit-avatar-btn--desktop {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  .account-edit-username-btn {
-    align-self: flex-end !important;
-    margin-left: auto;
-  }
+  min-height: 0; /* Override default button min-height */
+  height: auto; /* Override default button min-height */
 }
 
 .account-profile-preview .profile-card-header-meta,
@@ -5966,4 +5785,4 @@ header::before {
 
 }
 .color-picker-btn:hover { transform: none; }
-.edit-username-form { flex-wrap: nowrap !important; }
+.account-edit-profile-btn--small { padding: 4px 12px; font-size: 12px; min-width: 100px; width: auto; }
