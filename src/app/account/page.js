@@ -63,13 +63,13 @@ export default async function AccountPage({ searchParams }) {
         // posts / post_comments tables may not exist (migration 0017)
       }
       
-      const threadCount = (forumThreads?.count || 0) + 
-                          (devLogs?.count || 0) + 
-                          (musicPosts?.count || 0) + 
-                          (projects?.count || 0) + 
-                          (timelineUpdates?.count || 0) + 
-                          (events?.count || 0) + 
-                          postsCount;
+      const threadCount = (Number(forumThreads?.count) || 0) + 
+                          (Number(devLogs?.count) || 0) + 
+                          (Number(musicPosts?.count) || 0) + 
+                          (Number(projects?.count) || 0) + 
+                          (Number(timelineUpdates?.count) || 0) + 
+                          (Number(events?.count) || 0) + 
+                          (Number(postsCount) || 0);
       
       // Get reply count from all comment types
       const forumReplies = await db
@@ -102,13 +102,13 @@ export default async function AccountPage({ searchParams }) {
         .bind(user.id)
         .first();
       
-      const replyCount = (forumReplies?.count || 0) + 
-                         (devLogComments?.count || 0) + 
-                         (musicComments?.count || 0) + 
-                         (projectReplies?.count || 0) + 
-                         (timelineComments?.count || 0) + 
-                         (eventComments?.count || 0) + 
-                         postCommentsCount;
+      const replyCount = (Number(forumReplies?.count) || 0) + 
+                         (Number(devLogComments?.count) || 0) + 
+                         (Number(musicComments?.count) || 0) + 
+                         (Number(projectReplies?.count) || 0) + 
+                         (Number(timelineComments?.count) || 0) + 
+                         (Number(eventComments?.count) || 0) + 
+                         (Number(postCommentsCount) || 0);
 
       // Get recent activity from all post types (last 10 items total)
       const recentForumThreads = await db

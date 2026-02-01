@@ -952,7 +952,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'socials' && (
                 <div className="account-edit-panel">
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Socials</h2>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={defaultProfileTab === 'socials'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'socials' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
@@ -1223,7 +1223,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
                   <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
@@ -1308,7 +1308,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
                   {guestbookEntries.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {guestbookEntries.map((entry) => (
@@ -1335,9 +1335,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               onClick={() => handleGuestbookDelete(entry.id)}
                               disabled={guestbookDeletingId === entry.id}
                               style={{
-                                fontSize: '12px',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
+                                fontSize: '11px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
                                 border: '1px solid rgba(255, 107, 0, 0.4)',
                                 background: 'rgba(255, 107, 0, 0.1)',
                                 color: '#ff6b6b',
@@ -1346,10 +1346,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 flexShrink: 0,
                                 whiteSpace: 'nowrap',
                                 width: 'max-content',
-                                minWidth: 70,
+                                minWidth: 52,
                               }}
                             >
-                              {guestbookDeletingId === entry.id ? 'Deleting…' : 'Delete'}
+                              {guestbookDeletingId === entry.id ? '…' : 'Delete'}
                             </button>
                           </div>
                           <p style={{ margin: 0, fontSize: '14px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{entry.content}</p>

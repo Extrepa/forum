@@ -105,3 +105,12 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Profile page not loading (server error):** Fallback user query included `default_profile_tab`; if that column is missing (migration not run), the fallback threw. Wrapped fallback in inner try/catch: first try fallback with `default_profile_tab`, on throw try fallback without it and set `profileUser.default_profile_tab = null` so the page loads.
 - **Notes: user/date top-left:** In AccountTabsClient and ProfileTabsClient, guestbook entry layout: author and date are in a single row top-left (flex, gap 6px); entry container uses gap 4px between meta row and message content. Delete button remains on the same row as author/date (right) in AccountTabsClient; ProfileTabsClient has no Delete (view-only).
 - **Files:** `src/app/account/AccountTabsClient.js`, `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src/components/ProfileTabsClient.js`.
+
+---
+
+## Padding, stats match, Notes delete button
+
+- **Padding (all tab sections):** Socials header row marginBottom was 8px; set to 4px to match Activity/Stats/Notes. Gallery and Notes first paragraph marginBottom reduced from 8px to 6px for consistency with other tabs. Recent activity already had 4px; other panels use .account-edit-panel .section-title (4px) and 4px on header rows.
+- **Stats matching:** Coerced all count values to Number() in profile page, account page, and /api/account/stats so threadCount and replyCount are always numeric (avoids string concatenation if D1 returns string counts). Same formulas and sources in all three; coercion ensures display consistency.
+- **Notes delete button:** Placed in top-right of each note card (same row as author/date). Made smaller: fontSize 11px, padding 2px 6px, borderRadius 4px, minWidth 52px; label shortened to "Delete" / "…" when loading so the box stays compact and does not stretch on small viewports.
+- **Files:** `src/app/account/AccountTabsClient.js`, `src/app/account/page.js`, `src/app/api/account/stats/route.js`, `src/app/profile/[username]/page.js`.
