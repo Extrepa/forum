@@ -1,5 +1,16 @@
 # 2026-01-31 cursor notes
 
+## Account edit profile: button placement and scrollbar (2026-02-01)
+
+- **Layout restructure:** Profile preview now has (1) Row 1: avatar + mini preview (left), Edit Avatar button (right). (2) Meta block: username row with Username (left) and Edit Username button (right), then role, mood, song, headline. Edit Avatar is in the same row as the avatar and mini preview; Edit Username is in the same row as the username (between username and role visually).
+- **JSX:** Replaced `profile-card-header` + `account-profile-preview-meta-actions` + separate actions column with `account-profile-preview-row-1` (avatar + `account-profile-preview-avatar-action` for Edit Avatar) and `profile-card-header-meta.account-profile-preview-meta` (containing `account-username-row` for username + Edit Username, then role, mood, song, headline). When editing username, the form and color swatches render inside the meta block below the username row.
+- **Scrollbar:** `.account-card` now has `overflow-y: visible` so the main account section does not create an inner vertical scrollbar that would shift content off-center. Inner cards (`.account-edit-card--tabs-bottom`) already use `overflow-y: visible`.
+- **CSS:** New classes `.account-profile-preview-row-1`, `.account-profile-preview-avatar-action`, `.account-username-row`, `.account-edit-avatar-btn`, `.account-edit-username-btn`. Mobile (768px, 600px): row-1 and username row center; avatar action full width centered; edit buttons capped and smaller.
+
+Files: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
 ## Account narrow viewport: rainbow border on mini card, tabs, song bar, edit buttons (2026-02-01)
 
 - **Rainbow border on mini preview card:** `.account-edit-card` added to neonChase `::before`/`::after` (same as `.profile-card`, `.tabs-pill`). `.account-edit-card` given `position: relative` and `isolation: isolate`. Static color-mode override includes `.account-edit-card::before`/`::after`.

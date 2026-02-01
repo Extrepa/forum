@@ -806,12 +806,13 @@ main {
   backdrop-filter: blur(12px);
 }
 
-/* Allow account/profile card to shrink with viewport like header */
+/* Allow account/profile card to shrink with viewport like header; no inner scroll so content doesn't look off-center */
 .account-card {
   min-width: 0;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .account-view-profile-link:hover {
@@ -961,6 +962,49 @@ main {
   min-width: 0;
   overflow: visible;
 }
+
+/* Row 1: avatar + mini preview (left), Edit Avatar (right) */
+.account-profile-preview-row-1 {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+.account-profile-preview-row-1 .profile-card-header-avatar {
+  flex-shrink: 0;
+}
+.account-profile-preview-avatar-action {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Meta: username row (username left, Edit Username right), then role, mood, song, headline */
+.account-profile-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+.account-username-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.account-username-row .username {
+  min-width: 0;
+}
+.account-edit-avatar-btn,
+.account-edit-username-btn {
+  flex-shrink: 0;
+}
+
 .account-profile-preview .profile-card-header-meta,
 .account-profile-preview .profile-card-mood-song,
 .account-profile-preview .profile-song-player {
@@ -982,10 +1026,10 @@ main {
   box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
 }
 
-/* Desktop: actions column has fixed min-width so buttons don't shrink */
+/* Desktop: avatar action (Edit Avatar) doesn't shrink */
 @media (min-width: 769px) {
-  .account-profile-preview-actions {
-    min-width: 130px;
+  .account-profile-preview-avatar-action {
+    min-width: 100px;
   }
 }
 
@@ -2325,13 +2369,17 @@ button:hover {
     gap: 12px;
   }
 
-  /* Account edit preview: stack so username/role/mood/song stay centered; buttons below in a row */
-  .account-profile-preview .profile-card-header.account-profile-preview-header {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: left;
-    padding: 10px 12px;
+  /* Account edit preview: row 1 = avatar + Edit Avatar (wrap/center on mobile); meta = username row + role, mood, song */
+  .account-profile-preview-row-1 {
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 12px;
+  }
+
+  .account-profile-preview-avatar-action {
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .account-profile-preview .profile-card-header-avatar {
@@ -2340,22 +2388,8 @@ button:hover {
     align-items: center;
   }
 
-  .account-profile-preview .account-profile-preview-meta-actions {
-    flex-direction: column;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .account-profile-preview .account-profile-preview-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    min-width: 0;
-    width: 100%;
-  }
-
-  .account-profile-preview .account-edit-profile-btn {
+  .account-profile-preview .account-edit-avatar-btn,
+  .account-profile-preview .account-edit-username-btn {
     min-width: 0;
     max-width: 150px;
     width: auto;
@@ -2363,6 +2397,7 @@ button:hover {
     font-size: 11px;
     box-sizing: border-box;
   }
+
   /* Compact song player in account preview: use full width on mobile so bar stays horizontal */
   .account-profile-preview .profile-song-player--compact {
     max-width: 100%;
@@ -2372,19 +2407,23 @@ button:hover {
     min-width: 0;
   }
 
-  .account-profile-preview .account-profile-preview-header .profile-card-header-meta {
+  .account-profile-preview-meta {
     align-items: center;
     text-align: center;
+  }
+
+  .account-username-row {
+    justify-content: center;
+    width: 100%;
   }
 
   .account-profile-preview .profile-card-mood-song {
     align-items: center;
   }
 
-  .account-profile-preview .profile-card-header-meta {
+  .account-profile-preview .profile-card-header-meta.account-profile-preview-meta {
     min-width: 0;
     width: 100%;
-    min-width: 180px;
   }
 
   .account-profile-preview .profile-song-player,
@@ -2430,10 +2469,15 @@ button:hover {
 
 /* Narrow viewports: stack edit profile so mood/song are clearly under role (not under avatar) */
 @media (max-width: 600px) {
-  .account-profile-preview .profile-card-header.account-profile-preview-header {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: left;
+  .account-profile-preview-row-1 {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .account-profile-preview-avatar-action {
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .account-profile-preview .profile-card-header-avatar {
@@ -2442,15 +2486,8 @@ button:hover {
     align-items: center;
   }
 
-  .account-profile-preview .account-profile-preview-meta-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .account-profile-preview .account-profile-preview-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+  .account-username-row {
+    justify-content: center;
   }
 
   .tabs-pill {
