@@ -996,7 +996,9 @@ main {
 
 .account-profile-preview {
   position: relative;
-  padding: 16px; /* Uniform padding */
+  padding: 16px; /* Base padding */
+  padding-left: 130px; /* Accommodate avatar (96px + 16px left + 18px gap) */
+  padding-right: 120px; /* Accommodate buttons (100px + 16px right) */
   margin-bottom: 8px;
   min-width: 0;
   display: flex;
@@ -1007,8 +1009,6 @@ main {
   background: rgba(1, 6, 12, 0.8);
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
   min-height: 150px; /* Ensure enough height for positioned elements */
-  justify-content: center; /* Center content vertically */
-  align-items: center; /* Center content horizontally */
 }
 
 .account-profile-preview-avatar-container {
@@ -1051,7 +1051,7 @@ main {
   justify-content: center;
   text-align: center;
   width: 100%;
-  height: 100%;
+  /* height: 100%; Removed as it might be causing overflow */
   gap: 8px;
 }
 .account-profile-preview-user-info > * {
@@ -1091,6 +1091,12 @@ main {
 
   .account-edit-card--tabs-bottom {
     margin-bottom: 0; /* Reduce gap on mobile */
+    padding-bottom: 0; /* Remove any bottom padding */
+    gap: 0; /* Remove any gap */
+  }
+
+  .account-edit-tab-content--above {
+    margin-bottom: 0; /* Remove margin from content above tabs */
   }
 
   /* Mobile Player Adjustments */
@@ -1102,25 +1108,37 @@ main {
 
 /* Player Outline Colors */
 .profile-song-player--soundcloud.neon-outline-card::before {
-  background: rgba(255, 107, 0, 0.9); /* Orange */
-  animation: none; /* Disable chasing animation */
+  background: rgba(255, 107, 0, 0.9) !important; /* Orange */
+  animation: none !important; /* Disable chasing animation */
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
 }
 .profile-song-player--soundcloud.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4), 0 0 32px rgba(255, 107, 0, 0.2); /* Orange glow */
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4) !important, 0 0 32px rgba(255, 107, 0, 0.2) !important; /* Orange glow */
 }
 .profile-song-player--youtube.neon-outline-card::before {
-  background: rgba(255, 0, 0, 0.9); /* Red */
-  animation: none;
+  background: rgba(255, 0, 0, 0.9) !important; /* Red */
+  animation: none !important;
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
 }
 .profile-song-player--youtube.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4), 0 0 32px rgba(255, 0, 0, 0.2); /* Red glow */
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4) !important, 0 0 32px rgba(255, 0, 0, 0.2) !important; /* Red glow */
 }
 .profile-song-player--spotify.neon-outline-card::before {
-  background: rgba(30, 215, 96, 0.9); /* Green */
-  animation: none;
+  background: rgba(30, 215, 96, 0.9) !important; /* Green */
+  animation: none !important;
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
 }
 .profile-song-player--spotify.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4), 0 0 32px rgba(30, 215, 96, 0.2); /* Green glow */
+  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4) !important, 0 0 32px rgba(30, 215, 96, 0.2) !important; /* Green glow */
 }
 
 /* Public Profile Desktop Layout (Mood/Song Block) */
@@ -1166,7 +1184,7 @@ main {
     display: flex; /* Make it a flex container to align its content */
     flex-direction: column; /* Stack its children */
     align-items: flex-end; /* Align player to right */
-    justify-content: flex-start; /* Align player to top */
+    justify-content: center; /* Center player vertically */
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
