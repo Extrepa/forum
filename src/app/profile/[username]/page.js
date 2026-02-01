@@ -100,15 +100,16 @@ export default async function ProfilePage({ params }) {
       ? 'var(--role-mod)'
       : 'var(--role-user)';
 
-  // Increment profile views (only when viewed by someone else)
-  try {
-    await db
-      .prepare('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = ?')
-      .bind(profileUser.id)
-      .run();
-  } catch (e) {
-    // Ignore errors - profile views are not critical
-    console.error('Failed to increment profile views:', e);
+  // Increment profile views only when viewed by someone else (so own profile and account stats match)
+  if (!isOwnProfile) {
+    try {
+      await db
+        .prepare('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = ?')
+        .bind(profileUser.id)
+        .run();
+    } catch (e) {
+      console.error('Failed to increment profile views:', e);
+    }
   }
 
   // Get stats for this user
@@ -386,16 +387,19 @@ export default async function ProfilePage({ params }) {
       .sort((a, b) => b.created_at - a.created_at)
       .slice(0, 10);
 
+    const profileViewsDisplay = !isOwnProfile
+      ? (Number(profileUser.profile_views) || 0) + 1
+      : (Number(profileUser.profile_views) || 0);
     stats = {
-      threadCount,
-      replyCount,
+      threadCount: Number(threadCount) || 0,
+      replyCount: Number(replyCount) || 0,
       joinDate: profileUser.created_at,
       recentThreads: allPosts.slice(0, 10),
       recentReplies: allReplies.slice(0, 10),
       recentActivity: allActivity,
-      profileViews: profileUser.profile_views || 0,
-      timeSpentMinutes: profileUser.time_spent_minutes || 0,
-      avatarEditMinutes: profileUser.avatar_edit_minutes || 0,
+      profileViews: profileViewsDisplay,
+      timeSpentMinutes: Number(profileUser.time_spent_minutes) || 0,
+      avatarEditMinutes: Number(profileUser.avatar_edit_minutes) || 0,
     };
   } catch (e) {
     stats = {
@@ -405,9 +409,9 @@ export default async function ProfilePage({ params }) {
       recentThreads: [],
       recentReplies: [],
       recentActivity: [],
-      profileViews: profileUser.profile_views || 0,
-      timeSpentMinutes: profileUser.time_spent_minutes || 0,
-      avatarEditMinutes: profileUser.avatar_edit_minutes || 0,
+      profileViews: Number(profileUser.profile_views) || 0,
+      timeSpentMinutes: Number(profileUser.time_spent_minutes) || 0,
+      avatarEditMinutes: Number(profileUser.avatar_edit_minutes) || 0,
     };
   }
 
@@ -641,13 +645,13 @@ export default async function ProfilePage({ params }) {
 
 
   const statsForTabs = {
-    threadCount: stats.threadCount,
-    replyCount: stats.replyCount,
+    threadCount: Number(stats.threadCount) || 0,
+    replyCount: Number(stats.replyCount) || 0,
     joinDateShort: formatDate(profileUser.created_at),
     joinDateLong: formatDateTime(profileUser.created_at),
-    profileViews: stats.profileViews || 0,
-    timeSpentMinutes: stats.timeSpentMinutes || 0,
-    avatarEditMinutes: stats.avatarEditMinutes || 0,
+    profileViews: Number(stats.profileViews) || 0,
+    timeSpentMinutes: Number(stats.timeSpentMinutes) || 0,
+    avatarEditMinutes: Number(stats.avatarEditMinutes) || 0,
   };
 
   return (

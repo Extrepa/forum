@@ -1349,12 +1349,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         >
                           <button
                             type="button"
+                            className="account-notes-delete-btn"
                             onClick={() => handleGuestbookDelete(entry.id)}
                             disabled={guestbookDeletingId === entry.id}
                             style={{
                               position: 'absolute',
                               top: '8px',
                               right: '8px',
+                              flexShrink: 0,
+                              width: 'max-content',
+                              maxWidth: '56px',
+                              minWidth: 'auto',
+                              boxSizing: 'border-box',
                               fontSize: '10px',
                               padding: '2px 6px',
                               borderRadius: '4px',

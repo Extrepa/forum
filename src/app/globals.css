@@ -1014,6 +1014,14 @@ main {
   margin-bottom: 4px;
 }
 
+/* Notes (guestbook) delete: small button, top-right only, never full width */
+.account-notes-delete-btn {
+  flex-shrink: 0 !important;
+  width: max-content !important;
+  max-width: 56px !important;
+  min-width: auto !important;
+}
+
 /* Edit Username / Edit Avatar same width on all viewports */
 .account-edit-profile-btn {
   min-width: 130px;
