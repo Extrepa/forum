@@ -920,6 +920,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     songUrl={stats.profileSongUrl}
                     autoPlay={false}
                     providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                    style={{ margin: '0 auto' }} // Add margin auto for centering
                   />
                 )}
               </div>
@@ -1569,7 +1570,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             </div>
             )}
-            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections" style={{ marginTop: '16px' }}>
+            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections">
               <div className="tabs-pill-inner">
                 <div
                   className="tabs-pill-indicator"

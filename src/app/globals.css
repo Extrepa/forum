@@ -1096,7 +1096,7 @@ main {
 .profile-mood-song-block-desktop-layout {
   display: flex; /* Default to stacked for mobile-first */
   flex-direction: column;
-  gap: 16px;
+  gap: 8px; /* Reduced gap for better mobile spacing */
   align-items: center; /* Center items on mobile */
   width: 100%;
 }
@@ -1131,8 +1131,10 @@ main {
 
   .profile-mood-song-block-right-column {
     flex: 0 0 auto; /* Right column size based on content */
-    max-width: 400px; /* Limit player width on desktop */
+    width: 100%; /* Allow player to take full width of its column */
+    max-width: 450px; /* Adjust max-width to allow slightly larger player, considering card padding */
     justify-content: flex-end; /* Align player to right */
+    align-items: flex-end; /* Ensure player aligns to top-right within its column */
   }
 }
 
