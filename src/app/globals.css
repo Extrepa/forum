@@ -931,6 +931,13 @@ main {
 .account-profile-preview {
   margin-bottom: 16px;
   min-width: 0;
+  overflow: visible;
+}
+.account-profile-preview .profile-card-header-meta,
+.account-profile-preview .profile-card-mood-song,
+.account-profile-preview .profile-song-player {
+  overflow: visible;
+  min-width: 0;
 }
 
 /* Ensure play/pause button is visible in edit-profile mini-preview */
@@ -1988,6 +1995,7 @@ button:hover {
 /* Compact profile player: little play box (play/pause + song name), not full-width bar */
 .profile-song-player--compact {
   width: auto;
+  min-width: min-content;
   max-width: 280px;
 }
 .profile-song-player--compact .profile-song-player-bar {
@@ -2283,10 +2291,16 @@ button:hover {
   .account-profile-preview .profile-card-header-meta {
     min-width: 0;
     width: 100%;
+    min-width: 180px;
+  }
+
+  .account-profile-preview .profile-song-player,
+  .account-profile-preview .profile-song-player-bar {
+    min-width: 0;
+    overflow: visible;
   }
 
   .account-profile-preview .profile-song-player-bar {
-    min-width: 0;
     flex-wrap: nowrap;
   }
 
