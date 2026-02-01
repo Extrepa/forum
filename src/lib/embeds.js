@@ -42,7 +42,7 @@ function soundCloudPlayerSrc(trackUrl, autoPlay = false) {
     }
     const encoded = encodeURIComponent(trackUrl);
     const autoPlayStr = autoPlay ? 'true' : 'false';
-    return `https://w.soundcloud.com/player/?url=${encoded}&color=%2334e1ff&auto_play=${autoPlayStr}&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+    return `https://w.soundcloud.com/player/?url=${encoded}&color=%2334e1ff&auto_play=${autoPlayStr}&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=true&buying=false&sharing=false&download=false&show_artwork=true&show_playcount=false&liking=false&show_playback_count=false`;
   } catch {
     return null;
   }

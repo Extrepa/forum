@@ -1070,12 +1070,7 @@ main {
     margin-bottom: 12px; /* Add space below avatar */
   }
 
-  .account-profile-preview-buttons-container {
-    position: static; /* Remove absolute positioning */
-    flex-direction: row; /* Layout buttons horizontally */
-    gap: 12px;
-    margin-top: 12px; /* Add space above buttons */
-  }
+
 
   .account-profile-preview-user-info {
     padding-top: 0; /* No need for extra padding */
