@@ -48,3 +48,12 @@ Double-check of all profile song player, edit-profile layout, and default-tab fi
 - **Autoplay:** Only on public profile (ProfileMoodSongBlock passes `autoPlay`). Edit-profile mini-preview uses `autoPlay={false}`.
 - **Pause:** SoundCloud uses widget `getPaused()` on click so pause works even if React state was wrong.
 - **Hidden embed:** Kept at `left: 0`, `top: 0` (1x1, opacity 0) so the widget can load/play; bar has z-index 1 so button stays clickable.
+
+---
+
+## Mobile overflow (2026-02-01)
+
+- **Issue:** Account/Edit profile top buttons and the Activity/Gallery/Notes/… tab row were causing horizontal overflow on mobile.
+- **Fix:** `.account-card`: added `max-width: 100%`, `overflow-x: hidden`. `.account-edit-card` and `.account-edit-card--tabs-bottom`: added `max-width: 100%`, `overflow-x: hidden`, `min-width: 0` so the tab pill scrolls inside the card and does not expand the page.
+- **Fix:** `.account-tabs`: added `max-width: 100%`, `min-width: 0`, `overflow-x: hidden`; `.account-tabs button`: `min-width: 0` so the Account/Edit profile buttons can shrink. At 480px: `.account-tabs` gap 8px, `.account-tabs button` padding 6px 8px, font-size 13px.
+- **Result:** Card and edit card clip horizontal overflow; the tab pill (Activity, Gallery, …) scrolls horizontally inside the card. Top Account/Edit profile buttons stay within the width on narrow viewports.
