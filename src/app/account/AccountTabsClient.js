@@ -633,8 +633,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const tabBase = {
     padding: '8px 12px',
     background: 'transparent',
-    border: 'none',
-    borderBottom: '2px solid transparent',
+    border: '1px solid rgba(52, 225, 255, 0.2)',
+    borderRadius: '8px',
+    borderBottom: '1px solid rgba(52, 225, 255, 0.2)',
     cursor: 'pointer',
     fontSize: '15px',
     whiteSpace: 'nowrap',
@@ -805,7 +806,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           onClick={() => handleTabChange('account')}
           style={{
             ...tabBase,
-            borderBottomColor: activeTab === 'account' ? 'var(--accent)' : 'transparent',
+            borderBottom: activeTab === 'account' ? '3px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.2)',
             color: activeTab === 'account' ? 'var(--accent)' : 'var(--muted)',
             fontWeight: activeTab === 'account' ? '600' : '400'
           }}
@@ -817,7 +818,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           onClick={() => handleTabChange('profile')}
           style={{
             ...tabBase,
-            borderBottomColor: activeTab === 'profile' ? 'var(--accent)' : 'transparent',
+            borderBottom: activeTab === 'profile' ? '3px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.2)',
             color: activeTab === 'profile' ? 'var(--accent)' : 'var(--muted)',
             fontWeight: activeTab === 'profile' ? '600' : '400'
           }}
@@ -863,116 +864,43 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
             <div className="account-profile-preview">
-              {/* Row 1: Avatar + Mini Preview (left) | Username + Edit Avatar (right) */}
-              <div className="account-profile-preview-row-1">
-                <div className="account-profile-preview-avatar-container">
-                  <div className="profile-card-header-avatar">
-                    {user.avatar_key ? (
-                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
-                    ) : (
-                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
-                    )}
-                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
-                    </div>
-                  </div>
-                  {/* Edit Avatar button - positioned next to avatar on mobile, in username row on desktop */}
-                  {!isEditingUsername && (
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                      disabled={isEditingAvatar}
-                      className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--mobile"
-                      style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
-                    >
-                      Edit Avatar
-                    </button>
+              <div className="account-profile-preview-avatar-container">
+                <div className="profile-card-header-avatar">
+                  {user.avatar_key ? (
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
+                  ) : (
+                    <div className="no-avatar-placeholder">No avatar</div>
                   )}
                 </div>
-                <div className="account-profile-preview-row-1-right">
-                  <div className="account-profile-preview-user-info">
-                    {!isEditingUsername && (
-                      <button
-                        type="button"
-                        onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                        disabled={isEditingAvatar}
-                        className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
-                        style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
-                      >
-                        Edit Avatar
-                      </button>
-                    )}
-                    <div className="account-username-row">
-                      <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
-                      {!isEditingUsername ? (
-                        <button
-                          type="button"
-                          onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
-                          className="account-edit-profile-btn account-edit-username-btn"
-                          style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '0px', alignSelf: 'flex-end' }}
-                        >
-                          Edit Username
-                        </button>
-                      ) : (
-                        <div className="edit-username-form" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'flex-end' }}>
-                          <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
-                          <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
-                          <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
-                        </div>
-                      )}
-                    </div>
-                    {isEditingUsername && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-                        {colorOptions.map((option) => {
-                          const isSelected = selectedColorIndex === option.index;
-                          const disabled = usernameStatus.type === 'loading';
-                          return (
-                            <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} className="color-picker-btn" style={{ minHeight: 0, width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
-                          );
-                        })}
-                      </div>
-                    )}
-                    {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
-                    {/* Role directly under username */}
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0px', textAlign: 'center' }}>{roleLabel}</div>
-                    {/* Mood directly under role */}
-                    {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                      <div
-                        className="profile-mood-chip"
-                        style={{
-                          marginTop: '0px',
-                          alignSelf: 'center',
-                          ...accountMoodChipStyle,
-                        }}
-                      >
-                        <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
-                      </div>
-                    )}
+              </div>
+
+              <div className="account-profile-preview-buttons-container">
+                <button
+                  type="button"
+                  onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                  className="account-edit-profile-btn account-edit-username-btn"
+                >
+                  Edit Username
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                  disabled={isEditingAvatar}
+                  className="account-edit-profile-btn account-edit-avatar-btn"
+                >
+                  Edit Avatar
+                </button>
+              </div>
+
+              <div className="account-profile-preview-user-info">
+                <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
+                {(stats.profileMoodText || stats.profileMoodEmoji) && (
+                  <div className="profile-mood-chip" style={accountMoodChipStyle}>
+                    <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
                   </div>
-                </div>
+                )}
               </div>
-              {/* Song below all rows */}
-              <div className="account-profile-preview-song">
-                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
-                  <ProfileSongPlayer
-                    provider={stats.profileSongProvider}
-                    songUrl={stats.profileSongUrl}
-                    autoPlay={false}
-                    providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
-                    compact
-                  />
-                ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
-                  <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
-                ) : null}
-                {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
-              </div>
-              {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
-              {isEditingAvatar && (
-                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
-                </div>
-              )}
             </div>
 
             {editProfileSubTab && (
