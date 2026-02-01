@@ -120,6 +120,7 @@ a {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 32px 20px 48px;
+  height: 100%; /* Ensure site container fills height */
 }
 
 header {
@@ -795,6 +796,8 @@ main {
   gap: 20px;
   overflow-y: visible;
   overflow-x: hidden;
+  flex: 1; /* Allow main to fill remaining height in flex parent */
+  height: 100%; /* Ensure main container fills height */
 }
 
 .card {
@@ -806,6 +809,7 @@ main {
   position: relative;
   isolation: isolate;
   backdrop-filter: blur(12px);
+  height: 100%; /* Ensure card container fills height */
 }
 
 /* Allow account/profile card to shrink with viewport; no inner scroll so only window (and Recent activity list) scroll */
@@ -1097,20 +1101,26 @@ main {
 }
 
 /* Player Outline Colors */
-.profile-song-player--soundcloud {
-  --neon-default-gradient: rgba(255, 107, 0, 0.9); /* Orange */
-  --neon-default-glow-1: rgba(255, 107, 0, 0.4); /* Orange glow */
-  --neon-default-glow-2: rgba(255, 107, 0, 0.2); /* Lighter orange glow */
+.profile-song-player--soundcloud.neon-outline-card::before {
+  background: rgba(255, 107, 0, 0.9); /* Orange */
+  animation: none; /* Disable chasing animation */
 }
-.profile-song-player--youtube {
-  --neon-default-gradient: rgba(255, 0, 0, 0.9); /* Red */
-  --neon-default-glow-1: rgba(255, 0, 0, 0.4); /* Red glow */
-  --neon-default-glow-2: rgba(255, 0, 0, 0.2); /* Lighter red glow */
+.profile-song-player--soundcloud.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4), 0 0 32px rgba(255, 107, 0, 0.2); /* Orange glow */
 }
-.profile-song-player--spotify {
-  --neon-default-gradient: rgba(30, 215, 96, 0.9); /* Green */
-  --neon-default-glow-1: rgba(30, 215, 96, 0.4); /* Green glow */
-  --neon-default-glow-2: rgba(30, 215, 96, 0.2); /* Lighter green glow */
+.profile-song-player--youtube.neon-outline-card::before {
+  background: rgba(255, 0, 0, 0.9); /* Red */
+  animation: none;
+}
+.profile-song-player--youtube.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4), 0 0 32px rgba(255, 0, 0, 0.2); /* Red glow */
+}
+.profile-song-player--spotify.neon-outline-card::before {
+  background: rgba(30, 215, 96, 0.9); /* Green */
+  animation: none;
+}
+.profile-song-player--spotify.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4), 0 0 32px rgba(30, 215, 96, 0.2); /* Green glow */
 }
 
 /* Public Profile Desktop Layout (Mood/Song Block) */
