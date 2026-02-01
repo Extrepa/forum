@@ -129,8 +129,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           const res = await fetch('/api/account/stats');
           if (res.ok) {
             const data = await res.json();
-            setStats(data);
-            // Update social links if they changed
+            const apiHasExtras =
+              (data.profileSongUrl != null && data.profileSongUrl !== '') ||
+              (data.profileMoodText != null && data.profileMoodText !== '');
+            setStats((prev) => {
+              if (apiHasExtras) return data;
+              if (!prev) return data;
+              return {
+                ...data,
+                profileMoodText: prev.profileMoodText ?? '',
+                profileMoodEmoji: prev.profileMoodEmoji ?? '',
+                profileHeadline: prev.profileHeadline ?? '',
+                profileSongUrl: prev.profileSongUrl ?? '',
+                profileSongProvider: prev.profileSongProvider ?? '',
+                profileSongAutoplayEnabled: prev.profileSongAutoplayEnabled ?? false,
+              };
+            });
             if (data.profileLinks) {
               const platforms = ['github', 'youtube', 'soundcloud', 'discord', 'chatgpt'];
               const linkMap = {};
@@ -145,7 +159,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 featured: linkMap[platform]?.featured ?? false
               })));
             }
-            // Do not overwrite profile extras here - they are synced from initialStats and after save (to avoid overwriting in-progress edit when poll runs)
           }
         } catch (e) {
           // Silently fail - stats will just be stale
@@ -363,6 +376,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const handleSaveExtras = async (e) => {
     e?.preventDefault?.();
     setExtrasStatus({ type: 'loading', message: null });
+    const songUrlTrimmed = (profileSongUrl ?? '').trim();
+    if (songUrlTrimmed) {
+      try {
+        new URL(songUrlTrimmed);
+      } catch (_) {
+        setExtrasStatus({ type: 'error', message: 'Please enter a valid song URL (e.g. https://soundcloud.com/... or https://www.youtube.com/...)' });
+        return;
+      }
+    }
     try {
       const res = await fetch('/api/account/profile-extras', {
         method: 'POST',
@@ -378,7 +400,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setExtrasStatus({ type: 'error', message: data.error || 'Save failed' });
+        const msg = data.error || 'Save failed';
+        const hint = data.hint ? ` ${data.hint}` : '';
+        setExtrasStatus({ type: 'error', message: msg + hint });
         return;
       }
       setExtrasStatus({ type: 'success', message: 'Saved.' });
@@ -406,13 +430,33 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       const refreshRes = await fetch('/api/account/stats');
       if (refreshRes.ok) {
         const refreshed = await refreshRes.json();
-        setStats(refreshed);
-        setProfileMoodText(refreshed.profileMoodText ?? '');
-        setProfileMoodEmoji(refreshed.profileMoodEmoji ?? '');
-        setProfileHeadline(refreshed.profileHeadline ?? '');
-        setProfileSongUrl(refreshed.profileSongUrl ?? '');
-        setProfileSongProvider(refreshed.profileSongProvider ?? '');
-        setProfileSongAutoplay(Boolean(refreshed.profileSongAutoplayEnabled));
+        setStats((prev) => {
+          const next = { ...refreshed };
+          const apiHasExtras =
+            (refreshed.profileSongUrl != null && refreshed.profileSongUrl !== '') ||
+            (refreshed.profileMoodText != null && refreshed.profileMoodText !== '');
+          if (!apiHasExtras && prev) {
+            next.profileMoodText = prev.profileMoodText ?? '';
+            next.profileMoodEmoji = prev.profileMoodEmoji ?? '';
+            next.profileHeadline = prev.profileHeadline ?? '';
+            next.profileSongUrl = prev.profileSongUrl ?? '';
+            next.profileSongProvider = prev.profileSongProvider ?? '';
+            next.profileSongAutoplayEnabled = prev.profileSongAutoplayEnabled ?? false;
+          }
+          return next;
+        });
+        const finalMoodText = refreshed.profileMoodText ?? moodText;
+        const finalMoodEmoji = refreshed.profileMoodEmoji ?? moodEmoji;
+        const finalHeadline = refreshed.profileHeadline ?? headline;
+        const finalSongUrl = refreshed.profileSongUrl ?? songUrl;
+        const finalSongProvider = refreshed.profileSongProvider ?? songProvider;
+        const finalAutoplay = refreshed.profileSongAutoplayEnabled !== undefined ? refreshed.profileSongAutoplayEnabled : profileSongAutoplay;
+        setProfileMoodText(finalMoodText);
+        setProfileMoodEmoji(finalMoodEmoji);
+        setProfileHeadline(finalHeadline);
+        setProfileSongUrl(finalSongUrl);
+        setProfileSongProvider(finalSongProvider ?? '');
+        setProfileSongAutoplay(Boolean(finalAutoplay));
       }
       setTimeout(() => setExtrasStatus({ type: 'idle', message: null }), 2000);
     } catch (err) {
