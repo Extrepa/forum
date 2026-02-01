@@ -1016,61 +1016,23 @@ main {
   margin-left: auto;
 }
 
-/* Row 2: spacer (left) | Role + Edit Username (right) */
-.account-profile-preview-row-2 {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  min-width: 0;
-  margin-bottom: 6px;
-}
-.account-profile-preview-row-spacer {
-  width: 96px;
-  flex-shrink: 0;
-}
-.account-profile-preview-row-2-right {
-  flex: 1;
-  min-width: 0;
-}
-.account-role-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-}
 
-/* Row 3: spacer (left) | Mood (right) */
-.account-profile-preview-row-3 {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  min-width: 0;
-  margin-bottom: 8px;
-}
-.account-profile-preview-row-3-right {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Song section below all rows - allow full width to show complete song info */
+/* Song section below all rows - fit content width, expand if needed */
 .account-profile-preview-song {
   margin-top: 8px;
   min-width: 0;
-  width: 100%;
+  width: fit-content;
   max-width: 100%;
 }
 .account-profile-preview-song .profile-song-player--compact {
   max-width: 100%;
-  width: 100%;
+  width: fit-content;
+  min-width: min-content;
 }
 .account-profile-preview-song .profile-song-player-bar {
-  width: 100%;
+  width: fit-content;
   max-width: 100%;
-  min-width: 0;
+  min-width: min-content;
 }
 .account-profile-preview-song .profile-song-player-name,
 .account-profile-preview-song .profile-song-player-link {
@@ -1083,7 +1045,8 @@ main {
 }
 .account-profile-preview-song .profile-song-compact {
   max-width: 100%;
-  width: 100%;
+  width: fit-content;
+  min-width: min-content;
 }
 .account-profile-preview-song .profile-song-compact .profile-song-link {
   overflow: visible !important;
@@ -1127,9 +1090,6 @@ main {
 /* Desktop: compact layout - rows aligned with avatar */
 @media (min-width: 769px) {
   .account-username-row {
-    flex-wrap: nowrap;
-  }
-  .account-role-row {
     flex-wrap: nowrap;
   }
 }
@@ -2554,23 +2514,6 @@ button:hover {
     text-align: center;
   }
 
-  .account-profile-preview-row-2,
-  .account-profile-preview-row-3 {
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .account-profile-preview-row-spacer {
-    display: none;
-  }
-
-  .account-profile-preview-row-2-right,
-  .account-profile-preview-row-3-right {
-    width: 100%;
-    align-items: center;
-    text-align: center;
-  }
 
   .account-profile-preview-avatar-action {
     flex-shrink: 0;
@@ -2608,11 +2551,6 @@ button:hover {
     flex-wrap: wrap;
   }
 
-  .account-role-row {
-    justify-content: center;
-    width: 100%;
-    flex-wrap: wrap;
-  }
 
   .account-profile-preview-song {
     width: 100%;
@@ -2678,10 +2616,6 @@ button:hover {
     width: 100%;
   }
 
-  .account-role-row {
-    justify-content: center;
-    width: 100%;
-  }
 
   .tabs-pill {
     padding: 5px;

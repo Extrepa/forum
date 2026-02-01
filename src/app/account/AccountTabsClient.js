@@ -950,6 +950,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       </div>
                     )}
                   </div>
+                  {!isEditingUsername && (
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                      className="account-edit-profile-btn account-edit-username-btn"
+                      style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto', marginTop: '4px', alignSelf: 'flex-end' }}
+                    >
+                      Edit Username
+                    </button>
+                  )}
                   {isEditingUsername && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                       {colorOptions.map((option) => {
@@ -962,36 +972,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   )}
                   {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
+                  {/* Role directly under username */}
+                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                  {/* Mood directly under role */}
+                  {(stats.profileMoodText || stats.profileMoodEmoji) && (
+                    <div className="profile-mood-chip" style={{ marginTop: '4px' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
+                  )}
                 </div>
               </div>
-              {/* Row 2: (spacer) | Role + Edit Username (right) */}
-              <div className="account-profile-preview-row-2">
-                <div className="account-profile-preview-row-spacer"></div>
-                <div className="account-profile-preview-row-2-right">
-                  <div className="account-role-row">
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
-                    {!isEditingUsername && (
-                      <button
-                        type="button"
-                        onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
-                        className="account-edit-profile-btn account-edit-username-btn"
-                        style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto' }}
-                      >
-                        Edit Username
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Row 3: (spacer) | Mood (right) */}
-              {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                <div className="account-profile-preview-row-3">
-                  <div className="account-profile-preview-row-spacer"></div>
-                  <div className="account-profile-preview-row-3-right">
-                    <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
-                  </div>
-                </div>
-              )}
               {/* Song below all rows */}
               <div className="account-profile-preview-song">
                 {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
