@@ -5786,3 +5786,30 @@ header::before {
 }
 .color-picker-btn:hover { transform: none; }
 .account-edit-profile-btn--small { padding: 4px 12px; font-size: 12px; min-width: 100px; width: auto; }
+
+@media (max-width: 640px) {
+  .account-profile-preview {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .account-profile-preview-avatar-container {
+    position: static;
+    align-items: flex-start;
+  }
+  .account-profile-preview-buttons-container {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .account-edit-profile-btn--small {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-width: 120px;
+  }
+  .account-profile-preview-user-info {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+

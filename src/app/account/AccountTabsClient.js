@@ -900,14 +900,28 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
                 <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
                 {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                  <div className="profile-mood-chip" style={accountMoodChipStyle}>
-                    <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
+                    <div className="profile-mood-chip" style={accountMoodChipStyle}>
+                      <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
+                    </div>
                   </div>
                 )}
+                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
+                  <ProfileSongPlayer
+                    provider={stats.profileSongProvider}
+                    songUrl={stats.profileSongUrl}
+                    autoPlay={false}
+                    providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                    compact
+                  />
+                ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
+                  <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
+                ) : null}
               </div>
             </div>
             {isEditingUsername && (
-              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'center' }}>
                     <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
                     <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
@@ -926,7 +940,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               </div>
             )}
             {isEditingAvatar && (
-              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
                 <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
               </div>
             )}
