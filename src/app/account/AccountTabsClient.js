@@ -918,16 +918,30 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             <div className="account-profile-preview">
               {/* Row 1: Avatar + Mini Preview (left) | Username + Edit Avatar (right) */}
               <div className="account-profile-preview-row-1">
-                <div className="profile-card-header-avatar">
-                  {user.avatar_key ? (
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
-                  ) : (
-                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
-                  )}
-                  <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
+                <div className="account-profile-preview-avatar-container">
+                  <div className="profile-card-header-avatar">
+                    {user.avatar_key ? (
+                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
+                    ) : (
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
+                    )}
+                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
+                    </div>
                   </div>
+                  {/* Edit Avatar button - positioned next to avatar on mobile, in username row on desktop */}
+                  {!isEditingUsername && (
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                      disabled={isEditingAvatar}
+                      className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--mobile"
+                      style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
+                    >
+                      Edit Avatar
+                    </button>
+                  )}
                 </div>
                 <div className="account-profile-preview-row-1-right">
                   <div className="account-username-row">
@@ -937,7 +951,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         type="button"
                         onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
                         disabled={isEditingAvatar}
-                        className="account-edit-profile-btn account-edit-avatar-btn"
+                        className="account-edit-profile-btn account-edit-avatar-btn account-edit-avatar-btn--desktop"
                         style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
                       >
                         Edit Avatar
@@ -972,12 +986,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   )}
                   {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && isEditingUsername && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block' }}>{usernameStatus.message}</span>}
-                  {/* Role directly under username */}
-                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
-                  {/* Mood directly under role */}
-                  {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                    <div className="profile-mood-chip" style={{ marginTop: '4px' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
-                  )}
+                  {/* Role directly under username - aligned with username text */}
+                  <div className="account-profile-preview-role-mood">
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                    {/* Mood directly under role */}
+                    {(stats.profileMoodText || stats.profileMoodEmoji) && (
+                      <div className="profile-mood-chip" style={{ marginTop: '2px' }}><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>
+                    )}
+                  </div>
                 </div>
               </div>
               {/* Song below all rows */}

@@ -1000,6 +1000,13 @@ main {
   min-width: 0;
   margin-bottom: 8px;
 }
+.account-profile-preview-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+}
 .account-profile-preview-row-1 .profile-card-header-avatar {
   flex-shrink: 0;
 }
@@ -1010,6 +1017,19 @@ main {
   flex-direction: column;
   align-items: flex-start;
 }
+.account-profile-preview-role-mood {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+/* Desktop: hide mobile Edit Avatar button, show desktop one */
+.account-edit-avatar-btn--mobile {
+  display: none;
+}
+.account-edit-avatar-btn--desktop {
+  display: block;
+}
 .account-profile-preview-avatar-action {
   flex-shrink: 0;
   align-self: center;
@@ -1017,22 +1037,34 @@ main {
 }
 
 
-/* Song section below all rows - fit content width, expand if needed */
+/* Song section below all rows - fit content width exactly, centered */
 .account-profile-preview-song {
   margin-top: 8px;
   min-width: 0;
   width: fit-content;
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
 }
 .account-profile-preview-song .profile-song-player--compact {
   max-width: 100%;
   width: fit-content;
   min-width: min-content;
+  display: inline-flex;
+  flex-direction: column;
 }
 .account-profile-preview-song .profile-song-player-bar {
   width: fit-content;
   max-width: 100%;
-  min-width: min-content;
+  min-width: min-content !important;
+  display: inline-flex;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.account-profile-preview-song .profile-song-player--compact .profile-song-player-bar {
+  min-width: min-content !important;
 }
 .account-profile-preview-song .profile-song-player-name,
 .account-profile-preview-song .profile-song-player-link {
@@ -1040,13 +1072,15 @@ main {
   text-overflow: clip !important;
   white-space: normal !important;
   word-break: break-word;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
 }
 .account-profile-preview-song .profile-song-compact {
   max-width: 100%;
   width: fit-content;
   min-width: min-content;
+  display: inline-flex;
+  box-sizing: border-box;
 }
 .account-profile-preview-song .profile-song-compact .profile-song-link {
   overflow: visible !important;
@@ -2501,29 +2535,52 @@ button:hover {
     gap: 12px;
   }
 
-  /* Account edit preview: mobile - stack vertically, center everything */
+  /* Account edit preview: mobile - avatar + mini preview + Edit Avatar in same row */
   .account-profile-preview-row-1 {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
   }
 
-  .account-profile-preview-row-1-right {
-    width: 100%;
-    align-items: center;
-    text-align: center;
+  .account-profile-preview-avatar-container {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 12px;
   }
 
-
-  .account-profile-preview-avatar-action {
-    flex-shrink: 0;
-    margin-left: auto;
-  }
-
-  .account-profile-preview .profile-card-header-avatar {
+  .account-profile-preview-row-1 .profile-card-header-avatar {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  .account-profile-preview-row-1-right {
+    flex: 1;
+    min-width: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .account-profile-preview-row-1 .account-username-row {
+    width: 100%;
+    justify-content: flex-start;
     align-items: center;
+  }
+
+  /* Mobile: show mobile Edit Avatar button, hide desktop one */
+  .account-edit-avatar-btn--mobile {
+    display: block;
+    align-self: flex-end;
+    margin-top: 0;
+  }
+  .account-edit-avatar-btn--desktop {
+    display: none;
+  }
+
+  .account-profile-preview-avatar-action {
+    display: none; /* Hide separate avatar action on mobile */
   }
 
   .account-profile-preview .account-edit-avatar-btn,
@@ -2556,6 +2613,8 @@ button:hover {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .account-profile-preview .profile-song-player,
@@ -2599,21 +2658,36 @@ button:hover {
   }
 }
 
-/* Narrow viewports: same as 768px - vertical stack, centered */
+/* Narrow viewports: same as 768px - avatar + Edit Avatar in same row */
 @media (max-width: 600px) {
   .account-profile-preview-row-1 {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .account-profile-preview-avatar-container {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 12px;
   }
 
   .account-profile-preview-row-1-right {
-    width: 100%;
-    align-items: center;
+    flex: 1;
+    min-width: 0;
+    align-items: flex-start;
   }
 
   .account-username-row {
-    justify-content: center;
+    justify-content: flex-start;
     width: 100%;
+  }
+
+  .account-edit-avatar-btn--mobile {
+    display: block;
+  }
+  .account-edit-avatar-btn--desktop {
+    display: none;
   }
 
 
