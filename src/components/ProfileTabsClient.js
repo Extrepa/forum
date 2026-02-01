@@ -243,7 +243,7 @@ export default function ProfileTabsClient({
 
       {activeTab === 'guestbook' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Notes</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Notes</h4>
           {canLeaveMessage && profileUsername && (
             <form onSubmit={handleLeaveMessage} style={{ marginBottom: '16px' }}>
               <textarea
@@ -296,9 +296,13 @@ export default function ProfileTabsClient({
                     borderRadius: '10px',
                     border: '1px solid rgba(52, 225, 255, 0.15)',
                     background: 'rgba(2, 7, 10, 0.35)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
                     <span className="muted" style={{ fontSize: '12px' }} suppressHydrationWarning>{formatGuestbookDate(entry.created_at)}</span>
                   </div>

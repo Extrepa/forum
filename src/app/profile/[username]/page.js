@@ -47,12 +47,22 @@ export default async function ProfilePage({ params }) {
       .bind(username.toLowerCase())
       .first();
   } catch (e) {
-    profileUser = await db
-      .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, default_profile_tab FROM users WHERE username_norm = ?'
-      )
-      .bind(username.toLowerCase())
-      .first();
+    try {
+      profileUser = await db
+        .prepare(
+          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, default_profile_tab FROM users WHERE username_norm = ?'
+        )
+        .bind(username.toLowerCase())
+        .first();
+    } catch (_) {
+      profileUser = await db
+        .prepare(
+          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+        )
+        .bind(username.toLowerCase())
+        .first();
+      if (profileUser) profileUser.default_profile_tab = null;
+    }
   }
 
   if (!profileUser) {

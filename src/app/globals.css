@@ -1009,6 +1009,18 @@ main {
   min-width: 0;
 }
 
+/* Tighter spacing between tab section title and content (Notes, Gallery, Activity, Mood, Socials, Stats) */
+.account-edit-panel .section-title {
+  margin-bottom: 4px;
+}
+
+/* Edit Username / Edit Avatar same width on desktop */
+@media (min-width: 769px) {
+  .account-edit-profile-btn {
+    min-width: 130px;
+  }
+}
+
 .color-picker-btn {
   position: relative;
   aspect-ratio: 1 / 1 !important;

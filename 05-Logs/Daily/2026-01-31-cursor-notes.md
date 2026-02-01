@@ -95,3 +95,13 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Profile page fallback:** When the main user SELECT on the profile page threw (e.g. missing column), the catch used a fallback query that did not include `default_profile_tab`, so `initialTab` was always null. Fallback query now includes `default_profile_tab` so the default tab is used when the main query fails.
 - **Account page fallback:** First fallback SELECT in account/page.js (when the long user-info query fails) now includes `default_profile_tab` so the edit-profile view still gets the saved default when the long query fails.
 - **Files:** `src/app/account/AccountTabsClient.js`, `src/app/profile/[username]/page.js`, `src/app/account/page.js`.
+
+---
+
+## Edit buttons, section padding, profile error, Notes layout
+
+- **Edit Username / Edit Avatar same size on desktop:** Added class `account-edit-profile-btn` to both buttons; in globals.css at min-width 769px set `min-width: 130px` so both buttons are the same width.
+- **Padding between tab header and content:** Added `.account-edit-panel .section-title { margin-bottom: 4px }`. Reduced header-row and first-paragraph marginBottom in AccountTabsClient for Notes (4px/8px), Gallery (4px/8px), Mood & Song (4px), Socials (4px), Stats (4px), Activity (4px); reduced marginTop on activity list and stats block to 4px. ProfileTabsClient Notes section title marginBottom set to 4px.
+- **Profile page not loading (server error):** Fallback user query included `default_profile_tab`; if that column is missing (migration not run), the fallback threw. Wrapped fallback in inner try/catch: first try fallback with `default_profile_tab`, on throw try fallback without it and set `profileUser.default_profile_tab = null` so the page loads.
+- **Notes: user/date top-left:** In AccountTabsClient and ProfileTabsClient, guestbook entry layout: author and date are in a single row top-left (flex, gap 6px); entry container uses gap 4px between meta row and message content. Delete button remains on the same row as author/date (right) in AccountTabsClient; ProfileTabsClient has no Delete (view-only).
+- **Files:** `src/app/account/AccountTabsClient.js`, `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src/components/ProfileTabsClient.js`.

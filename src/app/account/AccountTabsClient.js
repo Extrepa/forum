@@ -846,6 +846,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <button
                           type="button"
                           onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
+                          className="account-edit-profile-btn"
                           style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}
                         >
                           Edit Username
@@ -854,6 +855,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           type="button"
                           onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
                           disabled={isEditingAvatar}
+                          className="account-edit-profile-btn"
                           style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
                         >
                           Edit Avatar
@@ -893,7 +895,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               {editProfileSubTab === 'mood' && (
                 <div className="account-edit-panel">
                 <h2 className="section-title" style={{ margin: 0 }}>Mood & Song</h2>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
                   <span className="muted" style={{ fontSize: '13px' }}>Shown on your public profile header.</span>
                   <button
                     type="button"
@@ -951,13 +953,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               {editProfileSubTab === 'socials' && (
                 <div className="account-edit-panel">
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
-                  <h2 className="section-title" style={{ margin: 0 }}>Socials</h2>
+                  <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Socials</h2>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={defaultProfileTab === 'socials'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'socials' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
                     <span>Set as profile default</span>
                   </label>
                 </div>
-                <p className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>These links appear on your profile in the Socials tab (Lately).</p>
+                <p className="muted" style={{ fontSize: '12px', marginBottom: '4px' }}>These links appear on your profile in the Socials tab (Lately).</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
                   <div style={{ minWidth: 0 }}>
                     {/* Social Links Display - only show when NOT editing socials */}
@@ -1214,14 +1216,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'gallery' && (
                 <div className="account-edit-panel">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
-                    <h2 className="section-title" style={{ margin: 0 }}>Gallery</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                    <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Gallery</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'gallery'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'gallery' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
                   <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
@@ -1299,14 +1301,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                     <h2 className="section-title" style={{ margin: 0 }}>Notes</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'guestbook'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'guestbook' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
                   {guestbookEntries.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {guestbookEntries.map((entry) => (
@@ -1319,13 +1321,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             background: 'rgba(2, 7, 10, 0.35)',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '8px',
+                            gap: '4px',
+                            alignItems: 'flex-start',
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
                               <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
-                              <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
+                              <span className="muted" style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
                             </div>
                             <button
                               type="button"
@@ -1361,7 +1364,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'stats' && (
                 <div className="account-edit-panel">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                     <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'stats'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'stats' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
@@ -1369,7 +1372,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </label>
                   </div>
                   {stats ? (
-                    <div className="profile-stats-block profile-stats-block--grid" style={{ marginTop: '8px' }}>
+                    <div className="profile-stats-block profile-stats-block--grid" style={{ marginTop: '4px' }}>
                       <div className="profile-stats-grid">
                         <span className="profile-stat">
                           <span className="profile-stat-label">Portal entry</span>
@@ -1392,7 +1395,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
               {editProfileSubTab === 'activity' && (
                 <div className="account-edit-panel">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                     <h2 className="section-title" style={{ margin: 0 }}>Recent activity</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'activity'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'activity' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
@@ -1400,7 +1403,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </label>
                   </div>
                   {activityItems.length > 0 ? (
-                    <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '8px' }}>
+                    <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '4px' }}>
                       {activityItems.map(item => (
                         <a key={item.key} href={item.href} className="profile-activity-item">
                           {item.type === 'thread' ? (
