@@ -81,5 +81,46 @@ export function safeEmbedFromUrl(type, url, embedStyle = 'auto', autoPlay = fals
     };
   }
 
+  if (type === 'spotify') {
+    const id = parseSpotifyId(url);
+    if (!id) {
+      return null;
+    }
+    const src = spotifyPlayerSrc(id, autoPlay); // Autoplay not directly in standard embed, but might be possible with API
+    return {
+      src,
+      allow: 'encrypted-media',
+      allowFullScreen: true,
+      aspect: 'spotify', // Custom aspect class for Spotify
+      height: 380 // Standard Spotify embed height for track
+    };
+  }
+
   return null;
+}
+
+function parseSpotifyId(url) {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    const trackMatch = path.match(/\/track\/([a-zA-Z0-9]+)/);
+    if (trackMatch?.[1]) {
+      return trackMatch[1];
+    }
+    const albumMatch = path.match(/\/album\/([a-zA-Z0-9]+)/);
+    if (albumMatch?.[1]) {
+      return albumMatch[1];
+    }
+    const playlistMatch = path.match(/\/playlist\/([a-zA-Z0-9]+)/);
+    if (playlistMatch?.[1]) {
+      return playlistMatch[1];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function spotifyPlayerSrc(id, autoPlay = false) { // Autoplay not standard for embeds, but including param
+  return `https://open.spotify.com/embed/${id}?utm_source=generator${autoPlay ? '&autoplay=true' : ''}`;
 }

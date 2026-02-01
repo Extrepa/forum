@@ -1059,6 +1059,7 @@ main {
 @media (max-width: 640px) {
   .account-profile-preview {
     padding: 16px; /* Reset padding for mobile */
+    margin-bottom: 0; /* Remove bottom margin for compact mobile display */
     flex-direction: column;
     align-items: center;
     min-height: auto; /* Allow height to adjust */
@@ -1089,6 +1090,23 @@ main {
     width: 100% !important; /* Ensure player takes full width on mobile */
     max-width: 100% !important;
   }
+}
+
+/* Player Outline Colors */
+.profile-song-player--soundcloud {
+  --ui-border-color: rgba(255, 107, 0, 0.6); /* Orange */
+  border-color: var(--ui-border-color);
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4);
+}
+.profile-song-player--youtube {
+  --ui-border-color: rgba(255, 0, 0, 0.6); /* Red */
+  border-color: var(--ui-border-color);
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+}
+.profile-song-player--spotify {
+  --ui-border-color: rgba(30, 215, 96, 0.6); /* Green */
+  border-color: var(--ui-border-color);
+  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4);
 }
 
 /* Public Profile Desktop Layout (Mood/Song Block) */
@@ -1130,21 +1148,24 @@ main {
   }
 
   .profile-mood-song-block-right-column {
-    flex: 0 0 auto; /* Right column size based on content */
-    width: 100%; /* Allow player to take full width of its column */
-    max-width: 450px; /* Adjust max-width to allow slightly larger player, considering card padding */
-    justify-content: flex-end; /* Align player to right */
-    align-items: flex-start; /* Ensure player aligns to top-right within its column */
+    position: relative; /* Establish positioning context for absolute player */
+    flex: 0 0 450px; /* Give it a fixed width for the player */
     height: 100%; /* Right column fills height */
     display: flex; /* Make it a flex container */
     flex-direction: column; /* Stack its children */
+    align-items: flex-start; /* Align contents to top */
+    justify-content: flex-start; /* Align contents to start */
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
+    position: absolute; /* Lock to top-right corner of its parent */
+    top: 0;
+    right: 0;
     height: 100%; /* Player fills height of right column */
     width: 100%; /* Player fills width of right column */
-    max-width: none; /* Remove max-width restriction on desktop for full fill */
+    max-width: none; /* Remove max-width restriction for full fill */
     margin-top: 0; /* Remove top margin */
+    border-radius: 8px; /* Ensure player maintains rounded corners */
   }
 }
 
