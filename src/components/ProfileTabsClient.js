@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const PROFILE_TABS = [
   { id: 'stats', label: 'Stats' },
@@ -18,6 +19,12 @@ function getRarityColor(value) {
   return '#b794f6';
 }
 
+function formatGuestbookDate(ts) {
+  if (ts == null) return '';
+  const d = new Date(typeof ts === 'number' ? ts : parseInt(ts, 10));
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { dateStyle: 'short' }) + ' ' + d.toLocaleTimeString(undefined, { timeStyle: 'short' });
+}
+
 const VALID_TAB_IDS = ['stats', 'activity', 'socials', 'gallery', 'guestbook'];
 
 export default function ProfileTabsClient({
@@ -29,11 +36,58 @@ export default function ProfileTabsClient({
   filesEnabled,
   stats,
   initialTab,
+  guestbookEntries = [],
+  profileUsername,
+  canLeaveMessage = false,
+  galleryEntries = [],
 }) {
+  const router = useRouter();
   const tabs = useMemo(() => PROFILE_TABS, []);
   const resolvedInitial = initialTab && VALID_TAB_IDS.includes(initialTab) ? initialTab : 'stats';
   const [activeTab, setActiveTab] = useState(resolvedInitial);
+  const [guestbookList, setGuestbookList] = useState(guestbookEntries);
+  const [guestbookContent, setGuestbookContent] = useState('');
+  const [guestbookSubmitting, setGuestbookSubmitting] = useState(false);
+  const [guestbookError, setGuestbookError] = useState(null);
   const activeIndex = tabs.findIndex(t => t.id === activeTab);
+
+  useEffect(() => {
+    setGuestbookList(guestbookEntries);
+  }, [guestbookEntries]);
+
+  const handleLeaveMessage = async (e) => {
+    e.preventDefault();
+    if (!profileUsername || !guestbookContent.trim() || guestbookSubmitting) return;
+    setGuestbookError(null);
+    setGuestbookSubmitting(true);
+    try {
+      const res = await fetch(`/api/user/${encodeURIComponent(profileUsername)}/guestbook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: guestbookContent.trim().slice(0, 2000) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setGuestbookError(data.error || 'Failed to leave message');
+        return;
+      }
+      setGuestbookContent('');
+      if (data.entry) {
+        setGuestbookList((prev) => [{
+          id: data.entry.id,
+          author_username: data.entry.author_username,
+          content: data.entry.content,
+          created_at: data.entry.created_at,
+        }, ...prev]);
+      } else {
+        router.refresh();
+      }
+    } catch (_) {
+      setGuestbookError('Something went wrong');
+    } finally {
+      setGuestbookSubmitting(false);
+    }
+  };
 
   return (
     <div className="profile-tabs-wrapper">
@@ -134,18 +188,107 @@ export default function ProfileTabsClient({
       {activeTab === 'gallery' && (
         <div>
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Gallery</h4>
-          <div className="muted" style={{ padding: '12px' }}>
-            {galleryCount > 0 ? `${galleryCount} photo${galleryCount === 1 ? '' : 's'} ready for the gallery.` : 'No photos uploaded yet.'}
-          </div>
+          {galleryEntries.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+              {galleryEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  style={{
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(52, 225, 255, 0.2)',
+                    background: 'rgba(2, 7, 10, 0.35)',
+                  }}
+                >
+                  <a href={`/api/media/${entry.image_key}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', lineHeight: 0 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/media/${entry.image_key}`}
+                      alt={entry.caption || 'Gallery image'}
+                      style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block' }}
+                    />
+                  </a>
+                  {entry.is_cover && <div style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--accent)', fontWeight: '600' }}>Cover</div>}
+                  {entry.caption && <p style={{ margin: 0, padding: '6px 8px', fontSize: '12px', color: 'var(--muted)' }}>{entry.caption}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="muted" style={{ padding: '12px' }}>No photos uploaded yet.</div>
+          )}
         </div>
       )}
 
       {activeTab === 'guestbook' && (
         <div>
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Guestbook</h4>
-          <div className="muted" style={{ padding: '12px' }}>
-            {notesCount > 0 ? `${notesCount} message${notesCount === 1 ? '' : 's'}.` : 'No messages yet. Your guestbook is ready for visitors.'}
-          </div>
+          {canLeaveMessage && profileUsername && (
+            <form onSubmit={handleLeaveMessage} style={{ marginBottom: '16px' }}>
+              <textarea
+                value={guestbookContent}
+                onChange={(e) => setGuestbookContent(e.target.value)}
+                placeholder="Leave a message..."
+                maxLength={2000}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(52, 225, 255, 0.3)',
+                  background: 'rgba(2, 7, 10, 0.6)',
+                  color: 'var(--ink)',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                  minHeight: '72px',
+                }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="submit"
+                  disabled={!guestbookContent.trim() || guestbookSubmitting}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'var(--accent)',
+                    color: 'var(--bg)',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: guestbookSubmitting ? 'not-allowed' : 'pointer',
+                    opacity: guestbookSubmitting ? 0.7 : 1,
+                  }}
+                >
+                  {guestbookSubmitting ? 'Sending…' : 'Leave message'}
+                </button>
+                {guestbookError && <span style={{ fontSize: '13px', color: '#ff6b6b' }}>{guestbookError}</span>}
+              </div>
+            </form>
+          )}
+          {guestbookList.length > 0 ? (
+            <div className="profile-activity-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {guestbookList.map((entry) => (
+                <div
+                  key={entry.id}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(52, 225, 255, 0.15)',
+                    background: 'rgba(2, 7, 10, 0.35)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
+                    <span className="muted" style={{ fontSize: '12px' }} suppressHydrationWarning>{formatGuestbookDate(entry.created_at)}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '14px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{entry.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="muted" style={{ padding: '12px' }}>
+              No messages yet. Your guestbook is ready for visitors.
+            </div>
+          )}
         </div>
       )}
 

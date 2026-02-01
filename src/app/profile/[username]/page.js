@@ -400,6 +400,52 @@ export default async function ProfilePage({ params }) {
     };
   }
 
+  let guestbookEntries = [];
+  try {
+    const gb = await db
+      .prepare(
+        `SELECT g.id, g.owner_user_id, g.author_user_id, g.content, g.created_at, u.username AS author_username
+         FROM guestbook_entries g
+         JOIN users u ON u.id = g.author_user_id
+         WHERE g.owner_user_id = ?
+         ORDER BY g.created_at DESC
+         LIMIT 200`
+      )
+      .bind(profileUser.id)
+      .all();
+    guestbookEntries = (gb.results || []).map((r) => ({
+      id: r.id,
+      author_username: r.author_username,
+      content: r.content,
+      created_at: r.created_at,
+    }));
+  } catch (_) {
+    guestbookEntries = [];
+  }
+
+  let galleryEntries = [];
+  try {
+    const gal = await db
+      .prepare(
+        `SELECT id, image_key, caption, is_cover, created_at
+         FROM user_gallery_images
+         WHERE user_id = ?
+         ORDER BY is_cover DESC, order_index ASC, created_at DESC
+         LIMIT 100`
+      )
+      .bind(profileUser.id)
+      .all();
+    galleryEntries = (gal.results || []).map((r) => ({
+      id: r.id,
+      image_key: r.image_key,
+      caption: r.caption || '',
+      is_cover: Boolean(r.is_cover),
+      created_at: r.created_at,
+    }));
+  } catch (_) {
+    galleryEntries = [];
+  }
+
   // Parse profile links if they exist
   let profileLinks = [];
   if (profileUser.profile_links) {
@@ -721,11 +767,15 @@ export default async function ProfilePage({ params }) {
           activityItems={activityItems}
           hasActivity={activityItems.length > 0}
           latelyLinks={latelyLinks}
-          galleryCount={0}
-          notesCount={0}
+          galleryCount={galleryEntries.length}
+          notesCount={guestbookEntries.length}
           filesEnabled={false}
           stats={statsForTabs}
           initialTab={profileUser.default_profile_tab === 'none' || !profileUser.default_profile_tab ? null : profileUser.default_profile_tab || 'stats'}
+          guestbookEntries={guestbookEntries}
+          profileUsername={profileUser.username}
+          canLeaveMessage={!isOwnProfile && !!currentUser}
+          galleryEntries={galleryEntries}
         />
       </section>
     </div>

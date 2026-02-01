@@ -5,15 +5,17 @@
 Run this command to deploy to preview (it will commit and push your changes automatically):
 
 ```bash
-./deploy.sh --preview "Fix header buttons after sign-in and improve navigation flow"
+./deploy.sh --preview "Your commit message"
 ```
 
 This will:
 1. ✅ Verify build passes
-2. ✅ Commit your changes (ClaimUsernameForm.js + log files)
-3. ✅ Push to `origin/feat/auth-overhaul-and-post-controls`
-4. ✅ Build Cloudflare worker
-5. ✅ Deploy to preview at: `https://errl-portal-forum.extrepatho.workers.dev`
+2. ✅ Commit your changes
+3. ✅ Push to your current branch
+4. ✅ Build Cloudflare worker (`npm run build:cf`)
+5. ✅ Deploy to preview at: `https://errl-portal-forum-preview.extrepatho.workers.dev`
+
+**If this release includes guestbook/gallery:** Apply migrations 0056 and 0057 to the preview D1 database so those features work. See `docs/02-Deployment/MIGRATIONS-0056-0057.md`.
 
 ## Step 2: Test Preview
 

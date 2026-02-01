@@ -133,3 +133,61 @@ Default tab selector and "Profile display settings" card so users can choose whi
 - **ProfileTabsClient** – Wired `initialTab` prop: component now accepts `initialTab`, validates against `VALID_TAB_IDS`, and sets initial `activeTab` to `resolvedInitial` (valid tab or `'stats'`). Profile page was already passing `initialTab`; fix ensures it is used.
 - **AccountTabsClient** – Fixed two JSX errors in profile preview stats block: missing `</strong>` before `</span>` on replyCount and profileViews lines (build was failing).
 - **Build** – `npm run build` completes successfully after fixes.
+
+---
+
+## Edit profile flow, guestbook, gallery (2026-01-31)
+
+Implemented: two-column edit profile preview (stats on right), single recent activity, default section moved into Profile tab, Stats/Activity tabs removed; guestbook (leave message + list + delete); gallery (upload, list, set cover, public display).
+
+### Edit profile layout
+
+- **Two-column top** – `.account-profile-preview--two-col`: top row is grid (left: avatar + username/role/mood/song/socials; right: full stats grid – portal entry, threads, replies, visits, min on site, avatar min). Below: single Recent activity block. No duplicate activity; no standalone Profile display card.
+- **Default section** – Moved into Profile tab as "Profile display" block (default section dropdown). Same options (none, stats, activity, socials, gallery, guestbook).
+- **Tabs** – `EDIT_PROFILE_SUB_TABS` reduced to 5: Profile, Mood & Song, Socials, Gallery, Guestbook. Stats and Activity tabs and panels removed. Default `editProfileSubTab` is `'profile'`.
+- **CSS** – `.account-profile-preview-top` grid (minmax(0,1fr) | minmax(200px,320px)); mobile: single column. `.account-profile-preview-stats` uses existing `.profile-stats-block--grid`.
+
+### Guestbook
+
+- **Migration** – `migrations/0056_guestbook_entries.sql`: table `guestbook_entries` (id, owner_user_id, author_user_id, content, created_at). Index on owner, created_at DESC.
+- **API** – `GET/POST /api/user/[username]/guestbook`: list entries (with author_username); POST (auth, not own profile): create message. `DELETE /api/account/guestbook/[id]`: owner only.
+- **Public profile** – Profile page fetches guestbook entries (try/catch); passes `guestbookEntries`, `profileUsername`, `canLeaveMessage` to ProfileTabsClient. Guestbook tab: list of messages; "Leave a message" form (textarea + submit) when `canLeaveMessage`. Form POSTs to guestbook API; on success appends to local list or refresh.
+- **Edit profile** – Guestbook tab: fetches `/api/user/${user.username}/guestbook`, lists entries with Delete button. Owner can delete any message.
+
+### Gallery
+
+- **Migration** – `migrations/0057_user_gallery_images.sql`: table `user_gallery_images` (id, user_id, image_key, caption, is_cover, order_index, created_at). Index on user_id, created_at DESC.
+- **API** – `GET/POST /api/account/gallery`: list current user's images; POST multipart (image file, optional caption), upload to R2 `gallery/`, insert row. `DELETE /api/account/gallery/[id]`: remove row. `PATCH /api/account/gallery/[id]`: set is_cover=1 for this id, 0 for others. `GET /api/user/[username]/gallery`: list that user's gallery (public).
+- **Edit profile** – Gallery tab: fetch list, upload form (file + optional caption), grid of images with "Set cover" and "Delete". Uses existing `isAllowedImage` (size/type); no allowlist for own gallery.
+- **Public profile** – Profile page fetches gallery (try/catch); passes `galleryEntries` and `galleryCount` to ProfileTabsClient. Gallery tab: grid of images (link to full size), "Cover" badge and caption when present.
+
+### Files touched
+
+- `src/app/account/AccountTabsClient.js` – Two-col preview, default section in Profile tab, 5 tabs only; guestbook state/fetch/delete; gallery state/fetch/upload/delete/set cover.
+- `src/app/globals.css` – `.account-profile-preview--two-col` grid and mobile.
+- `src/app/profile/[username]/page.js` – guestbook and gallery fetch; props to ProfileTabsClient.
+- `src/components/ProfileTabsClient.js` – guestbookEntries, profileUsername, canLeaveMessage, galleryEntries; Guestbook tab: form + list; Gallery tab: image grid.
+- `migrations/0056_guestbook_entries.sql`, `0057_user_gallery_images.sql` (new).
+- `src/app/api/user/[username]/guestbook/route.js`, `src/app/api/account/guestbook/[id]/route.js` (new).
+- `src/app/api/account/gallery/route.js`, `src/app/api/account/gallery/[id]/route.js`, `src/app/api/user/[username]/gallery/route.js` (new).
+
+### Double-check
+
+- Edit profile: one card, top = left (avatar/meta) + right (full stats), then recent activity, then 5-tab pill. Profile tab includes default section dropdown. No Stats/Activity tabs. Build passes.
+- Guestbook: visitor can leave message on profile Guestbook tab (when logged in and not own profile). Owner sees messages in Edit profile > Guestbook and can delete. Migration 0056; APIs list/post/delete.
+- Gallery: owner can upload (image + optional caption), set one as cover, delete. Public profile Gallery tab shows images. Migration 0057; R2 prefix `gallery/`; APIs account gallery GET/POST, account gallery [id] DELETE/PATCH, user [username] gallery GET.
+- Run migrations 0056 and 0057 in target env before using guestbook/gallery.
+
+### Verification pass (double-check)
+
+- **Edit profile** – Confirmed: `EDIT_PROFILE_SUB_TABS` has 5 items (profile, mood, socials, gallery, guestbook). Two-column preview (`.account-profile-preview--two-col`, `.account-profile-preview-top` grid). Default section dropdown lives inside Profile tab (`.account-display-settings-inline`). No Stats/Activity tabs or panels.
+- **Guestbook API** – GET `/api/user/[username]/guestbook`: added `(rows || []).map` guard so missing `results` does not throw. POST and DELETE unchanged. Account guestbook tab fetches on tab switch; list + delete. Public ProfileTabsClient: form when `canLeaveMessage`, list from `guestbookEntries`/`guestbookList`.
+- **Gallery API** – Account and user gallery GET already use `(rows || []).map`. Edit gallery: upload form, list with Set cover + Delete. Public profile: `galleryEntries` passed from page (try/catch fetch), Gallery tab shows grid.
+- **Profile page** – Guestbook and gallery fetches wrapped in try/catch; empty arrays if table missing. Props: guestbookEntries, galleryEntries, galleryCount, notesCount, canLeaveMessage, profileUsername.
+- **Build** – `npm run build` completes successfully. No linter errors on modified files.
+
+### Deploy preview readiness
+
+- **Builds** – `npm run build` and `npm run build:cf` both pass. Deploy preview is ready.
+- **Migrations** – No automated migration step in `deploy.sh`. For guestbook and gallery to work, apply 0056 and 0057 to D1 manually before or after deploy. See `docs/02-Deployment/MIGRATIONS-0056-0057.md`.
+- **Deploy command** – From a feature branch: `./deploy.sh --preview "Your message"`. Preview URL: `https://errl-portal-forum-preview.extrepatho.workers.dev`.

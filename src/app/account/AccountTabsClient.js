@@ -502,18 +502,105 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     { id: 'socials', label: 'Socials' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'guestbook', label: 'Guestbook' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'activity', label: 'Activity' },
   ];
-  const [editProfileSubTab, setEditProfileSubTab] = useState(null);
+  const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
   const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
   const [defaultTabSaving, setDefaultTabSaving] = useState(false);
+  const [guestbookEntries, setGuestbookEntries] = useState([]);
+  const [guestbookDeletingId, setGuestbookDeletingId] = useState(null);
   useEffect(() => {
     if (stats?.defaultProfileTab !== undefined) setDefaultProfileTab(stats.defaultProfileTab ?? null);
   }, [stats?.defaultProfileTab]);
+  useEffect(() => {
+    if (editProfileSubTab !== 'guestbook' || !user?.username) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/user/${encodeURIComponent(user.username)}/guestbook`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled && data.entries) setGuestbookEntries(data.entries);
+      } catch (_) {
+        if (!cancelled) setGuestbookEntries([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editProfileSubTab, user?.username]);
+  const handleGuestbookDelete = async (id) => {
+    if (!id || guestbookDeletingId) return;
+    setGuestbookDeletingId(id);
+    try {
+      const res = await fetch(`/api/account/guestbook/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) setGuestbookEntries((prev) => prev.filter((e) => e.id !== id));
+    } finally {
+      setGuestbookDeletingId(null);
+    }
+  };
+
+  const [galleryEntries, setGalleryEntries] = useState([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [galleryDeletingId, setGalleryDeletingId] = useState(null);
+  const [galleryCoverId, setGalleryCoverId] = useState(null);
+  useEffect(() => {
+    if (editProfileSubTab !== 'gallery') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/account/gallery');
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled && data.entries) setGalleryEntries(data.entries);
+      } catch (_) {
+        if (!cancelled) setGalleryEntries([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editProfileSubTab]);
+  const handleGalleryUpload = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const fileInput = form.querySelector('input[type="file"]');
+    const captionInput = form.querySelector('input[name="caption"]');
+    if (!fileInput?.files?.length || galleryUploading) return;
+    const file = fileInput.files[0];
+    setGalleryUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      if (captionInput?.value?.trim()) fd.append('caption', captionInput.value.trim());
+      const res = await fetch('/api/account/gallery', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.entry) {
+        setGalleryEntries((prev) => [...prev, data.entry]);
+        form.reset();
+      }
+    } finally {
+      setGalleryUploading(false);
+    }
+  };
+  const handleGalleryDelete = async (id) => {
+    if (!id || galleryDeletingId) return;
+    setGalleryDeletingId(id);
+    try {
+      const res = await fetch(`/api/account/gallery/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) setGalleryEntries((prev) => prev.filter((e) => e.id !== id));
+    } finally {
+      setGalleryDeletingId(null);
+    }
+  };
+  const handleGallerySetCover = async (id) => {
+    if (!id || galleryCoverId) return;
+    setGalleryCoverId(id);
+    try {
+      const res = await fetch(`/api/account/gallery/${encodeURIComponent(id)}`, { method: 'PATCH' });
+      if (res.ok) setGalleryEntries((prev) => prev.map((e) => ({ ...e, is_cover: e.id === id })));
+    } finally {
+      setGalleryCoverId(null);
+    }
+  };
   const handleDefaultTabChange = async (value) => {
     const v = value === 'none' || value === '' ? null : value;
     setDefaultProfileTab(v);
@@ -622,54 +709,67 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom">
-            {/* Profile preview card – read-only, always visible */}
-            <div className="account-profile-preview">
-              <div className="profile-card-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
-                <div className="profile-card-header-avatar">
-                  {user.avatar_key ? (
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
-                  ) : (
-                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
-                  )}
-                </div>
-                <div className="profile-card-header-meta">
-                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
-                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
-                  <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
-                    {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
-                    {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
-                    {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+            {/* Profile preview card – two-column top (avatar+meta | stats), then recent activity */}
+            <div className="account-profile-preview account-profile-preview--two-col">
+              <div className="account-profile-preview-top">
+                <div className="profile-card-header account-profile-preview-left" style={{ padding: '0', border: 'none', background: 'transparent' }}>
+                  <div className="profile-card-header-avatar">
+                    {user.avatar_key ? (
+                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
+                    ) : (
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
+                    )}
                   </div>
-                  {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
+                  <div className="profile-card-header-meta">
+                    <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                    <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
+                      {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
+                      {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
+                      {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+                    </div>
+                    {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
+                    {(() => {
+                      const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
+                      const featuredLinks = allLinks.filter(l => l.featured);
+                      const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
+                      if (linksToShow.length === 0) return null;
+                      return (
+                        <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {linksToShow.map((link) => {
+                            const un = extractUsername(link.platform, link.url);
+                            const isSoundCloud = link.platform === 'soundcloud';
+                            return (
+                              <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
+                                {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+                <div className="account-profile-preview-stats">
                   {(() => {
-                    const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
-                    const featuredLinks = allLinks.filter(l => l.featured);
-                    const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
-                    if (linksToShow.length === 0) return null;
+                    const getRarityColor = (v) => { if (v === 0) return 'var(--muted)'; if (v < 10) return 'var(--accent)'; if (v < 100) return '#00f5a0'; if (v < 1000) return '#5b8def'; return '#b794f6'; };
                     return (
-                      <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {linksToShow.map((link) => {
-                          const un = extractUsername(link.platform, link.url);
-                          const isSoundCloud = link.platform === 'soundcloud';
-                          return (
-                            <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
-                              {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
-                            </a>
-                          );
-                        })}
+                      <div className="profile-stats-block profile-stats-block--grid">
+                        <div className="profile-stats-grid">
+                          <span className="profile-stat"><span className="profile-stat-label">Portal entry</span> <span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
+                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span className="profile-stat-label">threads</span></span>
+                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span className="profile-stat-label">replies</span></span>
+                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span className="profile-stat-label">visits</span></span>
+                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span className="profile-stat-label">min on site</span></span>
+                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span className="profile-stat-label">avatar min</span></span>
+                        </div>
                       </div>
                     );
                   })()}
                 </div>
               </div>
-              <div className="account-preview-stats" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', gap: '12px 20px', fontSize: '13px', color: 'var(--muted)' }}>
-                <span><span style={{ color: 'var(--accent)' }}>{formatDate(stats.joinDate)}</span> joined</span>
-                <span><strong style={{ color: 'var(--ink)' }}>{stats.threadCount}</strong> threads</span>
-                <span><strong style={{ color: 'var(--ink)' }}>{stats.replyCount}</strong> replies</span>
-                <span><strong style={{ color: 'var(--ink)' }}>{stats.profileViews || 0}</strong> visits</span>
-              </div>
               {stats.recentActivity && stats.recentActivity.length > 0 && (
-                <div className="account-preview-activity" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="account-preview-activity" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <h4 className="section-title" style={{ fontSize: '14px', marginBottom: '8px' }}>Recent activity</h4>
                   <div className="profile-activity-list" style={{ maxHeight: '120px', overflowY: 'auto' }}>
                     {stats.recentActivity.slice(0, 5).map((item) => {
@@ -689,33 +789,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               )}
             </div>
 
-            <div className="account-display-settings" style={{ marginBottom: '16px', padding: '12px 14px', background: 'rgba(2, 7, 10, 0.3)', borderRadius: '10px', border: '1px solid rgba(52, 225, 255, 0.15)' }}>
-              <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
-              <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
-                <span>Default section on your profile:</span>
-                <select
-                  value={defaultProfileTab || 'none'}
-                  onChange={(e) => handleDefaultTabChange(e.target.value)}
-                  disabled={defaultTabSaving}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(52, 225, 255, 0.3)',
-                    background: 'rgba(2, 7, 10, 0.6)',
-                    color: 'var(--ink)',
-                    fontSize: '13px',
-                    minWidth: '140px',
-                  }}
-                >
-                  {DEFAULT_TAB_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-                {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
-              </label>
-            </div>
-
-            {editProfileSubTab !== null && (
+            {editProfileSubTab && (
             <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'profile' && (
                 <div className="account-edit-panel">
@@ -975,6 +1049,31 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {usernameStatus.message && editProfileSubTab === 'profile' && (
                   <div style={{ fontSize: '12px', color: (usernameStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success') ? '#00f5a0' : 'var(--muted)' }}>{usernameStatus.message}</div>
                 )}
+                <div className="account-display-settings-inline" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
+                  <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
+                    <span>Default section on your profile:</span>
+                    <select
+                      value={defaultProfileTab || 'none'}
+                      onChange={(e) => handleDefaultTabChange(e.target.value)}
+                      disabled={defaultTabSaving}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(52, 225, 255, 0.3)',
+                        background: 'rgba(2, 7, 10, 0.6)',
+                        color: 'var(--ink)',
+                        fontSize: '13px',
+                        minWidth: '140px',
+                      }}
+                    >
+                      {DEFAULT_TAB_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
+                  </label>
+                </div>
                 </div>
                 </div>
               )}
@@ -1281,89 +1380,131 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               {editProfileSubTab === 'gallery' && (
                 <div className="account-edit-panel">
                   <h2 className="section-title" style={{ margin: 0 }}>Gallery</h2>
-                  <p className="muted" style={{ fontSize: '13px' }}>Upload images to show in the Gallery tab on your profile. Coming soon.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
+                  <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                        <span className="muted">Image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          required
+                          style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                        />
+                      </label>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+                        <span className="muted">Caption (optional)</span>
+                        <input
+                          type="text"
+                          name="caption"
+                          placeholder="Caption"
+                          maxLength={500}
+                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px', minWidth: '140px' }}
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        disabled={galleryUploading}
+                        style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: 'var(--bg)', fontSize: '13px', fontWeight: '600', cursor: galleryUploading ? 'not-allowed' : 'pointer', opacity: galleryUploading ? 0.7 : 1 }}
+                      >
+                        {galleryUploading ? 'Uploading…' : 'Upload'}
+                      </button>
+                    </div>
+                  </form>
+                  {galleryEntries.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                      {galleryEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          style={{
+                            borderRadius: '10px',
+                            overflow: 'hidden',
+                            border: '1px solid rgba(52, 225, 255, 0.2)',
+                            background: 'rgba(2, 7, 10, 0.35)',
+                          }}
+                        >
+                          <a href={`/api/media/${entry.image_key}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', lineHeight: 0 }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={`/api/media/${entry.image_key}`} alt={entry.caption || 'Gallery'} style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
+                          </a>
+                          <div style={{ padding: '6px 8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                            {entry.is_cover && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600' }}>Cover</span>}
+                            <button
+                              type="button"
+                              onClick={() => handleGallerySetCover(entry.id)}
+                              disabled={entry.is_cover || galleryCoverId === entry.id}
+                              style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId ? 'not-allowed' : 'pointer' }}
+                            >
+                              {galleryCoverId === entry.id ? '…' : 'Set cover'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleGalleryDelete(entry.id)}
+                              disabled={galleryDeletingId === entry.id}
+                              style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 107, 0, 0.3)', background: 'rgba(255, 107, 0, 0.1)', color: '#ff6b6b', cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer' }}
+                            >
+                              {galleryDeletingId === entry.id ? '…' : 'Delete'}
+                            </button>
+                          </div>
+                          {entry.caption && <p style={{ margin: 0, padding: '4px 8px', fontSize: '11px', color: 'var(--muted)' }}>{entry.caption}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ padding: '12px' }}>No images yet. Upload one above.</div>
+                  )}
                 </div>
               )}
 
               {editProfileSubTab === 'guestbook' && (
                 <div className="account-edit-panel">
                   <h2 className="section-title" style={{ margin: 0 }}>Guestbook</h2>
-                  <p className="muted" style={{ fontSize: '13px' }}>Messages from visitors appear in the Guestbook tab on your profile. Coming soon.</p>
-                </div>
-              )}
-
-              {editProfileSubTab === 'stats' && (
-                <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
-                  <div className="profile-stats-block profile-stats-block--grid">
-                    <div className="profile-stats-grid">
-                      {(() => {
-                        const getRarityColor = (value) => {
-                          if (value === 0) return 'var(--muted)';
-                          if (value < 10) return 'var(--accent)';
-                          if (value < 100) return '#00f5a0';
-                          if (value < 1000) return '#5b8def';
-                          return '#b794f6';
-                        };
-                        return (
-                          <>
-                            <span className="profile-stat"><span className="profile-stat-label">Portal entry</span> <span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span className="profile-stat-label">threads</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span className="profile-stat-label">replies</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span className="profile-stat-label">visits</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span className="profile-stat-label">min on site</span></span>
-                            <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span className="profile-stat-label">avatar min</span></span>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {editProfileSubTab === 'activity' && (
-                <div className="account-edit-panel">
-                  <h2 className="section-title" style={{ margin: 0 }}>Recent Activity</h2>
-                  {stats.recentActivity && stats.recentActivity.length > 0 ? (
-                    <div className={`profile-activity-list${stats.recentActivity.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
-                      {stats.recentActivity.map((item) => {
-                        let href = '#';
-                        if (item.type === 'thread') {
-                          const postType = item.postType || item.post_type;
-                          if (postType === 'forum_thread') href = `/lobby/${item.id}`;
-                          else if (postType === 'dev_log') href = `/devlog/${item.id}`;
-                          else if (postType === 'music_post') href = `/music/${item.id}`;
-                          else if (postType === 'project') href = `/projects/${item.id}`;
-                          else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
-                          else if (postType === 'event') href = `/events/${item.id}`;
-                        } else {
-                          const replyType = item.replyType || item.reply_type;
-                          const threadId = item.thread_id;
-                          if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
-                          else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
-                          else if (replyType === 'music_comment') href = `/music/${threadId}`;
-                          else if (replyType === 'project_reply') href = `/projects/${threadId}`;
-                          else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
-                          else if (replyType === 'event_comment') href = `/events/${threadId}`;
-                        }
-                        const postType = item.postType || item.post_type;
-                        const replyType = item.replyType || item.reply_type;
-                        const section = getSectionLabel(postType, replyType);
-                        const title = item.type === 'thread' ? item.title : item.thread_title;
-                        const timeStr = formatDateTime(item.created_at);
-                        return (
-                          <a key={`${item.type}-${item.id}`} href={href} className="profile-activity-item">
-                            {item.type === 'thread' ? (
-                              <><span className="activity-label">Posted</span><span className="activity-title" title={title}>{title}</span><span className="activity-label">in</span><span className="activity-section">{section}</span><span className="activity-label">at</span><span className="activity-meta" suppressHydrationWarning>{timeStr}</span></>
-                            ) : (
-                              <><span className="activity-label">Replied to</span><span className="activity-title" title={title}>{title}</span><span className="activity-label">at</span><span className="activity-meta" suppressHydrationWarning>{timeStr}</span></>
-                            )}
-                          </a>
-                        );
-                      })}
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>Messages from visitors appear in the Guestbook tab on your profile. You can delete any message here.</p>
+                  {guestbookEntries.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {guestbookEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid rgba(52, 225, 255, 0.15)',
+                            background: 'rgba(2, 7, 10, 0.35)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                            <div>
+                              <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
+                              <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleGuestbookDelete(entry.id)}
+                              disabled={guestbookDeletingId === entry.id}
+                              style={{
+                                fontSize: '12px',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(255, 107, 0, 0.4)',
+                                background: 'rgba(255, 107, 0, 0.1)',
+                                color: '#ff6b6b',
+                                cursor: guestbookDeletingId === entry.id ? 'not-allowed' : 'pointer',
+                                opacity: guestbookDeletingId === entry.id ? 0.6 : 1,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {guestbookDeletingId === entry.id ? 'Deleting…' : 'Delete'}
+                            </button>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '14px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{entry.content}</p>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
+                    <div className="muted" style={{ padding: '12px' }}>No messages yet. Visitors can leave a message on your profile&apos;s Guestbook tab.</div>
                   )}
                 </div>
               )}

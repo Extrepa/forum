@@ -924,6 +924,31 @@ main {
   min-width: 0;
 }
 
+.account-profile-preview--two-col .account-profile-preview-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 320px);
+  gap: 20px;
+  align-items: start;
+}
+
+.account-profile-preview--two-col .account-profile-preview-left {
+  min-width: 0;
+}
+
+.account-profile-preview--two-col .account-profile-preview-stats {
+  min-width: 0;
+}
+
+.account-profile-preview--two-col .account-profile-preview-stats .profile-stats-block--grid {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .account-profile-preview--two-col .account-profile-preview-top {
+    grid-template-columns: 1fr;
+  }
+}
+
 .account-profile-hint {
   margin-bottom: 16px;
   font-size: 13px;
