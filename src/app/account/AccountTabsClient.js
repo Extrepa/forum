@@ -12,6 +12,66 @@ import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
 
+function getRarityColor(value) {
+  if (value === 0) return 'var(--muted)';
+  if (value < 10) return 'var(--accent)';
+  if (value < 100) return '#00f5a0';
+  if (value < 1000) return '#5b8def';
+  return '#b794f6';
+}
+
+const MOOD_OPTIONS = [
+  { value: '', text: '', emoji: '' },
+  { value: 'chillin', text: 'Chillin', emoji: '\u{1F60C}' },
+  { value: 'vibing', text: 'Vibing', emoji: '\u2728' },
+  { value: 'drippy', text: 'Drippy', emoji: '\u{1F4A7}' },
+  { value: 'weird', text: 'Weird', emoji: '\u{1F92A}' },
+  { value: 'building', text: 'Building', emoji: '\u{1F6E0}\uFE0F' },
+  { value: 'lost-in-the-sauce', text: 'Lost in the sauce', emoji: '\u{1F525}' },
+  { value: 'on-fire', text: 'On fire', emoji: '\u{1F525}' },
+  { value: 'creative', text: 'Creative', emoji: '\u{1F3A8}' },
+  { value: 'flow', text: 'Flow', emoji: '\u{1F30A}' },
+  { value: 'sparkly', text: 'Sparkly', emoji: '\u2728' },
+  { value: 'night-mood', text: 'Night mood', emoji: '\u{1F319}' },
+  { value: 'rainbow', text: 'Rainbow', emoji: '\u{1F308}' },
+  { value: 'music', text: 'Music', emoji: '\u{1F3B5}' },
+  { value: 'coffee', text: 'Coffee', emoji: '\u2615' },
+  { value: 'blossom', text: 'Blossom', emoji: '\u{1F338}' },
+  { value: 'butterfly', text: 'Butterfly', emoji: '\u{1F98B}' },
+  { value: 'dizzy', text: 'Dizzy', emoji: '\u{1F4AB}' },
+  { value: 'determined', text: 'Determined', emoji: '\u{1F624}' },
+  { value: 'strong', text: 'Strong', emoji: '\u{1F4AA}' },
+  { value: 'cosmic', text: 'Cosmic', emoji: '\u{1F30C}' },
+  { value: 'lightning', text: 'Lightning', emoji: '\u26A1' },
+  { value: 'neon', text: 'Neon', emoji: '\u{1F49C}' },
+  { value: 'liminal', text: 'Liminal', emoji: '\u{1F6AA}' },
+  { value: 'glow', text: 'Glow', emoji: '\u2728' },
+  { value: 'alive', text: 'Alive', emoji: '\u{1F49A}' },
+  { value: 'happy', text: 'Happy', emoji: '\u{1F60A}' },
+  { value: 'thinking', text: 'Thinking', emoji: '\u{1F914}' },
+  { value: 'cool', text: 'Cool', emoji: '\u{1F60E}' },
+  { value: 'moved', text: 'Moved', emoji: '\u{1F979}' },
+  { value: 'tired', text: 'Tired', emoji: '\u{1F634}' },
+  { value: 'soft', text: 'Soft', emoji: '\u{1F97A}' },
+  { value: 'silly', text: 'Silly', emoji: '\u{1F643}' },
+  { value: 'dark', text: 'Dark', emoji: '\u{1F5A4}' },
+  { value: 'grateful', text: 'Grateful', emoji: '\u{1F64F}' },
+  { value: 'peaceful', text: 'Peaceful', emoji: '\u{1F9D8}' },
+  { value: 'curious', text: 'Curious', emoji: '\u{1F928}' },
+  { value: 'dreamy', text: 'Dreamy', emoji: '\u{1F4AD}' },
+  { value: 'cozy', text: 'Cozy', emoji: '\u{1F6CB}\uFE0F' },
+  { value: 'grounded', text: 'Grounded', emoji: '\u{1F30D}' },
+  { value: 'focused', text: 'Focused', emoji: '\u{1F3AF}' },
+  { value: 'hyped', text: 'Hyped', emoji: '\u{1F389}' },
+  { value: 'blessed', text: 'Blessed', emoji: '\u{1F607}' },
+  { value: 'chill', text: 'Chill', emoji: '\u{1F60C}' },
+  { value: 'shy', text: 'Shy', emoji: '\u{1F648}' },
+  { value: 'excited', text: 'Excited', emoji: '\u{1F929}' },
+  { value: 'relaxed', text: 'Relaxed', emoji: '\u{1F60C}' },
+  { value: 'hopeful', text: 'Hopeful', emoji: '\u{1F331}' },
+  { value: 'love', text: 'Love', emoji: '\u2764\uFE0F' },
+];
+
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
@@ -772,27 +832,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
                   </div>
                   {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
-                  {(() => {
-                    const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
-                    const featuredLinks = allLinks.filter(l => l.featured);
-                    const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
-                    if (linksToShow.length === 0) return null;
-                    return (
-                      <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {linksToShow.map((link) => {
-                          const un = extractUsername(link.platform, link.url);
-                          const isSoundCloud = link.platform === 'soundcloud';
-                          return (
-                            <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
-                              {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
-                            </a>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                  {/* Edit Avatar + Edit Username + Color in same section as avatar/username */}
-                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
                     <button
                       type="button"
                       onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
@@ -801,41 +841,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     >
                       Edit Avatar
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      {!isEditingUsername ? (
-                        <>
-                          <strong>Username:</strong>
-                          <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} />
-                          <button type="button" onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }} style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}>Edit Username</button>
-                        </>
-                      ) : (
-                        <>
-                          <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
-                          <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
-                          <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
-                        </>
-                      )}
-                    </div>
-                    {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0' }}>{usernameStatus.message}</span>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
-                      {isEditingUsername ? (
-                        colorOptions.map((option) => {
+                    {!isEditingUsername ? (
+                      <button type="button" onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }} style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}>Edit Username</button>
+                    ) : (
+                      <>
+                        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
+                        <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                        <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+                        {colorOptions.map((option) => {
                           const isSelected = selectedColorIndex === option.index;
                           const disabled = usernameStatus.type === 'loading';
                           return (
                             <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
                           );
-                        })
-                      ) : (() => {
-                        const currentIndex = user.preferred_username_color_index ?? null;
-                        const chosen = colorOptions.find(o => o.index === currentIndex);
-                        const bg = chosen ? (chosen.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : chosen.color) : (colorOptions[0]?.color || '#34E1FF');
-                        return (
-                          <span title={chosen?.name} style={{ width: 18, height: 18, borderRadius: '50%', border: 'none', background: bg, display: 'inline-block', flexShrink: 0 }} aria-hidden />
-                        );
-                      })()}
-                    </div>
+                        })}
+                        {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0' }}>{usernameStatus.message}</span>}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -871,8 +893,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood text</label><input type="text" value={profileMoodText} onChange={(e) => setProfileMoodText(e.target.value)} placeholder="e.g. Chillin" maxLength={200} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
-                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood emoji (optional)</label><input type="text" value={profileMoodEmoji} onChange={(e) => setProfileMoodEmoji(e.target.value)} placeholder="e.g. " maxLength={20} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood</label>
+                      <select
+                        value={MOOD_OPTIONS.some(o => o.text === profileMoodText && o.emoji === profileMoodEmoji) ? MOOD_OPTIONS.find(o => o.text === profileMoodText && o.emoji === profileMoodEmoji).value : (profileMoodText || profileMoodEmoji ? 'custom' : '')}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === 'custom') return;
+                          const opt = MOOD_OPTIONS.find(o => o.value === v);
+                          if (opt) { setProfileMoodText(opt.text); setProfileMoodEmoji(opt.emoji); }
+                        }}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                      >
+                        <option value="">None</option>
+                        {profileMoodText || profileMoodEmoji ? (MOOD_OPTIONS.every(o => o.text !== profileMoodText || o.emoji !== profileMoodEmoji) ? <option value="custom">{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText || 'Custom'}</option> : null) : null}
+                        {MOOD_OPTIONS.filter(o => o.value).map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.emoji}{opt.emoji ? ' ' : ''}{opt.text}</option>
+                        ))}
+                      </select>
+                    </div>
                     <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Headline (optional)</label><input type="text" value={profileHeadline} onChange={(e) => setProfileHeadline(e.target.value)} placeholder="Short tagline" maxLength={300} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
                     <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label><input type="url" value={profileSongUrl} onChange={(e) => setProfileSongUrl(e.target.value)} placeholder="https://soundcloud.com/..." style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
                     <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label><select value={profileSongProvider || ''} onChange={(e) => setProfileSongProvider(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}><option value="">—</option><option value="soundcloud">SoundCloud</option><option value="spotify">Spotify</option><option value="youtube">YouTube</option></select></div>
@@ -1264,7 +1303,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                            <div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                               <span style={{ fontWeight: '600', fontSize: '14px' }}>{entry.author_username}</span>
                               <span className="muted" style={{ fontSize: '12px', marginLeft: '8px' }} suppressHydrationWarning>{formatDateTime(entry.created_at)}</span>
                             </div>
@@ -1282,6 +1321,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 cursor: guestbookDeletingId === entry.id ? 'not-allowed' : 'pointer',
                                 opacity: guestbookDeletingId === entry.id ? 0.6 : 1,
                                 flexShrink: 0,
+                                whiteSpace: 'nowrap',
                               }}
                             >
                               {guestbookDeletingId === entry.id ? 'Deleting…' : 'Delete'}
@@ -1314,12 +1354,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           <span className="profile-stat-value date-only-mobile">{formatDate(stats.joinDate)}</span>
                           <span className="profile-stat-value date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
                         </span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.threadCount ?? 0}</span><span className="profile-stat-label">threads started</span></span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.replyCount ?? 0}</span><span className="profile-stat-label">replies contributed</span></span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{(stats.threadCount ?? 0) + (stats.replyCount ?? 0)}</span><span className="profile-stat-label">total contribution (post contributions)</span></span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.profileViews ?? 0}</span><span className="profile-stat-label">profile visits</span></span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.timeSpentMinutes ?? 0}</span><span className="profile-stat-label">minutes spent on the website</span></span>
-                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.avatarEditMinutes ?? 0}</span><span className="profile-stat-label">minutes editing your avatar</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount ?? 0), fontWeight: '600' }}>{stats.threadCount ?? 0}</span><span className="profile-stat-label">threads started</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount ?? 0), fontWeight: '600' }}>{stats.replyCount ?? 0}</span><span className="profile-stat-label">replies contributed</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor((stats.threadCount ?? 0) + (stats.replyCount ?? 0)), fontWeight: '600' }}>{(stats.threadCount ?? 0) + (stats.replyCount ?? 0)}</span><span className="profile-stat-label">total contribution (post contributions)</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews ?? 0), fontWeight: '600' }}>{stats.profileViews ?? 0}</span><span className="profile-stat-label">profile visits</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes ?? 0), fontWeight: '600' }}>{stats.timeSpentMinutes ?? 0}</span><span className="profile-stat-label">minutes spent on the website</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes ?? 0), fontWeight: '600' }}>{stats.avatarEditMinutes ?? 0}</span><span className="profile-stat-label">minutes editing your avatar</span></span>
                       </div>
                     </div>
                   ) : (

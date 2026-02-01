@@ -57,3 +57,14 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **React 418 (hydration):** Easter-egg overlay now renders only when `mounted && eggActive && eggIframeSrc`, so the overlay is never in the server tree and hydration stays consistent. Added `suppressHydrationWarning` on the overlay div as a safeguard.
 - **Babel error (`.targets["esmodules"] must be a boolean`):** Pinned Babel standalone in the easter-egg HTML to `@babel/standalone@7.24.10` so we don't hit Babel 8's stricter targets validation from unpkg latest.
 - **Files:** `src/components/SiteHeader.js`, `public/easter-eggs/errl-bubbles-header.html`.
+
+---
+
+## Edit profile plan: top section, socials, stats, guestbook, mood
+
+- **Edit Profile top section:** Removed socials from the preview card (no inline socials in header). Removed separator and "Username:" / "Color:" from main view. Single row after mood/song: Edit Avatar + Edit Username only; when editing username, inline form (input, Save, Cancel, color swatches) appears in same row.
+- **Profile card socials:** Public profile card shows socials only when "show on profile card" (featured) is checked. `cardLinks = validLinks.filter(l => l.featured).slice(0, 5)`; block only renders when `cardLinks.length > 0`.
+- **Stats:** Added `getRarityColor` to AccountTabsClient and applied to Stats tab values (threadCount, replyCount, total, profileViews, timeSpentMinutes, avatarEditMinutes). Account stats API now includes `postsCount` and `postCommentsCount` (try/catch for missing posts/post_comments tables) so edit and view stats match.
+- **Guestbook delete button:** Left column (author + date) has `flex: 1`, `minWidth: 0`; Delete button has `whiteSpace: 'nowrap'` so it does not stretch on small viewports.
+- **Mood dropdown:** Replaced Mood text and Mood emoji inputs with a single Mood select. `MOOD_OPTIONS`: 50 entries (1 None + 25 Errl-themed with Errl emojis + 24 general). One pick sets both `profile_mood_text` and `profile_mood_emoji`. Legacy/custom values show as "Custom" option until user picks a new mood.
+- **Files:** `src/app/account/AccountTabsClient.js`, `src/app/profile/[username]/page.js`, `src/app/api/account/stats/route.js`.

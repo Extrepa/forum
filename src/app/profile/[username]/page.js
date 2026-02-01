@@ -693,8 +693,7 @@ export default async function ProfilePage({ params }) {
                 const o = typeof l === 'object' ? l : { url: l, platform: null };
                 return o.platform && o.url;
               });
-              const featuredLinks = validLinks.filter(l => l.featured);
-              const cardLinks = featuredLinks.length > 0 ? featuredLinks.slice(0, 5) : validLinks.slice(0, 5);
+              const cardLinks = validLinks.filter(l => l.featured).slice(0, 5);
               if (cardLinks.length === 0) return null;
               return (
                 <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
