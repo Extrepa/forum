@@ -1,5 +1,16 @@
 # 2026-01-31 cursor notes
 
+## Song player: autoplay vs pause, progress bar, artist/song cleanup, rainbow borders (2026-02-01)
+
+- **Autoplay vs pause:** ProfileSongPlayer now uses `userPausedRef` and `autoplayTimeoutsRef`. When user pauses, we set `userPausedRef.current = true` and clear all autoplay timeouts; PLAY event only sets `isPlaying(true)` if `!userPausedRef.current`. Autoplay runs once (400ms SoundCloud, 200ms YouTube) and only if user has not paused. YouTube uses `playerVars: { autoplay: 0 }`; playback starts from JS after ready so we can gate on user action.
+- **Progress bar:** In compact mode, a thin bar below the control row shows playback progress. SoundCloud: `PLAY_PROGRESS` with `relativePosition`. YouTube: poll `getCurrentTime`/`getDuration` every 500ms when playing. Progress resets to 0 on FINISH/ended.
+- **Artist/song cleanup:** Bar shows `profile-song-player-meta` with `profile-song-player-provider` (small uppercase, e.g. "SoundCloud") and `profile-song-player-name` (link with humanized song name). Provider and song are visually separated.
+- **Rainbow chasing borders:** `.profile-card` added to neonChase `::before`/`::after` (same as `.card`, `.tabs-pill`). `.profile-card` given `position: relative` and `isolation: isolate`. Tab switcher (`.tabs-pill`) already had the border. Static color-mode override includes `.profile-card::before`/`::after`.
+
+Details: `05-Logs/Implementation/PROFILE-ACCOUNT-ACTION-PLAN.md` section 5. Files: `src/components/ProfileSongPlayer.js`, `src/app/globals.css`.
+
+---
+
 ## Account page: Edit Avatar/Username order, overflow, button size
 
 - **Button order:** In edit profile mini-preview, "Edit Avatar" is now on top and "Edit Username" on bottom (desktop and mobile). Swapped JSX order in `AccountTabsClient.js`. Comment updated to "Edit Avatar on top, Edit Username below".

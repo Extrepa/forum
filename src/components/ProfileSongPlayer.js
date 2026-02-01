@@ -42,12 +42,21 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   const [youtubePlayer, setYoutubePlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(!!autoPlay);
   const [ready, setReady] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const userPausedRef = useRef(false);
+  const autoplayTimeoutsRef = useRef([]);
 
-  const embed = safeEmbedFromUrl(provider, songUrl, 'auto', autoPlay);
+  /* Always use auto_play=false in embed URL; we start playback from JS so user pause wins */
+  const embed = safeEmbedFromUrl(provider, songUrl, 'auto', false);
   const videoId = provider === 'youtube' ? parseYouTubeId(songUrl) : null;
   const songName = songNameFromUrl(songUrl);
 
-  // SoundCloud: load API and bind to iframe
+  const clearAutoplayTimeouts = () => {
+    autoplayTimeoutsRef.current.forEach((id) => clearTimeout(id));
+    autoplayTimeoutsRef.current = [];
+  };
+
+  // SoundCloud: load API and bind to iframe; autoplay only once, never overwrite user pause
   useEffect(() => {
     if (provider !== 'soundcloud' || !iframeRef.current || !embed) return;
     let widget = null;
@@ -58,50 +67,83 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           widget.bind(window.SC.Widget.Events.READY, () => {
             setSoundcloudWidget(widget);
             setReady(true);
-            if (autoPlay) {
-              const tryPlay = () => { try { widget.play(); } catch (_) {} };
-              setTimeout(tryPlay, 300);
-              setTimeout(tryPlay, 800);
-              setTimeout(() => setIsPlaying(true), 500);
+            if (autoPlay && !userPausedRef.current) {
+              clearAutoplayTimeouts();
+              const t1 = setTimeout(() => {
+                if (userPausedRef.current) return;
+                try { widget.play(); } catch (_) {}
+              }, 400);
+              autoplayTimeoutsRef.current.push(t1);
             }
           });
-          widget.bind(window.SC.Widget.Events.PLAY, () => setIsPlaying(true));
+          widget.bind(window.SC.Widget.Events.PLAY, () => {
+            if (!userPausedRef.current) setIsPlaying(true);
+          });
           widget.bind(window.SC.Widget.Events.PAUSE, () => setIsPlaying(false));
-          widget.bind(window.SC.Widget.Events.FINISH, () => setIsPlaying(false));
+          widget.bind(window.SC.Widget.Events.FINISH, () => {
+            setIsPlaying(false);
+            setProgress(0);
+          });
+          if (window.SC.Widget.Events.PLAY_PROGRESS) {
+            widget.bind(window.SC.Widget.Events.PLAY_PROGRESS, (e) => {
+              const p = e?.relativePosition != null
+                ? Math.min(1, Math.max(0, Number(e.relativePosition)))
+                : (e?.currentPosition != null && e?.soundDuration != null && e.soundDuration > 0
+                  ? Math.min(1, Math.max(0, e.currentPosition / e.soundDuration))
+                  : null);
+              if (typeof p === 'number' && !Number.isNaN(p)) setProgress(p);
+            });
+          }
         } else {
           setReady(true);
         }
       })
       .catch(() => setReady(true));
     return () => {
-      if (widget && widget.unbind) widget.unbind(window.SC.Widget.Events.READY);
+      clearAutoplayTimeouts();
+      if (widget && widget.unbind) {
+        try {
+          widget.unbind(window.SC.Widget.Events.READY);
+          if (window.SC.Widget.Events.PLAY_PROGRESS) widget.unbind(window.SC.Widget.Events.PLAY_PROGRESS);
+        } catch (_) {}
+      }
     };
   }, [provider, embed, autoPlay]);
 
-  // YouTube: load IFrame API and create player (needs a div with stable id)
+  // YouTube: load IFrame API and create player; autoplay only if user hasn't paused
   useEffect(() => {
     if (provider !== 'youtube' || !videoId) return;
     const container = document.getElementById(youtubeId);
     if (!container) return;
     let player = null;
+    let autoplayT = null;
     const initPlayer = () => {
       if (!window.YT?.Player) return;
       player = new window.YT.Player(youtubeId, {
         videoId,
         height: 166,
         width: '100%',
-        playerVars: { autoplay: autoPlay ? 1 : 0, modestbranding: 1 },
+        playerVars: { autoplay: 0, modestbranding: 1 },
         events: {
           onReady(e) {
             const playerInstance = e.target;
             setYoutubePlayer(playerInstance);
             setReady(true);
-            if (autoPlay) setTimeout(() => { try { playerInstance.playVideo?.(); } catch (_) {} }, 150);
+            if (autoPlay && !userPausedRef.current) {
+              autoplayT = setTimeout(() => {
+                if (userPausedRef.current) return;
+                try { playerInstance.playVideo?.(); } catch (_) {}
+              }, 200);
+            }
           },
           onStateChange(e) {
             const state = e?.data;
-            if (state === 1) setIsPlaying(true);
-            if (state === 2 || state === 0) setIsPlaying(false);
+            if (state === 1) {
+              if (!userPausedRef.current) setIsPlaying(true);
+            } else if (state === 2 || state === 0) {
+              setIsPlaying(false);
+              if (state === 0) setProgress(0);
+            }
           },
         },
       });
@@ -116,11 +158,29 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
       });
     }
     return () => {
+      if (autoplayT) clearTimeout(autoplayT);
       if (player?.destroy) player.destroy();
     };
   }, [provider, videoId, autoPlay, youtubeId]);
 
+  // YouTube progress polling when playing
+  useEffect(() => {
+    if (provider !== 'youtube' || !youtubePlayer || !isPlaying) return;
+    const interval = setInterval(() => {
+      try {
+        const current = youtubePlayer.getCurrentTime?.();
+        const duration = youtubePlayer.getDuration?.();
+        if (typeof current === 'number' && typeof duration === 'number' && duration > 0) {
+          setProgress(Math.min(1, Math.max(0, current / duration)));
+        }
+      } catch (_) {}
+    }, 500);
+    return () => clearInterval(interval);
+  }, [provider, youtubePlayer, isPlaying]);
+
   const handlePlay = () => {
+    userPausedRef.current = false;
+    clearAutoplayTimeouts();
     if (soundcloudWidget) {
       soundcloudWidget.play();
       setIsPlaying(true);
@@ -132,6 +192,8 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   };
 
   const handlePause = () => {
+    userPausedRef.current = true;
+    clearAutoplayTimeouts();
     if (soundcloudWidget) {
       soundcloudWidget.pause();
       setIsPlaying(false);
@@ -148,9 +210,13 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
     if (provider === 'soundcloud' && soundcloudWidget && typeof soundcloudWidget.getPaused === 'function') {
       soundcloudWidget.getPaused((paused) => {
         if (paused) {
+          userPausedRef.current = false;
+          clearAutoplayTimeouts();
           soundcloudWidget.play();
           setIsPlaying(true);
         } else {
+          userPausedRef.current = true;
+          clearAutoplayTimeouts();
           soundcloudWidget.pause();
           setIsPlaying(false);
         }
@@ -167,7 +233,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   if (!embed && provider !== 'youtube') return null;
   if (provider === 'youtube' && !videoId) return null;
 
-  const barContent = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
+  const displaySongName = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
 
   return (
     <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', position: 'relative', ...(compact ? {} : { width: '100%', maxWidth: '400px' }) }}>
@@ -197,19 +263,21 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
             </svg>
           )}
         </button>
-        <span className="profile-song-player-label">{providerLabel}</span>
-        <span className="profile-song-player-name">
-          {compact ? (
-            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-player-link" title={songUrl}>
-              {barContent}
+        <span className="profile-song-player-meta">
+          <span className="profile-song-player-provider">{providerLabel}</span>
+          <span className="profile-song-player-name">
+            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link" title={songUrl}>
+              {displaySongName}
             </a>
-          ) : (
-            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-player-link" title={songUrl}>
-              {barContent}
-            </a>
-          )}
+          </span>
         </span>
       </div>
+      {compact && (
+        <div className="profile-song-player-progress-wrap" role="presentation" aria-hidden="true">
+          <div className="profile-song-player-progress-track" />
+          <div className="profile-song-player-progress-fill" style={{ width: `${progress * 100}%` }} />
+        </div>
+      )}
       {/* Embed hidden when compact; kept in DOM for playback */}
       {provider === 'soundcloud' && embed && (
         <div

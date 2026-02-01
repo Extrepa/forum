@@ -67,7 +67,41 @@
 
 ---
 
-## 5. Optional Follow-Up (If Issues Persist)
+## 5. Song Player & Rainbow Borders (2026-02-01)
+
+### 5.1 Autoplay vs pause (no overlap)
+
+- **Problem:** Autoplay timeouts (e.g. 300ms, 800ms) could fire after user pressed pause, causing the track to start again; `setIsPlaying(true)` from a timeout overwrote user state.
+- **Fix (ProfileSongPlayer.js):**
+  - `userPausedRef`: when user pauses, set to `true`; when user presses play, set to `false`. Autoplay only runs if `!userPausedRef.current`.
+  - `autoplayTimeoutsRef`: store timeout IDs; clear on pause and on unmount. Single autoplay delay (400ms SoundCloud, 200ms YouTube) instead of multiple.
+  - YouTube `playerVars: { autoplay: 0 }`; start playback only from JS after ready, so we can gate on `userPausedRef`.
+  - PLAY event: `if (!userPausedRef.current) setIsPlaying(true)` so late PLAY from widget does not overwrite user pause.
+  - handlePause / handleToggle (when pausing): call `clearAutoplayTimeouts()` and set `userPausedRef.current = true`.
+
+### 5.2 Progress bar
+
+- **SoundCloud:** Bind `PLAY_PROGRESS`; use `e.relativePosition` (0–1) for `progress` state; on FINISH set progress to 0.
+- **YouTube:** When `isPlaying`, poll every 500ms with `getCurrentTime()` / `getDuration()`; set progress; on state 0 (ended) set progress to 0.
+- **UI:** In compact mode only, a thin bar below the control row: `.profile-song-player-progress-wrap` (track) and `.profile-song-player-progress-fill` (width from `progress`). CSS in globals.css.
+
+### 5.3 Artist/song display cleanup
+
+- Bar content is now: `profile-song-player-meta` wrapping `profile-song-player-provider` (small uppercase label, e.g. "SoundCloud") and `profile-song-player-name` (link with humanized song name from URL). Provider and song name are visually separated; song name is the main focus.
+
+### 5.4 Rainbow chasing borders
+
+- **Tab switcher:** `.tabs-pill` already had neonChase `::before` / `::after` in globals.css; no change.
+- **Avatar / profile card:** `.profile-card` added to the same neonChase `::before` and `::after` blocks as `.card` and `.tabs-pill`. `.profile-card` given `position: relative` and `isolation: isolate` so the pseudo-elements show. Static color-mode override `[data-ui-color-mode="2"]` also includes `.profile-card::before` / `::after`.
+
+### 5.5 Files touched (this pass)
+
+- `src/components/ProfileSongPlayer.js` — userPausedRef, autoplayTimeoutsRef, single autoplay, PLAY gate, progress state, PLAY_PROGRESS / YouTube poll, progress bar UI, meta/provider/name structure.
+- `src/app/globals.css` — profile-song-player-meta, -provider, -name, progress-wrap/track/fill; profile-card position/isolation; profile-card in neonChase and color-mode overrides.
+
+---
+
+## 6. Optional Follow-Up (If Issues Persist)
 
 - If top "Account" / "Edit profile" still truncate on very narrow widths: consider shorter labels (e.g. "Account" / "Profile") or icon-only on smallest breakpoint.
 - If tab pill still causes layout issues: confirm no parent between .account-edit-card and .tabs-pill has overflow: visible or min-width that expands; ensure section/account-card has min-width 0.
