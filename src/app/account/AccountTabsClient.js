@@ -1227,7 +1227,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                        <span className="muted">Image</span>
+                        <span style={{ color: '#F5FFB7', fontSize: '13px' }}>Image</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1236,7 +1236,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         />
                       </label>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
-                        <span className="muted">Caption (optional)</span>
+                        <span style={{ color: '#F5FFB7', fontSize: '13px' }}>Caption (optional)</span>
                         <input
                           type="text"
                           name="caption"

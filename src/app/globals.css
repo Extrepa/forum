@@ -1893,6 +1893,11 @@ button:hover {
   min-width: 0;
 }
 
+/* Tighter spacing between tab section title and content on public profile */
+.profile-tab-content--above .section-title {
+  margin-bottom: 4px;
+}
+
 /* Giant pill: tabs in one row, sliding indicator; Errl border */
 .tabs-pill {
   flex: 0 0 auto;

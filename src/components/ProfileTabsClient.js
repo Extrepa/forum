@@ -127,7 +127,7 @@ export default function ProfileTabsClient({
 
       {activeTab === 'activity' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Recent Activity</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Recent Activity</h4>
           {hasActivity ? (
             <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
               {activityItems.map(item => (
@@ -160,7 +160,7 @@ export default function ProfileTabsClient({
 
       {activeTab === 'socials' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Socials</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Socials</h4>
           {latelyLinks.length > 0 ? (
             <div style={{ display: 'grid', gap: '8px' }}>
               {latelyLinks.map(link => {
@@ -209,7 +209,7 @@ export default function ProfileTabsClient({
 
       {activeTab === 'gallery' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Gallery</h4>
+          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Gallery</h4>
           {galleryEntries.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
               {galleryEntries.map((entry) => (

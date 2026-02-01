@@ -114,3 +114,11 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Stats matching:** Coerced all count values to Number() in profile page, account page, and /api/account/stats so threadCount and replyCount are always numeric (avoids string concatenation if D1 returns string counts). Same formulas and sources in all three; coercion ensures display consistency.
 - **Notes delete button:** Placed in top-right of each note card (same row as author/date). Made smaller: fontSize 11px, padding 2px 6px, borderRadius 4px, minWidth 52px; label shortened to "Delete" / "…" when loading so the box stays compact and does not stretch on small viewports.
 - **Files:** `src/app/account/AccountTabsClient.js`, `src/app/account/page.js`, `src/app/api/account/stats/route.js`, `src/app/profile/[username]/page.js`.
+
+---
+
+## Double-check: padding, Gallery labels, public profile tabs
+
+- **Public profile tab padding:** ProfileTabsClient section titles for Recent Activity, Socials, and Gallery still had marginBottom: '12px'; only Notes had 4px. Changed all four to marginBottom: '4px' so padding is consistent on public profile (Activity, Socials, Gallery, Notes). Added .profile-tab-content--above .section-title { margin-bottom: 4px } in globals.css as fallback.
+- **Gallery labels (edit profile):** "Image" and "Caption (optional)" were still className="muted". Set inline color: '#F5FFB7' (yellow-ish, matches forum role-user / post accent) so they stand out.
+- **Verification:** Edit buttons have class account-edit-profile-btn and CSS min-width 130px at 769px+. Avatar glow uses .profile-card and .profile-card-header-avatar overflow: visible. Notes delete button has fontSize 11px, padding 2px 6px, minWidth 52. Stats use Number() in profile, account, API. Default tab save uses non-optimistic update and fallback queries.
