@@ -89,5 +89,13 @@ export async function POST(request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    profileMoodText: moodText || '',
+    profileMoodEmoji: moodEmoji || '',
+    profileHeadline: headline || '',
+    profileSongUrl: songUrl || '',
+    profileSongProvider: songProvider || '',
+    profileSongAutoplayEnabled: songAutoplayEnabled,
+  });
 }

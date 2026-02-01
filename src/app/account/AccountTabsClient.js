@@ -407,11 +407,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       }
       setExtrasStatus({ type: 'success', message: 'Saved.' });
       setIsEditingExtras(false);
-      const moodText = (profileMoodText ?? '').trim();
-      const moodEmoji = (profileMoodEmoji ?? '').trim();
-      const headline = (profileHeadline ?? '').trim();
-      const songUrl = (profileSongUrl ?? '').trim();
-      const songProvider = (profileSongProvider ?? '').trim() || null;
+      const moodText = data.profileMoodText ?? (profileMoodText ?? '').trim();
+      const moodEmoji = data.profileMoodEmoji ?? (profileMoodEmoji ?? '').trim();
+      const headline = data.profileHeadline ?? (profileHeadline ?? '').trim();
+      const songUrl = data.profileSongUrl ?? (profileSongUrl ?? '').trim();
+      const songProvider = (data.profileSongProvider ?? (profileSongProvider ?? '').trim()) || null;
+      const savedAutoplay = data.profileSongAutoplayEnabled !== undefined ? data.profileSongAutoplayEnabled : profileSongAutoplay;
       setStats((prev) => ({
         ...prev,
         profileMoodText: moodText,
@@ -419,14 +420,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         profileHeadline: headline,
         profileSongUrl: songUrl,
         profileSongProvider: songProvider,
-        profileSongAutoplayEnabled: profileSongAutoplay,
+        profileSongAutoplayEnabled: savedAutoplay,
       }));
       setProfileMoodText(moodText);
       setProfileMoodEmoji(moodEmoji);
       setProfileHeadline(headline);
       setProfileSongUrl(songUrl);
       setProfileSongProvider(songProvider || '');
-      setProfileSongAutoplay(profileSongAutoplay);
+      setProfileSongAutoplay(savedAutoplay);
       const refreshRes = await fetch('/api/account/stats');
       if (refreshRes.ok) {
         const refreshed = await refreshRes.json();
@@ -1004,6 +1005,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
                   </div>
                 )}
+                <p className="muted" style={{ fontSize: '11px', marginTop: '8px', marginBottom: 0 }}>
+                  If your mood or song doesn&apos;t show on your public profile or after refresh, run migration 0054 on your D1 database: <code style={{ fontSize: '10px', wordBreak: 'break-all' }}>npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql</code>
+                </p>
                 {isEditingExtras && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
                     <button type="button" onClick={handleSaveExtras} disabled={extrasStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: extrasStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: extrasStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>{extrasStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
