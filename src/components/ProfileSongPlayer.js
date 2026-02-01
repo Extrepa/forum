@@ -263,14 +263,14 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
             </svg>
           )}
         </button>
-        <span className="profile-song-player-meta">
-          <span className="profile-song-player-provider">{providerLabel}</span>
-          <span className="profile-song-player-name">
-            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link" title={songUrl}>
-              {displaySongName}
+        <div className="profile-song-player-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flexGrow: 1, minWidth: 0 }}>
+          <span className="profile-song-player-provider" style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{providerLabel}</span>
+          <span className="profile-song-player-name" style={{ fontSize: '14px', fontWeight: '500', marginTop: '2px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link" title={songUrl} style={{ color: 'inherit', textDecoration: 'none' }}>
+              {songName}
             </a>
           </span>
-        </span>
+        </div>
       </div>
       {compact && (
         <div className="profile-song-player-progress-wrap" role="presentation" aria-hidden="true">

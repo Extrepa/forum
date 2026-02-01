@@ -907,19 +907,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   </div>
                 )}
-                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
-                  <ProfileSongPlayer
-                    provider={stats.profileSongProvider}
-                    songUrl={stats.profileSongUrl}
-                    autoPlay={false}
-                    providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
-                    compact
-                  />
-                ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
-                  <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
-                ) : null}
               </div>
             </div>
+            {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
+              <div style={{ marginTop: '16px' }}>
+                <ProfileSongPlayer
+                  provider={stats.profileSongProvider}
+                  songUrl={stats.profileSongUrl}
+                  autoPlay={false}
+                  providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                />
+              </div>
+            ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
+              <div style={{ marginTop: '16px' }} className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
+            ) : null}
             {isEditingUsername && (
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'center' }}>

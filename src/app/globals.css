@@ -1073,11 +1073,11 @@ main {
 }
 
 /* Ensure play/pause button is visible in edit-profile mini-preview */
-.account-profile-preview .profile-song-player-bar {
+.profile-song-player-bar {
   overflow: visible;
   display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
+  align-items: flex-start; /* Align items to the start of the cross axis */
+  flex-wrap: wrap; /* Allow content to wrap onto multiple lines */
 }
 /* Song info: no wrapping in account edit preview (except in song section below) */
 .account-profile-preview .profile-card-mood-song .profile-song-link,
@@ -5789,18 +5789,16 @@ header::before {
 
 @media (max-width: 640px) {
   .account-profile-preview {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .account-profile-preview-avatar-container {
-    position: static;
-    align-items: flex-start;
+    align-items: center;
   }
   .account-profile-preview-buttons-container {
-    position: static;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
   }
   .account-edit-profile-btn--small {
     padding: 8px 16px;
@@ -5808,8 +5806,8 @@ header::before {
     min-width: 120px;
   }
   .account-profile-preview-user-info {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
   }
 }
 
