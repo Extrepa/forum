@@ -1158,7 +1158,7 @@ main {
   .profile-mood-song-block-left-column {
     align-items: flex-start; /* Align to start on desktop */
     flex: 1; /* Allow left column to grow */
-    height: 100%; /* Left column fills height */
+    height: min-content; /* Constrain height to content */
   }
 
   .profile-mood-song-block-right-column {
@@ -1170,10 +1170,13 @@ main {
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
+    position: absolute; /* Lock to top-right corner of its parent */
+    top: 0;
+    right: 0;
     height: 100%; /* Player fills height of right column */
     width: 100%; /* Player fills width of right column */
-    max-width: 450px; /* Re-introduce max-width to control player size */
-    margin-top: 0; /* Remove top margin */
+    max-width: none; /* Remove max-width restriction for full fill */
+    margin: 0 !important; /* Explicitly remove all margins */
     border-radius: 8px; /* Ensure player maintains rounded corners */
   }
 }

@@ -106,8 +106,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   if (provider === 'youtube' && !videoId) return null;
 
   return (
-    <div className={`profile-song-player neon-outline-card profile-song-player--${provider}`} style={{ position: 'relative', width: '100%', maxWidth: '400px', borderRadius: '8px', height: embed.height ? embed.height : 'auto', boxSizing: 'border-box' }}>
-      {provider === 'soundcloud' && embed && (
+    <div className={`profile-song-player neon-outline-card profile-song-player--${provider}`} style={{ position: 'relative', width: '100%', maxWidth: '400px', height: embed.height ? embed.height : 'auto', boxSizing: 'border-box' }}>      {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
           aria-hidden={false}

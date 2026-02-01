@@ -921,6 +921,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     autoPlay={false}
                     providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
                     style={{ margin: '0 auto' }} // Add margin auto for centering
+                    embedStyle="compact" /* Ensure compact styling for edit profile preview */
                   />
                 )}
               </div>
