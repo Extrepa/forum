@@ -58,7 +58,12 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           widget.bind(window.SC.Widget.Events.READY, () => {
             setSoundcloudWidget(widget);
             setReady(true);
-            if (autoPlay) setTimeout(() => { try { widget.play(); } catch (_) {} }, 150);
+            if (autoPlay) {
+              const tryPlay = () => { try { widget.play(); } catch (_) {} };
+              setTimeout(tryPlay, 300);
+              setTimeout(tryPlay, 800);
+              setTimeout(() => setIsPlaying(true), 500);
+            }
           });
           widget.bind(window.SC.Widget.Events.PLAY, () => setIsPlaying(true));
           widget.bind(window.SC.Widget.Events.PAUSE, () => setIsPlaying(false));
@@ -137,7 +142,8 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
     }
   };
 
-  const handleToggle = () => {
+  const handleToggle = (e) => {
+    e.preventDefault();
     if (isPlaying) {
       handlePause();
     } else {
@@ -159,15 +165,18 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           className="profile-song-player-btn"
           title={isPlaying ? 'Pause' : 'Play'}
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          aria-pressed={isPlaying}
           style={compact ? { minWidth: 32, minHeight: 32, flexShrink: 0 } : undefined}
         >
           {isPlaying ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true" focusable="false">
+              <title>Pause</title>
               <rect x="6" y="4" width="4" height="16" rx="1" />
               <rect x="14" y="4" width="4" height="16" rx="1" />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true" focusable="false">
+              <title>Play</title>
               <path d="M8 5v14l11-7z" />
             </svg>
           )}
@@ -189,7 +198,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
       {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
-          style={compact ? { position: 'absolute', left: -9999, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : undefined}
+          style={compact ? { position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0, zIndex: 0 } : undefined}
           aria-hidden={compact}
         >
           <iframe
@@ -212,7 +221,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         <div
           id={youtubeId}
           className="embed-frame profile-song-player-embed"
-          style={compact ? { position: 'absolute', left: -9999, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0 } : { height: 166, minHeight: 166 }}
+          style={compact ? { position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0, zIndex: 0 } : { height: 166, minHeight: 166 }}
           aria-hidden={compact}
         />
       )}

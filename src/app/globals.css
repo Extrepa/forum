@@ -1964,10 +1964,14 @@ button:hover {
 .profile-song-player--compact .profile-song-player-btn {
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
 }
 .profile-song-player--compact .profile-song-player-btn svg {
   width: 16px;
   height: 16px;
+  display: block;
 }
 .profile-song-player--compact .profile-song-player-label {
   font-size: 10px;
@@ -2023,13 +2027,16 @@ button:hover {
 /* When no tab selected: no extra padding/min-height above the pill */
 .profile-tabs-wrapper--no-selection {
   min-height: 0;
+  margin-top: 12px;
 }
 .profile-tab-content--no-selection {
   min-height: 0;
   padding-bottom: 0;
+  flex: 0 0 auto;
 }
 .profile-tab-content--above.profile-tab-content--no-selection {
   margin-bottom: 0;
+  flex: 0 0 auto;
 }
 
 /* Tighter spacing between tab section title and content on public profile */
