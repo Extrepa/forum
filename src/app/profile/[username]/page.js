@@ -4,10 +4,9 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { getStatsForUser } from '../../../lib/stats';
 import { formatDateTime, formatDate } from '../../../lib/dates';
-import ProfileSongPlayer from '../../../components/ProfileSongPlayer';
+import ProfileMoodSongBlock from '../../../components/ProfileMoodSongBlock';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
-import { isProfileFlagEnabled } from '../../../lib/featureFlags';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
 import ProfileTabsClient from '../../../components/ProfileTabsClient';
@@ -152,7 +151,7 @@ export default async function ProfilePage({ params }) {
          FROM user_gallery_images
          WHERE user_id = ?
          ORDER BY is_cover DESC, order_index ASC, created_at DESC
-         LIMIT 100`
+         LIMIT 10`
       )
       .bind(profileUser.id)
       .all();
@@ -412,37 +411,17 @@ export default async function ProfilePage({ params }) {
             <div style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
               {roleLabel}
             </div>
-            {/* Mood or song (compact); gated by feature flags */}
-            <div className="profile-card-mood-song">
-              {isProfileFlagEnabled('profile_mood') && moodText ? (
-                <div className="profile-mood-chip">
-                  {moodEmoji && <span>{moodEmoji}</span>}
-                  <span>{moodText}</span>
-                </div>
-              ) : null}
-              {isProfileFlagEnabled('profile_music') && songUrl ? (
-                <div className="profile-song-compact">
-                  <span className="profile-song-provider">{songProviderLabel}</span>
-                  <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
-                    {songUrl}
-                  </a>
-                </div>
-              ) : null}
-              {(!isProfileFlagEnabled('profile_mood') || !moodText) && (!isProfileFlagEnabled('profile_music') || !songUrl) && (
-                <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
-              )}
-            </div>
-            {isProfileFlagEnabled('profile_music') && songUrl && (songProvider === 'youtube' || songProvider === 'soundcloud') && (
-              <ProfileSongPlayer
-                provider={songProvider}
-                songUrl={songUrl}
-                autoPlay={songAutoplayEnabled}
-                providerLabel={songProviderLabel}
-              />
-            )}
-            {profileHeadline ? (
-              <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{profileHeadline}</div>
-            ) : null}
+            {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}
+            <ProfileMoodSongBlock
+              initialMoodText={moodText}
+              initialMoodEmoji={moodEmoji}
+              initialSongUrl={songUrl}
+              initialSongProvider={songProvider}
+              initialSongAutoplayEnabled={songAutoplayEnabled}
+              initialHeadline={profileHeadline}
+              isOwnProfile={isOwnProfile}
+              songProviderLabel={songProviderLabel}
+            />
             {(() => {
               const validLinks = profileLinks.filter(l => {
                 const o = typeof l === 'object' ? l : { url: l, platform: null };

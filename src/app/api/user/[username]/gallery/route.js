@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
        FROM user_gallery_images
        WHERE user_id = ?
        ORDER BY is_cover DESC, order_index ASC, created_at DESC
-       LIMIT 100`
+       LIMIT 10`
     )
     .bind(owner.id)
     .all();

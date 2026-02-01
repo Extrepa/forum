@@ -4,6 +4,9 @@ import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+const GALLERY_MAX = 10;
+const GALLERY_COLS = 5;
+
 const PROFILE_TABS = [
   { id: 'activity', label: 'Activity' },
   { id: 'gallery', label: 'Gallery' },
@@ -58,7 +61,9 @@ export default function ProfileTabsClient({
   const [guestbookContent, setGuestbookContent] = useState('');
   const [guestbookSubmitting, setGuestbookSubmitting] = useState(false);
   const [guestbookError, setGuestbookError] = useState(null);
+  const [galleryModalEntry, setGalleryModalEntry] = useState(null);
   const activeIndex = tabs.findIndex(t => t.id === activeTab);
+  const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
 
   useEffect(() => {
     setGuestbookList(guestbookEntries);
@@ -210,31 +215,95 @@ export default function ProfileTabsClient({
       {activeTab === 'gallery' && (
         <div>
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Gallery</h4>
-          {galleryEntries.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
-              {galleryEntries.map((entry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(52, 225, 255, 0.2)',
-                    background: 'rgba(2, 7, 10, 0.35)',
-                  }}
-                >
-                  <a href={`/api/media/${entry.image_key}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', lineHeight: 0 }}>
+          {displayedGalleryEntries.length > 0 ? (
+            <>
+              <div className="profile-gallery-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${GALLERY_COLS}, 1fr)`, gap: '12px', maxWidth: '100%' }}>
+                {displayedGalleryEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setGalleryModalEntry(entry)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGalleryModalEntry(entry); } }}
+                    style={{
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(52, 225, 255, 0.2)',
+                      background: 'rgba(2, 7, 10, 0.35)',
+                      aspectRatio: '1',
+                      cursor: 'pointer',
+                      minWidth: 0,
+                    }}
+                    aria-label="View full size"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/api/media/${entry.image_key}`}
                       alt={entry.caption || 'Gallery image'}
-                      style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     />
-                  </a>
-                  {entry.is_cover && <div style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--accent)', fontWeight: '600' }}>Cover</div>}
-                  {entry.caption && <p style={{ margin: 0, padding: '6px 8px', fontSize: '12px', color: 'var(--muted)' }}>{entry.caption}</p>}
+                    {entry.is_cover && <div style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--accent)', fontWeight: '600' }}>Cover</div>}
+                    {entry.caption && <p style={{ margin: 0, padding: '6px 8px', fontSize: '12px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.caption}</p>}
+                  </div>
+                ))}
+              </div>
+              {galleryModalEntry && (
+                <div
+                  className="profile-gallery-modal-overlay"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Gallery image full size"
+                  onClick={() => setGalleryModalEntry(null)}
+                  onKeyDown={(e) => { if (e.key === 'Escape') setGalleryModalEntry(null); }}
+                  tabIndex={-1}
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.85)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999,
+                    padding: '20px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setGalleryModalEntry(null)}
+                    aria-label="Close"
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      right: '16px',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      background: 'rgba(0,0,0,0.6)',
+                      color: '#fff',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      lineHeight: 1,
+                    }}
+                  >
+                    &times;
+                  </button>
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/media/${galleryModalEntry.image_key}`}
+                      alt={galleryModalEntry.caption || 'Gallery image'}
+                      style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 80px)', objectFit: 'contain', display: 'block', borderRadius: '8px' }}
+                    />
+                    {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>No photos uploaded yet.</div>
           )}

@@ -15,8 +15,8 @@ export async function GET() {
       `SELECT id, user_id, image_key, caption, is_cover, order_index, created_at
        FROM user_gallery_images
        WHERE user_id = ?
-       ORDER BY order_index ASC, created_at DESC
-       LIMIT 100`
+       ORDER BY is_cover DESC, order_index ASC, created_at DESC
+       LIMIT 10`
     )
     .bind(user.id)
     .all();
@@ -57,6 +57,15 @@ export async function POST(request) {
   }
 
   const db = await getDb();
+  const { results: countRows } = await db
+    .prepare('SELECT COUNT(*) as c FROM user_gallery_images WHERE user_id = ?')
+    .bind(user.id)
+    .all();
+  const count = Number(countRows?.[0]?.c ?? 0);
+  if (count >= 10) {
+    return NextResponse.json({ error: 'Gallery limited to 10 uploads' }, { status: 400 });
+  }
+
   const bucket = await getUploadsBucket();
   const imageKey = buildImageKey('gallery', imageFile.name || 'image');
   const caption = String(formData.get('caption') || '').trim().slice(0, 500);
@@ -67,11 +76,7 @@ export async function POST(request) {
     httpMetadata: { contentType: imageFile.type || 'image/jpeg' },
   });
 
-  const { results: existing } = await db
-    .prepare('SELECT COUNT(*) as c FROM user_gallery_images WHERE user_id = ?')
-    .bind(user.id)
-    .all();
-  const order_index = (existing?.[0]?.c ?? 0);
+  const order_index = count;
 
   await db
     .prepare(

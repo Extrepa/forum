@@ -11,6 +11,7 @@ import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
+import ProfileSongPlayer from '../../components/ProfileSongPlayer';
 
 function getRarityColor(value) {
   if (value === 0) return 'var(--muted)';
@@ -733,10 +734,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     }
   };
 
+  const GALLERY_MAX = 10;
+  const GALLERY_COLS = 5;
   const [galleryEntries, setGalleryEntries] = useState([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryDeletingId, setGalleryDeletingId] = useState(null);
   const [galleryCoverId, setGalleryCoverId] = useState(null);
+  const [galleryModalEntry, setGalleryModalEntry] = useState(null);
+  const [galleryUploadError, setGalleryUploadError] = useState(null);
+  const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
   useEffect(() => {
     if (editProfileSubTab !== 'gallery') return;
     let cancelled = false;
@@ -754,10 +760,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   }, [editProfileSubTab]);
   const handleGalleryUpload = async (e) => {
     e.preventDefault();
+    setGalleryUploadError(null);
     const form = e.target;
     const fileInput = form.querySelector('input[type="file"]');
     const captionInput = form.querySelector('input[name="caption"]');
     if (!fileInput?.files?.length || galleryUploading) return;
+    if (galleryEntries.length >= GALLERY_MAX) {
+      setGalleryUploadError('Gallery limited to 10 uploads.');
+      return;
+    }
     const file = fileInput.files[0];
     setGalleryUploading(true);
     try {
@@ -767,9 +778,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       const res = await fetch('/api/account/gallery', { method: 'POST', body: fd });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.entry) {
-        setGalleryEntries((prev) => [...prev, data.entry]);
+        setGalleryEntries((prev) => [...prev, data.entry].slice(0, GALLERY_MAX));
         form.reset();
+      } else {
+        setGalleryUploadError(data.error || 'Upload failed');
       }
+    } catch (_) {
+      setGalleryUploadError('Upload failed');
     } finally {
       setGalleryUploading(false);
     }
@@ -919,7 +934,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
                     <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
                       {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
-                      {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
+                      {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') ? (
+                        <ProfileSongPlayer
+                          provider={stats.profileSongProvider}
+                          songUrl={stats.profileSongUrl}
+                          autoPlay={Boolean(stats.profileSongAutoplayEnabled)}
+                          providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                        />
+                      ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
+                        <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
+                      ) : null}
                       {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
                     </div>
                     {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
@@ -1310,7 +1334,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <span>Set as profile default</span>
                     </label>
                   </div>
-                  <p className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Upload images for the Gallery tab on your profile. You can set one as your cover photo.</p>
+                  <p className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Upload images for the Gallery tab (max {GALLERY_MAX}). You can set one as your cover photo.</p>
                   <form onSubmit={handleGalleryUpload} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
@@ -1319,6 +1343,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           type="file"
                           accept="image/*"
                           required
+                          disabled={galleryEntries.length >= GALLERY_MAX}
                           style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
                         />
                       </label>
@@ -1334,52 +1359,117 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       </label>
                       <button
                         type="submit"
-                        disabled={galleryUploading}
-                        style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: 'var(--bg)', fontSize: '13px', fontWeight: '600', cursor: galleryUploading ? 'not-allowed' : 'pointer', opacity: galleryUploading ? 0.7 : 1 }}
+                        disabled={galleryUploading || galleryEntries.length >= GALLERY_MAX}
+                        style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: 'var(--bg)', fontSize: '13px', fontWeight: '600', cursor: galleryUploading || galleryEntries.length >= GALLERY_MAX ? 'not-allowed' : 'pointer', opacity: galleryUploading || galleryEntries.length >= GALLERY_MAX ? 0.7 : 1 }}
                       >
-                        {galleryUploading ? 'Uploading…' : 'Upload'}
+                        {galleryUploading ? 'Uploading…' : galleryEntries.length >= GALLERY_MAX ? 'Max 10' : 'Upload'}
                       </button>
                     </div>
+                    {galleryUploadError && <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#ff6b6b' }}>{galleryUploadError}</p>}
                   </form>
-                  {galleryEntries.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
-                      {galleryEntries.map((entry) => (
+                  {displayedGalleryEntries.length > 0 ? (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${GALLERY_COLS}, 1fr)`, gap: '12px', maxWidth: '100%' }}>
+                        {displayedGalleryEntries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            style={{
+                              borderRadius: '10px',
+                              overflow: 'hidden',
+                              border: '1px solid rgba(52, 225, 255, 0.2)',
+                              background: 'rgba(2, 7, 10, 0.35)',
+                              aspectRatio: '1',
+                              minWidth: 0,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setGalleryModalEntry(entry)}
+                              style={{ width: '100%', height: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer', display: 'block', lineHeight: 0 }}
+                              aria-label="View full size"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={`/api/media/${entry.image_key}`} alt={entry.caption || 'Gallery'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </button>
+                            <div style={{ padding: '6px 8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                              {entry.is_cover && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600' }}>Cover</span>}
+                              <button
+                                type="button"
+                                onClick={() => handleGallerySetCover(entry.id)}
+                                disabled={entry.is_cover || galleryCoverId === entry.id}
+                                style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId ? 'not-allowed' : 'pointer' }}
+                              >
+                                {galleryCoverId === entry.id ? '…' : 'Set cover'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleGalleryDelete(entry.id)}
+                                disabled={galleryDeletingId === entry.id}
+                                style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 107, 0, 0.3)', background: 'rgba(255, 107, 0, 0.1)', color: '#ff6b6b', cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer' }}
+                              >
+                                {galleryDeletingId === entry.id ? '…' : 'Delete'}
+                              </button>
+                            </div>
+                            {entry.caption && <p style={{ margin: 0, padding: '4px 8px', fontSize: '11px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.caption}</p>}
+                          </div>
+                        ))}
+                      </div>
+                      {galleryModalEntry && (
                         <div
-                          key={entry.id}
+                          role="dialog"
+                          aria-modal="true"
+                          aria-label="Gallery image full size"
+                          onClick={() => setGalleryModalEntry(null)}
+                          onKeyDown={(e) => { if (e.key === 'Escape') setGalleryModalEntry(null); }}
+                          tabIndex={-1}
                           style={{
-                            borderRadius: '10px',
-                            overflow: 'hidden',
-                            border: '1px solid rgba(52, 225, 255, 0.2)',
-                            background: 'rgba(2, 7, 10, 0.35)',
+                            position: 'fixed',
+                            inset: 0,
+                            background: 'rgba(0,0,0,0.85)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 9999,
+                            padding: '20px',
+                            boxSizing: 'border-box',
                           }}
                         >
-                          <a href={`/api/media/${entry.image_key}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', lineHeight: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => setGalleryModalEntry(null)}
+                            aria-label="Close"
+                            style={{
+                              position: 'absolute',
+                              top: '16px',
+                              right: '16px',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              border: '1px solid rgba(255,255,255,0.3)',
+                              background: 'rgba(0,0,0,0.6)',
+                              color: '#fff',
+                              fontSize: '20px',
+                              cursor: 'pointer',
+                              lineHeight: 1,
+                            }}
+                          >
+                            &times;
+                          </button>
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={`/api/media/${entry.image_key}`} alt={entry.caption || 'Gallery'} style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
-                          </a>
-                          <div style={{ padding: '6px 8px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                            {entry.is_cover && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600' }}>Cover</span>}
-                            <button
-                              type="button"
-                              onClick={() => handleGallerySetCover(entry.id)}
-                              disabled={entry.is_cover || galleryCoverId === entry.id}
-                              style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId ? 'not-allowed' : 'pointer' }}
-                            >
-                              {galleryCoverId === entry.id ? '…' : 'Set cover'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleGalleryDelete(entry.id)}
-                              disabled={galleryDeletingId === entry.id}
-                              style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 107, 0, 0.3)', background: 'rgba(255, 107, 0, 0.1)', color: '#ff6b6b', cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer' }}
-                            >
-                              {galleryDeletingId === entry.id ? '…' : 'Delete'}
-                            </button>
+                            <img
+                              src={`/api/media/${galleryModalEntry.image_key}`}
+                              alt={galleryModalEntry.caption || 'Gallery'}
+                              style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 80px)', objectFit: 'contain', display: 'block', borderRadius: '8px' }}
+                            />
+                            {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
                           </div>
-                          {entry.caption && <p style={{ margin: 0, padding: '4px 8px', fontSize: '11px', color: 'var(--muted)' }}>{entry.caption}</p>}
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   ) : (
                     <div className="muted" style={{ padding: '12px' }}>No images yet. Upload one above.</div>
                   )}

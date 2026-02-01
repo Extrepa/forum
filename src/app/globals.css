@@ -1825,6 +1825,15 @@ button:hover {
   align-items: center;
   gap: 12px;
   margin-top: 6px;
+  min-width: 0;
+}
+
+/* Prevent song URL from stretching; allow wrap on small viewports */
+.profile-card-mood-song .profile-song-link {
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .profile-mood-chip {
@@ -1957,6 +1966,14 @@ button:hover {
   gap: 0;
   min-width: 0;
   max-width: 100%;
+}
+
+/* Gallery: 5 columns, 2 rows of squares; click opens modal */
+.profile-gallery-grid {
+  min-width: 0;
+}
+.profile-gallery-grid > * {
+  min-width: 0;
 }
 
 .profile-tab-content {
