@@ -816,6 +816,11 @@ main {
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
+}
+.account-card::-webkit-scrollbar,
+.account-card.card::-webkit-scrollbar {
+  display: none; /* Hide scrollbar on Chrome/Safari */
 }
 
 /* Desktop: center the account card with a narrower max-width so content is more centered */
@@ -944,6 +949,10 @@ main {
   overflow-y: visible;
   position: relative;
   isolation: isolate;
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
+}
+.account-edit-card::-webkit-scrollbar {
+  display: none; /* Hide scrollbar on Chrome/Safari */
 }
 
 .account-edit-card--tabs-bottom {
@@ -955,6 +964,10 @@ main {
   overflow-x: hidden;
   overflow-y: visible;
   min-height: 0;
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
+}
+.account-edit-card--tabs-bottom::-webkit-scrollbar {
+  display: none; /* Hide scrollbar on Chrome/Safari */
 }
 
 /* Top Account / Edit profile tab row: prevent horizontal overflow on mobile */
@@ -977,7 +990,7 @@ main {
   overflow: visible;
 }
 
-/* Row 1: avatar + mini preview (left), Edit Avatar (right) */
+/* Row 1: avatar + mini preview (left), Username + Edit Avatar (right) */
 .account-profile-preview-row-1 {
   display: flex;
   flex-direction: row;
@@ -985,15 +998,98 @@ main {
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .account-profile-preview-row-1 .profile-card-header-avatar {
   flex-shrink: 0;
+}
+.account-profile-preview-row-1-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .account-profile-preview-avatar-action {
   flex-shrink: 0;
   align-self: center;
   margin-left: auto;
+}
+
+/* Row 2: spacer (left) | Role + Edit Username (right) */
+.account-profile-preview-row-2 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 6px;
+}
+.account-profile-preview-row-spacer {
+  width: 96px;
+  flex-shrink: 0;
+}
+.account-profile-preview-row-2-right {
+  flex: 1;
+  min-width: 0;
+}
+.account-role-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Row 3: spacer (left) | Mood (right) */
+.account-profile-preview-row-3 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+.account-profile-preview-row-3-right {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Song section below all rows - allow full width to show complete song info */
+.account-profile-preview-song {
+  margin-top: 8px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.account-profile-preview-song .profile-song-player--compact {
+  max-width: 100%;
+  width: 100%;
+}
+.account-profile-preview-song .profile-song-player-bar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.account-profile-preview-song .profile-song-player-name,
+.account-profile-preview-song .profile-song-player-link {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: break-word;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.account-profile-preview-song .profile-song-compact {
+  max-width: 100%;
+  width: 100%;
+}
+.account-profile-preview-song .profile-song-compact .profile-song-link {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: break-word;
 }
 
 /* Meta: username row (username left, Edit Username right), then role, mood, song, headline */
@@ -1011,6 +1107,7 @@ main {
   gap: 12px;
   min-width: 0;
   flex-wrap: wrap;
+  width: 100%;
 }
 .account-username-row .username {
   min-width: 0;
@@ -1027,9 +1124,12 @@ main {
   margin-left: auto;
 }
 
-/* Desktop: keep Edit Username (B) in same row as username, no wrap */
+/* Desktop: compact layout - rows aligned with avatar */
 @media (min-width: 769px) {
   .account-username-row {
+    flex-wrap: nowrap;
+  }
+  .account-role-row {
     flex-wrap: nowrap;
   }
 }
@@ -1048,7 +1148,7 @@ main {
   align-items: center;
   flex-wrap: nowrap;
 }
-/* Song info: no wrapping in account edit preview */
+/* Song info: no wrapping in account edit preview (except in song section below) */
 .account-profile-preview .profile-card-mood-song .profile-song-link,
 .account-profile-preview .profile-song-player-link,
 .account-profile-preview .profile-song-player-name {
@@ -2441,11 +2541,35 @@ button:hover {
     gap: 12px;
   }
 
-  /* Account edit preview: keep Edit Avatar and Edit Username right-locked (same as desktop) */
+  /* Account edit preview: mobile - stack vertically, center everything */
   .account-profile-preview-row-1 {
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     gap: 12px;
+  }
+
+  .account-profile-preview-row-1-right {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .account-profile-preview-row-2,
+  .account-profile-preview-row-3 {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .account-profile-preview-row-spacer {
+    display: none;
+  }
+
+  .account-profile-preview-row-2-right,
+  .account-profile-preview-row-3-right {
+    width: 100%;
+    align-items: center;
+    text-align: center;
   }
 
   .account-profile-preview-avatar-action {
@@ -2456,7 +2580,7 @@ button:hover {
   .account-profile-preview .profile-card-header-avatar {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .account-profile-preview .account-edit-avatar-btn,
@@ -2478,23 +2602,22 @@ button:hover {
     min-width: 0;
   }
 
-  .account-profile-preview-meta {
-    align-items: center;
-    text-align: center;
-  }
-
   .account-username-row {
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
+    flex-wrap: wrap;
   }
 
-  .account-profile-preview .profile-card-mood-song {
-    align-items: center;
+  .account-role-row {
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
   }
 
-  .account-profile-preview .profile-card-header-meta.account-profile-preview-meta {
-    min-width: 0;
+  .account-profile-preview-song {
     width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .account-profile-preview .profile-song-player,
@@ -2538,26 +2661,26 @@ button:hover {
   }
 }
 
-/* Narrow viewports: keep Edit Avatar and Edit Username right-locked */
+/* Narrow viewports: same as 768px - vertical stack, centered */
 @media (max-width: 600px) {
   .account-profile-preview-row-1 {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  .account-profile-preview-avatar-action {
-    flex-shrink: 0;
-    margin-left: auto;
-  }
-
-  .account-profile-preview .profile-card-header-avatar {
-    display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .account-profile-preview-row-1-right {
+    width: 100%;
+    align-items: center;
   }
 
   .account-username-row {
-    justify-content: space-between;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .account-role-row {
+    justify-content: center;
+    width: 100%;
   }
 
   .tabs-pill {
@@ -2658,12 +2781,9 @@ button:hover {
   scrollbar-width: thin;
   scrollbar-color: rgba(52, 225, 255, 0.3) rgba(4, 16, 23, 0.3);
 }
-.account-edit-panel .profile-activity-list--scrollable {
-  max-height: 230px;
-  overflow-y: auto;
-}
 .profile-activity-list--scrollable::-webkit-scrollbar {
   width: 8px;
+  display: block; /* Ensure scrollbar is visible */
 }
 .profile-activity-list--scrollable::-webkit-scrollbar-track {
   background: rgba(4, 16, 23, 0.3);
@@ -2672,8 +2792,30 @@ button:hover {
 .profile-activity-list--scrollable::-webkit-scrollbar-thumb {
   background: rgba(52, 225, 255, 0.3);
   border-radius: 4px;
+  border: 1px solid rgba(4, 16, 23, 0.2);
 }
 .profile-activity-list--scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 225, 255, 0.5);
+}
+/* Ensure account edit panel activity list also has styled scrollbar */
+.account-edit-panel .profile-activity-list--scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 225, 255, 0.3) rgba(4, 16, 23, 0.3);
+}
+.account-edit-panel .profile-activity-list--scrollable::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+.account-edit-panel .profile-activity-list--scrollable::-webkit-scrollbar-track {
+  background: rgba(4, 16, 23, 0.3);
+  border-radius: 4px;
+}
+.account-edit-panel .profile-activity-list--scrollable::-webkit-scrollbar-thumb {
+  background: rgba(52, 225, 255, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(4, 16, 23, 0.2);
+}
+.account-edit-panel .profile-activity-list--scrollable::-webkit-scrollbar-thumb:hover {
   background: rgba(52, 225, 255, 0.5);
 }
 .profile-activity-item {
