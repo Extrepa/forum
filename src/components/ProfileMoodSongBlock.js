@@ -79,7 +79,6 @@ export default function ProfileMoodSongBlock({
             songUrl={songUrl}
             autoPlay
             providerLabel={songProviderLabel}
-            compact
           />
         ) : hasSong ? (
           <div className="profile-song-compact">

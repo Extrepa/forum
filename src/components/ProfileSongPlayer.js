@@ -35,7 +35,7 @@ function songNameFromUrl(url) {
   }
 }
 
-export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false, providerLabel = 'Song', compact = false }) {
+export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false, providerLabel = 'Song' }) {
   const iframeRef = useRef(null);
   const youtubeId = useId();
   const [soundcloudWidget, setSoundcloudWidget] = useState(null);
@@ -233,10 +233,10 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   if (!embed && provider !== 'youtube') return null;
   if (provider === 'youtube' && !videoId) return null;
 
-  const displaySongName = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
+  const displaySongName = (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
 
   return (
-    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', position: 'relative', ...(compact ? {} : { width: '100%', maxWidth: '400px' }) }}>
+    <div className="profile-song-player" style={{ marginTop: '12px', position: 'relative', width: '100%', maxWidth: '400px' }}>
       <div className="profile-song-player-bar" style={{ position: 'relative', zIndex: 1 }}>
         <button
           type="button"
@@ -246,7 +246,6 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           aria-label={isPlaying ? 'Pause' : 'Play'}
           aria-pressed={isPlaying}
           style={{
-            ...(compact ? { minWidth: 32, minHeight: 32, flexShrink: 0 } : {}),
             color: '#ffffff',
           }}
         >
@@ -272,18 +271,15 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           </span>
         </div>
       </div>
-      {compact && (
-        <div className="profile-song-player-progress-wrap" role="presentation" aria-hidden="true">
-          <div className="profile-song-player-progress-track" />
-          <div className="profile-song-player-progress-fill" style={{ width: `${progress * 100}%` }} />
-        </div>
-      )}
+      <div className="profile-song-player-progress-wrap" role="presentation" aria-hidden="true">
+        <div className="profile-song-player-progress-track" />
+        <div className="profile-song-player-progress-fill" style={{ width: `${progress * 100}%` }} />
+      </div>
       {/* Embed hidden when compact; kept in DOM for playback */}
       {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
-          style={compact ? { position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0, zIndex: 0 } : undefined}
-          aria-hidden={compact}
+          aria-hidden={false}
         >
           <iframe
             ref={iframeRef}
@@ -295,7 +291,6 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
               width: '100%',
               border: 'none',
               borderRadius: '8px',
-              ...(compact ? { pointerEvents: 'none' } : {}),
             }}
             {...(embed.height ? { height: embed.height, minHeight: embed.height } : {})}
           />
@@ -305,8 +300,8 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         <div
           id={youtubeId}
           className="embed-frame profile-song-player-embed"
-          style={compact ? { position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none', margin: 0, zIndex: 0 } : { height: 166, minHeight: 166 }}
-          aria-hidden={compact}
+          style={{ height: 166, minHeight: 166 }}
+          aria-hidden={false}
         />
       )}
     </div>
