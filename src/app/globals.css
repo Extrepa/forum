@@ -1015,13 +1015,39 @@ main {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
+  position: relative;
 }
 .account-profile-preview-role-mood {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
+}
+.account-profile-preview-row-1 .account-username-row {
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  position: relative;
+}
+.account-profile-preview-row-1 .account-username-row .username {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: auto;
+}
+.account-edit-avatar-btn--desktop {
+  margin-left: auto;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.account-edit-username-btn {
+  align-self: flex-end !important;
+  margin-left: auto;
 }
 /* Desktop: hide mobile Edit Avatar button, show desktop one */
 .account-edit-avatar-btn--mobile {
@@ -1121,10 +1147,29 @@ main {
   margin-left: auto;
 }
 
-/* Desktop: compact layout - rows aligned with avatar */
+/* Desktop: compact layout - rows aligned with avatar, center username/role/mood, buttons right */
 @media (min-width: 769px) {
   .account-username-row {
     flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+  .account-profile-preview-row-1-right {
+    align-items: center;
+    text-align: center;
+  }
+  .account-profile-preview-role-mood {
+    align-items: center;
+    text-align: center;
+  }
+  .account-profile-preview-row-1 .account-username-row .username {
+    text-align: center;
+  }
+  .account-edit-avatar-btn--desktop {
+    margin-left: auto;
+  }
+  .account-edit-username-btn {
+    align-self: flex-end !important;
+    margin-left: auto;
   }
 }
 
@@ -2535,45 +2580,50 @@ button:hover {
     gap: 12px;
   }
 
-  /* Account edit preview: mobile - avatar + mini preview + Edit Avatar in same row */
+  /* Account edit preview: mobile - Edit Avatar in top right corner */
   .account-profile-preview-row-1 {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     gap: 12px;
+    position: relative;
   }
 
   .account-profile-preview-avatar-container {
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    position: relative;
   }
 
   .account-profile-preview-row-1 .profile-card-header-avatar {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     flex-shrink: 0;
   }
 
   .account-profile-preview-row-1-right {
     flex: 1;
     min-width: 0;
-    align-items: flex-start;
-    text-align: left;
+    width: 100%;
+    align-items: center;
+    text-align: center;
   }
 
   .account-profile-preview-row-1 .account-username-row {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
   }
 
-  /* Mobile: show mobile Edit Avatar button, hide desktop one */
+  /* Mobile: Edit Avatar button in top right corner */
   .account-edit-avatar-btn--mobile {
     display: block;
-    align-self: flex-end;
-    margin-top: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
   }
   .account-edit-avatar-btn--desktop {
     display: none;
@@ -2593,13 +2643,27 @@ button:hover {
     box-sizing: border-box;
   }
 
-  /* Compact song player in account preview: use full width on mobile so bar stays horizontal */
+  /* Compact song player in account preview: center on mobile, fix progress bar */
+  .account-profile-preview-song {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
   .account-profile-preview .profile-song-player--compact {
     max-width: 100%;
-    width: 100%;
+    width: fit-content;
+    min-width: min-content;
   }
   .account-profile-preview .profile-song-player--compact .profile-song-player-bar {
-    min-width: 0;
+    min-width: min-content;
+    width: fit-content;
+  }
+  .account-profile-preview .profile-song-player-progress-wrap {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 6px;
   }
 
   .account-username-row {
@@ -2658,38 +2722,48 @@ button:hover {
   }
 }
 
-/* Narrow viewports: same as 768px - avatar + Edit Avatar in same row */
+/* Narrow viewports: same as 768px - Edit Avatar in top right corner */
 @media (max-width: 600px) {
+
   .account-profile-preview-row-1 {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
   }
 
   .account-profile-preview-avatar-container {
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative;
   }
 
   .account-profile-preview-row-1-right {
-    flex: 1;
-    min-width: 0;
-    align-items: flex-start;
+    width: 100%;
+    align-items: center;
+    text-align: center;
   }
 
   .account-username-row {
-    justify-content: flex-start;
+    justify-content: center;
     width: 100%;
   }
 
   .account-edit-avatar-btn--mobile {
     display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
   .account-edit-avatar-btn--desktop {
     display: none;
   }
 
+  .account-profile-preview-song {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
 
   .tabs-pill {
     padding: 5px;
