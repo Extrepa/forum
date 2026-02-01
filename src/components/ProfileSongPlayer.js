@@ -106,7 +106,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   if (provider === 'youtube' && !videoId) return null;
 
   return (
-    <div className={`profile-song-player neon-outline-card profile-song-player--${provider}`} style={{ marginTop: '12px', position: 'relative', width: '100%', maxWidth: '400px', borderRadius: '8px', height: embed.height ? embed.height : 'auto' }}>
+    <div className={`profile-song-player neon-outline-card profile-song-player--${provider}`} style={{ position: 'relative', width: '100%', maxWidth: '400px', borderRadius: '8px', height: embed.height ? embed.height : 'auto', boxSizing: 'border-box' }}>
       {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
@@ -124,6 +124,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
               height: '100%',
               border: 'none',
               borderRadius: '0',
+              boxSizing: 'border-box',
             }}
           />
         </div>
@@ -132,7 +133,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         <div
           id={youtubeId}
           className="embed-frame profile-song-player-embed"
-          style={{ position: 'relative', width: '100%', height: embed.height ? embed.height : '100%', minHeight: '166px' }}
+          style={{ position: 'relative', width: '100%', height: embed.height ? embed.height : '100%', minHeight: '166px', boxSizing: 'border-box' }}
           aria-hidden={false}
         />
       )}
