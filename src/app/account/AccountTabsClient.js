@@ -938,7 +938,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <ProfileSongPlayer
                           provider={stats.profileSongProvider}
                           songUrl={stats.profileSongUrl}
-                          autoPlay={Boolean(stats.profileSongAutoplayEnabled)}
+                          autoPlay={false}
                           providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
                           compact
                         />
@@ -949,7 +949,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                     {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
                   </div>
-                  <div className="account-profile-preview-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, alignItems: 'stretch', minWidth: '130px' }}>
+                  <div className="account-profile-preview-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, alignItems: 'stretch' }}>
                     {!isEditingUsername ? (
                       <>
                         <button
