@@ -35,35 +35,37 @@ export default async function ProfilePage({ params }) {
   // Decode username from URL
   const username = decodeURIComponent(rawUsername);
 
-  // Get user by username
+  // Base user row (no profile-extras columns) so page never fails if migration 0054 not applied
   let profileUser = null;
   try {
     profileUser = await db
       .prepare(
-        `SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes,
-          profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
-          profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-          profile_headline, default_profile_tab
-          FROM users WHERE username_norm = ?`
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
       )
       .bind(username.toLowerCase())
       .first();
-  } catch (e) {
+  } catch (_) {
+    profileUser = await db
+      .prepare(
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+      )
+      .bind(username.toLowerCase())
+      .first();
+  }
+  // Profile extras (mood, song, headline, default tab) – separate query for migration 0054 columns
+  if (profileUser) {
     try {
-      profileUser = await db
+      const extras = await db
         .prepare(
-          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, default_profile_tab FROM users WHERE username_norm = ?'
+          `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+           profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+           profile_headline, default_profile_tab FROM users WHERE id = ?`
         )
-        .bind(username.toLowerCase())
+        .bind(profileUser.id)
         .first();
+      if (extras) profileUser = { ...profileUser, ...extras };
     } catch (_) {
-      profileUser = await db
-        .prepare(
-          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
-        )
-        .bind(username.toLowerCase())
-        .first();
-      if (profileUser) profileUser.default_profile_tab = null;
+      profileUser.default_profile_tab = profileUser.default_profile_tab ?? null;
     }
   }
 

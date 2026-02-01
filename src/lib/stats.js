@@ -113,23 +113,31 @@ export async function getStatsForUser(db, userId, options = {}) {
     ];
     const allActivity = [...allPosts, ...allReplies].sort((a, b) => b.created_at - a.created_at).slice(0, 10);
 
+    // Base user row (no profile-extras columns) so stats never fail if migration 0054 not applied
     let userInfo = null;
     try {
-      userInfo = await db
+      userInfo = await db.prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes FROM users WHERE id = ?').bind(userId).first();
+    } catch (e) {
+      try {
+        userInfo = await db.prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?').bind(userId).first();
+      } catch (_) {}
+    }
+    // Profile extras (mood, song, headline, default tab) from migration 0054 – separate query so one DB can have columns, other code paths can be older
+    let extras = null;
+    try {
+      extras = await db
         .prepare(
-          `SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes,
-           profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+          `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
            profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
            profile_headline, default_profile_tab FROM users WHERE id = ?`
         )
         .bind(userId)
         .first();
-    } catch (e) {
-      try {
-        userInfo = await db.prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes FROM users WHERE id = ?').bind(userId).first();
-      } catch (e2) {
-        userInfo = await db.prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?').bind(userId).first();
-      }
+    } catch (_) {}
+    if (userInfo && extras) {
+      userInfo = { ...userInfo, ...extras };
+    } else if (extras) {
+      userInfo = extras;
     }
 
     let profileLinks = [];

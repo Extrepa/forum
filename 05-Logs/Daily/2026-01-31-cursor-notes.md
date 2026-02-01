@@ -131,3 +131,11 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Client:** Mood & Song save payload uses `(profileMoodText ?? '').trim()` (and same for emoji, headline, song URL, provider) so undefined never reaches `.trim()` and JSON is always valid.
 - **Cause of 500:** Most likely migration 0054 not applied on D1 (columns `profile_mood_text`, `profile_mood_emoji`, `profile_headline`, etc. missing). Apply with: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql` (or without `--remote` for local).
 - **Files:** `src/app/api/account/profile-extras/route.js`, `src/app/account/AccountTabsClient.js`.
+
+---
+
+## Mood & Song not persisting after refresh (user report)
+
+- **Symptom:** Song and mood show "Saved" in edit profile but disappear after refresh or on public profile.
+- **Cause:** Migration 0054 has not been applied to the remote D1 database; UPDATE/SELECT on the new columns fail or fall back to empty.
+- **Action:** Run migration 0054 on the environment you test against: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql` (add `--env preview` if using preview env). After that, mood/song will persist and show on refresh and public profile.

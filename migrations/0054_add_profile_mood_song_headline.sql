@@ -1,3 +1,4 @@
+-- Profile mood, song, headline. If you see "duplicate column name", this migration was already applied; safe to ignore.
 ALTER TABLE users ADD COLUMN profile_mood_text TEXT;
 ALTER TABLE users ADD COLUMN profile_mood_emoji TEXT;
 ALTER TABLE users ADD COLUMN profile_mood_updated_at INTEGER;
