@@ -914,7 +914,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom">
-            {/* Top section: avatar | (meta + actions). Mobile: buttons to right of avatar/username. Desktop: Edit Username right of username, Edit Avatar below. */}
+            {/* Top section: avatar | (meta + actions). Edit Avatar on top, Edit Username below (desktop and mobile). */}
             <div className="account-profile-preview">
               <div className="profile-card-header account-profile-preview-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
                 <div className="profile-card-header-avatar">
