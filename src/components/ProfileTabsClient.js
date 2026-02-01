@@ -136,7 +136,7 @@ export default function ProfileTabsClient({
         <div>
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Recent Activity</h4>
           {hasActivity ? (
-            <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`}>
+            <div className={`profile-activity-list${activityItems.length >= 5 ? ' profile-activity-list--scrollable' : ''}`}>
               {activityItems.map(item => (
                 <a key={item.key} href={item.href} className="profile-activity-item">
                   {item.type === 'thread' ? (

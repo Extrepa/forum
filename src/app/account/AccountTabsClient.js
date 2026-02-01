@@ -948,7 +948,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       type="button"
                       onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }}
                       className="account-edit-profile-btn account-edit-username-btn"
-                      style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0 }}
+                      style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', flexShrink: 0, width: 'auto' }}
                     >
                       Edit Username
                     </button>
@@ -1585,7 +1585,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </label>
                   </div>
                   {activityItems.length > 0 ? (
-                    <div className="profile-activity-list" style={{ marginTop: '4px' }}>
+                    <div className={`profile-activity-list${activityItems.length >= 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '4px' }}>
                       {activityItems.map(item => (
                         <a key={item.key} href={item.href} className="profile-activity-item">
                           {item.type === 'thread' ? (

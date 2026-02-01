@@ -1,5 +1,37 @@
 # 2026-01-31 cursor notes
 
+## Account: Recent activity scroll, right-lock buttons, Edit Username no stretch, song no-wrap (2026-02-01)
+
+- **Recent activity "5 scroll to rest":** `profile-activity-list--scrollable` applied when `activityItems.length >= 5` (AccountTabsClient and ProfileTabsClient). Scrollable list has max-height 230px, overflow-y auto, -webkit-overflow-scrolling touch, thin scrollbar styling. Webkit scrollbar styles added for visibility.
+- **Edit Avatar right-locked on all viewports:** `.account-profile-preview-avatar-action` has `margin-left: auto` in base so the button stays right on desktop and mobile.
+- **Edit Username right-locked and no stretch:** `.account-edit-username-btn` has `margin-left: auto` and `max-width: 140px` (was 160px); removed inline `maxWidth: '100%'` from the button in AccountTabsClient so the button does not stretch on desktop.
+- **Song info no wrapping in account preview:** `.account-profile-preview .profile-card-mood-song .profile-song-link`, `.profile-song-player-link`, `.profile-song-player-name` get `white-space: nowrap`, `overflow: hidden`, `text-overflow: ellipsis`. `.account-profile-preview .profile-song-player-bar` has `flex-wrap: nowrap`. `.profile-song-player-bar` base had duplicate `flex-wrap` (nowrap then wrap); removed wrap. `.account-profile-preview .profile-song-compact` set to row/nowrap with link ellipsis.
+
+Files: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`, `src/components/ProfileTabsClient.js`.
+
+---
+
+## Account: Recent activity 5-then-scroll, right-lock buttons, song no-wrap (2026-02-01)
+
+- **Recent activity scroll ("5 scroll to rest"):** Use `profile-activity-list--scrollable` when `activityItems.length >= 5` (was > 5) so that once there are 5 items, the list gets max-height 230px and overflow-y auto; any further items scroll inside that section.
+- **Edit Avatar and Edit Username right-locked on mobile:** In the 768px and 600px blocks, row-1 and username-row use `justify-content: space-between` (not center). Avatar-action uses `flex-shrink: 0` and `margin-left: auto` (not width: 100% + center) so Edit Avatar stays on the right. Username row keeps space-between so Edit Username stays on the right. Avatar column uses `align-items: flex-start` so content stays left-aligned with the button on the right.
+- **Edit Username no stretch on desktop:** `.account-edit-username-btn` has `max-width: 160px` so it doesn't grow with the row; `width: auto !important` and base overrides keep it button-sized.
+- **Song info no wrapping:** `.profile-song-player-bar` has `flex-wrap: nowrap` at base and in compact. `.profile-song-player--compact .profile-song-player-link` and `.profile-song-player-name` have `white-space: nowrap`, `overflow: hidden`, `text-overflow: ellipsis` so the song name stays on one line and truncates with ellipsis when needed.
+
+Files: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
+## Account: scrollbars, Recent activity scroll, Edit Username button (2026-02-01)
+
+- **Recent activity scroll restored:** The Recent activity list on account edit again uses `profile-activity-list--scrollable` when `activityItems.length > 5`, so that section has its own scroll (max-height 230px, overflow-y auto) instead of growing the whole page.
+- **No scroll on edit profile card or account card:** `.account-edit-card` and `.account-edit-card--tabs-bottom` have explicit `overflow-y: visible`; `.account-edit-card--tabs-bottom .account-edit-tab-content--above` has `flex: 0 1 auto` (not 1 1 auto), `overflow-y: visible`, `overflow-x: hidden`, and `min-width: 0` so the content area doesn't create an inner scrollbar. `.account-card` and `.account-card.card` have `overflow-y: visible` so only the window (and the Recent activity list) scroll.
+- **Edit Username button:** `.account-edit-avatar-btn` and `.account-edit-username-btn` use `width: auto !important` and `max-width: 100%` so they don't stretch to full width (overriding base `.account-edit-profile-btn` width: 100%). Inline style on the Edit Username button also sets `width: 'auto'`, `maxWidth: '100%'`.
+
+Files: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
+
+---
+
 ## Account: desktop centering, scrollbars removed, A/B button row (2026-02-01)
 
 - **Desktop centering:** On min-width 1025px, `.account-card` has `max-width: 800px`, `margin-left: auto`, `margin-right: auto` so the account card is more centered in the viewport.
