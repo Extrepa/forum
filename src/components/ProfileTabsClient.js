@@ -103,9 +103,11 @@ export default function ProfileTabsClient({
     }
   };
 
+  const noTabSelected = activeTab == null;
+
   return (
-    <div className="profile-tabs-wrapper" style={{ minWidth: 0, maxWidth: '100%' }}>
-      <div className="profile-tab-content profile-tab-content--above" style={{ minWidth: 0, maxWidth: '100%' }}>
+    <div className={`profile-tabs-wrapper${noTabSelected ? ' profile-tabs-wrapper--no-selection' : ''}`} style={{ minWidth: 0, maxWidth: '100%' }}>
+      <div className={`profile-tab-content profile-tab-content--above${noTabSelected ? ' profile-tab-content--no-selection' : ''}`} style={{ minWidth: 0, maxWidth: '100%' }}>
       {activeTab === 'stats' && (
         <div>
           {stats ? (

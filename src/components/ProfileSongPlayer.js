@@ -159,14 +159,15 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
           className="profile-song-player-btn"
           title={isPlaying ? 'Pause' : 'Play'}
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          style={compact ? { minWidth: 32, minHeight: 32, flexShrink: 0 } : undefined}
         >
           {isPlaying ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true">
               <rect x="6" y="4" width="4" height="16" rx="1" />
               <rect x="14" y="4" width="4" height="16" rx="1" />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#001018" aria-hidden="true">
               <path d="M8 5v14l11-7z" />
             </svg>
           )}
