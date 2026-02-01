@@ -991,26 +991,44 @@ main {
 }
 
 .account-profile-preview {
-  position: relative;
-  padding: 16px; /* Base padding */
-  padding-left: 130px; /* Accommodate avatar (96px + 16px left + 18px gap) */
-  padding-right: 120px; /* Accommodate buttons (100px + 16px right) */
+  position: relative; /* Keep relative for potential absolute positioning inside, if needed later */
+  padding: 16px;
   margin-bottom: 8px;
   min-width: 0;
-  display: flex;
+  display: flex; /* Default to flex for mobile-first stacked layout */
   flex-direction: column;
-  gap: 8px;
+  gap: 16px; /* Increased gap for better spacing */
   border-radius: 18px;
   border: 1px solid rgba(52, 225, 255, 0.25);
   background: rgba(1, 6, 12, 0.8);
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
-  min-height: 150px; /* Ensure enough height for positioned elements */
+}
+
+.account-profile-preview-left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center items for stacked layout */
+  gap: 12px;
+}
+
+.account-profile-preview-right-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center items for stacked layout */
+  gap: 12px;
+  min-width: 0; /* Allow content to shrink */
+  width: 100%; /* Take full width on mobile */
+}
+
+/* Reset specific absolute positioning for mobile, let them flow naturally */
+.account-profile-preview-avatar-container,
+.account-profile-preview-buttons-container {
+  position: static;
+  margin: 0; /* Reset any default margins */
+  padding: 0; /* Reset any default paddings */
 }
 
 .account-profile-preview-avatar-container {
-  position: absolute;
-  left: 16px; /* Adjusted from 20px padding */
-  top: 16px; /* Adjusted from 20px padding */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1031,13 +1049,10 @@ main {
 }
 
 .account-profile-preview-buttons-container {
-  position: absolute;
-  right: 16px; /* Adjusted from 20px padding */
-  top: 16px; /* Adjusted from 20px padding */
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Stack buttons on mobile */
   gap: 8px;
-  align-items: flex-end;
+  align-items: center; /* Center buttons on mobile */
 }
 
 .account-profile-preview-user-info {
@@ -1047,8 +1062,7 @@ main {
   justify-content: center;
   text-align: center;
   width: 100%;
-  height: 100%;
-  padding-top: 10px; /* Add some padding to push content down a bit */
+  padding-top: 0; /* Reset any extra padding */
   gap: 8px;
 }
 .account-profile-preview-user-info > * {
@@ -1056,28 +1070,61 @@ main {
   margin-bottom: 0 !important;
 }
 
-/* Mobile adjustments */
-@media (max-width: 640px) {
+/* Desktop adjustments for two-column layout */
+@media (min-width: 769px) { /* Using 769px as a common breakpoint for desktop */
   .account-profile-preview {
-    padding: 16px; /* Reset padding for mobile */
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row; /* Two columns */
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px; /* More padding on desktop */
+    gap: 32px; /* Gap between columns */
     min-height: auto; /* Allow height to adjust */
   }
 
-  .account-profile-preview-avatar-container {
-    position: static; /* Remove absolute positioning */
-    margin-bottom: 12px; /* Add space below avatar */
+  .account-profile-preview-left-column {
+    flex-direction: column; /* Stack items vertically within the left column */
+    align-items: flex-start; /* Align to start in left column */
+    flex: 1; /* Allow left column to grow */
+    gap: 16px;
   }
 
+  .account-profile-preview-right-column {
+    flex-direction: column; /* Stack items vertically within the right column */
+    align-items: flex-end; /* Align to end in right column */
+    flex: 0 0 auto; /* Right column size based on content */
+    width: auto;
+    max-width: 400px; /* Limit player width */
+  }
 
+  /* Adjust buttons for desktop right column */
+  .account-profile-preview-buttons-container {
+    flex-direction: row; /* Display buttons side-by-side */
+    justify-content: flex-end; /* Align buttons to the right */
+    width: 100%;
+  }
+
+  /* Specific avatar positioning for desktop within left column */
+  .account-profile-preview-avatar-container {
+    position: relative; /* Or static, based on how it should flow */
+    left: auto;
+    top: auto;
+    align-items: flex-start; /* Align avatar to start */
+  }
 
   .account-profile-preview-user-info {
-    padding-top: 0; /* No need for extra padding */
-    text-align: center; /* Ensure text is centered */
+    text-align: left; /* Align text to left in desktop column */
+    align-items: flex-start; /* Align items to start */
+    width: auto;
   }
 }
 
+/* Mobile Player Adjustments */
+@media (max-width: 640px) {
+  .profile-song-player {
+    width: 100% !important; /* Ensure player takes full width on mobile */
+    max-width: 100% !important;
+  }
+}
 
 .account-edit-profile-btn--small {
   padding: 4px 10px; /* Adjusted padding */

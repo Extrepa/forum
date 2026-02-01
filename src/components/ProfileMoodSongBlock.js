@@ -73,6 +73,9 @@ export default function ProfileMoodSongBlock({
             <span>{moodText}</span>
           </div>
         )}
+        {headline ? (
+          <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
+        ) : null}
         {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud') ? (
           <ProfileSongPlayer
             provider={songProvider}
@@ -89,9 +92,6 @@ export default function ProfileMoodSongBlock({
           </div>
         ) : null}
       </div>
-      {headline ? (
-        <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
-      ) : null}
     </>
   );
 }

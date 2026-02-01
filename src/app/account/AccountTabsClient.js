@@ -864,8 +864,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
             <div className="account-profile-preview">
-              <div className="account-profile-preview-avatar-container">
-                <div className="profile-card-header-avatar">
+              <div className="account-profile-preview-left-column">
+                <div className="account-profile-preview-avatar-container">
                   {user.avatar_key ? (
                     <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
                   ) : (
@@ -876,42 +876,44 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" />
                   </div>
                 </div>
-              </div>
 
-              <div className="account-profile-preview-buttons-container">
-                <button
-                  type="button"
-                  onClick={() => { setIsEditingUsername(true); setIsEditingAvatar(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                  className="account-edit-profile-btn account-edit-profile-btn--small account-edit-username-btn"
-                >
-                  Edit Username
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                  disabled={isEditingAvatar}
-                  className="account-edit-profile-btn account-edit-profile-btn--small account-edit-avatar-btn"
-                >
-                  Edit Avatar
-                </button>
-              </div>
-
-              <div className="account-profile-preview-user-info">
-                <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
-                <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
-                {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                    <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
-                    <div className="profile-mood-chip" style={accountMoodChipStyle}>
-                      <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
+                <div className="account-profile-preview-user-info">
+                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
+                  {(stats.profileMoodText || stats.profileMoodEmoji) && (
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                      <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
+                      <div className="profile-mood-chip" style={accountMoodChipStyle}>
+                        <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {stats.profileHeadline && (
-                  <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
-                    {stats.profileHeadline}
-                  </div>
-                )}
+                  )}
+                  {stats.profileHeadline && (
+                    <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
+                      {stats.profileHeadline}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="account-profile-preview-right-column">
+                <div className="account-profile-preview-buttons-container">
+                  <button
+                    type="button"
+                    onClick={() => { setIsEditingUsername(true); setIsEditingAvatar(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                    className="account-edit-profile-btn account-edit-profile-btn--small account-edit-username-btn"
+                  >
+                    Edit Username
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                    disabled={isEditingAvatar}
+                    className="account-edit-profile-btn account-edit-profile-btn--small account-edit-avatar-btn"
+                  >
+                    Edit Avatar
+                  </button>
+                </div>
                 {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') && (
                   <ProfileSongPlayer
                     provider={stats.profileSongProvider}

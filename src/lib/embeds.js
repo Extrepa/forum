@@ -42,7 +42,7 @@ function soundCloudPlayerSrc(trackUrl, autoPlay = false) {
     }
     const encoded = encodeURIComponent(trackUrl);
     const autoPlayStr = autoPlay ? 'true' : 'false';
-    return `https://w.soundcloud.com/player/?url=${encoded}&color=%2334e1ff&auto_play=${autoPlayStr}&visual=true&show_artwork=true`;
+    return `https://w.soundcloud.com/player/?url=${encoded}&color=%2334e1ff&auto_play=${autoPlayStr}&visual=true&show_artwork=true&show_comments=true`;
   } catch {
     return null;
   }
@@ -69,7 +69,7 @@ export function safeEmbedFromUrl(type, url, embedStyle = 'auto', autoPlay = fals
       return null;
     }
     const isPlaylist = isSoundCloudPlaylist(url);
-    const height = (embedStyle === 'full' || (embedStyle === 'auto' && isPlaylist)) ? 450 : 300;
+    const height = (embedStyle === 'full' || (embedStyle === 'auto' && isPlaylist)) ? 450 : 166;
     const embedClass = height === 450 ? 'soundcloud-full' : 'soundcloud-compact';
 
     return {
