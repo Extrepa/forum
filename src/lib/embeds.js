@@ -69,8 +69,8 @@ export function safeEmbedFromUrl(type, url, embedStyle = 'auto', autoPlay = fals
       return null;
     }
     const isPlaylist = isSoundCloudPlaylist(url);
-    const height = (embedStyle === 'full' || (embedStyle === 'auto' && isPlaylist)) ? 450 : 166;
-    const embedClass = height === 450 ? 'soundcloud-full' : 'soundcloud-compact';
+    const height = (embedStyle === 'full' || (embedStyle === 'auto' && isPlaylist)) ? 450 : (embedStyle === 'artwork' ? 300 : 90);
+    const embedClass = height === 450 ? 'soundcloud-full' : (height === 300 ? 'soundcloud-artwork' : 'soundcloud-compact');
 
     return {
       src,

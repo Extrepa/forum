@@ -66,31 +66,36 @@ export default function ProfileMoodSongBlock({
 
   return (
     <>
-      <div className="profile-card-mood-song">
-        {hasMood && (
-          <div className="profile-mood-chip" style={moodChipStyle}>
-            {moodEmoji && <span>{moodEmoji}</span>}
-            <span>{moodText}</span>
-          </div>
-        )}
-        {headline ? (
-          <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
-        ) : null}
-        {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud') ? (
-          <ProfileSongPlayer
-            provider={songProvider}
-            songUrl={songUrl}
-            autoPlay
-            providerLabel={songProviderLabel}
-          />
-        ) : hasSong ? (
-          <div className="profile-song-compact">
-            <span className="profile-song-provider">{songProviderLabel}</span>
-            <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
-              {songUrl}
-            </a>
-          </div>
-        ) : null}
+      <div className="profile-mood-song-block-desktop-layout">
+        <div className="profile-mood-song-block-left-column">
+          {hasMood && (
+            <div className="profile-mood-chip" style={moodChipStyle}>
+              {moodEmoji && <span>{moodEmoji}</span>}
+              <span>{moodText}</span>
+            </div>
+          )}
+          {headline ? (
+            <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
+          ) : null}
+        </div>
+        <div className="profile-mood-song-block-right-column">
+          {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud') ? (
+            <ProfileSongPlayer
+              provider={songProvider}
+              songUrl={songUrl}
+              autoPlay
+              providerLabel={songProviderLabel}
+              embedStyle="artwork" /* Use new artwork style for larger player */
+            />
+          ) : hasSong ? (
+            <div className="profile-song-compact">
+              <span className="profile-song-provider">{songProviderLabel}</span>
+              <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
+                {songUrl}
+              </a>
+            </div>
+          ) : null}
+        </div>
       </div>
     </>
   );
