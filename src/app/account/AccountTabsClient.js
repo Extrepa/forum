@@ -450,9 +450,57 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       timeline_comment: 'Announcements',
       event: 'Events',
       event_comment: 'Events',
+      art: 'Art',
+      bugs: 'Bugs',
+      rant: 'Rant',
+      nostalgia: 'Nostalgia',
+      lore: 'Lore',
+      memories: 'Memories',
+      post_comment: 'Posts',
     };
+    if (t === 'post_comment' && postType) return map[postType] || 'Posts';
     return map[t] || 'Forum';
   };
+
+  const activityItems = useMemo(() => {
+    const recent = stats?.recentActivity || [];
+    return recent.map((item) => {
+      let href = '#';
+      if (item.type === 'thread') {
+        const postType = item.postType || item.post_type;
+        if (postType === 'forum_thread') href = `/lobby/${item.id}`;
+        else if (postType === 'dev_log') href = `/devlog/${item.id}`;
+        else if (postType === 'music_post') href = `/music/${item.id}`;
+        else if (postType === 'project') href = `/projects/${item.id}`;
+        else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
+        else if (postType === 'event') href = `/events/${item.id}`;
+        else if (['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories'].includes(postType)) href = `/${postType}/${item.id}`;
+      } else {
+        const replyType = item.replyType || item.reply_type;
+        const threadId = item.thread_id;
+        if (replyType === 'forum_reply') href = `/lobby/${threadId}`;
+        else if (replyType === 'dev_log_comment') href = `/devlog/${threadId}`;
+        else if (replyType === 'music_comment') href = `/music/${threadId}`;
+        else if (replyType === 'project_reply') href = `/projects/${threadId}`;
+        else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
+        else if (replyType === 'event_comment') href = `/events/${threadId}`;
+        else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `/${item.post_type || item.postType}/${threadId}`;
+      }
+      const postType = item.postType || item.post_type;
+      const replyType = item.replyType || item.reply_type;
+      const section = getSectionLabel(postType, replyType);
+      const title = item.type === 'thread' ? item.title : item.thread_title;
+      const timeStr = formatDateTime(item.created_at);
+      return {
+        key: `${item.type}-${item.id}`,
+        type: item.type,
+        href,
+        section,
+        title,
+        timeStr,
+      };
+    });
+  }, [stats?.recentActivity]);
 
   const getPlatformIcon = (platform) => {
     const iconMap = {
@@ -497,11 +545,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   const EDIT_PROFILE_SUB_TABS = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'mood', label: 'Mood & Song' },
-    { id: 'socials', label: 'Socials' },
+    { id: 'activity', label: 'Activity' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'guestbook', label: 'Guestbook' },
+    { id: 'mood', label: 'Mood & Song' },
+    { id: 'profile', label: 'Profile' },
+    { id: 'socials', label: 'Socials' },
+    { id: 'stats', label: 'Stats' },
   ];
   const [editProfileSubTab, setEditProfileSubTab] = useState('profile');
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
@@ -709,82 +759,90 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom">
-            {/* Profile preview card – two-column top (avatar+meta | stats), then recent activity */}
-            <div className="account-profile-preview account-profile-preview--two-col">
-              <div className="account-profile-preview-top">
-                <div className="profile-card-header account-profile-preview-left" style={{ padding: '0', border: 'none', background: 'transparent' }}>
-                  <div className="profile-card-header-avatar">
-                    {user.avatar_key ? (
-                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
-                    ) : (
-                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
-                    )}
-                  </div>
-                  <div className="profile-card-header-meta">
-                    <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
-                    <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
-                    <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
-                      {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
-                      {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
-                      {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
-                    </div>
-                    {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
-                    {(() => {
-                      const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
-                      const featuredLinks = allLinks.filter(l => l.featured);
-                      const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
-                      if (linksToShow.length === 0) return null;
-                      return (
-                        <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {linksToShow.map((link) => {
-                            const un = extractUsername(link.platform, link.url);
-                            const isSoundCloud = link.platform === 'soundcloud';
-                            return (
-                              <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
-                                {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
-                              </a>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                  </div>
+            {/* Top section: avatar + meta, then profile controls (mini preview, Edit Avatar, Edit Username, color) */}
+            <div className="account-profile-preview">
+              <div className="profile-card-header" style={{ padding: '0', border: 'none', background: 'transparent' }}>
+                <div className="profile-card-header-avatar">
+                  {user.avatar_key ? (
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" style={{ width: '96px', height: '96px', borderRadius: '50%', display: 'block', background: 'rgba(0,0,0,0.5)' }} />
+                  ) : (
+                    <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px' }}>No avatar</div>
+                  )}
                 </div>
-                <div className="account-profile-preview-stats">
+                <div className="profile-card-header-meta" style={{ flex: 1, minWidth: 0 }}>
+                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: '700' }} />
+                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{roleLabel}</div>
+                  <div className="profile-card-mood-song" style={{ marginTop: '6px' }}>
+                    {(stats.profileMoodText || stats.profileMoodEmoji) && <div className="profile-mood-chip"><span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span></div>}
+                    {(stats.profileSongUrl || stats.profileSongProvider) && <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>}
+                    {!stats.profileMoodText && !stats.profileMoodEmoji && !stats.profileSongUrl && <span className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</span>}
+                  </div>
+                  {stats.profileHeadline && <div style={{ marginTop: '6px', fontSize: '14px' }}>{stats.profileHeadline}</div>}
                   {(() => {
-                    const getRarityColor = (v) => { if (v === 0) return 'var(--muted)'; if (v < 10) return 'var(--accent)'; if (v < 100) return '#00f5a0'; if (v < 1000) return '#5b8def'; return '#b794f6'; };
+                    const allLinks = (stats.profileLinks || []).filter(l => typeof l === 'object' && l.platform && l.url);
+                    const featuredLinks = allLinks.filter(l => l.featured);
+                    const linksToShow = featuredLinks.length > 0 ? featuredLinks.slice(0, FEATURED_SOCIALS_MAX) : allLinks.slice(0, FEATURED_SOCIALS_MAX);
+                    if (linksToShow.length === 0) return null;
                     return (
-                      <div className="profile-stats-block profile-stats-block--grid">
-                        <div className="profile-stats-grid">
-                          <span className="profile-stat"><span className="profile-stat-label">Portal entry</span> <span className="profile-stat-value"><span className="date-only-mobile">{formatDate(stats.joinDate)}</span><span className="date-with-time-desktop">{formatDateTime(stats.joinDate)}</span></span></span>
-                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span> <span className="profile-stat-label">threads</span></span>
-                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span> <span className="profile-stat-label">replies</span></span>
-                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews || 0), fontWeight: '600' }}>{stats.profileViews || 0}</span> <span className="profile-stat-label">visits</span></span>
-                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes || 0), fontWeight: '600' }}>{stats.timeSpentMinutes || 0}</span> <span className="profile-stat-label">min on site</span></span>
-                          <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes || 0), fontWeight: '600' }}>{stats.avatarEditMinutes || 0}</span> <span className="profile-stat-label">avatar min</span></span>
-                        </div>
+                      <div className="profile-socials-inline" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {linksToShow.map((link) => {
+                          const un = extractUsername(link.platform, link.url);
+                          const isSoundCloud = link.platform === 'soundcloud';
+                          return (
+                            <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '6px', border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.3)', background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(52, 225, 255, 0.05)', color: 'var(--accent)', textDecoration: 'none', fontSize: '12px' }}>
+                              {getPlatformIcon(link.platform)}{un && <span style={{ color: 'var(--ink)' }}>{un}</span>}
+                            </a>
+                          );
+                        })}
                       </div>
                     );
                   })()}
+                  {/* Profile controls in top section: mini preview, Edit Avatar, Edit Username, color */}
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)' }} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
+                      disabled={isEditingAvatar}
+                      style={{ borderRadius: '999px', border: 'none', background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: isEditingAvatar ? 'default' : 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px', opacity: isEditingAvatar ? 0.6 : 1 }}
+                    >
+                      Edit Avatar
+                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {!isEditingUsername ? (
+                        <>
+                          <strong>Username:</strong>
+                          <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} />
+                          <button type="button" onClick={() => { setIsEditingUsername(true); setIsEditingSocials(false); setIsEditingExtras(false); setNewUsername(user.username); setSelectedColorIndex(user.preferred_username_color_index ?? null); setUsernameStatus({ type: 'idle', message: null }); setColorStatus({ type: 'idle', message: null }); }} style={{ borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))', color: '#001018', cursor: 'pointer', fontSize: '12px', fontWeight: '600', padding: '4px 12px' }}>Edit Username</button>
+                        </>
+                      ) : (
+                        <>
+                          <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
+                          <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                          <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+                        </>
+                      )}
+                    </div>
+                    {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0' }}>{usernameStatus.message}</span>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
+                      {colorOptions.map((option) => {
+                        const isSelected = (isEditingUsername ? selectedColorIndex : (user.preferred_username_color_index ?? null)) === option.index;
+                        const disabled = !isEditingUsername || usernameStatus.type === 'loading';
+                        return (
+                          <button key={option.index ?? 'auto'} type="button" onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} style={{ width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
-              {stats.recentActivity && stats.recentActivity.length > 0 && (
-                <div className="account-preview-activity" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <h4 className="section-title" style={{ fontSize: '14px', marginBottom: '8px' }}>Recent activity</h4>
-                  <div className="profile-activity-list" style={{ maxHeight: '120px', overflowY: 'auto' }}>
-                    {stats.recentActivity.slice(0, 5).map((item) => {
-                      let href = '#';
-                      if (item.type === 'thread') { const pt = item.postType || item.post_type; if (pt === 'forum_thread') href = `/lobby/${item.id}`; else if (pt === 'dev_log') href = `/devlog/${item.id}`; else if (pt === 'music_post') href = `/music/${item.id}`; else if (pt === 'project') href = `/projects/${item.id}`; else if (pt === 'timeline_update') href = `/announcements/${item.id}`; else if (pt === 'event') href = `/events/${item.id}`; }
-                      else { const rt = item.replyType || item.reply_type; const tid = item.thread_id; if (rt === 'forum_reply') href = `/lobby/${tid}`; else if (rt === 'dev_log_comment') href = `/devlog/${tid}`; else if (rt === 'music_comment') href = `/music/${tid}`; else if (rt === 'project_reply') href = `/projects/${tid}`; else if (rt === 'timeline_comment') href = `/announcements/${tid}`; else if (rt === 'event_comment') href = `/events/${tid}`; }
-                      const section = getSectionLabel(item.postType || item.post_type, item.replyType || item.reply_type);
-                      const title = item.type === 'thread' ? item.title : item.thread_title;
-                      return (
-                        <a key={`${item.type}-${item.id}`} href={href} className="profile-activity-item" style={{ padding: '6px 0', fontSize: '12px' }}>
-                          {item.type === 'thread' ? <>Posted <span className="activity-title">{title}</span> in {section}</> : <>Replied to <span className="activity-title">{title}</span></>}
-                        </a>
-                      );
-                    })}
-                  </div>
+              {isEditingAvatar && (
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
                 </div>
               )}
             </div>
@@ -793,288 +851,32 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'profile' && (
                 <div className="account-edit-panel">
-                <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
-                {/* Custom Avatar */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '96px', flexWrap: 'wrap' }}>
-                      {user.avatar_key ? (
-                        <div style={{ position: 'relative' }}>
-                          <AvatarImage
-                            src={getAvatarUrl(user.avatar_key)}
-                            alt="Current Avatar"
-                            size={96}
-                            loading="eager"
-                            style={{
-                              width: '96px',
-                              height: '96px',
-                              display: 'block',
-                              borderRadius: '50%',
-                              background: 'rgba(0,0,0,0.5)'
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div style={{ width: '96px', height: '96px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '10px', textAlign: 'center', padding: '10px' }}>
-                          No avatar set
-                        </div>
-                      )}
-                    </div>
-                    {!isEditingAvatar && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                        <AvatarImage
-                          src={getAvatarUrl(user.avatar_key)}
-                          alt="Mini avatar preview"
-                          size={24}
-                          loading="lazy"
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            background: 'rgba(0,0,0,0.5)'
-                          }}
-                        />
-                      </div>
-                    )}
+                  <h2 className="section-title" style={{ margin: 0 }}>Profile</h2>
+                  <div className="account-display-settings-inline" style={{ marginTop: '8px' }}>
+                    <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
+                    <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
+                      <span>Default section on your profile:</span>
+                      <select
+                        value={defaultProfileTab || 'none'}
+                        onChange={(e) => handleDefaultTabChange(e.target.value)}
+                        disabled={defaultTabSaving}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--ink)',
+                          fontSize: '13px',
+                          minWidth: '140px',
+                        }}
+                      >
+                        {DEFAULT_TAB_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
+                    </label>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                    disabled={isEditingAvatar}
-                    title="Modify your neural representation"
-                    style={{
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-                      color: '#001018',
-                      cursor: isEditingAvatar ? 'default' : 'pointer',
-                      fontSize: '12px',
-                      transition: 'all 0.2s ease',
-                      fontWeight: '600',
-                      padding: '2px 10px',
-                      lineHeight: '1.2',
-                      opacity: isEditingAvatar ? 0.6 : 1,
-                      justifySelf: 'end',
-                      boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isEditingAvatar) {
-                        e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isEditingAvatar) {
-                        e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
-                      }
-                    }}
-                  >
-                    Edit Avatar
-                  </button>
-                </div>
-                {isEditingAvatar && (
-                  <AvatarCustomizer 
-                    onSave={handleAvatarSave} 
-                    onCancel={() => setIsEditingAvatar(false)}
-                    initialState={avatarInitialState}
-                    key={user?.avatar_state || 'avatar-empty'}
-                  />
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, maxWidth: '100%' }}>
-                {/* Username and Colors Container */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ minWidth: 0 }}>
-                    {/* Username Row */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
-                      {isEditingUsername && (
-                        <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                          Username
-                        </label>
-                      )}
-                      {!isEditingUsername ? (
-                        <div>
-                          <strong>Username:</strong>{' '}
-                            <Username
-                            name={user.username}
-                            colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
-                            avatarKey={undefined}
-                            href={null}
-                          />
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                          <input
-                            type="text"
-                            value={newUsername}
-                            onChange={(e) => setNewUsername(e.target.value)}
-                            placeholder="username"
-                            pattern="[a-z0-9_]{3,20}"
-                            style={{
-                              padding: '6px 10px',
-                              borderRadius: '6px',
-                              border: '1px solid rgba(52, 225, 255, 0.3)',
-                              background: 'rgba(2, 7, 10, 0.6)',
-                              color: 'var(--ink)',
-                              fontSize: '14px',
-                              minWidth: '120px',
-                              maxWidth: '100%',
-                              flex: '1 1 auto'
-                            }}
-                            autoFocus
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Color Picker Buttons Row */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%', marginTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 'bold' }}>Color:</span>
-                        {(isEditingUsername ? colorOptions : colorOptions.filter((option) => option.index === (user.preferred_username_color_index ?? null))).map((option) => {
-                          const displayIndex = isEditingUsername ? selectedColorIndex : (user.preferred_username_color_index ?? null);
-                          const isSelected = displayIndex === option.index;
-                          const disabled = !isEditingUsername || usernameStatus.type === 'loading';
-                          const size = 18;
-                          return (
-                            <button
-                              key={option.index ?? 'auto'}
-                              type="button"
-                              onClick={() => isEditingUsername && !disabled && setSelectedColorIndex(option.index)}
-                              disabled={disabled}
-                              className={isEditingUsername && !disabled ? 'color-picker-btn' : ''}
-                              style={{
-                                flex: '0 0 auto',
-                                width: `${size}px`,
-                                height: `${size}px`,
-                                minWidth: `${size}px`,
-                                maxWidth: `${size}px`,
-                                minHeight: `${size}px`,
-                                maxHeight: `${size}px`,
-                                borderRadius: '50%',
-                                border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                                background: option.index === null
-                                  ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                                  : option.color,
-                                cursor: disabled ? 'default' : 'pointer',
-                                opacity: isEditingUsername ? (disabled ? 0.5 : 1) : 1,
-                                transition: 'all 0.2s ease',
-                                padding: 0,
-                                margin: 0,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxSizing: 'border-box',
-                                boxShadow: isSelected && isEditingUsername ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none',
-                                lineHeight: 1,
-                                verticalAlign: 'middle'
-                              }}
-                              title={option.name}
-                              onMouseEnter={(e) => {
-                                if (isEditingUsername && !disabled) {
-                                  e.currentTarget.style.boxShadow = '0 0 16px rgba(52, 225, 255, 0.8)';
-                                  e.currentTarget.style.transform = 'scale(1.1)';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (isEditingUsername && !disabled) {
-                                  e.currentTarget.style.boxShadow = isSelected ? '0 0 12px rgba(52, 225, 255, 0.6)' : 'none';
-                                  e.currentTarget.style.transform = 'scale(1)';
-                                }
-                              }}
-                            >
-                              {option.index === null && (
-                                <span style={{ fontSize: '8px', color: 'var(--ink)', fontWeight: 'bold', lineHeight: 1, display: 'block' }}>A</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditingUsername(true);
-                      setIsEditingSocials(false);
-                      setIsEditingExtras(false);
-                      setNewUsername(user.username);
-                      setSelectedColorIndex(user.preferred_username_color_index ?? null);
-                      setUsernameStatus({ type: 'idle', message: null });
-                      setColorStatus({ type: 'idle', message: null });
-                    }}
-                    disabled={isEditingUsername}
-                    title="Change your network identifier"
-                    style={{
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-                      color: '#001018',
-                      cursor: isEditingUsername ? 'default' : 'pointer',
-                      fontSize: '12px',
-                      transition: 'all 0.2s ease',
-                      fontWeight: '600',
-                      padding: '2px 10px',
-                      lineHeight: '1.2',
-                      opacity: isEditingUsername ? 0.6 : 1,
-                      justifySelf: 'end',
-                      boxShadow: '0 0 12px rgba(52, 225, 255, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isEditingUsername) {
-                        e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 0 18px rgba(255, 52, 245, 0.45)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isEditingUsername) {
-                        e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.3)';
-                      }
-                    }}
-                  >
-                    Edit Username
-                  </button>
-                </div>
-
-                {isEditingUsername && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
-                    <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: usernameStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>
-                      {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
-                    </button>
-                    <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Cancel</button>
-                  </div>
-                )}
-                {usernameStatus.message && editProfileSubTab === 'profile' && (
-                  <div style={{ fontSize: '12px', color: (usernameStatus.type === 'error') ? '#ff6b6b' : (usernameStatus.type === 'success') ? '#00f5a0' : 'var(--muted)' }}>{usernameStatus.message}</div>
-                )}
-                <div className="account-display-settings-inline" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <h4 className="section-title" style={{ fontSize: '13px', margin: '0 0 8px 0', fontWeight: '600', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Profile display</h4>
-                  <label style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--ink)' }}>
-                    <span>Default section on your profile:</span>
-                    <select
-                      value={defaultProfileTab || 'none'}
-                      onChange={(e) => handleDefaultTabChange(e.target.value)}
-                      disabled={defaultTabSaving}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(52, 225, 255, 0.3)',
-                        background: 'rgba(2, 7, 10, 0.6)',
-                        color: 'var(--ink)',
-                        fontSize: '13px',
-                        minWidth: '140px',
-                      }}
-                    >
-                      {DEFAULT_TAB_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    {defaultTabSaving && <span className="muted" style={{ fontSize: '12px' }}>Saving…</span>}
-                  </label>
-                </div>
-                </div>
                 </div>
               )}
 
@@ -1505,6 +1307,64 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   ) : (
                     <div className="muted" style={{ padding: '12px' }}>No messages yet. Visitors can leave a message on your profile&apos;s Guestbook tab.</div>
+                  )}
+                </div>
+              )}
+
+              {editProfileSubTab === 'stats' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
+                  {stats ? (
+                    <div className="profile-stats-block profile-stats-block--grid" style={{ marginTop: '8px' }}>
+                      <div className="profile-stats-grid">
+                        <span className="profile-stat">
+                          <span className="profile-stat-label">Portal entry</span>
+                          <span className="profile-stat-value date-only-mobile">{formatDate(stats.joinDate)}</span>
+                          <span className="profile-stat-value date-with-time-desktop">{formatDateTime(stats.joinDate)}</span>
+                        </span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.threadCount ?? 0}</span><span className="profile-stat-label">threads started</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.replyCount ?? 0}</span><span className="profile-stat-label">replies contributed</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{(stats.threadCount ?? 0) + (stats.replyCount ?? 0)}</span><span className="profile-stat-label">total contribution (post contributions)</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.profileViews ?? 0}</span><span className="profile-stat-label">profile visits</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.timeSpentMinutes ?? 0}</span><span className="profile-stat-label">minutes spent on the website</span></span>
+                        <span className="profile-stat"><span className="profile-stat-value" style={{ fontWeight: '600' }}>{stats.avatarEditMinutes ?? 0}</span><span className="profile-stat-label">minutes editing your avatar</span></span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ padding: '12px' }}>No stats available.</div>
+                  )}
+                </div>
+              )}
+
+              {editProfileSubTab === 'activity' && (
+                <div className="account-edit-panel">
+                  <h2 className="section-title" style={{ margin: 0 }}>Recent activity</h2>
+                  {activityItems.length > 0 ? (
+                    <div className={`profile-activity-list${activityItems.length > 5 ? ' profile-activity-list--scrollable' : ''}`} style={{ marginTop: '8px' }}>
+                      {activityItems.map(item => (
+                        <a key={item.key} href={item.href} className="profile-activity-item">
+                          {item.type === 'thread' ? (
+                            <>
+                              <span className="activity-label">Posted</span>
+                              <span className="activity-title" title={item.title}>{item.title}</span>
+                              <span className="activity-label">in</span>
+                              <span className="activity-section">{item.section}</span>
+                              <span className="activity-label">at</span>
+                              <span className="activity-meta">{item.timeStr}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="activity-label">Replied to</span>
+                              <span className="activity-title" title={item.title}>{item.title}</span>
+                              <span className="activity-label">at</span>
+                              <span className="activity-meta">{item.timeStr}</span>
+                            </>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ padding: '12px' }}>No recent activity yet.</div>
                   )}
                 </div>
               )}

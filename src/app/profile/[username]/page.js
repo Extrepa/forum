@@ -641,7 +641,7 @@ export default async function ProfilePage({ params }) {
   return (
     <div className="stack">
       <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
-      <section className="card profile-card" style={{ paddingTop: '16px' }}>
+      <section className="card profile-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
         <div className="profile-card-header">
           <div className="profile-card-header-avatar">

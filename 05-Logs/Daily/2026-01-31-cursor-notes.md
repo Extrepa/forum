@@ -1,193 +1,29 @@
-# Cursor notes – 2026-01-31
+# 2026-01-31 cursor notes
 
-## Profile Additions Plan implementation
+## Edit profile: Activity tab, Stats tab, unified stats labels
 
-Implemented the profile additions forward plan (single card, layout refactor, Phase 1 account editing).
+- **Activity tab (edit profile):** Restored Activity tab on edit profile. Built `activityItems` from `stats.recentActivity` in `AccountTabsClient` (same shape as public profile: key, type, href, section, title, timeStr) using existing `getSectionLabel` and `formatDateTime`. Extended `getSectionLabel` for art/bugs/rant/nostalgia/lore/memories/post_comment. Activity tab panel renders the same recent-activity list as the public profile (Posted/Replied to + title + section + time).
+- **Stats tab (edit profile):** Added Stats tab panel with long labels: Portal entry (date), threads started, replies contributed, total contribution (post contributions), profile visits, minutes spent on the website, minutes editing your avatar. Uses existing `profile-stats-block` / `profile-stats-grid` and `formatDate`/`formatDateTime` for join date.
+- **Public profile stats:** Updated `ProfileTabsClient` Stats tab to use the same long labels and added total contribution (threadCount + replyCount). Public profile now shows the same stat copy as edit profile; data still comes from profile page (same DB-backed stats).
 
-### Done
-
-1. **Feature flags** – `src/lib/featureFlags.js`: `profile_mood`, `profile_music`, `profile_backgrounds`, `lately_cards`, `gallery`, `notes`, `files` (env-based; mood/music default on).
-2. **Profile page layout** – Single card:
-   - Header: avatar, username, role, mood or song (compact), optional headline, socials inline.
-   - Bio under header.
-   - Tab strip (Activity | Lately | Gallery | Notes | Files) and tab content below.
-   - Stats moved into Activity tab (Stats block at top of Activity).
-   - Desktop: header row (avatar left, meta right); mobile: stacked (768px breakpoint).
-3. **CSS** – `globals.css`: `.profile-card`, `.profile-card-header`, `.profile-card-header-meta`, `.profile-card-mood-song`, `.profile-mood-chip`, `.profile-song-compact`, `.profile-tabs-strip` (scroll on mobile), `.profile-tab`, `.profile-stats-block`, `.profile-stats-grid`, media query for mobile stack.
-4. **ProfileTabsClient** – Accepts `stats`; renders Stats block at top of Activity tab (join date, threads, replies, visits, time, avatar min). Tab strip uses CSS classes; content has min-height.
-5. **Account: profile extras** – Account page and `/api/account/stats` fetch and return `profileMoodText`, `profileMoodEmoji`, `profileSongUrl`, `profileSongProvider`, `profileSongAutoplayEnabled`, `profileHeadline`. `POST /api/account/profile-extras` updates these (sanitize text, allowlist provider soundcloud|spotify|youtube, validate URL).
-6. **Account profile tab** – “Mood & Song” section: display when not editing; Edit opens form (mood text, mood emoji, headline, song URL, provider dropdown, autoplay checkbox). Save/Cancel row includes extras; Save POSTs to profile-extras and refreshes stats.
-
-### Files touched
-
-- `src/lib/featureFlags.js` (new)
-- `src/app/profile/[username]/page.js` (single card, header, stats passed to tabs, feature-flag gating for mood/song)
-- `src/components/ProfileTabsClient.js` (stats prop, Stats block in Activity, CSS classes)
-- `src/app/globals.css` (profile-card and profile-tabs styles, mobile breakpoint)
-- `src/app/account/page.js` (userInfo query extended, stats include profile extras)
-- `src/app/api/account/stats/route.js` (userInfo query extended, response includes profile extras)
-- `src/app/api/account/profile-extras/route.js` (new)
-- `src/app/account/AccountTabsClient.js` (state and form for mood/song/headline, handleSaveExtras, handleCancelExtras)
-
-### Not done (later phases)
-
-- Phase 2: `user_lately_items` (optional), `user_gallery_images` migration + Gallery tab UI.
-- Phase 3: `profile_notes` + Notes tab UI.
-- Phase 4: `user_files` (gated) + Files tab.
-
-Migration 0054 already exists; apply in target environments when ready.
+Files touched: `src/app/account/AccountTabsClient.js`, `src/components/ProfileTabsClient.js`.
 
 ---
 
-## Edit profile: single card with inner tabs (2026-01-31)
+## Tabs in alphabetical order
 
-Refactored the Edit profile section (Account > Edit profile) into a single card with inner tabs so all editing places live in one card.
-
-### Changes
-
-- **Single card** – Replaced the two-column layout (left: form, right: Stats) with one `.account-edit-card` containing a tab strip and tab content.
-- **Inner tabs** – Profile | Mood & Song | Socials | Gallery | Notes | Stats. Each tab shows one panel; Save/Cancel is per-tab where applicable.
-- **Profile tab** – Avatar + username + color; Edit Avatar / Edit Username; Save/Cancel when editing username.
-- **Mood & Song tab** – Display or form for mood, headline, song URL/provider/autoplay; Edit Mood & Song; Save/Cancel when editing extras.
-- **Socials tab** – Lately & Socials links (display or form); Edit Socials; Save/Cancel when editing socials.
-- **Gallery / Notes tabs** – Placeholder copy (“Coming soon”).
-- **Stats tab** – Stats block (portal entry, threads, replies, visits, time, avatar min) + Recent Activity list.
-- **CSS** – `.account-edit-card`, `.account-edit-tabs-strip`, `.account-edit-tabs-strip--spread`, `.account-edit-tab`, `.account-edit-tab--active`, `.account-edit-tab-content`, `.account-edit-panel` in `globals.css`; mobile tweaks in `@media (max-width: 640px)`.
-
-### Files touched
-
-- `src/app/account/AccountTabsClient.js` (state `editProfileSubTab`, `EDIT_PROFILE_SUB_TABS`, tab panels; removed two-column layout and duplicate Mood & Song block)
-- `src/app/globals.css` (account-edit-card and tab styles, mobile)
-
-### Verification (double-check)
-
-- **Structure** – Edit profile block: outer div → `.account-edit-card` → tab strip (6 buttons) → `.account-edit-tab-content` → six conditional panels. Each panel is a single `.account-edit-panel`; Profile panel has correct nesting (account-edit-panel → avatar grid → AvatarCustomizer conditional → flex column → username grid → Save/Cancel/message). Closing tags: `</div></div></div>)}` then `</section>`; no leftover or dead code.
-- **State** – `editProfileSubTab` defaults to `'profile'`; `EDIT_PROFILE_SUB_TABS` has ids `profile`, `mood`, `socials`, `gallery`, `notes`, `stats`. All six used in conditionals. `usernameStatus` shared for Profile and Socials save; message shown only when `editProfileSubTab === 'profile'` or `=== 'socials'` respectively, so no cross-tab message leak.
-- **CSS** – Every class used in AccountTabsClient exists in globals.css: `.account-edit-card`, `.account-edit-tabs-strip`, `.account-edit-tabs-strip--spread`, `.account-edit-tab`, `.account-edit-tab--active`, `.account-edit-tab-content`, `.account-edit-panel`. Mobile overrides at 640px: card padding, strip gap/margin, tab flex/min-width, tab padding/font-size/min-height.
-- **Handlers** – Profile: `handleSaveUsername`, `handleCancelUsername`. Mood: `handleSaveExtras`, `handleCancelExtras`. Socials: `handleSaveSocials`, `handleCancelSocials`. Edit buttons clear other edit modes (e.g. Edit Username sets `isEditingSocials(false)`, `isEditingExtras(false)`).
-- **Stats tab** – Uses `stats` from props/state (refreshed when Edit profile tab is active); `formatDateTime`, `formatDate`, `getSectionLabel` used for activity links; `profile-activity-list` and `profile-activity-item` classes reused from profile page.
-- **Follow-up** – Gallery and Notes tabs are placeholders only. When implementing: add upload/editor UI and wire to APIs; consider syncing `editProfileSubTab` with URL (e.g. `?tab=profile&edit=socials`) if deep-linking is needed.
+- **Edit profile (AccountTabsClient):** `EDIT_PROFILE_SUB_TABS` reordered alphabetically by label: Activity, Gallery, Guestbook, Mood & Song, Profile, Socials, Stats. Default selected tab remains `profile` (unchanged); only pill order changed.
+- **Profile page (ProfileTabsClient):** `PROFILE_TABS` reordered alphabetically by label: Activity, Gallery, Guestbook, Socials, Stats. Default when no `initialTab` remains `stats`; only pill order changed.
+- **Verification:** Pill indicator uses `findIndex(t => t.id === activeTab)` / `findIndex(t => t.id === editProfileSubTab)` so the highlight still aligns with the active tab regardless of array order. Tab content is keyed by tab id, not index. No linter errors. `DEFAULT_TAB_OPTIONS` (dropdown for default profile section) left as-is; user asked for "tabs" only.
 
 ---
 
-## Tabs at bottom, giant pill, Stats vs Activity (2026-01-31)
+## Profile page mobile (no stretching on small devices)
 
-Per user feedback: tabs at bottom of card, giant pill with sliding indicator, Stats and Activity separate, one row on small viewports, stats layout improved.
+- **Layout containment:** `.stack` now has `max-width: 100%` and `.stack > *` has `min-width: 0` and `max-width: 100%` so grid children (e.g. profile card) cannot stretch the layout when content is wide. `.profile-card` has `min-width: 0`, `max-width: 100%`, and `overflow-x: hidden`. `.profile-tabs-wrapper` and `.tabs-pill` have `min-width: 0` and `max-width: 100%` so the tab pill scrolls horizontally inside the viewport instead of expanding the page.
+- **Tab content:** `.profile-tab-content` and `.profile-tab-content--above` have `min-width: 0`, `max-width: 100%`, and (where needed) `overflow-x: hidden` so tab panels do not force width.
+- **Text wrapping:** `.profile-card-header` has `min-width: 0` and `overflow-wrap: break-word`. `.profile-song-link` has `word-break: break-all`. New `.profile-socials-inline` and `.profile-headline` and `.profile-card-bio` use `min-width: 0`, `overflow-wrap: break-word`, and `word-break: break-word` so long URLs and headlines wrap on small screens.
+- **Very small viewports (≤480px):** Single-column stats grid, tighter header padding, smaller tab pill text and min-width so the pill fits and scrolls.
+- **Profile page / ProfileTabsClient:** Section has inline `minWidth: 0`, `maxWidth: '100%'`, `boxSizing: 'border-box'`. ProfileTabsClient root and tab-content div have inline `minWidth: 0`, `maxWidth: '100%'` for consistency.
 
-### Changes
-
-- **Tab strip at bottom** – Profile (`ProfileTabsClient`) and Edit profile (`AccountTabsClient`): content area first (flex: 1), pill strip last so tabs sit at bottom of card.
-- **Giant pill + sliding indicator** – New `.tabs-pill` (rounded container, one row), `.tabs-pill-inner` (flex, nowrap), `.tabs-pill-indicator` (absolute, `transform: translateX(activeIndex * 100%)`, 0.25s transition). Tabs inside pill are transparent; active tab highlighted by moving indicator.
-- **Stats vs Activity separate** – Edit profile: added **Activity** tab; **Stats** tab shows only stats block; **Activity** tab shows only recent activity list. Profile page already had separate Stats and Activity tabs.
-- **One row on small viewports** – `.tabs-pill-inner` has `flex-wrap: nowrap` and `min-width: min-content`; `.tabs-pill` has `overflow-x: auto` so tabs stay in one row and pill scrolls horizontally on narrow screens. Mobile: tab min-width 64px, smaller padding/font.
-- **Stats layout** – `.profile-stats-block--grid` and `.profile-stats-grid`: grid layout `repeat(auto-fill, minmax(160px, 1fr))`, each stat as label + value (`.profile-stat`, `.profile-stat-label`, `.profile-stat-value`). Applied on profile view and Edit profile Stats tab. Mobile: 2 columns.
-
-### Files touched
-
-- `src/components/ProfileTabsClient.js` – Content above, pill at bottom; activeIndex for indicator; stats use profile-stats-block--grid and profile-stats-grid.
-- `src/app/account/AccountTabsClient.js` – EDIT_PROFILE_SUB_TABS + Activity; content above, pill at bottom; editProfileSubTabIndex; Stats tab stats-only (grid layout); new Activity tab (recent activity only).
-- `src/app/globals.css` – profile-tabs-wrapper flex column; profile-tab-content--above; tabs-pill, tabs-pill-inner, tabs-pill-indicator; profile-tab/account-edit-tab inside pill; profile-stats-block--grid, profile-stats-grid grid, profile-stat label/value; account-edit-card--tabs-bottom; removed old strip-based mobile overrides.
-
-### Verification (double-check)
-
-- **ProfileTabsClient** – Order: `profile-tabs-wrapper` (flex column) → `profile-tab-content profile-tab-content--above` (flex: 1) → content for stats | activity | socials | gallery | notes → closing div → `tabs-pill` (flex: 0) with `tabs-pill-inner`, indicator (`width: 100/tabs.length%`, `transform: translateX(activeIndex*100%)`), then 5 buttons. `activeIndex = tabs.findIndex(t => t.id === activeTab)`; valid range 0–4. Stats tab uses only stats grid; Activity tab uses only activity list. No linter errors.
-- **AccountTabsClient** – Order: `account-edit-card--tabs-bottom` (flex column) → `account-edit-tab-content--above` (flex: 1) → 7 panels (profile, mood, socials, gallery, notes, stats, activity) → closing div → `tabs-pill` with indicator (`width: 100/7%`, `transform: translateX(editProfileSubTabIndex*100%)`) and 7 buttons. Stats panel: only `profile-stats-block--grid` + `profile-stats-grid` (no Recent Activity). Activity panel: only recent activity list. `editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab)`; valid 0–6. No linter errors.
-- **CSS** – `.profile-tabs-wrapper`: display flex, flex-direction column, min-height 120px. `.profile-tab-content--above`: flex 1 1 auto, margin-bottom 12px. `.tabs-pill`: flex 0 0 auto, overflow-x auto, border-radius 999px. `.tabs-pill-inner`: flex, flex-wrap nowrap, position relative, min-width min-content. `.tabs-pill-indicator`: absolute, left 0, transition transform 0.25s. `.profile-stats-grid`: grid, repeat(auto-fill, minmax(160px, 1fr)). Mobile (768px): profile-stats-grid 2 columns; tabs-pill tab min-width 64px, smaller padding/font.
-- **Edge case** – If `activeTab`/`editProfileSubTab` ever didn’t match a tab id, `findIndex` would return -1 and the indicator would use `translateX(-100%)`. State is only set from tab buttons so this is theoretical; optional guard: `Math.max(0, findIndex(...))`.
-
----
-
-## Phase 8: Default profile tab + Profile display settings (2026-01-31)
-
-Default tab selector and "Profile display settings" card so users can choose which tab their public profile opens to.
-
-### Changes
-
-- **Migration** – `migrations/0055_add_default_profile_tab.sql`: added `users.default_profile_tab` (VARCHAR(20) DEFAULT NULL). Values: none | stats | activity | socials | gallery | guestbook.
-- **API** – `src/app/api/account/default-profile-tab/route.js`: POST body `default_profile_tab`; validated against allowed list; UPDATE users SET default_profile_tab.
-- **Stats / account data** – `src/app/api/account/stats/route.js` and `src/app/account/page.js`: SELECT and return `defaultProfileTab` from user row.
-- **Account UI** – `AccountTabsClient.js`: "Profile display settings" card (below profile preview, above inner tabs) with a dropdown for default profile tab; state `defaultProfileTab`, `defaultTabSaving`; `handleDefaultTabChange` POSTs to default-profile-tab API and updates local stats.
-- **Profile page** – `src/app/profile/[username]/page.js`: passes `initialTab={profileUser.default_profile_tab ...}` to `ProfileTabsClient`.
-- **ProfileTabsClient** – Accepts `initialTab` prop; `VALID_TAB_IDS`; initial `activeTab` = `initialTab` if valid, else `'stats'`.
-
-### Files touched
-
-- `migrations/0055_add_default_profile_tab.sql` (new)
-- `src/app/api/account/default-profile-tab/route.js` (new)
-- `src/app/api/account/stats/route.js`, `src/app/account/page.js` (default_profile_tab in query and response)
-- `src/app/account/AccountTabsClient.js` (display settings card, default tab state and handler)
-- `src/app/profile/[username]/page.js` (initialTab prop)
-- `src/components/ProfileTabsClient.js` (initialTab, resolvedInitial for activeTab)
-
-### Verification
-
-- Profile page passes `initialTab`; when `default_profile_tab` is set and valid, profile opens on that tab; otherwise Stats. Account Edit profile shows display settings card and dropdown; save updates API and stats. No linter errors on changed files.
-
-### Deferred (optional / later)
-
-- **Phase 5** – Profile cover image (optional scope): not implemented.
-- **Phase 3** – Avatar glow clipping + GIF/WebP playback: not implemented.
-
-### Double-check (same session)
-
-- **ProfileTabsClient** – Wired `initialTab` prop: component now accepts `initialTab`, validates against `VALID_TAB_IDS`, and sets initial `activeTab` to `resolvedInitial` (valid tab or `'stats'`). Profile page was already passing `initialTab`; fix ensures it is used.
-- **AccountTabsClient** – Fixed two JSX errors in profile preview stats block: missing `</strong>` before `</span>` on replyCount and profileViews lines (build was failing).
-- **Build** – `npm run build` completes successfully after fixes.
-
----
-
-## Edit profile flow, guestbook, gallery (2026-01-31)
-
-Implemented: two-column edit profile preview (stats on right), single recent activity, default section moved into Profile tab, Stats/Activity tabs removed; guestbook (leave message + list + delete); gallery (upload, list, set cover, public display).
-
-### Edit profile layout
-
-- **Two-column top** – `.account-profile-preview--two-col`: top row is grid (left: avatar + username/role/mood/song/socials; right: full stats grid – portal entry, threads, replies, visits, min on site, avatar min). Below: single Recent activity block. No duplicate activity; no standalone Profile display card.
-- **Default section** – Moved into Profile tab as "Profile display" block (default section dropdown). Same options (none, stats, activity, socials, gallery, guestbook).
-- **Tabs** – `EDIT_PROFILE_SUB_TABS` reduced to 5: Profile, Mood & Song, Socials, Gallery, Guestbook. Stats and Activity tabs and panels removed. Default `editProfileSubTab` is `'profile'`.
-- **CSS** – `.account-profile-preview-top` grid (minmax(0,1fr) | minmax(200px,320px)); mobile: single column. `.account-profile-preview-stats` uses existing `.profile-stats-block--grid`.
-
-### Guestbook
-
-- **Migration** – `migrations/0056_guestbook_entries.sql`: table `guestbook_entries` (id, owner_user_id, author_user_id, content, created_at). Index on owner, created_at DESC.
-- **API** – `GET/POST /api/user/[username]/guestbook`: list entries (with author_username); POST (auth, not own profile): create message. `DELETE /api/account/guestbook/[id]`: owner only.
-- **Public profile** – Profile page fetches guestbook entries (try/catch); passes `guestbookEntries`, `profileUsername`, `canLeaveMessage` to ProfileTabsClient. Guestbook tab: list of messages; "Leave a message" form (textarea + submit) when `canLeaveMessage`. Form POSTs to guestbook API; on success appends to local list or refresh.
-- **Edit profile** – Guestbook tab: fetches `/api/user/${user.username}/guestbook`, lists entries with Delete button. Owner can delete any message.
-
-### Gallery
-
-- **Migration** – `migrations/0057_user_gallery_images.sql`: table `user_gallery_images` (id, user_id, image_key, caption, is_cover, order_index, created_at). Index on user_id, created_at DESC.
-- **API** – `GET/POST /api/account/gallery`: list current user's images; POST multipart (image file, optional caption), upload to R2 `gallery/`, insert row. `DELETE /api/account/gallery/[id]`: remove row. `PATCH /api/account/gallery/[id]`: set is_cover=1 for this id, 0 for others. `GET /api/user/[username]/gallery`: list that user's gallery (public).
-- **Edit profile** – Gallery tab: fetch list, upload form (file + optional caption), grid of images with "Set cover" and "Delete". Uses existing `isAllowedImage` (size/type); no allowlist for own gallery.
-- **Public profile** – Profile page fetches gallery (try/catch); passes `galleryEntries` and `galleryCount` to ProfileTabsClient. Gallery tab: grid of images (link to full size), "Cover" badge and caption when present.
-
-### Files touched
-
-- `src/app/account/AccountTabsClient.js` – Two-col preview, default section in Profile tab, 5 tabs only; guestbook state/fetch/delete; gallery state/fetch/upload/delete/set cover.
-- `src/app/globals.css` – `.account-profile-preview--two-col` grid and mobile.
-- `src/app/profile/[username]/page.js` – guestbook and gallery fetch; props to ProfileTabsClient.
-- `src/components/ProfileTabsClient.js` – guestbookEntries, profileUsername, canLeaveMessage, galleryEntries; Guestbook tab: form + list; Gallery tab: image grid.
-- `migrations/0056_guestbook_entries.sql`, `0057_user_gallery_images.sql` (new).
-- `src/app/api/user/[username]/guestbook/route.js`, `src/app/api/account/guestbook/[id]/route.js` (new).
-- `src/app/api/account/gallery/route.js`, `src/app/api/account/gallery/[id]/route.js`, `src/app/api/user/[username]/gallery/route.js` (new).
-
-### Double-check
-
-- Edit profile: one card, top = left (avatar/meta) + right (full stats), then recent activity, then 5-tab pill. Profile tab includes default section dropdown. No Stats/Activity tabs. Build passes.
-- Guestbook: visitor can leave message on profile Guestbook tab (when logged in and not own profile). Owner sees messages in Edit profile > Guestbook and can delete. Migration 0056; APIs list/post/delete.
-- Gallery: owner can upload (image + optional caption), set one as cover, delete. Public profile Gallery tab shows images. Migration 0057; R2 prefix `gallery/`; APIs account gallery GET/POST, account gallery [id] DELETE/PATCH, user [username] gallery GET.
-- Run migrations 0056 and 0057 in target env before using guestbook/gallery.
-
-### Verification pass (double-check)
-
-- **Edit profile** – Confirmed: `EDIT_PROFILE_SUB_TABS` has 5 items (profile, mood, socials, gallery, guestbook). Two-column preview (`.account-profile-preview--two-col`, `.account-profile-preview-top` grid). Default section dropdown lives inside Profile tab (`.account-display-settings-inline`). No Stats/Activity tabs or panels.
-- **Guestbook API** – GET `/api/user/[username]/guestbook`: added `(rows || []).map` guard so missing `results` does not throw. POST and DELETE unchanged. Account guestbook tab fetches on tab switch; list + delete. Public ProfileTabsClient: form when `canLeaveMessage`, list from `guestbookEntries`/`guestbookList`.
-- **Gallery API** – Account and user gallery GET already use `(rows || []).map`. Edit gallery: upload form, list with Set cover + Delete. Public profile: `galleryEntries` passed from page (try/catch fetch), Gallery tab shows grid.
-- **Profile page** – Guestbook and gallery fetches wrapped in try/catch; empty arrays if table missing. Props: guestbookEntries, galleryEntries, galleryCount, notesCount, canLeaveMessage, profileUsername.
-- **Build** – `npm run build` completes successfully. No linter errors on modified files.
-
-### Deploy preview readiness
-
-- **Builds** – `npm run build` and `npm run build:cf` both pass. Deploy preview is ready.
-- **Migrations** – No automated migration step in `deploy.sh`. For guestbook and gallery to work, apply 0056 and 0057 to D1 manually before or after deploy. See `docs/02-Deployment/MIGRATIONS-0056-0057.md`.
-- **Deploy command** – From a feature branch: `./deploy.sh --preview "Your message"`. Preview URL: `https://errl-portal-forum-preview.extrepatho.workers.dev`.
+Files touched: `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src/components/ProfileTabsClient.js`.

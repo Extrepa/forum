@@ -4,11 +4,11 @@ import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const PROFILE_TABS = [
-  { id: 'stats', label: 'Stats' },
   { id: 'activity', label: 'Activity' },
-  { id: 'socials', label: 'Socials' },
   { id: 'gallery', label: 'Gallery' },
   { id: 'guestbook', label: 'Guestbook' },
+  { id: 'socials', label: 'Socials' },
+  { id: 'stats', label: 'Stats' },
 ];
 
 function getRarityColor(value) {
@@ -90,8 +90,8 @@ export default function ProfileTabsClient({
   };
 
   return (
-    <div className="profile-tabs-wrapper">
-      <div className="profile-tab-content profile-tab-content--above">
+    <div className="profile-tabs-wrapper" style={{ minWidth: 0, maxWidth: '100%' }}>
+      <div className="profile-tab-content profile-tab-content--above" style={{ minWidth: 0, maxWidth: '100%' }}>
       {activeTab === 'stats' && (
         <div>
           {stats ? (
@@ -102,11 +102,12 @@ export default function ProfileTabsClient({
                   <span className="profile-stat-value date-only-mobile">{stats.joinDateShort}</span>
                   <span className="profile-stat-value date-with-time-desktop">{stats.joinDateLong}</span>
                 </span>
-                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span><span className="profile-stat-label">threads</span></span>
-                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span><span className="profile-stat-label">replies</span></span>
-                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews), fontWeight: '600' }}>{stats.profileViews}</span><span className="profile-stat-label">visits</span></span>
-                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes), fontWeight: '600' }}>{stats.timeSpentMinutes}</span><span className="profile-stat-label">min on site</span></span>
-                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes), fontWeight: '600' }}>{stats.avatarEditMinutes}</span><span className="profile-stat-label">avatar min</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.threadCount), fontWeight: '600' }}>{stats.threadCount}</span><span className="profile-stat-label">threads started</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.replyCount), fontWeight: '600' }}>{stats.replyCount}</span><span className="profile-stat-label">replies contributed</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor((stats.threadCount || 0) + (stats.replyCount || 0)), fontWeight: '600' }}>{(stats.threadCount || 0) + (stats.replyCount || 0)}</span><span className="profile-stat-label">total contribution (post contributions)</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.profileViews), fontWeight: '600' }}>{stats.profileViews}</span><span className="profile-stat-label">profile visits</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.timeSpentMinutes), fontWeight: '600' }}>{stats.timeSpentMinutes}</span><span className="profile-stat-label">minutes spent on the website</span></span>
+                <span className="profile-stat"><span className="profile-stat-value" style={{ color: getRarityColor(stats.avatarEditMinutes), fontWeight: '600' }}>{stats.avatarEditMinutes}</span><span className="profile-stat-label">minutes editing your avatar</span></span>
               </div>
             </div>
           ) : (

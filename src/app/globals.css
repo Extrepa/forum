@@ -889,6 +889,13 @@ main {
   display: grid;
   gap: 20px;
   min-width: 0;
+  max-width: 100%;
+}
+
+/* Prevent grid children (e.g. profile card) from stretching layout with wide content */
+.stack > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .split {
@@ -1724,6 +1731,9 @@ button:hover {
 .profile-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .profile-card-header {
@@ -1735,6 +1745,8 @@ button:hover {
   background: rgba(2, 7, 10, 0.4);
   border-radius: 12px;
   border: 1px solid rgba(52, 225, 255, 0.2);
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 /* Desktop: use wide space – more padding/gap, single-row tab strip spread across row */
@@ -1775,6 +1787,12 @@ button:hover {
 .profile-edit-profile-link:hover {
   background: rgba(52, 225, 255, 0.18);
   border-color: rgba(52, 225, 255, 0.6);
+}
+
+.profile-card-bio {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .profile-card-mood-song {
@@ -1820,6 +1838,18 @@ button:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 280px;
+  word-break: break-all;
+}
+
+.profile-socials-inline {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.profile-headline {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Profile tabs: content above, pill at bottom */
@@ -1829,16 +1859,22 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .profile-tab-content {
   padding-bottom: 8px;
   min-height: 80px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .profile-tab-content--above {
   flex: 1 1 auto;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 /* Giant pill: tabs in one row, sliding indicator */
@@ -1852,6 +1888,8 @@ button:hover {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .tabs-pill::-webkit-scrollbar {
@@ -2061,6 +2099,30 @@ button:hover {
   .profile-card-bio {
     margin-top: 12px !important;
     padding-top: 12px !important;
+  }
+}
+
+/* Very small viewports: single-column stats, tighter profile padding */
+@media (max-width: 480px) {
+  .profile-card-header {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .profile-tabs-wrapper {
+    margin-top: 12px;
+  }
+
+  .tabs-pill .profile-tab,
+  .tabs-pill .account-edit-tab {
+    padding: 6px 8px;
+    font-size: 11px;
+    min-width: 56px;
   }
 }
 
