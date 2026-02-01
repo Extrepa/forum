@@ -1947,7 +1947,11 @@ button:hover {
   overflow: hidden;
 }
 
-/* Compact profile player: tiny bar only (play/pause + song name) */
+/* Compact profile player: little play box (play/pause + song name), not full-width bar */
+.profile-song-player--compact {
+  width: auto;
+  max-width: 280px;
+}
 .profile-song-player--compact .profile-song-player-bar {
   margin-bottom: 0;
   padding: 6px 10px;
@@ -2187,8 +2191,12 @@ button:hover {
   }
 
   .account-profile-preview .account-profile-preview-header .profile-card-header-meta {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
+  }
+
+  .account-profile-preview .profile-card-mood-song {
+    align-items: center;
   }
 
   .profile-card-header-meta {
@@ -2197,6 +2205,7 @@ button:hover {
   }
 
   .profile-card-mood-song {
+    align-items: center;
     justify-content: center;
     gap: 8px;
     margin-top: 4px;

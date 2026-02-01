@@ -93,6 +93,11 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
             setReady(true);
             if (autoPlay) setTimeout(() => { try { playerInstance.playVideo?.(); } catch (_) {} }, 150);
           },
+          onStateChange(e) {
+            const state = e?.data;
+            if (state === 1) setIsPlaying(true);
+            if (state === 2 || state === 0) setIsPlaying(false);
+          },
         },
       });
     };
@@ -133,8 +138,11 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   };
 
   const handleToggle = () => {
-    if (isPlaying) handlePause();
-    else handlePlay();
+    if (isPlaying) {
+      handlePause();
+    } else {
+      handlePlay();
+    }
   };
 
   if (!embed && provider !== 'youtube') return null;
@@ -143,7 +151,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   const barContent = compact ? songName : (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
 
   return (
-    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', width: '100%', maxWidth: compact ? '100%' : '400px' }}>
+    <div className={`profile-song-player ${compact ? 'profile-song-player--compact' : ''}`} style={{ marginTop: compact ? '6px' : '12px', ...(compact ? {} : { width: '100%', maxWidth: '400px' }) }}>
       <div className="profile-song-player-bar">
         <button
           type="button"
@@ -189,7 +197,12 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
             title="Profile song"
             allow={embed.allow}
             allowFullScreen={embed.allowFullScreen}
-            style={{ width: '100%', border: 'none', borderRadius: '8px' }}
+            style={{
+              width: '100%',
+              border: 'none',
+              borderRadius: '8px',
+              ...(compact ? { pointerEvents: 'none' } : {}),
+            }}
             {...(embed.height ? { height: embed.height, minHeight: embed.height } : {})}
           />
         </div>

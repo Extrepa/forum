@@ -940,6 +940,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           songUrl={stats.profileSongUrl}
                           autoPlay={Boolean(stats.profileSongAutoplayEnabled)}
                           providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                          compact
                         />
                       ) : (stats.profileSongUrl || stats.profileSongProvider) ? (
                         <div className="profile-song-compact"><span className="profile-song-provider">{stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : ''}</span> <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">{stats.profileSongUrl}</a></div>
