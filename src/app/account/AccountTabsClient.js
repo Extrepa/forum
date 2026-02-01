@@ -907,6 +907,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   </div>
                 )}
+                {stats.profileHeadline && (
+                  <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
+                    {stats.profileHeadline}
+                  </div>
+                )}
                 {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') && (
                   <ProfileSongPlayer
                     provider={stats.profileSongProvider}
@@ -1562,7 +1567,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             </div>
             )}
-            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections">
+            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections" style={{ marginTop: '16px' }}>
               <div className="tabs-pill-inner">
                 <div
                   className="tabs-pill-indicator"

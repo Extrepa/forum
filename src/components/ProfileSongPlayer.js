@@ -236,12 +236,12 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
   const displaySongName = (songUrl.length > 42 ? `${songUrl.slice(0, 39)}…` : songUrl);
 
   return (
-    <div className="profile-song-player neon-outline-card" style={{ marginTop: '12px', position: 'relative', width: '100%', maxWidth: '400px', borderRadius: '8px', overflow: 'hidden' }}>
+    <div className="profile-song-player neon-outline-card" style={{ marginTop: '12px', position: 'relative', width: '100%', maxWidth: '400px', borderRadius: '8px', overflow: 'hidden', height: embed.height ? embed.height : 'auto' }}>
       {provider === 'soundcloud' && embed && (
         <div
           className={`embed-frame profile-song-player-embed ${embed.aspect}`}
           aria-hidden={false}
-          style={{ position: 'absolute', inset: 0 }}
+          style={{ position: 'absolute', inset: 0, height: embed.height ? embed.height : '100%', zIndex: 1 }}
         >
           <iframe
             ref={iframeRef}
@@ -262,12 +262,12 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
         <div
           id={youtubeId}
           className="embed-frame profile-song-player-embed"
-          style={{ position: 'absolute', inset: 0, height: '100%', minHeight: '166px' }}
           aria-hidden={false}
+          style={{ position: 'absolute', inset: 0, height: embed.height ? embed.height : '100%', minHeight: '166px', zIndex: 1 }}
         />
       )}
 
-      <div className="profile-song-player-overlay" style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%)' }}>
+      <div className="profile-song-player-overlay" style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px', background: 'rgba(0,0,0,0.3)' }}>
         <div className="profile-song-player-top-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <span className="profile-song-player-provider" style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{providerLabel}</span>
           <span className="profile-song-player-name" style={{ fontSize: '14px', fontWeight: '500', marginTop: '2px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'white' }}>
@@ -284,7 +284,7 @@ export default function ProfileSongPlayer({ provider, songUrl, autoPlay = false,
             title={isPlaying ? 'Pause' : 'Play'}
             aria-label={isPlaying ? 'Pause' : 'Play'}
             aria-pressed={isPlaying}
-            style={{ color: '#ffffff', zIndex: 11, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(5px)' }}
+            style={{ color: '#ffffff', zIndex: 11, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.3)' }}
           >
             {isPlaying ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" style={{ display: 'block', flexShrink: 0 }}>
