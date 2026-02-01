@@ -1,5 +1,16 @@
 # 2026-01-31 cursor notes
 
+## Account narrow viewport: rainbow border on mini card, tabs, song bar, edit buttons (2026-02-01)
+
+- **Rainbow border on mini preview card:** `.account-edit-card` added to neonChase `::before`/`::after` (same as `.profile-card`, `.tabs-pill`). `.account-edit-card` given `position: relative` and `isolation: isolate`. Static color-mode override includes `.account-edit-card::before`/`::after`.
+- **Top Account/Edit profile tabs:** At ≤480px, tab buttons use `font-size: 11px`, `padding: 5px 6px`, `gap: 6px`. At ≤380px, `font-size: 10px`, `padding: 4px 5px` so "Edit profile" isn't truncated.
+- **Song player in account preview (mobile):** `.account-profile-preview .profile-song-player--compact` uses `width: 100%`, `max-width: 100%` in the 768px block so the bar has room and stays horizontal (play + provider + song name in one row).
+- **Edit Avatar/Username buttons (mobile):** `.account-profile-preview .account-edit-profile-btn` capped at `max-width: 150px` so they don't dominate the row.
+
+Files: `src/app/globals.css`.
+
+---
+
 ## Song player: autoplay vs pause, progress bar, artist/song cleanup, rainbow borders (2026-02-01)
 
 - **Autoplay vs pause:** ProfileSongPlayer now uses `userPausedRef` and `autoplayTimeoutsRef`. When user pauses, we set `userPausedRef.current = true` and clear all autoplay timeouts; PLAY event only sets `isPlaying(true)` if `!userPausedRef.current`. Autoplay runs once (400ms SoundCloud, 200ms YouTube) and only if user has not paused. YouTube uses `playerVars: { autoplay: 0 }`; playback starts from JS after ready so we can gate on user action.

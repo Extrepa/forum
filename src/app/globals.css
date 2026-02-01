@@ -73,7 +73,8 @@
 [data-ui-color-mode="2"] .scroll-to-top-button::before,
 [data-ui-color-mode="2"] .notifications-popover-errl.card::before,
 [data-ui-color-mode="2"] .tabs-pill::before,
-[data-ui-color-mode="2"] .profile-card::before {
+[data-ui-color-mode="2"] .profile-card::before,
+[data-ui-color-mode="2"] .account-edit-card::before {
   background: var(--ui-border-color) !important;
   animation: none !important;
   opacity: 0.8 !important;
@@ -86,7 +87,8 @@
 [data-ui-color-mode="2"] .scroll-to-top-button::after,
 [data-ui-color-mode="2"] .notifications-popover-errl.card::after,
 [data-ui-color-mode="2"] .tabs-pill::after,
-[data-ui-color-mode="2"] .profile-card::after {
+[data-ui-color-mode="2"] .profile-card::after,
+[data-ui-color-mode="2"] .account-edit-card::after {
   box-shadow: 0 0 15px var(--ui-border-color) !important;
   opacity: 0.4 !important;
 }
@@ -917,7 +919,7 @@ main {
   margin-top: 12px;
 }
 
-/* Edit profile: single card with inner tabs, pill at bottom */
+/* Edit profile: single card with inner tabs, pill at bottom; position/isolation for chasing border */
 .account-edit-card {
   padding: 16px;
   background: rgba(2, 7, 10, 0.4);
@@ -926,6 +928,8 @@ main {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  position: relative;
+  isolation: isolate;
 }
 
 .account-edit-card--tabs-bottom {
@@ -2353,11 +2357,19 @@ button:hover {
 
   .account-profile-preview .account-edit-profile-btn {
     min-width: 0;
-    max-width: 100%;
+    max-width: 150px;
     width: auto;
     padding: 4px 10px;
     font-size: 11px;
     box-sizing: border-box;
+  }
+  /* Compact song player in account preview: use full width on mobile so bar stays horizontal */
+  .account-profile-preview .profile-song-player--compact {
+    max-width: 100%;
+    width: 100%;
+  }
+  .account-profile-preview .profile-song-player--compact .profile-song-player-bar {
+    min-width: 0;
   }
 
   .account-profile-preview .account-profile-preview-header .profile-card-header-meta {
@@ -2509,11 +2521,19 @@ button:hover {
   }
 
   .account-tabs {
-    gap: 8px;
+    gap: 6px;
   }
   .account-tabs button {
-    padding: 6px 8px;
-    font-size: 12px;
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+}
+
+/* Very narrow: top Account/Edit profile tabs fit without truncation */
+@media (max-width: 380px) {
+  .account-tabs button {
+    padding: 4px 5px;
+    font-size: 10px;
   }
 }
 
@@ -4202,7 +4222,8 @@ header::before,
 .card::before,
 .list-item::before,
 .tabs-pill::before,
-.profile-card::before {
+.profile-card::before,
+.account-edit-card::before {
   content: "";
   position: absolute;
   inset: -1px;
@@ -4230,7 +4251,8 @@ header::after,
 .card::after,
 .list-item::after,
 .tabs-pill::after,
-.profile-card::after {
+.profile-card::after,
+.account-edit-card::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -4287,6 +4309,9 @@ header::before {
 }
 .profile-card::before {
   animation-duration: 5.7s;
+}
+.account-edit-card::before {
+  animation-duration: 5.5s;
 }
 
 /* Tablet breakpoint */
