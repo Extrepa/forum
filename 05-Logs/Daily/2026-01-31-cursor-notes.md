@@ -78,3 +78,20 @@ Files touched: `src/app/account/AccountTabsClient.js`, `src/app/globals.css`.
 - **Rename Guestbook to Notes:** Display label only. Tab id and API remain `guestbook`. In AccountTabsClient and ProfileTabsClient: tab label "Guestbook" -> "Notes"; section titles and copy ("Guestbook tab", "Your guestbook...") -> "Notes tab", "Your notes...".
 - **Stats match (profile vs edit):** Initial account page load builds stats in `account/page.js` without postsCount/postCommentsCount; profile page and `/api/account/stats` include them. Added same postsCount and postCommentsCount logic (try/catch for posts/post_comments) to `account/page.js` so threadCount and replyCount match profile page and API on first load.
 - **Files:** `src/app/account/AccountTabsClient.js`, `src/app/account/page.js`, `src/app/globals.css`, `src/components/ProfileTabsClient.js`.
+
+---
+
+## Avatar glow and socials icons
+
+- **Avatar circle glow cut off:** Set `.profile-card { overflow: visible }` and `.profile-card-header-avatar { overflow: visible }` in globals.css so the circular drop-shadow/glow around the avatar is not clipped by a square boundary on profile view and account edit preview.
+- **Socials tab icons:** Added `platform` to `latelyLinks` in profile `page.js` so each link has a platform key. In ProfileTabsClient: added `SOCIAL_ICONS` map (github, youtube, soundcloud, discord, chatgpt -> `/icons/social/*.png`), import `Image` from next/image; Socials tab now renders each link as a row with a 24px icon (when platform has an icon), then category/label/url. SoundCloud links use orange border/background for consistency with card inline links.
+- **Files:** `src/app/globals.css`, `src/app/profile/[username]/page.js`, `src/components/ProfileTabsClient.js`.
+
+---
+
+## Default profile tab not saving / not showing
+
+- **Save behavior:** `handleDefaultTabChange` was optimistically updating local state; on API failure the checkbox stayed checked but the value was never persisted, so a refresh reverted it. Now: no optimistic update; on success we set `defaultProfileTab` and `stats.defaultProfileTab` from the API response; on failure (non-ok or catch) we revert `defaultProfileTab` to the previous value so the checkbox reflects server state.
+- **Profile page fallback:** When the main user SELECT on the profile page threw (e.g. missing column), the catch used a fallback query that did not include `default_profile_tab`, so `initialTab` was always null. Fallback query now includes `default_profile_tab` so the default tab is used when the main query fails.
+- **Account page fallback:** First fallback SELECT in account/page.js (when the long user-info query fails) now includes `default_profile_tab` so the edit-profile view still gets the saved default when the long query fails.
+- **Files:** `src/app/account/AccountTabsClient.js`, `src/app/profile/[username]/page.js`, `src/app/account/page.js`.

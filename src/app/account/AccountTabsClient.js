@@ -712,7 +712,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
   const handleDefaultTabChange = async (value) => {
     const v = value === 'none' || value === '' ? null : value;
-    setDefaultProfileTab(v);
+    const previous = stats?.defaultProfileTab ?? null;
     setDefaultTabSaving(true);
     try {
       const res = await fetch('/api/account/default-profile-tab', {
@@ -722,8 +722,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       });
       if (res.ok) {
         const data = await res.json();
-        setStats(prev => prev ? { ...prev, defaultProfileTab: data.default_profile_tab } : prev);
+        const saved = data.default_profile_tab ?? null;
+        setDefaultProfileTab(saved);
+        setStats(prev => prev ? { ...prev, defaultProfileTab: saved } : prev);
+      } else {
+        setDefaultProfileTab(previous);
       }
+    } catch (_) {
+      setDefaultProfileTab(previous);
     } finally {
       setDefaultTabSaving(false);
     }

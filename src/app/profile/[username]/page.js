@@ -49,7 +49,7 @@ export default async function ProfilePage({ params }) {
   } catch (e) {
     profileUser = await db
       .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, default_profile_tab FROM users WHERE username_norm = ?'
       )
       .bind(username.toLowerCase())
       .first();
@@ -623,6 +623,7 @@ export default async function ProfilePage({ params }) {
         url: linkObj.url,
         label: username ? `${platformLabel}: ${username}` : linkObj.url,
         category: linkObj.platform ? `${platformLabel} LINK` : 'LINK',
+        platform: linkObj.platform || null,
       };
     })
     .filter(Boolean);

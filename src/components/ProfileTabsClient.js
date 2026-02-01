@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const PROFILE_TABS = [
   { id: 'activity', label: 'Activity' },
@@ -26,6 +27,14 @@ function formatGuestbookDate(ts) {
 }
 
 const VALID_TAB_IDS = ['stats', 'activity', 'socials', 'gallery', 'guestbook'];
+
+const SOCIAL_ICONS = {
+  github: '/icons/social/github.png',
+  youtube: '/icons/social/youtube.png',
+  soundcloud: '/icons/social/soundcloud.png',
+  discord: '/icons/social/discord.png',
+  chatgpt: '/icons/social/chatgpt.png',
+};
 
 export default function ProfileTabsClient({
   activityItems,
@@ -154,29 +163,41 @@ export default function ProfileTabsClient({
           <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '12px' }}>Socials</h4>
           {latelyLinks.length > 0 ? (
             <div style={{ display: 'grid', gap: '8px' }}>
-              {latelyLinks.map(link => (
-                <a
-                  key={link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(52, 225, 255, 0.2)',
-                    background: 'rgba(2, 7, 10, 0.35)',
-                    color: 'var(--ink)',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{link.category}</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600' }}>{link.label}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{link.url}</span>
-                </a>
-              ))}
+              {latelyLinks.map(link => {
+                const iconSrc = link.platform ? SOCIAL_ICONS[link.platform] : null;
+                const isSoundCloud = link.platform === 'soundcloud';
+                return (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: isSoundCloud ? '1px solid rgba(255, 107, 0, 0.3)' : '1px solid rgba(52, 225, 255, 0.2)',
+                      background: isSoundCloud ? 'rgba(255, 107, 0, 0.05)' : 'rgba(2, 7, 10, 0.35)',
+                      color: 'var(--ink)',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: '12px',
+                    }}
+                  >
+                    {iconSrc ? (
+                      <span style={{ flexShrink: 0, width: 24, height: 24, position: 'relative' }}>
+                        <Image src={iconSrc} alt={link.platform} width={24} height={24} />
+                      </span>
+                    ) : null}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{link.category}</span>
+                      <span style={{ fontSize: '14px', fontWeight: '600' }}>{link.label}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{link.url}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>

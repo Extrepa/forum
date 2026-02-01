@@ -247,7 +247,7 @@ export default async function AccountPage({ searchParams }) {
       } catch (e) {
         try {
           userInfo = await db
-            .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes FROM users WHERE id = ?')
+            .prepare('SELECT created_at, profile_links, profile_views, time_spent_minutes, avatar_edit_minutes, default_profile_tab FROM users WHERE id = ?')
             .bind(user.id)
             .first();
         } catch (e2) {
