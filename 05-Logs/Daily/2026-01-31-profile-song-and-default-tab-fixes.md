@@ -34,7 +34,7 @@ Summary of fixes implemented for profile header layout, compact song player, aut
 
 - **ProfileSongPlayer.js (YouTube):** Added `onStateChange` handler so `isPlaying` stays in sync with player state (1 = playing, 2 = paused, 0 = ended). Ensures the pause button and icon match actual state after autoplay.
 - **ProfileSongPlayer.js (SoundCloud):** Already bound to PLAY/PAUSE/FINISH; no change.
-- **ProfileSongPlayer.js (clickability):** Hidden embed container uses `left: -9999`, `top: 0` so it is off-screen and cannot cover the bar. Wrapper has `position: relative`; bar has `position: relative`, `zIndex: 1`. Iframe has `pointerEvents: 'none'` when compact so clicks always hit the play/pause button.
+- **ProfileSongPlayer.js (clickability):** Hidden embed container uses `left: 0`, `top: 0`, `1x1` size, `opacity: 0`, `zIndex: 0` so it does not cover the bar. Wrapper has `position: relative`; bar has `position: relative`, `zIndex: 1`. Iframe has `pointerEvents: 'none'` when compact so clicks always hit the play/pause button.
 
 ---
 

@@ -10,6 +10,8 @@ Final set of refinements addressing play/pause visibility, vertical stacking iss
 - **Fix:** Switched play/pause icon color to white (`#ffffff`) and added a `2px` teal border to the circular button. This ensures the icon stays visible even if the gradient background fails to render.
 - **Fix:** Set `pointerEvents: 'none'` on the hidden SoundCloud iframe when in compact mode to ensure it cannot intercept clicks intended for the play button.
 - **Fix:** Moved the hidden compact embed from `left: -9999` to `left: 0, top: 0` with `1x1` size and `opacity: 0`. This keeps the widget "visible" to the browser, which helps with initialization and autoplay.
+- **Fix (icon distortion):** Added `preserveAspectRatio="xMidYMid meet"` to play/pause SVGs so they scale without stretching or tilting. Compact button SVGs get `min-width`/`min-height: 18px`; base `.profile-song-player-btn svg` uses `object-fit: contain`.
+- **Fix (label clipping):** Provider label has `white-space: nowrap` and compact bar has `min-width: 140px` so "SOUNDCLOUD" is not truncated to "CLOUD".
 
 ---
 

@@ -1951,6 +1951,7 @@ button:hover {
 .profile-song-player-btn svg {
   display: block;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .profile-song-player-btn:hover {
@@ -1969,6 +1970,7 @@ button:hover {
   letter-spacing: 0.06em;
   color: var(--accent);
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .profile-song-player-link {
@@ -2002,6 +2004,7 @@ button:hover {
   margin-bottom: 0;
   padding: 6px 10px;
   gap: 8px;
+  min-width: 140px;
 }
 .profile-song-player--compact .profile-song-player-btn {
   width: 32px;
@@ -2013,10 +2016,13 @@ button:hover {
 .profile-song-player--compact .profile-song-player-btn svg {
   width: 18px;
   height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   display: block;
 }
 .profile-song-player--compact .profile-song-player-label {
   font-size: 10px;
+  white-space: nowrap;
 }
 .profile-song-player--compact .profile-song-player-link {
   font-size: 12px;
