@@ -88,7 +88,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             const apiHasExtras =
               (data.profileSongUrl != null && data.profileSongUrl !== '') ||
               (data.profileMoodText != null && data.profileMoodText !== '') ||
-              (data.profileCoverMode != null && data.profileCoverMode !== '');
+              (data.profileHeadline != null && data.profileHeadline !== '');
             setStats((prev) => {
               if (apiHasExtras) return data;
               if (!prev) return data;
@@ -112,7 +112,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 const extrasRes = await fetch('/api/account/profile-extras');
                 if (extrasRes.ok) {
                   const extras = await extrasRes.json();
-                  const hasExtras = (extras.profileSongUrl ?? '') !== '' || (extras.profileMoodText ?? '') !== '';
+                  const hasExtras =
+                    (extras.profileSongUrl ?? '') !== '' ||
+                    (extras.profileMoodText ?? '') !== '' ||
+                    (extras.profileHeadline ?? '') !== '';
                   if (hasExtras) {
                     setStats((prev) => prev ? { ...prev, ...extras } : prev);
                     setProfileMoodText(extras.profileMoodText ?? '');
@@ -416,7 +419,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           const apiHasExtras =
             (refreshed.profileSongUrl != null && refreshed.profileSongUrl !== '') ||
             (refreshed.profileMoodText != null && refreshed.profileMoodText !== '') ||
-            (refreshed.profileCoverMode != null && refreshed.profileCoverMode !== '');
+            (refreshed.profileHeadline != null && refreshed.profileHeadline !== '');
           if (!apiHasExtras && prev) {
             next.profileMoodText = prev.profileMoodText ?? '';
             next.profileMoodEmoji = prev.profileMoodEmoji ?? '';
