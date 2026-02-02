@@ -248,7 +248,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         }
       }
       setUsernameStatus({ type: 'success', message: 'Profile updated!' });
-      setIsEditingUsername(false);
       setTimeout(() => {
         setUsernameStatus({ type: 'idle', message: null });
         router.refresh();
@@ -334,7 +333,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setSelectedColorIndex(user?.preferred_username_color_index ?? null);
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
-    setIsEditingUsername(false);
   };
 
   const handleCancelSocials = () => {
@@ -658,6 +656,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   const EDIT_PROFILE_SUB_TABS = [
+    { id: 'username', label: 'Username' },
+    { id: 'avatar', label: 'Avatar' },
     { id: 'activity', label: 'Activity' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'guestbook', label: 'Notes' },
@@ -691,6 +691,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     })();
     return () => { cancelled = true; };
   }, [editProfileSubTab, user?.username]);
+  useEffect(() => {
+    setIsEditingUsername(editProfileSubTab === 'username');
+    setIsEditingAvatar(editProfileSubTab === 'avatar');
+  }, [editProfileSubTab]);
   const handleGuestbookDelete = async (id) => {
     if (!id || guestbookDeletingId) return;
     setGuestbookDeletingId(id);
@@ -951,28 +955,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </div>
               </div>
 
-              <div className="account-profile-preview-right-column">
-                <div className="account-profile-preview-buttons-container">
-                  <button
-                    type="button"
-                    onClick={() => { setIsEditingUsername(true); setIsEditingAvatar(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                    className="account-edit-profile-btn account-edit-profile-btn--small account-edit-username-btn"
-                  >
-                    Edit Username
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setIsEditingAvatar(true); setIsEditingUsername(false); setIsEditingSocials(false); setIsEditingExtras(false); }}
-                    disabled={isEditingAvatar}
-                    className="account-edit-profile-btn account-edit-profile-btn--small account-edit-avatar-btn"
-                  >
-                    Edit Avatar
-                  </button>
-                </div>
-              </div>
             </div>
 
-            {isEditingUsername && (
+            {editProfileSubTab === 'username' && (
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '0px', alignSelf: 'center' }}>
                     <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '120px' }} />
@@ -991,7 +976,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block', textAlign: 'center' }}>{usernameStatus.message}</span>}
               </div>
             )}
-            {isEditingAvatar && (
+            {editProfileSubTab === 'avatar' && (
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px' }}>
                 <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
               </div>

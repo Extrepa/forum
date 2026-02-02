@@ -21,3 +21,4 @@
 - **Profile mood/song alignment:** Centered the song column within the desktop header for a more balanced layout.
 - **Gallery modal actions:** Made action strip sticky/always visible, added cover preview background in edit profile header, fixed song autoplay, and restored right-column slot target.
 - **Extras save fix:** Prevented cover mode refresh from wiping mood/song/headline and included headline in extras checks.
+- **Edit profile tabs:** Added Username/Avatar sub-tabs and removed header buttons to reduce clutter.
