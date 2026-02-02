@@ -57,6 +57,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [profileSongAutoplay, setProfileSongAutoplay] = useState(Boolean(initialStats?.profileSongAutoplayEnabled));
   const [profileCoverMode, setProfileCoverMode] = useState(initialStats?.profileCoverMode ?? 'cover');
   const [coverModeSaving, setCoverModeSaving] = useState(false);
+  const [coverFeedbackMessage, setCoverFeedbackMessage] = useState(null);
+  const [coverFeedbackType, setCoverFeedbackType] = useState('idle');
   const [extrasStatus, setExtrasStatus] = useState({ type: 'idle', message: null });
   const [avatarHasChanges, setAvatarHasChanges] = useState(false);
   const avatarInitialState = useMemo(() => {
@@ -789,11 +791,28 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const handleGallerySetCover = async (id) => {
     if (!id || galleryCoverId) return;
     setGalleryCoverId(id);
+    setCoverFeedbackMessage(null); // Clear previous feedback
+    setCoverFeedbackType('loading');
     try {
       const res = await fetch(`/api/account/gallery/${encodeURIComponent(id)}`, { method: 'PATCH' });
-      if (res.ok) setGalleryEntries((prev) => prev.map((e) => ({ ...e, is_cover: e.id === id })));
+      if (res.ok) {
+        setGalleryEntries((prev) => prev.map((e) => ({ ...e, is_cover: e.id === id })));
+        setCoverFeedbackMessage('Cover photo set!');
+        setCoverFeedbackType('success');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setCoverFeedbackMessage(data.error || 'Failed to set cover photo.');
+        setCoverFeedbackType('error');
+      }
+    } catch (_) {
+      setCoverFeedbackMessage('Network error. Failed to set cover photo.');
+      setCoverFeedbackType('error');
     } finally {
       setGalleryCoverId(null);
+      setTimeout(() => {
+        setCoverFeedbackMessage(null);
+        setCoverFeedbackType('idle');
+      }, 3000); // Clear feedback after 3 seconds
     }
   };
 
@@ -1415,7 +1434,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 height: '20px',
                                 borderRadius: '999px',
                                 border: 'none',
-                                background: 'transparent',
+                                background: 'rgba(255, 107, 0, 0.2)',
                                 color: '#ff6b6b',
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -1423,8 +1442,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 fontSize: '14px',
                                 cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer',
                                 zIndex: 2,
-                                transition: 'opacity 0.15s ease, transform 0.15s ease',
-                                textShadow: '0 0 8px rgba(255, 82, 82, 0.9)',
+                                transition: 'opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+                                boxShadow: '0 0 8px rgba(255, 82, 82, 0.6)',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (galleryDeletingId !== entry.id) {
+                                  e.currentTarget.style.transform = 'scale(1.1)';
+                                  e.currentTarget.style.boxShadow = '0 0 16px rgba(255, 82, 82, 0.8)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (galleryDeletingId !== entry.id) {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.boxShadow = '0 0 8px rgba(255, 82, 82, 0.6)';
+                                }
                               }}
                             >
                               {galleryDeletingId === entry.id ? '…' : '×'}
@@ -1443,11 +1474,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               <button
                                 type="button"
                                 onClick={() => handleGallerySetCover(entry.id)}
-                                disabled={entry.is_cover || galleryCoverId === entry.id}
-                                style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId ? 'not-allowed' : 'pointer' }}
+                                disabled={entry.is_cover || galleryCoverId === entry.id || (coverFeedbackType === 'loading' && galleryCoverId === entry.id)}
+                                style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId || (coverFeedbackType === 'loading' && galleryCoverId === entry.id) ? 'not-allowed' : 'pointer' }}
                               >
-                                {galleryCoverId === entry.id ? '…' : 'Set cover'}
+                                {entry.is_cover ? 'Cover photo' : (coverFeedbackType === 'loading' && galleryCoverId === entry.id) ? 'Setting…' : (coverFeedbackType === 'success' && galleryCoverId === entry.id) ? 'Cover photo set!' : (coverFeedbackType === 'error' && galleryCoverId === entry.id) ? 'Failed!' : 'Set cover'}
                               </button>
+                              {coverFeedbackMessage && coverFeedbackType !== 'idle' && galleryCoverId === entry.id && (
+                                <span style={{ fontSize: '11px', color: coverFeedbackType === 'error' ? '#ff6b6b' : '#00f5a0', marginLeft: '8px' }}>
+                                  {coverFeedbackMessage}
+                                </span>
+                              )}
                             </div>
                             {entry.caption && <p style={{ margin: 0, padding: '4px 8px', fontSize: '11px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.caption}</p>}
                           </div>
@@ -1537,13 +1573,18 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               }}
                             >
                               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                {coverFeedbackMessage && (
+                                  <span style={{ fontSize: '12px', color: coverFeedbackType === 'error' ? '#ff6b6b' : '#00f5a0', marginBottom: '6px' }}>
+                                    {coverFeedbackMessage}
+                                  </span>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => {
                                     handleGallerySetCover(galleryModalEntry.id);
                                     setGalleryModalEntry((prev) => (prev ? { ...prev, is_cover: true } : prev));
                                   }}
-                                  disabled={galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id}
+                                  disabled={galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id || coverFeedbackType === 'loading'}
                                   style={{
                                     padding: '8px 14px',
                                     borderRadius: '10px',
@@ -1551,11 +1592,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                     background: 'rgba(52, 225, 255, 0.16)',
                                     color: 'var(--accent)',
                                     fontSize: '12px',
-                                    cursor: galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                                    cursor: galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id || coverFeedbackType === 'loading' ? 'not-allowed' : 'pointer',
                                     boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
                                   }}
                                 >
-                                  {galleryModalEntry.is_cover ? 'Cover photo' : galleryCoverId === galleryModalEntry.id ? 'Setting…' : 'Set as cover'}
+                                  {galleryModalEntry.is_cover ? 'Cover photo' : coverFeedbackType === 'loading' ? 'Setting…' : 'Set as cover'}
                                 </button>
                                 <button
                                   type="button"
@@ -1578,6 +1619,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                   {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
                                 </button>
                               </div>
+                              {coverFeedbackMessage && (
+                                <p style={{ margin: 0, fontSize: '12px', color: coverFeedbackType === 'error' ? '#ff6b6b' : '#00f5a0', textAlign: 'center' }}>
+                                  {coverFeedbackMessage}
+                                </p>
+                              )}
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Cover mode:</span>
                                 {[

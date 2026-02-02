@@ -281,27 +281,74 @@ export default function ProfileTabsClient({
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      background: 'rgba(0,0,0,0.6)',
-                      color: '#fff',
-                      fontSize: '20px',
+                      border: 'none',
+                      background: 'rgba(255, 107, 0, 0.2)',
+                      color: '#ff6b6b',
+                      fontSize: '24px',
                       cursor: 'pointer',
                       lineHeight: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 0 12px rgba(255, 82, 82, 0.6)',
+                      transition: 'all 0.2s ease',
+                      zIndex: 10001,
                     }}
+                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 82, 82, 0.8)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 82, 82, 0.6)'; e.currentTarget.style.transform = 'scale(1)'; }}
                   >
                     &times;
                   </button>
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                    style={{
+                      width: 'min(100%, 1200px)',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                    }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/api/media/${galleryModalEntry.image_key}`}
                       alt={galleryModalEntry.caption || 'Gallery image'}
-                      style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 80px)', objectFit: 'contain', display: 'block', borderRadius: '8px' }}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: 'calc(100vh - 40px)',
+                        objectFit: 'contain',
+                        display: 'block',
+                        borderRadius: '4px',
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      }}
                     />
-                    {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
+                    
+                    {galleryModalEntry.caption && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '20px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: 'rgba(2, 7, 10, 0.8)',
+                          backdropFilter: 'blur(8px)',
+                          padding: '8px 16px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(52, 225, 255, 0.2)',
+                          maxWidth: '90%',
+                          width: 'max-content',
+                          textAlign: 'center',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                          zIndex: 10,
+                        }}
+                      >
+                        <p style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{galleryModalEntry.caption}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
