@@ -11,7 +11,6 @@ import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
-import ProfileSongPlayer from '../../components/ProfileSongPlayer';
 import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
 
 function getRarityColor(value) {
@@ -890,7 +889,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   )}
                   {stats.profileHeadline && (
                     <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
-                      {stats.profileHeadline}
+                      <span style={{ color: 'var(--muted)' }}>Headline:</span> {stats.profileHeadline}
+                    </div>
+                  )}
+                  {(stats.profileSongUrl || stats.profileSongProvider) && (
+                    <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px' }}>
+                      <span style={{ color: 'var(--muted)' }}>Song:</span>{' '}
+                      <span style={{ color: 'var(--accent)' }}>
+                        {stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                      </span>{' '}
+                      {stats.profileSongUrl ? (
+                        <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>
+                          {stats.profileSongUrl}
+                        </a>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -914,16 +926,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     Edit Avatar
                   </button>
                 </div>
-                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube' || stats.profileSongProvider === 'spotify') && (
-                  <ProfileSongPlayer
-                    provider={stats.profileSongProvider}
-                    songUrl={stats.profileSongUrl}
-                    autoPlay={false}
-                    providerLabel={stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
-                    style={{ margin: '0 auto' }} // Add margin auto for centering
-                    embedStyle="compact" /* Ensure compact styling for edit profile preview */
-                  />
-                )}
               </div>
             </div>
 
