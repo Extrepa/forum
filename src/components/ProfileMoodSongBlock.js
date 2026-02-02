@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ProfileSongPlayer from './ProfileSongPlayer';
 import { isProfileFlagEnabled } from '../lib/featureFlags';
 import { getMoodChipStyle } from '../lib/moodThemes';
@@ -27,6 +28,7 @@ export default function ProfileMoodSongBlock({
   const [songAutoplayEnabled, setSongAutoplayEnabled] = useState(Boolean(initialSongAutoplayEnabled));
   const [headline, setHeadline] = useState(initialHeadline ?? '');
   const [fetched, setFetched] = useState(false);
+  const [rightColumnTarget, setRightColumnTarget] = useState(null);
 
   const hasMood = isProfileFlagEnabled('profile_mood') && (moodText || moodEmoji);
   const hasSong = isProfileFlagEnabled('profile_music') && songUrl;
@@ -56,6 +58,13 @@ export default function ProfileMoodSongBlock({
     return () => { cancelled = true; };
   }, [isOwnProfile, initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
 
+  useEffect(() => {
+    const target = document.querySelector('[data-profile-mood-song-right-column-slot]');
+    if (target) {
+      setRightColumnTarget(target);
+    }
+  }, []);
+
   if (!hasMood && !hasSong) {
     return (
       <div className="profile-card-mood-song">
@@ -63,6 +72,27 @@ export default function ProfileMoodSongBlock({
       </div>
     );
   }
+
+  const rightColumn = (
+    <div className="profile-mood-song-block-right-column">
+      {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud' || songProvider === 'spotify') ? (
+        <ProfileSongPlayer
+          provider={songProvider}
+          songUrl={songUrl}
+          autoPlay
+          providerLabel={songProviderLabel}
+          embedStyle="profile_full_height" /* Use new style for full card height */
+        />
+      ) : hasSong ? (
+        <div className="profile-song-compact">
+          <span className="profile-song-provider">{songProviderLabel}</span>
+          <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
+            {songUrl}
+          </a>
+        </div>
+      ) : null}
+    </div>
+  );
 
   return (
     <>
@@ -78,25 +108,8 @@ export default function ProfileMoodSongBlock({
             <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
           ) : null}
         </div>
-        <div className="profile-mood-song-block-right-column">
-          {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud' || songProvider === 'spotify') ? (
-            <ProfileSongPlayer
-              provider={songProvider}
-              songUrl={songUrl}
-              autoPlay
-              providerLabel={songProviderLabel}
-              embedStyle="profile_full_height" /* Use new style for full card height */
-            />
-          ) : hasSong ? (
-            <div className="profile-song-compact">
-              <span className="profile-song-provider">{songProviderLabel}</span>
-              <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
-                {songUrl}
-              </a>
-            </div>
-          ) : null}
-        </div>
       </div>
+      {rightColumnTarget ? createPortal(rightColumn, rightColumnTarget) : rightColumn}
     </>
   );
 }

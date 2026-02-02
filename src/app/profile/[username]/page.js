@@ -463,6 +463,7 @@ export default async function ProfilePage({ params }) {
               );
             })()}
           </div>
+          <div className="profile-mood-song-right-column-slot" data-profile-mood-song-right-column-slot />
         </div>
 
         {profileUser.profile_bio ? (

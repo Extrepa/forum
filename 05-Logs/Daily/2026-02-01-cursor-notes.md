@@ -11,3 +11,4 @@
 - **Profile extras & persistence:** Mood/song/headline save + read-back via profile-extras GET/POST; rollout-safe fallbacks for missing columns (migration 0054).
 - **Gallery & notes:** Gallery limited to 10 uploads with modal preview; “Guestbook” display renamed to “Notes” and delete button compacted.
 - **UI polish:** Avatar glow overflow fixes, socials icons on profile tabs, and compact layout adjustments across breakpoints.
+- **Profile mood/song layout:** Moved the song column into the header slot and updated flex behavior for desktop wrap.

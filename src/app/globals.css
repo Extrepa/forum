@@ -1177,6 +1177,12 @@ main {
   justify-content: center; /* Center player on mobile */
 }
 
+.profile-mood-song-right-column-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 @media (min-width: 769px) {
   .profile-mood-song-block-desktop-layout {
     display: grid; /* Use grid for two columns */
@@ -1193,20 +1199,26 @@ main {
   }
 
   .profile-mood-song-block-right-column {
-    position: relative;
+    position: static;
     height: auto;
     display: flex; /* Make it a flex container to align its content */
-    flex-direction: column; /* Stack its children */
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-end; /* Align player to right */
     justify-content: flex-start; /* Keep player at the top */
     min-width: 0;
     align-self: flex-start;
+    width: fit-content;
+  }
+
+  .profile-mood-song-right-column-slot {
+    width: auto;
+    margin-left: auto;
+    align-self: flex-start;
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
-    position: absolute;
-    top: 0;
-    right: 0;
+    position: static;
     width: min(360px, 100%);
     max-width: 100%;
     margin: 0 !important; /* Explicitly remove all margins */
