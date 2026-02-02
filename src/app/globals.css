@@ -1203,7 +1203,9 @@ main {
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
-    position: static;
+    position: absolute;
+    top: 0;
+    right: 0;
     width: min(360px, 100%);
     max-width: 100%;
     margin: 0 !important; /* Explicitly remove all margins */
@@ -2373,6 +2375,28 @@ button:hover {
   border: none;
   box-shadow: none;
   background: transparent;
+}
+
+.profile-song-player.neon-outline-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: 18px;
+  overflow: visible;
+}
+
+.profile-song-player.neon-outline-card::before,
+.profile-song-player.neon-outline-card::after {
+  border-radius: inherit;
+}
+
+.profile-song-player--soundcloud.neon-outline-card::before,
+.profile-song-player--soundcloud.neon-outline-card::after,
+.profile-song-player--youtube.neon-outline-card::before,
+.profile-song-player--youtube.neon-outline-card::after,
+.profile-song-player--spotify.neon-outline-card::before,
+.profile-song-player--spotify.neon-outline-card::after {
+  border-radius: 18px !important;
+  opacity: 1 !important;
 }
 
 
@@ -5757,9 +5781,10 @@ header::before {
 
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
-    width: max-content !important;
-    max-width: calc(100vw - 32px) !important;
-    min-width: min(120px, calc(100vw - 32px)) !important;
+    width: 200px !important;
+    max-width: min(200px, calc(100vw - 32px)) !important;
+    min-width: min(180px, calc(100vw - 32px)) !important;
+    height: auto !important;
   }
   
   /* Ensure auth form container and all children use full width */
@@ -5779,8 +5804,8 @@ header::before {
   .notifications-popover,
   .notifications-popover-errl.notifications-popover {
     /* Allow content-driven sizing without overflow */
-    width: fit-content !important;
-    max-width: min(420px, 92vw) !important;
+    width: min(320px, 92vw) !important;
+    max-width: min(340px, 92vw) !important;
     min-width: min(220px, 92vw) !important;
     /* Keep right alignment to logo */
     right: 0 !important;
