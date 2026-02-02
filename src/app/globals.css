@@ -2887,6 +2887,14 @@ button:hover {
 /* Narrow viewports: same as 768px - Edit Avatar in top right corner */
 @media (max-width: 600px) {
 
+  .account-edit-card--tabs-bottom {
+    padding-bottom: 8px !important;
+  }
+  
+  .account-edit-card--tabs-bottom .tabs-pill {
+    margin-top: 0 !important;
+  }
+
   .account-profile-preview-row-1 {
     flex-direction: column;
     align-items: center;
