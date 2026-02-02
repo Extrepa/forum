@@ -1934,6 +1934,20 @@ button:hover {
   z-index: 0;
 }
 
+/* Username popover should stay compact across viewports */
+.user-popover.card {
+  width: min(140px, calc(100vw - 32px));
+  max-width: min(140px, calc(100vw - 32px));
+  min-width: 0;
+  height: auto;
+  max-height: min(200px, calc(100vh - 48px));
+  padding: 6px 8px 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
 .notice {
   padding: 12px 14px;
   border-radius: 12px;
@@ -2594,29 +2608,23 @@ button:hover {
   margin-bottom: 4px;
 }
 
-/* Giant pill: tabs in one row, sliding indicator; Errl border */
 .tabs-pill {
   flex: 0 0 auto;
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-radius: 999px;
   background: rgba(2, 7, 10, 0.55);
   border: 1px solid rgba(52, 225, 255, 0.25);
-  overflow: visible;
+  overflow: hidden;
   scrollbar-width: none;
   max-width: 100%;
   min-width: 0;
   position: relative;
   isolation: isolate;
+  width: 100%;
 }
 
 .account-edit-card--tabs-bottom .tabs-pill {
   padding-bottom: 0;
-}
-
-.account-edit-card--tabs-bottom .tabs-pill .account-edit-tab {
-  flex: 1 1 calc(25% - 10px);
-  min-width: 110px;
-  text-align: center;
 }
 
 .tabs-pill::-webkit-scrollbar {
@@ -2632,6 +2640,7 @@ button:hover {
   justify-content: flex-start;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
 }
 
 .tabs-pill-indicator {
@@ -2640,33 +2649,75 @@ button:hover {
 
 .tabs-pill .profile-tab,
 .tabs-pill .account-edit-tab {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
   position: relative;
   z-index: 1;
+  font-size: clamp(11px, 1vw, 15px);
+  padding: clamp(6px, 0.9vw, 10px) clamp(14px, 1.7vw, 18px);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(2, 7, 10, 0.3), rgba(2, 7, 10, 0.7));
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: none;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  --tab-color: var(--errl-accent);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
 }
 
-@media (max-width: 900px) {
+.tabs-pill .account-edit-tab {
+  flex: 1 1 0;
+  max-width: none;
+  font-size: clamp(10px, 1vw, 13px);
+  padding: clamp(5px, 0.9vw, 8px) clamp(12px, 1.4vw, 14px);
+  white-space: nowrap;
+}
+
+.tabs-pill .profile-tab::before,
+.tabs-pill .account-edit-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--tab-color);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.tabs-pill .profile-tab--active {
+  border-color: transparent;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(2, 7, 10, 0.95));
+  color: var(--tab-color);
+  box-shadow: 0 0 16px var(--tab-color);
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+.tabs-pill .profile-tab:hover,
+.tabs-pill .account-edit-tab:hover {
+  border-color: var(--tab-color);
+  color: #fff;
+}
+
+.tabs-pill .account-edit-tab--active {
+  border-color: transparent;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--tab-color);
+  font-weight: 600;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.25), 0 0 16px var(--tab-color);
+  transform: translateY(-1px);
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 640px) {
   .tabs-pill-inner {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
   }
-  .tabs-pill-inner .profile-tab,
-  .tabs-pill-inner .account-edit-tab {
-    flex: 1 1 calc(50% - 10px);
-    min-width: 160px;
-  }
-}
-
-.tabs-pill .profile-tab--active,
-.tabs-pill .account-edit-tab--active {
-  border-color: rgba(245, 255, 183, 0.8);
-  background: rgba(245, 255, 183, 0.18);
-  color: var(--errl-accent-3);
-  font-weight: 600;
-  box-shadow: none;
-  text-shadow: 0 0 12px rgba(245, 255, 183, 0.45);
 }
 
 .profile-tabs-strip {
@@ -5963,19 +6014,6 @@ header::before {
     max-width: 100% !important;
   }
 
-  /* Username popover should not stretch to full width on mobile */
-  .user-popover.card {
-    width: min(150px, calc(100vw - 32px)) !important;
-    max-width: min(150px, calc(100vw - 32px)) !important;
-    min-width: 0 !important;
-    height: auto !important;
-    max-height: min(190px, calc(100vh - 48px)) !important;
-    padding: 6px 6px 2px !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  
   /* Ensure auth form container and all children use full width */
   .auth-form-container,
   .auth-form-container > * {

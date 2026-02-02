@@ -29,9 +29,10 @@ const PROFILE_SONG_PROVIDERS = [
 ];
 
 const SONG_PROVIDER_META = {
-  youtube: { label: 'YouTube', color: '#ff1744', icon: '/icons/social/youtube.png' },
-  soundcloud: { label: 'SoundCloud', color: '#ff7700', icon: '/icons/social/soundcloud.png' },
-  spotify: { label: 'Spotify', color: '#1DB954', icon: '/icons/social/spotify.png' },
+  youtube: { label: 'YouTube', abbr: 'Y', color: '#ff1744', icon: '/icons/social/youtube.png' },
+  'youtube-music': { label: 'YouTube Music', abbr: 'Y', color: '#ff1744', icon: '/icons/social/youtube.png' },
+  soundcloud: { label: 'SoundCloud', abbr: 'SC', color: '#ff7700', icon: '/icons/social/soundcloud.png' },
+  spotify: { label: 'Spotify', abbr: 'S', color: '#1DB954', icon: '/icons/social/spotify.svg' },
 };
 
 const getProfileSongProviderLabel = (value) => {
@@ -709,16 +710,26 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     boxSizing: 'border-box'
   };
 
-  const EDIT_PROFILE_SUB_TABS = [
-    { id: 'username', label: 'Username' },
-    { id: 'avatar', label: 'Avatar' },
-    { id: 'activity', label: 'Activity' },
-    { id: 'gallery', label: 'Gallery' },
-    { id: 'guestbook', label: 'Notes' },
-    { id: 'mood', label: 'Mood & Song' },
-    { id: 'socials', label: 'Socials' },
-    { id: 'stats', label: 'Stats' },
-  ];
+const EDIT_PROFILE_SUB_TABS = [
+  { id: 'username', label: 'Username' },
+  { id: 'avatar', label: 'Avatar' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'gallery', label: 'Gallery' },
+  { id: 'guestbook', label: 'Notes' },
+  { id: 'mood', label: 'Mood & Song' },
+  { id: 'socials', label: 'Socials' },
+  { id: 'stats', label: 'Stats' },
+];
+const TAB_COLOR_SEQUENCE = [
+  '#34E1FF',
+  '#FF34F5',
+  '#FFFF00',
+  '#00FF41',
+  '#FF6B00',
+  '#B026FF',
+  '#00D9FF',
+  '#CCFF00'
+];
   const [editProfileSubTab, setEditProfileSubTab] = useState('activity');
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
@@ -1017,20 +1028,65 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     </div>
                   )}
           {(stats.profileSongUrl || stats.profileSongProvider) && (() => {
-            const providerKey = String(stats.profileSongProvider || '').toLowerCase().trim();
-            const providerMeta = SONG_PROVIDER_META[providerKey] || { label: statsSongProviderLabel || 'Song', color: 'var(--accent)', icon: '' };
-            const descriptor = getSongDescriptor(stats.profileSongUrl);
+            const rawProviderKey = String(stats.profileSongProvider || '').toLowerCase().trim();
+            const providerKey = rawProviderKey === 'youtube-music' ? 'youtube' : rawProviderKey;
+            const fallbackLabel = statsSongProviderLabel || 'Song';
+            const fallbackAbbr = fallbackLabel.charAt(0).toUpperCase();
+            const providerMeta = SONG_PROVIDER_META[providerKey] || { label: fallbackLabel, abbr: fallbackAbbr, color: 'var(--accent)', icon: '' };
+            const descriptor = getSongDescriptor(stats.profileSongUrl) || providerMeta.label;
             return (
               <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Song:</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: providerMeta.color, fontWeight: '600', textTransform: 'lowercase' }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    border: `1px solid ${providerMeta.color}`,
+                    background: 'rgba(0, 0, 0, 0.45)',
+                    color: providerMeta.color,
+                    fontWeight: '600',
+                    maxWidth: '260px'
+                  }}
+                >
                   {providerMeta.icon && (
-                    <Image src={providerMeta.icon} alt={providerMeta.label} width={16} height={16} style={{ display: 'block' }} />
+                    <Image
+                      src={providerMeta.icon}
+                      alt={providerMeta.label}
+                      width={18}
+                      height={18}
+                      style={{ display: 'block' }}
+                    />
                   )}
-                  {providerMeta.label}
+                  {providerMeta.abbr && (
+                    <span
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '50%',
+                        background: providerMeta.color,
+                        color: '#001018',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 0 6px rgba(0, 0, 0, 0.5)'
+                      }}
+                    >
+                      {providerMeta.abbr}
+                    </span>
+                  )}
+                  <span style={{ textTransform: 'none', minWidth: 0, flex: '1 1 auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {descriptor}
+                  </span>
                 </span>
-                {descriptor && (
-                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{descriptor}</span>
+                {stats.profileSongAutoplayEnabled && (
+                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>(autoplay on)</span>
                 )}
               </div>
             );
@@ -1886,18 +1942,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   }}
                   aria-hidden
                 />
-                {EDIT_PROFILE_SUB_TABS.map(tab => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={editProfileSubTab === tab.id}
-                    onClick={() => handleSubTabChange(tab.id)}
-                    className={`${editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}${tab.id === 'username' ? ' account-edit-tab--username' : ''}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+                {EDIT_PROFILE_SUB_TABS.map((tab, index) => {
+                  const tabColor = TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length];
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={editProfileSubTab === tab.id}
+                      onClick={() => handleSubTabChange(tab.id)}
+                      className={`${editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}${tab.id === 'username' ? ' account-edit-tab--username' : ''}`}
+                      style={{ '--tab-color': tabColor }}
+                      data-username-tab-label={tab.label}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
