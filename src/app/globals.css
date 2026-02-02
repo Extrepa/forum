@@ -1201,11 +1201,12 @@ main {
     display: flex; /* Make it a flex container to align its content */
     flex-direction: row;
     flex-wrap: wrap;
-    align-items: flex-end; /* Align player to right */
-    justify-content: flex-start; /* Keep player at the top */
+    align-items: center; /* Center player vertically */
+    justify-content: center; /* Center player horizontally */
     min-width: 0;
-    align-self: flex-start;
-    width: fit-content;
+    align-self: center;
+    width: auto;
+    flex: 1;
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
