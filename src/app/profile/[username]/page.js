@@ -412,10 +412,10 @@ export default async function ProfilePage({ params }) {
                 fontSize: 'clamp(24px, 5vw, 32px)',
                 fontWeight: '800',
                 letterSpacing: '-0.02em',
-                textShadow: `0 0 20px ${userColor}44`,
+                textShadow: `0 0 25px ${userColor}66, 0 0 10px ${userColor}44`,
               }}
             />
-            <div className="profile-role-label" style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+            <div className="profile-role-label" style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px', marginBottom: '12px' }}>
               {roleLabel}
             </div>
             {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}

@@ -110,6 +110,10 @@ export default function ProfileTabsClient({
       <div className={`profile-tab-content profile-tab-content--above${noTabSelected ? ' profile-tab-content--no-selection' : ''}`} style={{ minWidth: 0, maxWidth: '100%' }}>
       {activeTab === 'stats' && (
         <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Stats</h4>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your forum activity & impact</span>
+          </div>
           {stats ? (
             <div className="profile-stats-block profile-stats-block--grid">
               <div className="profile-stats-grid">
@@ -134,7 +138,10 @@ export default function ProfileTabsClient({
 
       {activeTab === 'activity' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Recent Activity</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Recent Activity</h4>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your recent posts, replies & updates</span>
+          </div>
           {hasActivity ? (
             <div className={`profile-activity-list${activityItems.length >= 5 ? ' profile-activity-list--scrollable' : ''}`}>
               {activityItems.map(item => (
@@ -167,7 +174,10 @@ export default function ProfileTabsClient({
 
       {activeTab === 'socials' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Socials</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Socials</h4>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your connected platforms</span>
+          </div>
           {latelyLinks.length > 0 ? (
             <div style={{ display: 'grid', gap: '8px' }}>
               {latelyLinks.map(link => {
@@ -216,7 +226,10 @@ export default function ProfileTabsClient({
 
       {activeTab === 'gallery' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Gallery</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Gallery</h4>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your uploaded photos</span>
+          </div>
           {displayedGalleryEntries.length > 0 ? (
             <>
               <div className="profile-gallery-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${GALLERY_COLS}, 1fr)`, gap: '12px', maxWidth: '100%' }}>
@@ -361,7 +374,10 @@ export default function ProfileTabsClient({
 
       {activeTab === 'guestbook' && (
         <div>
-          <h4 className="section-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Notes</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+            <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Notes</h4>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Messages from visitors</span>
+          </div>
           {canLeaveMessage && profileUsername && (
             <form onSubmit={handleLeaveMessage} style={{ marginBottom: '16px' }}>
               <textarea

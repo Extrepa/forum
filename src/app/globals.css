@@ -2562,7 +2562,7 @@ button:hover {
 /* When no tab selected: no extra padding/min-height above the pill */
 .profile-tabs-wrapper--no-selection {
   min-height: 0 !important;
-  margin-top: 0 !important;
+  margin-top: 6px !important;
 }
 .profile-tab-content--no-selection {
   min-height: 0 !important;
@@ -2876,7 +2876,7 @@ button:hover {
   }
 
   .profile-tabs-wrapper {
-    margin-top: 6px;
+    margin-top: 0;
   }
 
   .profile-tab-content--above {
@@ -3002,7 +3002,7 @@ button:hover {
   }
 
   .profile-tabs-wrapper {
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .tabs-pill .profile-tab,
