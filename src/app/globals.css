@@ -3843,7 +3843,7 @@ footer {
 .footer-tagline-bar::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   border-radius: 19px;
   padding: 1px;
   background: linear-gradient(
@@ -4228,7 +4228,7 @@ footer {
 .scroll-to-top-button::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   border-radius: 50%;
   padding: 1px;
   background: linear-gradient(
@@ -4508,7 +4508,7 @@ footer {
 .scroll-to-top-tooltip::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   border-radius: 9px;
   padding: 1px;
   background: linear-gradient(
@@ -4759,7 +4759,7 @@ header::before,
   );
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   border-radius: inherit;
   padding: 1px;
   background: var(--neon-default-gradient); /* Use variable */
