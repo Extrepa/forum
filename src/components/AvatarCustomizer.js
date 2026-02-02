@@ -197,7 +197,7 @@ function getPathBounds(d) {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
-export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
+export default function AvatarCustomizer({ onSave, initialState, onChanges }) {
   const [layers, setLayers] = useState(initialState?.layers || INITIAL_LAYERS);
   const [history, setHistory] = useState([initialState?.layers || INITIAL_LAYERS]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -214,10 +214,22 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
   const colorInputRef = useRef(null);
   const [pickingForIndex, setPickingForIndex] = useState(null);
   const pickingForIndexRef = useRef(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    const initialLayersJson = JSON.stringify(initialState?.layers || INITIAL_LAYERS);
+    const currentLayersJson = JSON.stringify(layers);
+    const changesExist = initialLayersJson !== currentLayersJson;
+
+    if (onChanges) {
+      onChanges(changesExist);
+    }
+    setHasChanges(changesExist);
+  }, [layers, initialState?.layers, onChanges]);
   const [hoverUndo, setHoverUndo] = useState(false);
   const [hoverRedo, setHoverRedo] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -1398,45 +1410,6 @@ export default function AvatarCustomizer({ onSave, onCancel, initialState }) {
               }}
             >
               SAVE CHANGES
-            </button>
-            <button 
-              onClick={() => {
-                if (historyIndex > 0) {
-                  if (window.confirm("Unsaved modifications detected. Exit anyway?")) {
-                    onCancel();
-                  }
-                } else {
-                  onCancel();
-                }
-              }}
-              title="Abort: Exit without saving"
-              style={{ 
-                flex: 1,
-                minHeight: '28px',
-                borderRadius: '999px',
-                border: '1px solid rgba(52, 225, 255, 0.3)',
-                background: 'rgba(2, 7, 10, 0.4)',
-                color: 'var(--muted)',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease',
-                fontFamily: '"Space Grotesk", sans-serif',
-                padding: '6px 12px',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(52, 225, 255, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.6)';
-                e.currentTarget.style.color = 'var(--accent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(2, 7, 10, 0.4)';
-                e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.3)';
-                e.currentTarget.style.color = 'var(--muted)';
-              }}
-            >
-              CLOSE
             </button>
           </div>
         </div>

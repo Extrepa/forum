@@ -1367,9 +1367,9 @@ main {
 }
 
 .account-edit-tab-content {
-  padding-top: 14px;
-  padding-bottom: 8px;
-  min-height: 80px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  min-height: auto;
 }
 
 .account-edit-panel {

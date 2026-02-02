@@ -58,6 +58,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [profileCoverMode, setProfileCoverMode] = useState(initialStats?.profileCoverMode ?? 'cover');
   const [coverModeSaving, setCoverModeSaving] = useState(false);
   const [extrasStatus, setExtrasStatus] = useState({ type: 'idle', message: null });
+  const [avatarHasChanges, setAvatarHasChanges] = useState(false);
   const avatarInitialState = useMemo(() => {
     if (!user?.avatar_state) return null;
     try {
@@ -843,6 +844,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       setDefaultTabSaving(false);
     }
   };
+
+  const handleSubTabChange = (tabId) => {
+    if (editProfileSubTab === 'avatar' && avatarHasChanges) {
+      if (!window.confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+        return;
+      }
+    }
+    setEditProfileSubTab(tabId);
+  };
+
   return (
     <section className="card account-card neon-outline-card">
       <div
@@ -971,7 +982,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             </div>
 
             {editProfileSubTab === 'username' && (
-              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: 0 }}>
+              <div style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Username</h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Update your handle and color.</span>
@@ -995,12 +1006,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               </div>
             )}
             {editProfileSubTab === 'avatar' && (
-              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: 0 }}>
+              <div style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Avatar</h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Customize your mini preview.</span>
                 </div>
-                <AvatarCustomizer onSave={handleAvatarSave} onCancel={() => setIsEditingAvatar(false)} initialState={avatarInitialState} key={user?.avatar_state || 'avatar-empty'} />
+                <AvatarCustomizer onSave={handleAvatarSave} initialState={avatarInitialState} onChanges={setAvatarHasChanges} key={user?.avatar_state || 'avatar-empty'} />
               </div>
             )}
 
@@ -1765,7 +1776,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     type="button"
                     role="tab"
                     aria-selected={editProfileSubTab === tab.id}
-                    onClick={() => setEditProfileSubTab(tab.id)}
+                    onClick={() => handleSubTabChange(tab.id)}
                     className={`${editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}${tab.id === 'username' ? ' account-edit-tab--username' : ''}`}
                   >
                     {tab.label}
