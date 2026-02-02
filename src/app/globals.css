@@ -5898,8 +5898,8 @@ header::before {
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
     width: fit-content !important;
-    max-width: min(200px, calc(100vw - 32px)) !important;
-    min-width: min(160px, calc(100vw - 32px)) !important;
+    max-width: min(220px, calc(100vw - 32px)) !important;
+    min-width: min(170px, calc(100vw - 32px)) !important;
     height: auto !important;
   }
   

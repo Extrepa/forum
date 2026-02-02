@@ -117,22 +117,22 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   return createPortal(
     <div
       ref={popoverRef}
-      className="card neon-outline-card notifications-popover-errl user-popover"
+      className="card neon-outline-card user-popover"
       style={{
         position: 'fixed',
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
         width: 'fit-content',
-        maxWidth: 'min(200px, calc(100vw - 32px))',
-        maxHeight: '220px',
+        maxWidth: 'min(220px, calc(100vw - 32px))',
+        maxHeight: '240px',
         overflow: 'hidden',
         padding: '8px',
         background: 'var(--errl-panel)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '6px',
+        gap: '4px',
         backdropFilter: 'blur(10px)',
         animation: 'popoverIn 0.2s ease-out'
       }}
@@ -147,17 +147,17 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       `}</style>
 
       {loading ? (
-        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
+        <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
       ) : (
-        <div style={{ position: 'relative', width: '56px', height: '56px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+        <div style={{ position: 'relative', width: '72px', height: '72px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
           <AvatarImage
             src={avatarUrl}
             alt={`${username}'s avatar`}
-            size={56}
+            size={72}
             loading="lazy"
             style={{
-              width: '56px',
-              height: '56px',
+              width: '72px',
+              height: '72px',
               borderRadius: '50%',
               background: 'rgba(0,0,0,0.3)'
             }}
@@ -169,7 +169,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         <div
           className={userInfo ? `username username--${colorIndex}` : ''}
           style={{
-            fontSize: '13px',
+            fontSize: '15px',
             fontWeight: '700',
             color: userInfo ? undefined : 'var(--muted)',
             wordBreak: 'break-word',
@@ -181,8 +181,15 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', marginBottom: '2px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', marginBottom: '2px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
             {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : 'Drip'}
+          </div>
+        )}
+        {(userInfo?.profile_mood_text || userInfo?.profile_mood_emoji) && (
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px', textAlign: 'center', maxWidth: '100%' }}>
+            <span>{userInfo.profile_mood_emoji || ''}</span>
+            {userInfo.profile_mood_emoji ? ' ' : ''}
+            <span>{userInfo.profile_mood_text || ''}</span>
           </div>
         )}
         <Link

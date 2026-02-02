@@ -28,3 +28,5 @@
 - **Popover sizing fix:** Shrunk user hover card padding/size and stabilized notifications width rules.
 - **Notifications height:** Switched to taller popover and constrained list height for scroll.
 - **User popover sizing:** Reduced card padding/width to fit content while keeping avatar/text sizing.
+- **User popover content:** Restored larger avatar/text, added mood line, and enforced neon outline card.
+- **Notifications menu actions:** Added Account/Edit Profile/View Profile buttons and refresh animation state.

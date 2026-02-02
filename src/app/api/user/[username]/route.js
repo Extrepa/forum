@@ -9,7 +9,11 @@ export async function GET(request, { params }) {
 
   try {
     const user = await db
-      .prepare('SELECT username, avatar_key, preferred_username_color_index, role FROM users WHERE username_norm = ?')
+      .prepare(
+        `SELECT username, avatar_key, preferred_username_color_index, role,
+          profile_mood_text, profile_mood_emoji
+         FROM users WHERE username_norm = ?`
+      )
       .bind(normalizedUsername)
       .first();
 

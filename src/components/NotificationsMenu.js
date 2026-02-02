@@ -68,6 +68,7 @@ export default function NotificationsMenu({
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [showClearAllModal, setShowClearAllModal] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
   const popoverRef = useRef(null);
   const triggerRef = useRef(null);
   const hasItems = items && items.length > 0;
@@ -257,7 +258,7 @@ export default function NotificationsMenu({
             <div className="muted" style={{ fontSize: '12px' }}>Loading…</div>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={() => {
@@ -282,6 +283,26 @@ export default function NotificationsMenu({
             type="button"
             onClick={() => {
               onClose();
+              router.push('/account?tab=profile');
+            }}
+            style={{
+              fontSize: '12px',
+              padding: '6px 12px',
+              whiteSpace: 'nowrap',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            }}
+          >
+            Edit Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
               if (currentUsername) {
                 router.push(`/profile/${encodeURIComponent(currentUsername)}`);
               } else {
@@ -300,7 +321,7 @@ export default function NotificationsMenu({
               boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
             }}
           >
-            Profile
+            View Profile
           </button>
         </div>
       </div>
@@ -310,8 +331,16 @@ export default function NotificationsMenu({
         <strong style={{ fontSize: '14px', letterSpacing: '0.02em' }}>{title}</strong>
         <button
           type="button"
-          onClick={onRefresh}
-          disabled={status === 'loading'}
+          onClick={async () => {
+            if (status === 'loading' || refreshing) return;
+            setRefreshing(true);
+            try {
+              await onRefresh?.();
+            } finally {
+              setRefreshing(false);
+            }
+          }}
+          disabled={status === 'loading' || refreshing}
           title="Refresh"
           style={{
             width: 12,
@@ -323,8 +352,8 @@ export default function NotificationsMenu({
             background: 'transparent',
             border: 'none',
             borderRadius: 4,
-            cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-            opacity: status === 'loading' ? 0.5 : 1,
+            cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
+            opacity: status === 'loading' || refreshing ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -333,7 +362,7 @@ export default function NotificationsMenu({
             transition: 'color 0.2s ease, box-shadow 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            if (status !== 'loading') {
+            if (status !== 'loading' && !refreshing) {
               e.currentTarget.style.color = 'var(--text)';
               e.currentTarget.style.boxShadow = '0 0 8px rgba(52, 225, 255, 0.35)';
             }
@@ -350,8 +379,8 @@ export default function NotificationsMenu({
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{
-              animation: status === 'loading' ? 'notifications-refresh-spin 1s linear infinite' : 'none',
-              transition: status === 'loading' ? 'none' : 'transform 0.2s ease'
+              animation: status === 'loading' || refreshing ? 'notifications-refresh-spin 1s linear infinite' : 'none',
+              transition: status === 'loading' || refreshing ? 'none' : 'transform 0.2s ease'
             }}
           >
             <path
