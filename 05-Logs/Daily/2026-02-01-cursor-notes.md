@@ -14,5 +14,8 @@
 - **Profile mood/song layout:** Moved the song column into the header slot and updated flex behavior for desktop wrap.
 - **Edit profile preview:** Replaced embed with inline song text and added Headline label.
 - **Gallery controls:** Added hover delete on thumbnails, delete action in modal, and removed migration note.
+- **Gallery modal + cover:** Added cover button in modal, red glow X icons, and cover image background on profile header.
+- **Cover modes:** Added cover mode buttons (fill/fit/stretch), new API + migration, and applied mode on profile header.
+- **Review notes:** Cover mode persists via `profile_cover_mode` (migration `0058` required); modal uses `70vh` image cap so buttons stay visible; cover set updates gallery list but modal marks the selected entry as cover only (other entries update on list refresh).
 - **Profile mood/song tweak:** Updated right-column flex/wrap defaults to match previewed layout adjustments.
 - **Profile mood/song alignment:** Centered the song column within the desktop header for a more balanced layout.

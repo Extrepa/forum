@@ -55,6 +55,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [profileSongUrl, setProfileSongUrl] = useState(initialStats?.profileSongUrl ?? '');
   const [profileSongProvider, setProfileSongProvider] = useState(initialStats?.profileSongProvider ?? '');
   const [profileSongAutoplay, setProfileSongAutoplay] = useState(Boolean(initialStats?.profileSongAutoplayEnabled));
+  const [profileCoverMode, setProfileCoverMode] = useState(initialStats?.profileCoverMode ?? 'cover');
+  const [coverModeSaving, setCoverModeSaving] = useState(false);
   const [extrasStatus, setExtrasStatus] = useState({ type: 'idle', message: null });
   const avatarInitialState = useMemo(() => {
     if (!user?.avatar_state) return null;
@@ -85,7 +87,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             const data = await res.json();
             const apiHasExtras =
               (data.profileSongUrl != null && data.profileSongUrl !== '') ||
-              (data.profileMoodText != null && data.profileMoodText !== '');
+              (data.profileMoodText != null && data.profileMoodText !== '') ||
+              (data.profileCoverMode != null && data.profileCoverMode !== '');
             setStats((prev) => {
               if (apiHasExtras) return data;
               if (!prev) return data;
@@ -97,8 +100,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 profileSongUrl: prev.profileSongUrl ?? '',
                 profileSongProvider: prev.profileSongProvider ?? '',
                 profileSongAutoplayEnabled: prev.profileSongAutoplayEnabled ?? false,
+                profileCoverMode: prev.profileCoverMode ?? 'cover',
               };
             });
+            if (data.profileCoverMode) {
+              setProfileCoverMode(data.profileCoverMode);
+            }
             // If stats didn't return mood/song, try GET profile-extras (reads DB directly) and merge
             if (!apiHasExtras) {
               try {
@@ -408,7 +415,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           const next = { ...refreshed };
           const apiHasExtras =
             (refreshed.profileSongUrl != null && refreshed.profileSongUrl !== '') ||
-            (refreshed.profileMoodText != null && refreshed.profileMoodText !== '');
+            (refreshed.profileMoodText != null && refreshed.profileMoodText !== '') ||
+            (refreshed.profileCoverMode != null && refreshed.profileCoverMode !== '');
           if (!apiHasExtras && prev) {
             next.profileMoodText = prev.profileMoodText ?? '';
             next.profileMoodEmoji = prev.profileMoodEmoji ?? '';
@@ -416,6 +424,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             next.profileSongUrl = prev.profileSongUrl ?? '';
             next.profileSongProvider = prev.profileSongProvider ?? '';
             next.profileSongAutoplayEnabled = prev.profileSongAutoplayEnabled ?? false;
+            next.profileCoverMode = prev.profileCoverMode ?? 'cover';
           }
           return next;
         });
@@ -425,12 +434,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         const finalSongUrl = refreshed.profileSongUrl ?? songUrl;
         const finalSongProvider = refreshed.profileSongProvider ?? songProvider;
         const finalAutoplay = refreshed.profileSongAutoplayEnabled !== undefined ? refreshed.profileSongAutoplayEnabled : profileSongAutoplay;
+        const finalCoverMode = refreshed.profileCoverMode ?? profileCoverMode;
         setProfileMoodText(finalMoodText);
         setProfileMoodEmoji(finalMoodEmoji);
         setProfileHeadline(finalHeadline);
         setProfileSongUrl(finalSongUrl);
         setProfileSongProvider(finalSongProvider ?? '');
         setProfileSongAutoplay(Boolean(finalAutoplay));
+        if (finalCoverMode) setProfileCoverMode(finalCoverMode);
       }
       setTimeout(() => setExtrasStatus({ type: 'idle', message: null }), 2000);
     } catch (err) {
@@ -761,6 +772,30 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       if (res.ok) setGalleryEntries((prev) => prev.map((e) => ({ ...e, is_cover: e.id === id })));
     } finally {
       setGalleryCoverId(null);
+    }
+  };
+
+  const handleCoverModeChange = async (mode) => {
+    if (!mode || coverModeSaving) return;
+    const previous = profileCoverMode;
+    setProfileCoverMode(mode);
+    setCoverModeSaving(true);
+    try {
+      const res = await fetch('/api/account/profile-cover-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_cover_mode: mode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setProfileCoverMode(previous);
+        return;
+      }
+      const saved = data.profileCoverMode || mode;
+      setProfileCoverMode(saved);
+      setStats((prev) => (prev ? { ...prev, profileCoverMode: saved } : prev));
+    } finally {
+      setCoverModeSaving(false);
     }
   };
   const handleDefaultTabChange = async (value) => {
@@ -1350,19 +1385,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 position: 'absolute',
                                 top: '6px',
                                 right: '6px',
-                                width: '26px',
-                                height: '26px',
+                                width: '20px',
+                                height: '20px',
                                 borderRadius: '999px',
-                                border: '1px solid rgba(255, 107, 0, 0.55)',
-                                background: 'rgba(0, 0, 0, 0.6)',
+                                border: 'none',
+                                background: 'transparent',
                                 color: '#ff6b6b',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '16px',
+                                fontSize: '14px',
                                 cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer',
                                 zIndex: 2,
                                 transition: 'opacity 0.15s ease, transform 0.15s ease',
+                                textShadow: '0 0 8px rgba(255, 82, 82, 0.9)',
                               }}
                             >
                               {galleryDeletingId === entry.id ? '…' : '×'}
@@ -1404,11 +1440,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             inset: 0,
                             background: 'rgba(0,0,0,0.85)',
                             display: 'flex',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
                             justifyContent: 'center',
                             zIndex: 9999,
-                            padding: '20px',
+                            padding: '24px 20px 40px',
                             boxSizing: 'border-box',
+                            overflowY: 'auto',
                           }}
                         >
                           <button
@@ -1417,52 +1454,117 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             aria-label="Close"
                             style={{
                               position: 'absolute',
-                              top: '16px',
-                              right: '16px',
-                              width: '32px',
-                              height: '32px',
+                              top: '14px',
+                              right: '14px',
+                              width: '22px',
+                              height: '22px',
                               borderRadius: '999px',
-                              border: '1px solid rgba(52, 225, 255, 0.35)',
-                              background: 'rgba(2, 7, 10, 0.75)',
-                              color: 'var(--ink)',
-                              fontSize: '18px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#ff6b6b',
+                              fontSize: '16px',
                               cursor: 'pointer',
                               lineHeight: 1,
-                              boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
+                              textShadow: '0 0 10px rgba(255, 82, 82, 0.9)',
                             }}
                           >
                             &times;
                           </button>
                           <div
                             onClick={(e) => e.stopPropagation()}
-                            style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                            style={{
+                              width: 'min(920px, 100%)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '8px 0 16px',
+                            }}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={`/api/media/${galleryModalEntry.image_key}`}
                               alt={galleryModalEntry.caption || 'Gallery'}
-                              style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 80px)', objectFit: 'contain', display: 'block', borderRadius: '8px' }}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '70vh',
+                                objectFit: 'contain',
+                                display: 'block',
+                                borderRadius: '8px',
+                              }}
                             />
                             {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleGalleryDelete(galleryModalEntry.id);
-                                setGalleryModalEntry(null);
-                              }}
-                              disabled={galleryDeletingId === galleryModalEntry.id}
-                              style={{
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255, 107, 0, 0.35)',
-                                background: 'rgba(255, 107, 0, 0.12)',
-                                color: '#ff6b6b',
-                                fontSize: '12px',
-                                cursor: galleryDeletingId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleGallerySetCover(galleryModalEntry.id);
+                                  setGalleryModalEntry((prev) => (prev ? { ...prev, is_cover: true } : prev));
+                                }}
+                                disabled={galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id}
+                                style={{
+                                  padding: '8px 14px',
+                                  borderRadius: '10px',
+                                  border: '1px solid rgba(52, 225, 255, 0.45)',
+                                  background: 'rgba(52, 225, 255, 0.16)',
+                                  color: 'var(--accent)',
+                                  fontSize: '12px',
+                                  cursor: galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                                  boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
+                                }}
+                              >
+                                {galleryModalEntry.is_cover ? 'Cover photo' : galleryCoverId === galleryModalEntry.id ? 'Setting…' : 'Set as cover'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleGalleryDelete(galleryModalEntry.id);
+                                  setGalleryModalEntry(null);
+                                }}
+                                disabled={galleryDeletingId === galleryModalEntry.id}
+                                style={{
+                                  padding: '8px 14px',
+                                  borderRadius: '10px',
+                                  border: '1px solid rgba(255, 107, 0, 0.45)',
+                                  background: 'rgba(255, 107, 0, 0.16)',
+                                  color: '#ff8a8a',
+                                  fontSize: '12px',
+                                  cursor: galleryDeletingId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                                  boxShadow: '0 0 10px rgba(255, 107, 0, 0.2)',
+                                }}
+                              >
+                                {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Cover mode:</span>
+                              {[
+                                { id: 'cover', label: 'Fill' },
+                                { id: 'contain', label: 'Fit' },
+                                { id: 'stretch', label: 'Stretch' },
+                              ].map((mode) => {
+                                const isActive = profileCoverMode === mode.id;
+                                return (
+                                  <button
+                                    key={mode.id}
+                                    type="button"
+                                    onClick={() => handleCoverModeChange(mode.id)}
+                                    disabled={coverModeSaving}
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '999px',
+                                      border: `1px solid ${isActive ? 'rgba(52, 225, 255, 0.6)' : 'rgba(52, 225, 255, 0.25)'}`,
+                                      background: isActive ? 'rgba(52, 225, 255, 0.18)' : 'transparent',
+                                      color: isActive ? 'var(--accent)' : 'var(--muted)',
+                                      fontSize: '11px',
+                                      cursor: coverModeSaving ? 'not-allowed' : 'pointer',
+                                    }}
+                                  >
+                                    {mode.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
                       )}

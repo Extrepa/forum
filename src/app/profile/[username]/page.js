@@ -119,6 +119,7 @@ export default async function ProfilePage({ params }) {
     : undefined;
   const stats = await getStatsForUser(db, profileUser.id, profileViewsDisplay !== undefined ? { profileViewsDisplay } : {});
   if (stats.joinDate == null) stats.joinDate = profileUser.created_at;
+  const coverMode = stats?.profileCoverMode || 'cover';
 
   let guestbookEntries = [];
   try {
@@ -165,6 +166,7 @@ export default async function ProfilePage({ params }) {
   } catch (_) {
     galleryEntries = [];
   }
+  const coverEntry = galleryEntries.find((entry) => entry.is_cover);
 
   // Parse profile links if they exist
   let profileLinks = [];
@@ -389,7 +391,12 @@ export default async function ProfilePage({ params }) {
       </div>
       <section className="card profile-card neon-outline-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
-        <div className="profile-card-header" data-profile-mood-song-right-column-parent>
+        <div
+          className={`profile-card-header${coverEntry ? ' profile-card-header--with-cover' : ''}`}
+          data-profile-mood-song-right-column-parent
+          data-cover-mode={coverEntry ? coverMode : undefined}
+          style={coverEntry ? { backgroundImage: `linear-gradient(135deg, rgba(2, 7, 10, 0.72), rgba(2, 7, 10, 0.45)), url(/api/media/${coverEntry.image_key})` } : undefined}
+        >
           <div className="profile-card-header-avatar">
             <ProfileAvatarHero
               avatarKey={profileUser.avatar_key}

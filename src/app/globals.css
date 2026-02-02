@@ -2146,6 +2146,22 @@ button:hover {
   overflow-wrap: break-word;
 }
 
+.profile-card-header--with-cover {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profile-card-header--with-cover[data-cover-mode='stretch'] {
+  background-size: 100% 100%;
+}
+
+.profile-card-header--with-cover[data-cover-mode='contain'] {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 /* Desktop: use wide space – more padding/gap, single-row tab strip spread across row */
 @media (min-width: 769px) {
   .profile-card-header {

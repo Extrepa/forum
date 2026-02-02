@@ -24,6 +24,7 @@ export async function getStatsForUser(db, userId, options = {}) {
     profileSongProvider: '',
     profileSongAutoplayEnabled: false,
     profileHeadline: '',
+    profileCoverMode: 'cover',
     defaultProfileTab: null,
   };
 
@@ -122,14 +123,14 @@ export async function getStatsForUser(db, userId, options = {}) {
         userInfo = await db.prepare('SELECT created_at, profile_links, profile_views FROM users WHERE id = ?').bind(userId).first();
       } catch (_) {}
     }
-    // Profile extras (mood, song, headline, default tab) from migration 0054 – separate query so one DB can have columns, other code paths can be older
+    // Profile extras (mood, song, headline, default tab, cover mode) from migration 0054+ – separate query so one DB can have columns, other code paths can be older
     let extras = null;
     try {
       extras = await db
         .prepare(
           `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
            profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-           profile_headline, default_profile_tab FROM users WHERE id = ?`
+           profile_headline, default_profile_tab, profile_cover_mode FROM users WHERE id = ?`
         )
         .bind(userId)
         .first();
@@ -172,6 +173,7 @@ export async function getStatsForUser(db, userId, options = {}) {
       profileSongProvider: userInfo?.profile_song_provider ?? '',
       profileSongAutoplayEnabled: Boolean(userInfo?.profile_song_autoplay_enabled),
       profileHeadline: userInfo?.profile_headline ?? '',
+      profileCoverMode: userInfo?.profile_cover_mode ?? 'cover',
       defaultProfileTab: userInfo?.default_profile_tab ?? null,
     };
   } catch (e) {
