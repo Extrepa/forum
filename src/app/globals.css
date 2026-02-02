@@ -1194,12 +1194,13 @@ main {
 
   .profile-mood-song-block-right-column {
     position: relative;
-    height: 100%; /* Right column fills height */
+    height: auto;
     display: flex; /* Make it a flex container to align its content */
     flex-direction: column; /* Stack its children */
     align-items: flex-end; /* Align player to right */
     justify-content: flex-start; /* Keep player at the top */
     min-width: 0;
+    align-self: flex-start;
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
@@ -2387,6 +2388,10 @@ button:hover {
 .profile-song-player.neon-outline-card::before,
 .profile-song-player.neon-outline-card::after {
   border-radius: inherit;
+}
+
+.profile-song-player.neon-outline-card::after {
+  opacity: 1;
 }
 
 .profile-song-player--soundcloud.neon-outline-card::before,
@@ -5781,9 +5786,9 @@ header::before {
 
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
-    width: 200px !important;
-    max-width: min(200px, calc(100vw - 32px)) !important;
-    min-width: min(180px, calc(100vw - 32px)) !important;
+    width: 170px !important;
+    max-width: min(170px, calc(100vw - 32px)) !important;
+    min-width: min(150px, calc(100vw - 32px)) !important;
     height: auto !important;
   }
   
