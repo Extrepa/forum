@@ -59,7 +59,7 @@ export default function ProfileMoodSongBlock({
   }, [isOwnProfile, initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
 
   useEffect(() => {
-    const target = document.querySelector('[data-profile-mood-song-right-column-slot]');
+    const target = document.querySelector('[data-profile-mood-song-right-column-parent]');
     if (target) {
       setRightColumnTarget(target);
     }

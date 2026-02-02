@@ -389,7 +389,7 @@ export default async function ProfilePage({ params }) {
       </div>
       <section className="card profile-card neon-outline-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
-        <div className="profile-card-header">
+        <div className="profile-card-header" data-profile-mood-song-right-column-parent>
           <div className="profile-card-header-avatar">
             <ProfileAvatarHero
               avatarKey={profileUser.avatar_key}
@@ -463,7 +463,6 @@ export default async function ProfilePage({ params }) {
               );
             })()}
           </div>
-          <div className="profile-mood-song-right-column-slot" data-profile-mood-song-right-column-slot />
         </div>
 
         {profileUser.profile_bio ? (

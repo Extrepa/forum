@@ -12,3 +12,4 @@
 - **Gallery & notes:** Gallery limited to 10 uploads with modal preview; “Guestbook” display renamed to “Notes” and delete button compacted.
 - **UI polish:** Avatar glow overflow fixes, socials icons on profile tabs, and compact layout adjustments across breakpoints.
 - **Profile mood/song layout:** Moved the song column into the header slot and updated flex behavior for desktop wrap.
+- **Profile mood/song tweak:** Updated right-column flex/wrap defaults to match previewed layout adjustments.

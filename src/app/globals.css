@@ -1172,15 +1172,12 @@ main {
 }
 
 .profile-mood-song-block-right-column {
-  width: 100%; /* Take full width on mobile */
+  width: fit-content;
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  position: static;
   justify-content: center; /* Center player on mobile */
-}
-
-.profile-mood-song-right-column-slot {
-  width: 100%;
-  display: flex;
-  justify-content: center;
 }
 
 @media (min-width: 769px) {
@@ -1209,12 +1206,6 @@ main {
     min-width: 0;
     align-self: flex-start;
     width: fit-content;
-  }
-
-  .profile-mood-song-right-column-slot {
-    width: auto;
-    margin-left: auto;
-    align-self: flex-start;
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
