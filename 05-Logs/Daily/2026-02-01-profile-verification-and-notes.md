@@ -48,6 +48,9 @@ Double-check of all profile song player, edit-profile layout, and default-tab fi
 - **Autoplay:** Only on public profile (ProfileMoodSongBlock passes `autoPlay`). Edit-profile mini-preview uses `autoPlay={false}`.
 - **Pause:** SoundCloud uses widget `getPaused()` on click so pause works even if React state was wrong.
 - **Hidden embed:** Kept at `left: 0`, `top: 0` (1x1, opacity 0) so the widget can load/play; bar has z-index 1 so button stays clickable.
+- **Player consistency (late):** YouTube uses iframe embed path (like SoundCloud/Spotify) and compact/full sizing rules are shared.
+- **Hover hitbox:** Username hover area is limited to the actual username element; popover no longer triggers far away.
+- **Notifications width:** Popover width is clamped to avoid shrinking on mobile while still fitting within viewport.
 
 ---
 

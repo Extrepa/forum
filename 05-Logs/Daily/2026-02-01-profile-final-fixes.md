@@ -30,6 +30,16 @@ Final set of refinements addressing play/pause visibility, vertical stacking iss
 
 ---
 
+## 4. Player Consistency + Hover/Notifications (2026-02-01 late)
+
+- **Profile player consistency:** Unified embed rendering for YouTube/SoundCloud/Spotify with compact/full styles, consistent sizing, and iframe embeds for YouTube so the player renders uniformly across providers.
+- **Public profile layout:** Player stays top-right on desktop without overflowing the header card; mobile layout remains stacked/centered.
+- **Edit profile mini-preview:** Player remains compact (visual readiness only) and no longer overflows the mini preview card.
+- **Username hover hitbox:** Hover target tightened so the popover only triggers when hovering the username, not nearby empty space.
+- **Notifications panel width:** Popover width stabilized to avoid shrinking; aligns to the header trigger without overflow.
+
+---
+
 ## Files Updated
 
 | File | Key Changes |

@@ -105,3 +105,13 @@
 
 - If top "Account" / "Edit profile" still truncate on very narrow widths: consider shorter labels (e.g. "Account" / "Profile") or icon-only on smallest breakpoint.
 - If tab pill still causes layout issues: confirm no parent between .account-edit-card and .tabs-pill has overflow: visible or min-width that expands; ensure section/account-card has min-width 0.
+
+---
+
+## 7. Follow-Up Additions (2026-02-01)
+
+- **Player consistency across providers:** ProfileSongPlayer now renders embeds consistently for YouTube/SoundCloud/Spotify (iframe embeds + shared sizing), and compact/full styles are honored in profile + edit preview.
+- **Public profile placement:** Player sits top-right on desktop without overflow; mobile remains stacked column layout.
+- **Edit profile mini-preview:** Compact preview only; no overflow in the mini card.
+- **Username hover:** Hover hitbox tightened to the username element to prevent popover triggering from nearby blank space.
+- **Notifications popover:** Width clamped to prevent unintended shrinking on mobile/desktop.

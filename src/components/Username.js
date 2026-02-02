@@ -77,17 +77,17 @@ export default function Username({
   };
 
   return (
-    <span 
-      style={{ position: 'relative', display: 'inline-block' }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
+    <span
+      style={{ position: 'relative', display: 'inline-flex', width: 'fit-content', maxWidth: '100%' }}
     >
-      <span 
+      <span
         ref={anchorRef}
-        className={classes} 
-        title={title || safeName} 
+        className={classes}
+        title={title || safeName}
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
       >
         {avatarUrl && (
           <AvatarImage

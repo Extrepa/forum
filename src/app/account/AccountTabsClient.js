@@ -914,7 +914,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     Edit Avatar
                   </button>
                 </div>
-                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube') && (
+                {(stats.profileSongUrl || stats.profileSongProvider) && (stats.profileSongProvider === 'soundcloud' || stats.profileSongProvider === 'youtube' || stats.profileSongProvider === 'spotify') && (
                   <ProfileSongPlayer
                     provider={stats.profileSongProvider}
                     songUrl={stats.profileSongUrl}

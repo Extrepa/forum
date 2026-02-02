@@ -1059,6 +1059,19 @@ main {
   margin-bottom: 0 !important;
 }
 
+.account-profile-preview-right-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.account-profile-preview-right-column .profile-song-player {
+  width: min(280px, 100%);
+  max-width: 100%;
+}
+
 /* Mobile adjustments for account-profile-preview */
 @media (max-width: 640px) {
   .account-profile-preview {
@@ -1180,20 +1193,19 @@ main {
   }
 
   .profile-mood-song-block-right-column {
+    position: relative;
     height: 100%; /* Right column fills height */
     display: flex; /* Make it a flex container to align its content */
     flex-direction: column; /* Stack its children */
     align-items: flex-end; /* Align player to right */
-    justify-content: center; /* Center player vertically */
+    justify-content: flex-start; /* Keep player at the top */
+    min-width: 0;
   }
 
   .profile-mood-song-block-right-column .profile-song-player {
-    position: absolute; /* Lock to top-right corner of its parent */
-    top: 0;
-    right: 0;
-    height: 100%; /* Player fills height of right column */
-    width: 100%; /* Player fills width of right column */
-    max-width: none; /* Remove max-width restriction for full fill */
+    position: static;
+    width: min(360px, 100%);
+    max-width: 100%;
     margin: 0 !important; /* Explicitly remove all margins */
     border-radius: 8px; /* Ensure player maintains rounded corners */
   }
@@ -2225,6 +2237,11 @@ button:hover {
 /* Profile song player: cute bar + play/pause + embed */
 .profile-song-player {
   min-width: 0;
+}
+
+.profile-song-player--compact {
+  width: min(280px, 100%);
+  max-width: 100%;
 }
 
 .profile-song-player-bar {
@@ -5755,9 +5772,9 @@ header::before {
   .notifications-popover,
   .notifications-popover-errl.notifications-popover {
     /* Override fixed width to allow shrinking, but ensure it doesn't get too small */
-    width: fit-content !important;
-    max-width: calc(100vw - 32px) !important;
-    min-width: min(120px, calc(100vw - 32px)) !important; /* Add a min-width for mobile */
+    width: min(380px, 92vw) !important;
+    max-width: min(380px, 92vw) !important;
+    min-width: 0 !important;
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -5782,9 +5799,9 @@ header::before {
       left: auto !important;
       transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: fit-content !important;
-      max-width: calc(100vw - 32px) !important;
-      min-width: min(120px, calc(100vw - 32px)) !important;
+      width: min(380px, 92vw) !important;
+      max-width: min(380px, 92vw) !important;
+      min-width: 0 !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;
@@ -5802,7 +5819,7 @@ header::before {
   .notifications-popover-errl.notifications-popover {
       width: calc(100vw - 16px) !important;
       max-width: calc(100vw - 16px) !important;
-      min-width: min(120px, calc(100vw - 16px)) !important;
+      min-width: 0 !important;
     }
   }
   

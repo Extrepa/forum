@@ -79,7 +79,7 @@ export default function ProfileMoodSongBlock({
           ) : null}
         </div>
         <div className="profile-mood-song-block-right-column">
-          {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud') ? (
+          {hasSong && (songProvider === 'youtube' || songProvider === 'soundcloud' || songProvider === 'spotify') ? (
             <ProfileSongPlayer
               provider={songProvider}
               songUrl={songUrl}
