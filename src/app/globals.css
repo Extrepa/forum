@@ -2876,7 +2876,7 @@ button:hover {
   }
 
   .profile-tabs-wrapper {
-    margin-top: 16px;
+    margin-top: 6px;
   }
 
   .profile-tab-content--above {
@@ -2888,7 +2888,7 @@ button:hover {
 @media (max-width: 600px) {
 
   .account-edit-card--tabs-bottom {
-    padding-bottom: 8px !important;
+    padding-bottom: 2px !important;
   }
   
   .account-edit-card--tabs-bottom .tabs-pill {
@@ -2941,10 +2941,16 @@ button:hover {
 
   .tabs-pill .profile-tab,
   .tabs-pill .account-edit-tab {
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 4px 6px;
+    font-size: 11px;
     min-height: 36px;
-    min-width: 64px;
+    min-width: 50px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .profile-tab-content {
@@ -2992,7 +2998,7 @@ button:hover {
   }
 
   .profile-tabs-wrapper {
-    margin-top: 12px;
+    margin-top: 4px;
   }
 
   .tabs-pill .profile-tab,
