@@ -5,6 +5,7 @@
 - **Edit profile mini-preview:** Kept a compact bar preview only (no overflow), tightened play/pause visibility, and ensured long song/provider labels truncate cleanly.
 - **Username hover/popup:** Tightened hover hitbox to avoid “ghost” hover far from the username; popover positioning remains fixed to anchor.
 - **Notifications panel:** Stabilized popover width and alignment so it doesn’t shrink unexpectedly on mobile/desktop.
+- **Follow-up UI fixes:** Removed double borders on profile player embeds, tightened notifications popover to content, and fixed username popover width to stay fixed-size.
 - **Tabs + defaults:** Default profile tab behavior supports “no default selected” and pill indicator hides when none is set; tabs reordered alphabetically and padding tightened.
 - **Stats + activity parity:** Account edit and public profile stats/labels now match (including total contribution); recent activity list and “5 then scroll” behavior verified.
 - **Profile extras & persistence:** Mood/song/headline save + read-back via profile-extras GET/POST; rollout-safe fallbacks for missing columns (migration 0054).

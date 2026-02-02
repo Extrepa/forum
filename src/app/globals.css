@@ -2368,6 +2368,13 @@ button:hover {
   overflow: hidden;
 }
 
+.profile-song-player .embed-frame {
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
 
 
 .profile-socials-inline {
@@ -5771,10 +5778,10 @@ header::before {
   /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
   .notifications-popover-errl.notifications-popover {
-    /* Override fixed width to allow shrinking, but ensure it doesn't get too small */
-    width: min(380px, 92vw) !important;
-    max-width: min(380px, 92vw) !important;
-    min-width: 0 !important;
+    /* Allow content-driven sizing without overflow */
+    width: fit-content !important;
+    max-width: min(420px, 92vw) !important;
+    min-width: min(220px, 92vw) !important;
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -5799,9 +5806,9 @@ header::before {
       left: auto !important;
       transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: min(380px, 92vw) !important;
-      max-width: min(380px, 92vw) !important;
-      min-width: 0 !important;
+      width: fit-content !important;
+      max-width: min(420px, 92vw) !important;
+      min-width: min(220px, 92vw) !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;
