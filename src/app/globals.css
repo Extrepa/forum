@@ -972,7 +972,7 @@ main {
 .account-edit-card--tabs-bottom {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
@@ -1346,41 +1346,40 @@ main {
   overflow-y: visible;
   overflow-x: hidden;
   min-width: 0;
+  padding-bottom: 0;
 }
 
 .account-edit-tab {
   flex: 0 0 auto;
   border-radius: 999px;
-  border: 1px solid var(--accent);
+  border: 1px solid rgba(52, 225, 255, 0.2);
   background: rgba(2, 7, 10, 0.4);
-  color: var(--accent);
+  color: var(--muted);
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
   min-height: 40px;
   touch-action: manipulation;
-  box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
 }
 
 .account-edit-tab--active {
-  border-color: var(--errl-accent-2);
-  background: transparent;
-  color: var(--errl-accent-2);
+  border-color: rgba(255, 52, 245, 0.8);
+  background: rgba(255, 52, 245, 0.2);
+  color: var(--accent);
   font-weight: 600;
   box-shadow: 0 0 12px rgba(255, 52, 245, 0.5);
 }
 
 .account-edit-tab:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 0 0 12px rgba(52, 225, 255, 0.5);
+  border-color: rgba(255, 52, 245, 0.5);
+  color: var(--ink);
 }
 
 .account-edit-tab-content {
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 4px;
+  padding-bottom: 0;
   min-height: auto;
 }
 
@@ -2299,6 +2298,10 @@ button:hover {
   word-break: break-word;
 }
 
+.profile-card-bio p {
+  color: var(--muted);
+}
+
 .profile-card-mood-song {
   flex: 1;
   min-width: 0;
@@ -2608,6 +2611,19 @@ button:hover {
   isolation: isolate;
 }
 
+.account-edit-card--tabs-bottom .tabs-pill {
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding-bottom: 0;
+}
+
+.account-edit-card--tabs-bottom .tabs-pill .profile-tab,
+.account-edit-card--tabs-bottom .tabs-pill .account-edit-tab {
+  flex: 0 1 auto;
+  min-width: 100px;
+}
+
 .tabs-pill::-webkit-scrollbar {
   display: none;
 }
@@ -2630,8 +2646,6 @@ button:hover {
   min-width: 0;
   position: relative;
   z-index: 1;
-  border: none;
-  background: transparent;
 }
 
 .tabs-pill .profile-tab--active,

@@ -21,6 +21,19 @@ function getRarityColor(value) {
   return '#b794f6';
 }
 
+const PROFILE_SONG_PROVIDERS = [
+  { value: 'soundcloud', label: 'SoundCloud' },
+  { value: 'spotify', label: 'Spotify' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'youtube-music', label: 'YouTube Music' },
+];
+
+const getProfileSongProviderLabel = (value) => {
+  if (!value) return '';
+  const match = PROFILE_SONG_PROVIDERS.find((provider) => provider.value === value);
+  return match ? match.label : value;
+};
+
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
@@ -55,6 +68,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [profileSongUrl, setProfileSongUrl] = useState(initialStats?.profileSongUrl ?? '');
   const [profileSongProvider, setProfileSongProvider] = useState(initialStats?.profileSongProvider ?? '');
   const [profileSongAutoplay, setProfileSongAutoplay] = useState(Boolean(initialStats?.profileSongAutoplayEnabled));
+  const profileSongProviderLabelText = getProfileSongProviderLabel(profileSongProvider);
   const [profileCoverMode, setProfileCoverMode] = useState(initialStats?.profileCoverMode ?? 'cover');
   const [coverModeSaving, setCoverModeSaving] = useState(false);
   const [coverFeedbackMessage, setCoverFeedbackMessage] = useState(null);
@@ -79,6 +93,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     ? (stats.profileMoodText?.trim() || stats.profileMoodEmoji?.trim() || '')
     : '';
   const accountMoodChipStyle = getMoodChipStyle(accountMoodDescriptor);
+  const statsSongProviderLabel = stats ? getProfileSongProviderLabel(stats.profileSongProvider) : '';
 
   // Refresh stats when tab becomes active or on focus
   useEffect(() => {
@@ -960,10 +975,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   ) : (
                     <div className="no-avatar-placeholder">No avatar</div>
                   )}
-                  <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" />
-                  </div>
                 </div>
 
                 <div className="account-profile-preview-user-info">
@@ -979,14 +990,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   )}
                   {stats.profileHeadline && (
                     <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
-                      <span style={{ color: 'var(--muted)' }}>Headline:</span> {stats.profileHeadline}
+                      <span style={{ color: 'var(--muted)' }}>Status:</span> {stats.profileHeadline}
                     </div>
                   )}
                   {(stats.profileSongUrl || stats.profileSongProvider) && (
                     <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px' }}>
                       <span style={{ color: 'var(--muted)' }}>Song:</span>{' '}
                       <span style={{ color: 'var(--accent)' }}>
-                        {stats.profileSongProvider ? stats.profileSongProvider.charAt(0).toUpperCase() + stats.profileSongProvider.slice(1) : 'Song'}
+                        {stats.profileSongProvider ? statsSongProviderLabel : 'Song'}
                       </span>{' '}
                       {stats.profileSongUrl ? (
                         <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>
@@ -1008,8 +1019,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                   <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '160px', flex: '1 1 200px', maxWidth: '320px' }} />
-                  <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
-                  <button type="button" onClick={handleCancelUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'transparent', border: '1px solid rgba(52, 225, 255, 0.3)', borderRadius: '6px', color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+                  <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', flex: '0 0 auto', width: '100%' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
@@ -1026,6 +1036,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             )}
             {editProfileSubTab === 'avatar' && (
               <div style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
+                  {user.avatar_key ? (
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" />
+                  ) : (
+                    <div className="no-avatar-placeholder" style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+                  )}
+                  <span className="muted" style={{ fontSize: '12px' }}>Updateable via the Avatar tab below.</span>
+                </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Avatar</h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Customize your mini preview.</span>
@@ -1053,8 +1072,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 {!isEditingExtras ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
                     {(profileMoodText || profileMoodEmoji) && <div><span style={{ color: 'var(--muted)' }}>Mood:</span> <span>{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText}</span></div>}
-                    {profileHeadline && <div><span style={{ color: 'var(--muted)' }}>Headline:</span> <span>{profileHeadline}</span></div>}
-                    {(profileSongUrl || profileSongProvider) && <div><span style={{ color: 'var(--muted)' }}>Song:</span> <span>{profileSongProvider ? profileSongProvider.charAt(0).toUpperCase() + profileSongProvider.slice(1) : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span> {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}</div>}
+                    {profileHeadline && <div><span style={{ color: 'var(--muted)' }}>Status:</span> <span>{profileHeadline}</span></div>}
+                    {(profileSongUrl || profileSongProvider) && <div><span style={{ color: 'var(--muted)' }}>Song:</span> <span>{profileSongProvider ? profileSongProviderLabelText : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span> {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}</div>}
                     {!profileMoodText && !profileMoodEmoji && !profileHeadline && !profileSongUrl && <div className="muted" style={{ fontSize: '12px' }}>No mood or song set. Click Edit to add.</div>}
                   </div>
                 ) : (
@@ -1078,9 +1097,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         ))}
                       </select>
                     </div>
-                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Headline (optional)</label><input type="text" value={profileHeadline} onChange={(e) => setProfileHeadline(e.target.value)} placeholder="Short tagline" maxLength={300} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
+                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Status (optional)</label><input type="text" value={profileHeadline} onChange={(e) => setProfileHeadline(e.target.value)} placeholder="Short tagline" maxLength={300} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
                     <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label><input type="url" value={profileSongUrl} onChange={(e) => setProfileSongUrl(e.target.value)} placeholder="https://soundcloud.com/..." style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
-                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label><select value={profileSongProvider || ''} onChange={(e) => setProfileSongProvider(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}><option value="">—</option><option value="soundcloud">SoundCloud</option><option value="spotify">Spotify</option><option value="youtube">YouTube</option></select></div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label>
+                      <select
+                        value={profileSongProvider || ''}
+                        onChange={(e) => setProfileSongProvider(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                      >
+                        <option value="">—</option>
+                        {PROFILE_SONG_PROVIDERS.map((provider) => (
+                          <option key={provider.value} value={provider.value}>
+                            {provider.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
                   </div>
                 )}
@@ -1100,7 +1133,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Socials</h2>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={defaultProfileTab === 'socials'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'socials' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
-                    <span>Set as profile default</span>
+                    <span>Show expanded on your public profile by default</span>
                   </label>
                 </div>
                 <p className="muted" style={{ fontSize: '12px', marginBottom: '2px' }}>These links appear on your profile in the Socials tab (Lately).</p>
@@ -1364,7 +1397,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Gallery</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'gallery'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'gallery' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
-                      <span>Set as profile default</span>
+                      <span>Show expanded on your public profile by default</span>
                     </label>
                   </div>
                   <p className="muted" style={{ fontSize: '13px', marginBottom: '4px' }}>Upload images for the Gallery tab (max {GALLERY_MAX}). You can set one as your cover photo.</p>
@@ -1677,7 +1710,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Notes</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'guestbook'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'guestbook' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
-                      <span>Set as profile default</span>
+                      <span>Show expanded on your public profile by default</span>
                     </label>
                   </div>
                   <p className="muted" style={{ fontSize: '13px', marginBottom: '2px', marginTop: '2px' }}>Messages from visitors appear in the Notes tab on your profile. You can delete any message here.</p>
@@ -1746,7 +1779,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <h2 className="section-title" style={{ margin: 0 }}>Stats</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'stats'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'stats' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
-                      <span>Set as profile default</span>
+                      <span>Show expanded on your public profile by default</span>
                     </label>
                   </div>
                   {stats ? (
@@ -1777,7 +1810,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <h2 className="section-title" style={{ margin: 0 }}>Recent activity</h2>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={defaultProfileTab === 'activity'} onChange={(e) => handleDefaultTabChange(e.target.checked ? 'activity' : 'none')} disabled={defaultTabSaving} style={{ margin: 0 }} />
-                      <span>Set as profile default</span>
+                      <span>Show expanded on your public profile by default</span>
                     </label>
                   </div>
                   {activityItems.length > 0 ? (

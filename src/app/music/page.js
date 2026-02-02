@@ -129,7 +129,7 @@ export default async function MusicPage({ searchParams }) {
       : error === 'password'
       ? 'Set your password to continue posting.'
       : error === 'invalid'
-      ? 'We only support YouTube and SoundCloud links right now.'
+      ? 'We only support YouTube, YouTube Music, SoundCloud, and Spotify links right now.'
       : error === 'missing'
       ? 'Title, type, and URL are required.'
       : error === 'upload'

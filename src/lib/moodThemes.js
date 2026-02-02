@@ -204,5 +204,6 @@ export function getMoodChipStyle(moodText) {
     borderImageOutset: 0,
     borderImageRepeat: 'stretch',
     boxShadow: `0 0 14px ${accent}33`,
+    color: accent,
   };
 }

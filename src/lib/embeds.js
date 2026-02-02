@@ -24,6 +24,23 @@ export function parseYouTubeId(url) {
   }
 }
 
+export function parseYouTubePlaylistId(url) {
+  try {
+    const parsed = new URL(url);
+    const listParam = parsed.searchParams.get('list');
+    if (listParam) {
+      return listParam;
+    }
+    const playlistMatch = parsed.pathname.match(/\/playlist\/([^/]+)/);
+    if (playlistMatch?.[1]) {
+      return playlistMatch[1];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function isSoundCloudPlaylist(url) {
   try {
     const parsed = new URL(url);
@@ -49,17 +66,40 @@ function soundCloudPlayerSrc(trackUrl, autoPlay = false) {
 }
 
 export function safeEmbedFromUrl(type, url, embedStyle = 'auto', autoPlay = false) {
-  if (type === 'youtube') {
-    const id = parseYouTubeId(url);
-    if (!id) {
+  const normalizedType = (type || '').toLowerCase();
+  const isYouTubeType = normalizedType === 'youtube' || normalizedType === 'youtube-music';
+  if (isYouTubeType) {
+    const playlistId = parseYouTubePlaylistId(url);
+    const videoId = parseYouTubeId(url);
+    if (!videoId && !playlistId) {
       return null;
     }
-    const src = `https://www.youtube.com/embed/${id}${autoPlay ? '?autoplay=1' : ''}`;
+    const params = new URLSearchParams();
+    if (playlistId) {
+      params.set('list', playlistId);
+    }
+    if (autoPlay) {
+      params.set('autoplay', '1');
+    }
+    let src;
+    if (!videoId && playlistId) {
+      const base = 'https://www.youtube.com/embed/videoseries';
+      const query = params.toString();
+      src = query ? `${base}?${query}` : base;
+    } else {
+      const base = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+      const query = params.toString();
+      src = query ? `${base}?${query}` : base;
+    }
     return {
       src,
       allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
       allowFullScreen: true,
-      aspect: '16:9'
+      aspect: '16:9',
+      meta: {
+        youtubeId: videoId || null,
+        youtubePlaylistId: playlistId || null,
+      },
     };
   }
 

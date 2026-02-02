@@ -72,7 +72,9 @@ export default function MusicPostForm() {
           required
         >
           <option value="youtube">YouTube</option>
+          <option value="youtube-music">YouTube Music</option>
           <option value="soundcloud">SoundCloud</option>
+          <option value="spotify">Spotify</option>
         </select>
       </label>
 
@@ -80,7 +82,7 @@ export default function MusicPostForm() {
         <div className="muted">URL</div>
         <input
           name="url"
-          placeholder="Paste the YouTube or SoundCloud link"
+          placeholder="Paste the YouTube, YouTube Music, Spotify, or SoundCloud link"
           required
           value={url}
           onChange={(e) => setUrl(e.target.value)}
@@ -154,9 +156,9 @@ export default function MusicPostForm() {
                 />
               </div>
             ) : (
-              <div className="muted" style={{ fontSize: 13 }}>
-                Enter a valid YouTube or SoundCloud URL to preview.
-              </div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              Enter a valid YouTube, YouTube Music, Spotify, or SoundCloud URL to preview.
+            </div>
             )}
             {imagePreviewUrl ? (
               <Image

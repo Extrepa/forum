@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import AvatarImage from './AvatarImage';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { getAvatarUrl } from '../lib/media';
@@ -46,33 +45,35 @@ export default function Username({
   idx = Math.max(0, Math.min(7, Math.floor(idx)));
 
   const classes = ['username', `username--${idx}`, className].filter(Boolean).join(' ');
-  
-  // Default href to profile page if not provided
-  const profileHref = href || `/profile/${encodeURIComponent(safeName)}`;
 
   const avatarUrl = getAvatarUrl(avatarKey);
 
   const disableLink = href === null || href === false;
 
-  const handleMouseEnter = () => {
+  const cancelHoverTimeout = () => {
     if (hoverTimeout) {
       clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
     }
+  };
+
+  const openPopover = () => {
+    cancelHoverTimeout();
     setShowPopover(true);
   };
 
-  const handleMouseLeave = () => {
+  const schedulePopoverClose = () => {
+    cancelHoverTimeout();
     const timeout = setTimeout(() => {
       setShowPopover(false);
+      setHoverTimeout(null);
     }, 200); // 200ms delay to allow moving to popover
     setHoverTimeout(timeout);
   };
 
   const handleClick = () => {
     if (!isTouch) return;
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-    }
+    cancelHoverTimeout();
     setShowPopover(prev => !prev);
   };
 
@@ -85,8 +86,8 @@ export default function Username({
         className={classes}
         title={title || safeName}
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={openPopover}
+        onMouseLeave={schedulePopoverClose}
         onClick={handleClick}
       >
         {avatarUrl && (
@@ -107,6 +108,8 @@ export default function Username({
           avatarKey={avatarKey} 
           onClose={() => setShowPopover(false)}
           anchorRef={anchorRef}
+          onPopoverMouseEnter={openPopover}
+          onPopoverMouseLeave={schedulePopoverClose}
         />
       )}
     </span>

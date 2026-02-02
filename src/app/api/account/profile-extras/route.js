@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 
-const ALLOWED_PROVIDERS = ['soundcloud', 'spotify', 'youtube'];
+const ALLOWED_PROVIDERS = ['soundcloud', 'spotify', 'youtube', 'youtube-music'];
 
 function sanitizeText(str, maxLen = 500) {
   if (str == null || typeof str !== 'string') return '';

@@ -4,7 +4,13 @@ import AvatarImage from './AvatarImage';
 import { getAvatarUrl } from '../lib/media';
 import { createPortal } from 'react-dom';
 
-export default function UserPopover({ username, onClose, anchorRef }) {
+export default function UserPopover({
+  username,
+  onClose,
+  anchorRef,
+  onPopoverMouseEnter = () => {},
+  onPopoverMouseLeave,
+}) {
   const popoverRef = useRef(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,8 +142,8 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         backdropFilter: 'blur(10px)',
         animation: 'popoverIn 0.2s ease-out'
       }}
-      onMouseEnter={() => {}} // Keep open on hover over popover
-      onMouseLeave={onClose} // Close when mouse leaves popover
+      onMouseEnter={onPopoverMouseEnter}
+      onMouseLeave={onPopoverMouseLeave ?? onClose}
     >
       <style>{`
         @keyframes popoverIn {
