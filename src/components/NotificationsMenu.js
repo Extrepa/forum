@@ -226,8 +226,8 @@ export default function NotificationsMenu({
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 300,
-        maxWidth: 'min(320px, 92vw)',
+        width: 340,
+        maxWidth: 'min(360px, 92vw)',
         minWidth: 210,
         zIndex: 1100,
         padding: '20px',
@@ -245,7 +245,7 @@ export default function NotificationsMenu({
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           {currentUsername ? (
             <>
-              <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '6px' }}>
+              <div style={{ fontSize: '17px', fontWeight: 700, marginBottom: '6px' }}>
                 Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
               </div>
               <div style={{ fontSize: '14px', lineHeight: 1.4, color: 'var(--muted)', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none' }}>
@@ -263,7 +263,17 @@ export default function NotificationsMenu({
               onClose();
               router.push('/account?tab=account');
             }}
-            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+            style={{
+              fontSize: '12px',
+              padding: '6px 12px',
+              whiteSpace: 'nowrap',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            }}
           >
             Account
           </button>
@@ -277,16 +287,26 @@ export default function NotificationsMenu({
                 router.push('/account?tab=profile');
               }
             }}
-            style={{ fontSize: '12px', padding: '6px 10px', whiteSpace: 'nowrap' }}
+            style={{
+              fontSize: '12px',
+              padding: '6px 12px',
+              whiteSpace: 'nowrap',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            }}
           >
-            View my profile
+            Profile
           </button>
         </div>
       </div>
 
       {/* Title and refresh button row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <strong style={{ fontSize: '14px' }}>{title}</strong>
+        <strong style={{ fontSize: '14px', letterSpacing: '0.02em' }}>{title}</strong>
         <button
           type="button"
           onClick={onRefresh}
@@ -569,7 +589,19 @@ export default function NotificationsMenu({
             type="button" 
             onClick={onMarkAllRead} 
             disabled={unreadCount === 0}
-            style={{ fontSize: '11px', padding: '4px 8px', opacity: unreadCount === 0 ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{
+              fontSize: '11px',
+              padding: '6px 10px',
+              opacity: unreadCount === 0 ? 0.5 : 1,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            }}
           >
             Mark all read
           </button>
@@ -577,7 +609,19 @@ export default function NotificationsMenu({
             type="button" 
             onClick={() => setShowClearAllModal(true)}
             disabled={!hasItems}
-            style={{ fontSize: '11px', padding: '4px 8px', opacity: !hasItems ? 0.5 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{
+              fontSize: '11px',
+              padding: '6px 10px',
+              opacity: !hasItems ? 0.5 : 1,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+              color: '#001018',
+              fontWeight: 600,
+              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            }}
           >
             Clear
           </button>
@@ -585,7 +629,18 @@ export default function NotificationsMenu({
         <button 
           type="button" 
           onClick={onClose}
-          style={{ fontSize: '11px', padding: '4px 8px', flexShrink: 0, whiteSpace: 'nowrap' }}
+          style={{
+            fontSize: '11px',
+            padding: '6px 10px',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
         >
           Close
         </button>

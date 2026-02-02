@@ -22,3 +22,6 @@
 - **Gallery modal actions:** Made action strip sticky/always visible, added cover preview background in edit profile header, fixed song autoplay, and restored right-column slot target.
 - **Extras save fix:** Prevented cover mode refresh from wiping mood/song/headline and included headline in extras checks.
 - **Edit profile tabs:** Added Username/Avatar sub-tabs and removed header buttons to reduce clutter.
+- **Edit profile layout:** Kept username controls on one row, labeled color picker, trimmed extra spacing, and allowed username wrapping.
+- **UI popovers:** Restyled notifications panel buttons and resized user hover card to match reference layout.
+- **Popover polish:** Increased notification popover width and boosted user hover sizing/typography to match screenshots.
