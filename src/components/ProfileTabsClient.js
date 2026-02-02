@@ -52,6 +52,7 @@ export default function ProfileTabsClient({
   profileUsername,
   canLeaveMessage = false,
   galleryEntries = [],
+  isOwnProfile = false,
 }) {
   const router = useRouter();
   const tabs = useMemo(() => PROFILE_TABS, []);
@@ -64,6 +65,31 @@ export default function ProfileTabsClient({
   const [galleryModalEntry, setGalleryModalEntry] = useState(null);
   const activeIndex = activeTab == null ? -1 : tabs.findIndex(t => t.id === activeTab);
   const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
+
+  const summaryText = (tabId) => {
+    if (tabId === 'stats') {
+      return isOwnProfile ? 'Your forum activity & impact' : 'Stats';
+    }
+    if (tabId === 'activity') {
+      return isOwnProfile ? 'Your recent posts, replies & updates' : "This person's activity";
+    }
+    if (tabId === 'gallery') {
+      return isOwnProfile ? 'Your uploaded photos' : "This person's photos";
+    }
+    if (tabId === 'guestbook') {
+      return isOwnProfile ? 'Messages from visitors' : 'Leave a note';
+    }
+    if (tabId === 'socials') {
+      return isOwnProfile ? 'Your connected platforms' : 'Check out their socials';
+    }
+    return '';
+  };
+
+  const guestbookPlaceholder = isOwnProfile ? 'Leave a message...' : 'Leave a note...';
+  const guestbookButtonLabel = isOwnProfile ? 'Leave message' : 'Leave a note';
+  const noGuestbookText = isOwnProfile
+    ? 'No messages yet. Your notes are ready for visitors.'
+    : "No notes yet. Leave a note for this person.";
 
   useEffect(() => {
     setGuestbookList(guestbookEntries);
@@ -112,7 +138,7 @@ export default function ProfileTabsClient({
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Stats</h4>
-            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your forum activity & impact</span>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>{summaryText('stats')}</span>
           </div>
           {stats ? (
             <div className="profile-stats-block profile-stats-block--grid">
@@ -140,7 +166,7 @@ export default function ProfileTabsClient({
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Recent Activity</h4>
-            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your recent posts, replies & updates</span>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>{summaryText('activity')}</span>
           </div>
           {hasActivity ? (
             <div className={`profile-activity-list${activityItems.length >= 5 ? ' profile-activity-list--scrollable' : ''}`}>
@@ -176,7 +202,7 @@ export default function ProfileTabsClient({
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Socials</h4>
-            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your connected platforms</span>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>{summaryText('socials')}</span>
           </div>
           {latelyLinks.length > 0 ? (
             <div style={{ display: 'grid', gap: '8px' }}>
@@ -228,7 +254,7 @@ export default function ProfileTabsClient({
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Gallery</h4>
-            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Your uploaded photos</span>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>{summaryText('gallery')}</span>
           </div>
           {displayedGalleryEntries.length > 0 ? (
             <>
@@ -376,14 +402,14 @@ export default function ProfileTabsClient({
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
             <h4 className="section-title" style={{ fontSize: '16px', margin: 0, color: '#F5FFB7', textShadow: '0 0 10px rgba(245, 255, 183, 0.6)' }}>Notes</h4>
-            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>Messages from visitors</span>
+            <span style={{ color: 'var(--accent)', fontSize: '13px', minWidth: 0, textAlign: 'right' }}>{summaryText('guestbook')}</span>
           </div>
           {canLeaveMessage && profileUsername && (
             <form onSubmit={handleLeaveMessage} style={{ marginBottom: '16px' }}>
               <textarea
                 value={guestbookContent}
                 onChange={(e) => setGuestbookContent(e.target.value)}
-                placeholder="Leave a message..."
+                placeholder={guestbookPlaceholder}
                 maxLength={2000}
                 rows={3}
                 style={{
@@ -414,7 +440,7 @@ export default function ProfileTabsClient({
                     opacity: guestbookSubmitting ? 0.7 : 1,
                   }}
                 >
-                  {guestbookSubmitting ? 'Sending…' : 'Leave message'}
+                  {guestbookSubmitting ? 'Sending…' : guestbookButtonLabel}
                 </button>
                 {guestbookError && <span style={{ fontSize: '13px', color: '#ff6b6b' }}>{guestbookError}</span>}
               </div>
@@ -446,7 +472,7 @@ export default function ProfileTabsClient({
             </div>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>
-              No messages yet. Your notes are ready for visitors.
+              {noGuestbookText}
             </div>
           )}
         </div>

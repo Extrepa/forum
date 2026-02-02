@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { gzipSync } from 'fflate';
+import AvatarImage from './AvatarImage';
 
 const INITIAL_PALETTE = [
   '#ffffff',
@@ -197,7 +198,7 @@ function getPathBounds(d) {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
-export default function AvatarCustomizer({ onSave, initialState, onChanges }) {
+export default function AvatarCustomizer({ onSave, initialState, onChanges, previewAvatarKey }) {
   const [layers, setLayers] = useState(initialState?.layers || INITIAL_LAYERS);
   const [history, setHistory] = useState([initialState?.layers || INITIAL_LAYERS]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -1413,6 +1414,31 @@ export default function AvatarCustomizer({ onSave, initialState, onChanges }) {
             </button>
           </div>
         </div>
+        {/* Mini preview badge */}
+        {previewAvatarKey && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '76px',
+              right: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              padding: '6px 8px',
+              borderRadius: '10px',
+              background: 'rgba(0, 0, 0, 0.65)',
+              border: '1px solid rgba(52, 225, 255, 0.3)',
+              boxShadow: '0 0 16px rgba(52, 225, 255, 0.25)',
+              pointerEvents: 'none',
+              zIndex: 5
+            }}
+          >
+            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--errl-accent-3)' }}>Mini preview</span>
+            <AvatarImage avatarKey={previewAvatarKey} alt="Mini preview" size={42} loading="lazy" />
+          </div>
+        )}
       </div>
 
       {/* Hint */}

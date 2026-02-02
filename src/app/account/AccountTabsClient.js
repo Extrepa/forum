@@ -1036,20 +1036,21 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             )}
             {editProfileSubTab === 'avatar' && (
               <div style={{ marginBottom: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mini preview</span>
-                  {user.avatar_key ? (
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={24} loading="lazy" />
-                  ) : (
-                    <div className="no-avatar-placeholder" style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-                  )}
-                  <span className="muted" style={{ fontSize: '12px' }}>Updateable via the Avatar tab below.</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  <div>
+                    <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Avatar Editor</h2>
+                    <span className="muted" style={{ fontSize: '12px' }}>
+                      Customize your avatar that&apos;s shown across the forum. Your Errl avatar.
+                    </span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
-                  <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Avatar</h2>
-                  <span className="muted" style={{ fontSize: '12px' }}>Customize your mini preview.</span>
-                </div>
-                <AvatarCustomizer onSave={handleAvatarSave} initialState={avatarInitialState} onChanges={setAvatarHasChanges} key={user?.avatar_state || 'avatar-empty'} />
+                <AvatarCustomizer
+                  onSave={handleAvatarSave}
+                  initialState={avatarInitialState}
+                  onChanges={setAvatarHasChanges}
+                  key={user?.avatar_state || 'avatar-empty'}
+                  previewAvatarKey={user?.avatar_key}
+                />
               </div>
             )}
 

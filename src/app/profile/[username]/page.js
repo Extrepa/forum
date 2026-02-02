@@ -287,16 +287,23 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const moodText = profileUser?.profile_mood_text?.trim() || '';
-  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || '';
-  const profileHeadline = profileUser?.profile_headline?.trim() || '';
-  const songUrl = profileUser?.profile_song_url?.trim() || '';
-  const songProvider = profileUser?.profile_song_provider?.trim() || '';
-  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled);
+  const moodText = profileUser?.profile_mood_text?.trim() || stats.profileMoodText || '';
+  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || stats.profileMoodEmoji || '';
+  const profileHeadline = profileUser?.profile_headline?.trim() || stats.profileHeadline || '';
+  const songUrl = profileUser?.profile_song_url?.trim() || stats.profileSongUrl || '';
+  const songProvider = profileUser?.profile_song_provider?.trim() || stats.profileSongProvider || '';
+  const songAutoplayEnabled = Boolean(
+    profileUser?.profile_song_autoplay_enabled ??
+      stats.profileSongAutoplayEnabled ??
+      false
+  );
 
-  const songProviderLabel = songProvider
-    ? songProvider.charAt(0).toUpperCase() + songProvider.slice(1)
-    : 'Song';
+  const formatProviderLabel = (value) => {
+    if (!value) return 'Song';
+    if (value === 'youtube-music') return 'YouTube Music';
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  };
+  const songProviderLabel = formatProviderLabel(songProvider);
 
   const activityItems = (stats.recentActivity || []).map((item) => {
     let href = '#';
@@ -419,15 +426,15 @@ export default async function ProfilePage({ params }) {
               {roleLabel}
             </div>
             {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}
-            <ProfileMoodSongBlock
-              initialMoodText={moodText}
-              initialMoodEmoji={moodEmoji}
-              initialSongUrl={songUrl}
-              initialSongProvider={songProvider}
-              initialSongAutoplayEnabled={songAutoplayEnabled}
-              initialHeadline={profileHeadline}
-              isOwnProfile={isOwnProfile}
-              songProviderLabel={songProviderLabel}
+          <ProfileMoodSongBlock
+            initialMoodText={moodText}
+            initialMoodEmoji={moodEmoji}
+            initialSongUrl={songUrl}
+            initialSongProvider={songProvider}
+            initialSongAutoplayEnabled={songAutoplayEnabled}
+            initialHeadline={profileHeadline}
+            isOwnProfile={isOwnProfile}
+            songProviderLabel={songProviderLabel}
             />
             {(() => {
               const validLinks = profileLinks.filter(l => {
@@ -493,6 +500,7 @@ export default async function ProfilePage({ params }) {
           profileUsername={profileUser.username}
           canLeaveMessage={!isOwnProfile && !!currentUser}
           galleryEntries={galleryEntries}
+          isOwnProfile={isOwnProfile}
         />
       </section>
     </div>
