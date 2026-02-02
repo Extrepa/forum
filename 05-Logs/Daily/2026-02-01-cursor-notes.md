@@ -30,3 +30,6 @@
 - **User popover sizing:** Reduced card padding/width to fit content while keeping avatar/text sizing.
 - **User popover content:** Restored larger avatar/text, added mood line, and enforced neon outline card.
 - **Notifications menu actions:** Added Account/Edit Profile/View Profile buttons and refresh animation state.
+- **Popover + tabs spacing:** Restored notifications rainbow animation on mobile/desktop, tightened popover width/height and user hover sizing, and added tab header spacing tweaks plus username tab wrap on tiny screens.
+- **Notifications + popover tweaks:** Slowed notifications border animation, reduced list height/padding for ~2 items, tightened user popover width/height/padding on desktop and mobile, and increased tab-content top padding while tightening panel gaps.
+- **Verification pass:** Rechecked notifications animation/border on desktop + mobile, list height/scroll, user popover sizing on both breakpoints, username tab wrap on tiny viewports, and tab spacing around header/contents.

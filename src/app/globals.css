@@ -71,7 +71,6 @@
 [data-ui-color-mode="2"] .list-item::before,
 [data-ui-color-mode="2"] .footer-tagline-bar::before,
 [data-ui-color-mode="2"] .scroll-to-top-button::before,
-[data-ui-color-mode="2"] .notifications-popover-errl.card::before,
 [data-ui-color-mode="2"] .tabs-pill::before,
 [data-ui-color-mode="2"] .profile-card::before,
 [data-ui-color-mode="2"] .account-edit-card::before {
@@ -85,7 +84,6 @@
 [data-ui-color-mode="2"] .list-item::after,
 [data-ui-color-mode="2"] .footer-tagline-bar::after,
 [data-ui-color-mode="2"] .scroll-to-top-button::after,
-[data-ui-color-mode="2"] .notifications-popover-errl.card::after,
 [data-ui-color-mode="2"] .tabs-pill::after,
 [data-ui-color-mode="2"] .profile-card::after,
 [data-ui-color-mode="2"] .account-edit-card::after {
@@ -1371,6 +1369,7 @@ main {
 }
 
 .account-edit-tab-content {
+  padding-top: 14px;
   padding-bottom: 8px;
   min-height: 80px;
 }
@@ -1378,13 +1377,13 @@ main {
 .account-edit-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   min-width: 0;
 }
 
 /* Tighter spacing between tab section title and content (Notes, Gallery, Activity, Mood, Socials, Stats) */
 .account-edit-panel .section-title {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 /* Notes (guestbook) delete: small button, top-right only, never full width */
@@ -1905,7 +1904,8 @@ button:hover {
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   opacity: 1 !important;
-  animation: neonChase 4s linear infinite !important;
+  animation: neonChase 7.2s linear infinite !important;
+  will-change: background-position;
   pointer-events: none;
   z-index: 0;
 }
@@ -2994,6 +2994,15 @@ button:hover {
     padding: 6px 8px;
     font-size: 11px;
     min-width: 56px;
+  }
+
+  .tabs-pill .account-edit-tab--username {
+    white-space: normal;
+    line-height: 1.05;
+    word-break: break-word;
+    min-width: 48px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .account-tabs {
@@ -5898,9 +5907,11 @@ header::before {
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
     width: fit-content !important;
-    max-width: min(220px, calc(100vw - 32px)) !important;
-    min-width: min(170px, calc(100vw - 32px)) !important;
+    max-width: min(160px, calc(100vw - 32px)) !important;
+    min-width: 0 !important;
     height: auto !important;
+    max-height: 180px !important;
+    padding: 6px 6px 2px !important;
   }
   
   /* Ensure auth form container and all children use full width */
@@ -5920,9 +5931,9 @@ header::before {
   .notifications-popover,
   .notifications-popover-errl.notifications-popover {
     /* Allow content-driven sizing without overflow */
-    width: min(320px, 92vw) !important;
-    max-width: min(320px, 92vw) !important;
-    min-width: min(260px, 92vw) !important;
+    width: min(300px, 92vw) !important;
+    max-width: min(300px, 92vw) !important;
+    min-width: min(240px, 92vw) !important;
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -5947,18 +5958,14 @@ header::before {
       left: auto !important;
       transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: min(320px, 92vw) !important;
-      max-width: min(320px, 92vw) !important;
-      min-width: min(260px, 92vw) !important;
+      width: min(300px, 92vw) !important;
+      max-width: min(300px, 92vw) !important;
+      min-width: min(240px, 92vw) !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;
     }
     
-    /* Remove backdrop if it was added */
-    .notifications-popover-errl.notifications-popover::before {
-      display: none !important;
-    }
   }
   
   /* On very small screens where 380px doesn't fit, shrink it */

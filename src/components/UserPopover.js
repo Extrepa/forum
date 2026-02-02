@@ -124,15 +124,15 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         top: popoverPosition.top,
         left: popoverPosition.left,
         width: 'fit-content',
-        maxWidth: 'min(220px, calc(100vw - 32px))',
-        maxHeight: '240px',
+        maxWidth: 'min(180px, calc(100vw - 24px))',
+        maxHeight: '190px',
         overflow: 'hidden',
-        padding: '8px',
+        padding: '6px 8px 2px',
         background: 'var(--errl-panel)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '4px',
+        gap: '2px',
         backdropFilter: 'blur(10px)',
         animation: 'popoverIn 0.2s ease-out'
       }}
@@ -171,6 +171,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           style={{
             fontSize: '15px',
             fontWeight: '700',
+            lineHeight: 1.1,
             color: userInfo ? undefined : 'var(--muted)',
             wordBreak: 'break-word',
             maxWidth: '100%',
@@ -181,12 +182,12 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', marginBottom: '2px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '1px', marginBottom: 0, wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0, lineHeight: 1.05 }}>
             {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : 'Drip'}
           </div>
         )}
         {(userInfo?.profile_mood_text || userInfo?.profile_mood_emoji) && (
-          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px', textAlign: 'center', maxWidth: '100%' }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px', textAlign: 'center', maxWidth: '100%', lineHeight: 1.05 }}>
             <span>{userInfo.profile_mood_emoji || ''}</span>
             {userInfo.profile_mood_emoji ? ' ' : ''}
             <span>{userInfo.profile_mood_text || ''}</span>
@@ -198,12 +199,13 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           style={{
             fontSize: '11px',
             color: 'var(--accent)',
-            marginTop: userInfo?.role ? '0px' : '2px',
+            marginTop: '2px',
             display: 'block',
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             fontWeight: '700',
-            textShadow: '0 0 12px rgba(52, 225, 255, 0.45)'
+            textShadow: '0 0 12px rgba(52, 225, 255, 0.45)',
+            lineHeight: 1.1
           }}
         >
           View Profile →

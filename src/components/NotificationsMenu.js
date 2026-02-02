@@ -227,11 +227,11 @@ export default function NotificationsMenu({
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 320,
-        maxWidth: 'min(320px, 92vw)',
-        minWidth: 260,
+        width: 300,
+        maxWidth: 'min(300px, 92vw)',
+        minWidth: 240,
         zIndex: 1100,
-        padding: '20px',
+        padding: '14px',
         maxHeight: 'min(86vh, 720px)',
         height: 'auto',
         display: 'flex',
@@ -395,7 +395,7 @@ export default function NotificationsMenu({
       </div>
 
       {/* Notifications list - scrollable */}
-      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: 'min(52vh, 420px)', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '120px', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
@@ -624,7 +624,8 @@ export default function NotificationsMenu({
               padding: '6px 10px',
               opacity: unreadCount === 0 ? 0.5 : 1,
               flexShrink: 0,
-              whiteSpace: 'nowrap',
+              whiteSpace: 'normal',
+              lineHeight: 1.1,
               borderRadius: '999px',
               border: 'none',
               background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
@@ -633,7 +634,8 @@ export default function NotificationsMenu({
               boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
             }}
           >
-            Mark all read
+            <span style={{ display: 'block' }}>Mark all</span>
+            <span style={{ display: 'block' }}>read</span>
           </button>
           <button 
             type="button" 
