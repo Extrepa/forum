@@ -73,7 +73,7 @@ export default async function RootLayout({ children }) {
           initialInvertColors={!!user?.ui_invert_colors}
         >
           <div className="site">
-            <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} />
+            <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} user={user} />
             <NotificationTutorial isSignedIn={isSignedIn} />
             <ActiveTimeTracker enabled={isSignedIn} />
             <main>{children}</main>

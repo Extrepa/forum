@@ -10,13 +10,16 @@ import SearchResultsPopover from './SearchResultsPopover';
 import SearchBar from './SearchBar';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
+import AvatarImage from './AvatarImage';
+import { getAvatarUrl } from '../lib/media';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 
 function isDetailPath(pathname) {
   if (!pathname) return false;
   return /^\/(announcements|lobby|projects|music|events|devlog)\/[^/]+$/.test(pathname);
 }
 
-export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
+export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const pathname = usePathname();
   const router = useRouter();
   const detail = isDetailPath(pathname);
@@ -296,7 +299,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn }) {
             </div>
           </div>
           <div ref={logoWrapRef} className="header-errl-logo-wrap">
-            <NotificationsLogoTrigger enabled={!navDisabled} />
+            <NotificationsLogoTrigger enabled={!navDisabled} user={user} />
           </div>
         </div>
       )}

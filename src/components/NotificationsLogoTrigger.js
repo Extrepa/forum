@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import ForumLogo from './ForumLogo';
 import NotificationsMenu from './NotificationsMenu';
+import AvatarImage from './AvatarImage';
+import { getAvatarUrl } from '../lib/media';
 
 export default function NotificationsLogoTrigger({ enabled = true }) {
   const [open, setOpen] = useState(false);
