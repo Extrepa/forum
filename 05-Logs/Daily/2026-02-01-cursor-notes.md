@@ -19,3 +19,4 @@
 - **Review notes:** Cover mode persists via `profile_cover_mode` (migration `0058` required); modal uses `70vh` image cap so buttons stay visible; cover set updates gallery list but modal marks the selected entry as cover only (other entries update on list refresh).
 - **Profile mood/song tweak:** Updated right-column flex/wrap defaults to match previewed layout adjustments.
 - **Profile mood/song alignment:** Centered the song column within the desktop header for a more balanced layout.
+- **Gallery modal actions:** Made action strip sticky/always visible, added cover preview background in edit profile header, fixed song autoplay, and restored right-column slot target.

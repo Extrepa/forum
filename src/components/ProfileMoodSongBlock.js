@@ -59,7 +59,16 @@ export default function ProfileMoodSongBlock({
   }, [isOwnProfile, initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
 
   useEffect(() => {
-    const target = document.querySelector('[data-profile-mood-song-right-column-parent]');
+    setMoodText(initialMoodText ?? '');
+    setMoodEmoji(initialMoodEmoji ?? '');
+    setSongUrl(initialSongUrl ?? '');
+    setSongProvider((initialSongProvider ?? '').toLowerCase().trim());
+    setSongAutoplayEnabled(Boolean(initialSongAutoplayEnabled));
+    setHeadline(initialHeadline ?? '');
+  }, [initialMoodText, initialMoodEmoji, initialSongUrl, initialSongProvider, initialSongAutoplayEnabled, initialHeadline]);
+
+  useEffect(() => {
+    const target = document.querySelector('[data-profile-mood-song-right-column-slot]');
     if (target) {
       setRightColumnTarget(target);
     }
@@ -79,7 +88,7 @@ export default function ProfileMoodSongBlock({
         <ProfileSongPlayer
           provider={songProvider}
           songUrl={songUrl}
-          autoPlay
+          autoPlay={songAutoplayEnabled}
           providerLabel={songProviderLabel}
           embedStyle="profile_full_height" /* Use new style for full card height */
         />

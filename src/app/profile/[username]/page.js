@@ -395,7 +395,7 @@ export default async function ProfilePage({ params }) {
           className={`profile-card-header${coverEntry ? ' profile-card-header--with-cover' : ''}`}
           data-profile-mood-song-right-column-parent
           data-cover-mode={coverEntry ? coverMode : undefined}
-          style={coverEntry ? { backgroundImage: `linear-gradient(135deg, rgba(2, 7, 10, 0.72), rgba(2, 7, 10, 0.45)), url(/api/media/${coverEntry.image_key})` } : undefined}
+          style={coverEntry ? { '--profile-cover-image': `url(/api/media/${coverEntry.image_key})` } : undefined}
         >
           <div className="profile-card-header-avatar">
             <ProfileAvatarHero
@@ -415,7 +415,7 @@ export default async function ProfilePage({ params }) {
                 textShadow: `0 0 20px ${userColor}44`,
               }}
             />
-            <div style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
+            <div className="profile-role-label" style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>
               {roleLabel}
             </div>
             {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}
@@ -470,6 +470,7 @@ export default async function ProfilePage({ params }) {
               );
             })()}
           </div>
+          <div className="profile-mood-song-right-column-slot" data-profile-mood-song-right-column-slot />
         </div>
 
         {profileUser.profile_bio ? (

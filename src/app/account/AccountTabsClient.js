@@ -708,6 +708,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [galleryModalEntry, setGalleryModalEntry] = useState(null);
   const [galleryUploadError, setGalleryUploadError] = useState(null);
   const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
+  const coverPreviewEntry = galleryEntries.find((entry) => entry.is_cover);
   useEffect(() => {
     if (editProfileSubTab !== 'gallery') return;
     let cancelled = false;
@@ -897,7 +898,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
-            <div className="account-profile-preview">
+            <div
+              className={`account-profile-preview${coverPreviewEntry ? ' account-profile-preview--with-cover' : ''}`}
+              data-cover-mode={coverPreviewEntry ? profileCoverMode : undefined}
+              style={coverPreviewEntry ? { '--profile-cover-image': `url(/api/media/${coverPreviewEntry.image_key})` } : undefined}
+            >
               <div className="account-profile-preview-left-column">
                 <div className="account-profile-preview-avatar-container">
                   {user.avatar_key ? (
@@ -1494,76 +1499,93 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               }}
                             />
                             {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleGallerySetCover(galleryModalEntry.id);
-                                  setGalleryModalEntry((prev) => (prev ? { ...prev, is_cover: true } : prev));
-                                }}
-                                disabled={galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id}
-                                style={{
-                                  padding: '8px 14px',
-                                  borderRadius: '10px',
-                                  border: '1px solid rgba(52, 225, 255, 0.45)',
-                                  background: 'rgba(52, 225, 255, 0.16)',
-                                  color: 'var(--accent)',
-                                  fontSize: '12px',
-                                  cursor: galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
-                                  boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
-                                }}
-                              >
-                                {galleryModalEntry.is_cover ? 'Cover photo' : galleryCoverId === galleryModalEntry.id ? 'Setting…' : 'Set as cover'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleGalleryDelete(galleryModalEntry.id);
-                                  setGalleryModalEntry(null);
-                                }}
-                                disabled={galleryDeletingId === galleryModalEntry.id}
-                                style={{
-                                  padding: '8px 14px',
-                                  borderRadius: '10px',
-                                  border: '1px solid rgba(255, 107, 0, 0.45)',
-                                  background: 'rgba(255, 107, 0, 0.16)',
-                                  color: '#ff8a8a',
-                                  fontSize: '12px',
-                                  cursor: galleryDeletingId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
-                                  boxShadow: '0 0 10px rgba(255, 107, 0, 0.2)',
-                                }}
-                              >
-                                {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
-                              </button>
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Cover mode:</span>
-                              {[
-                                { id: 'cover', label: 'Fill' },
-                                { id: 'contain', label: 'Fit' },
-                                { id: 'stretch', label: 'Stretch' },
-                              ].map((mode) => {
-                                const isActive = profileCoverMode === mode.id;
-                                return (
-                                  <button
-                                    key={mode.id}
-                                    type="button"
-                                    onClick={() => handleCoverModeChange(mode.id)}
-                                    disabled={coverModeSaving}
-                                    style={{
-                                      padding: '6px 10px',
-                                      borderRadius: '999px',
-                                      border: `1px solid ${isActive ? 'rgba(52, 225, 255, 0.6)' : 'rgba(52, 225, 255, 0.25)'}`,
-                                      background: isActive ? 'rgba(52, 225, 255, 0.18)' : 'transparent',
-                                      color: isActive ? 'var(--accent)' : 'var(--muted)',
-                                      fontSize: '11px',
-                                      cursor: coverModeSaving ? 'not-allowed' : 'pointer',
-                                    }}
-                                  >
-                                    {mode.label}
-                                  </button>
-                                );
-                              })}
+                            <div
+                              style={{
+                                position: 'sticky',
+                                bottom: '12px',
+                                width: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px',
+                                alignItems: 'center',
+                                background: 'rgba(2, 7, 10, 0.75)',
+                                borderRadius: '12px',
+                                padding: '10px 12px',
+                                boxShadow: '0 0 16px rgba(2, 7, 10, 0.6)',
+                                backdropFilter: 'blur(6px)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleGallerySetCover(galleryModalEntry.id);
+                                    setGalleryModalEntry((prev) => (prev ? { ...prev, is_cover: true } : prev));
+                                  }}
+                                  disabled={galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id}
+                                  style={{
+                                    padding: '8px 14px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(52, 225, 255, 0.45)',
+                                    background: 'rgba(52, 225, 255, 0.16)',
+                                    color: 'var(--accent)',
+                                    fontSize: '12px',
+                                    cursor: galleryModalEntry.is_cover || galleryCoverId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
+                                  }}
+                                >
+                                  {galleryModalEntry.is_cover ? 'Cover photo' : galleryCoverId === galleryModalEntry.id ? 'Setting…' : 'Set as cover'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleGalleryDelete(galleryModalEntry.id);
+                                    setGalleryModalEntry(null);
+                                  }}
+                                  disabled={galleryDeletingId === galleryModalEntry.id}
+                                  style={{
+                                    padding: '8px 14px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(255, 107, 0, 0.45)',
+                                    background: 'rgba(255, 107, 0, 0.16)',
+                                    color: '#ff8a8a',
+                                    fontSize: '12px',
+                                    cursor: galleryDeletingId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 0 10px rgba(255, 107, 0, 0.2)',
+                                  }}
+                                >
+                                  {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
+                                </button>
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Cover mode:</span>
+                                {[
+                                  { id: 'cover', label: 'Fill' },
+                                  { id: 'contain', label: 'Fit' },
+                                  { id: 'stretch', label: 'Stretch' },
+                                ].map((mode) => {
+                                  const isActive = profileCoverMode === mode.id;
+                                  return (
+                                    <button
+                                      key={mode.id}
+                                      type="button"
+                                      onClick={() => handleCoverModeChange(mode.id)}
+                                      disabled={coverModeSaving}
+                                      style={{
+                                        padding: '6px 10px',
+                                        borderRadius: '999px',
+                                        border: `1px solid ${isActive ? 'rgba(52, 225, 255, 0.6)' : 'rgba(52, 225, 255, 0.25)'}`,
+                                        background: isActive ? 'rgba(52, 225, 255, 0.18)' : 'transparent',
+                                        color: isActive ? 'var(--accent)' : 'var(--muted)',
+                                        fontSize: '11px',
+                                        cursor: coverModeSaving ? 'not-allowed' : 'pointer',
+                                      }}
+                                    >
+                                      {mode.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
                         </div>

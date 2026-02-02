@@ -1240,7 +1240,8 @@ main {
 }
 
 .account-gallery-item:hover .account-gallery-delete,
-.account-gallery-item:focus-within .account-gallery-delete {
+.account-gallery-item:focus-within .account-gallery-delete,
+.account-gallery-item .account-gallery-delete:focus-visible {
   opacity: 1;
   transform: scale(1);
 }
@@ -2147,9 +2148,44 @@ button:hover {
 }
 
 .profile-card-header--with-cover {
+  position: relative;
+  overflow: hidden;
+  background-image: var(--profile-cover-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+.profile-card-header--with-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2, 7, 10, 0.8), rgba(2, 7, 10, 0.55));
+  z-index: 0;
+}
+
+.profile-card-header--with-cover > * {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-card-header--with-cover .username,
+.profile-card-header--with-cover .profile-role-label,
+.profile-card-header--with-cover .profile-headline,
+.profile-card-header--with-cover .profile-mood-chip {
+  text-shadow: 0 0 16px rgba(2, 7, 10, 0.9), 0 0 30px rgba(52, 225, 255, 0.2);
+}
+
+.profile-card-header--with-cover .profile-mood-chip {
+  box-shadow: 0 0 12px rgba(2, 7, 10, 0.6);
+}
+
+.profile-card-header--with-cover .profile-mood-song-block-right-column .profile-song-player {
+  box-shadow: 0 0 18px rgba(2, 7, 10, 0.65);
+}
+
+.profile-card-header--with-cover .profile-song-compact {
+  text-shadow: 0 0 16px rgba(2, 7, 10, 0.85);
 }
 
 .profile-card-header--with-cover[data-cover-mode='stretch'] {
@@ -2157,6 +2193,50 @@ button:hover {
 }
 
 .profile-card-header--with-cover[data-cover-mode='contain'] {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.account-profile-preview--with-cover {
+  position: relative;
+  overflow: hidden;
+  background-image: var(--profile-cover-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.account-profile-preview--with-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2, 7, 10, 0.82), rgba(2, 7, 10, 0.6));
+  z-index: 0;
+}
+
+.account-profile-preview--with-cover > * {
+  position: relative;
+  z-index: 1;
+}
+
+.account-profile-preview--with-cover .username,
+.account-profile-preview--with-cover .profile-role-label,
+.account-profile-preview--with-cover .profile-headline,
+.account-profile-preview--with-cover .profile-mood-chip,
+.account-profile-preview--with-cover .profile-song-compact {
+  text-shadow: 0 0 14px rgba(2, 7, 10, 0.9), 0 0 24px rgba(52, 225, 255, 0.2);
+}
+
+.account-profile-preview--with-cover .profile-mood-chip {
+  box-shadow: 0 0 10px rgba(2, 7, 10, 0.6);
+}
+
+.account-profile-preview--with-cover[data-cover-mode='stretch'] {
+  background-size: 100% 100%;
+}
+
+.account-profile-preview--with-cover[data-cover-mode='contain'] {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
