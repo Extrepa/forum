@@ -994,9 +994,7 @@ main {
 
 .account-profile-preview {
   position: relative;
-  padding: 16px; /* Base padding */
-  padding-left: 130px; /* Accommodate avatar (96px + 16px left + 18px gap) */
-  padding-right: 120px; /* Accommodate buttons (100px + 16px right) */
+  padding: 16px;
   margin-bottom: 8px;
   min-width: 0;
   display: flex;

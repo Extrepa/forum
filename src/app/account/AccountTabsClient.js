@@ -80,6 +80,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   // Refresh stats when tab becomes active or on focus
   useEffect(() => {
     if (activeTab === 'profile' && user) {
+      const fetchGallery = async () => {
+        try {
+          const res = await fetch('/api/account/gallery');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.entries) setGalleryEntries(data.entries);
+          }
+        } catch (_) {
+          setGalleryEntries([]);
+        }
+      };
+
+      fetchGallery();
       const refreshStats = async () => {
         try {
           const res = await fetch('/api/account/stats');
