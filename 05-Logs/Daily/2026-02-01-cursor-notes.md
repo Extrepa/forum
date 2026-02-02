@@ -13,5 +13,6 @@
 - **UI polish:** Avatar glow overflow fixes, socials icons on profile tabs, and compact layout adjustments across breakpoints.
 - **Profile mood/song layout:** Moved the song column into the header slot and updated flex behavior for desktop wrap.
 - **Edit profile preview:** Replaced embed with inline song text and added Headline label.
+- **Gallery controls:** Added hover delete on thumbnails, delete action in modal, and removed migration note.
 - **Profile mood/song tweak:** Updated right-column flex/wrap defaults to match previewed layout adjustments.
 - **Profile mood/song alignment:** Centered the song column within the desktop header for a more balanced layout.

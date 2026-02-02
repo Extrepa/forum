@@ -1234,6 +1234,17 @@ main {
   min-width: 0;
 }
 
+.account-gallery-item .account-gallery-delete {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.account-gallery-item:hover .account-gallery-delete,
+.account-gallery-item:focus-within .account-gallery-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
 /* Ensure play/pause button is visible in edit-profile mini-preview */
 .profile-song-player-bar {
   overflow: visible;

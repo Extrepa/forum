@@ -1004,9 +1004,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
                   </div>
                 )}
-                <p className="muted" style={{ fontSize: '11px', marginTop: '8px', marginBottom: 0 }}>
-                  If your mood or song doesn&apos;t show on your public profile or after refresh, run migration 0054 on your D1 database: <code style={{ fontSize: '10px', wordBreak: 'break-all' }}>npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0054_add_profile_mood_song_headline.sql</code>
-                </p>
                 {isEditingExtras && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', marginTop: '8px' }}>
                     <button type="button" onClick={handleSaveExtras} disabled={extrasStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', flex: '1 1 auto', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: extrasStatus.type === 'loading' ? 'not-allowed' : 'pointer', opacity: extrasStatus.type === 'loading' ? 0.6 : 1, whiteSpace: 'nowrap' }}>{extrasStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
@@ -1329,7 +1326,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         {displayedGalleryEntries.map((entry) => (
                           <div
                             key={entry.id}
+                            className="account-gallery-item"
                             style={{
+                              position: 'relative',
                               borderRadius: '10px',
                               overflow: 'hidden',
                               border: '1px solid rgba(52, 225, 255, 0.2)',
@@ -1338,6 +1337,36 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               minWidth: 0,
                             }}
                           >
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGalleryDelete(entry.id);
+                              }}
+                              disabled={galleryDeletingId === entry.id}
+                              className="account-gallery-delete"
+                              aria-label="Delete image"
+                              style={{
+                                position: 'absolute',
+                                top: '6px',
+                                right: '6px',
+                                width: '26px',
+                                height: '26px',
+                                borderRadius: '999px',
+                                border: '1px solid rgba(255, 107, 0, 0.55)',
+                                background: 'rgba(0, 0, 0, 0.6)',
+                                color: '#ff6b6b',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '16px',
+                                cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer',
+                                zIndex: 2,
+                                transition: 'opacity 0.15s ease, transform 0.15s ease',
+                              }}
+                            >
+                              {galleryDeletingId === entry.id ? '…' : '×'}
+                            </button>
                             <button
                               type="button"
                               onClick={() => setGalleryModalEntry(entry)}
@@ -1356,14 +1385,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                 style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'transparent', color: 'var(--muted)', cursor: entry.is_cover || galleryCoverId ? 'not-allowed' : 'pointer' }}
                               >
                                 {galleryCoverId === entry.id ? '…' : 'Set cover'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleGalleryDelete(entry.id)}
-                                disabled={galleryDeletingId === entry.id}
-                                style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255, 107, 0, 0.3)', background: 'rgba(255, 107, 0, 0.1)', color: '#ff6b6b', cursor: galleryDeletingId === entry.id ? 'not-allowed' : 'pointer' }}
-                              >
-                                {galleryDeletingId === entry.id ? '…' : 'Delete'}
                               </button>
                             </div>
                             {entry.caption && <p style={{ margin: 0, padding: '4px 8px', fontSize: '11px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.caption}</p>}
@@ -1398,15 +1419,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               position: 'absolute',
                               top: '16px',
                               right: '16px',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              border: '1px solid rgba(255,255,255,0.3)',
-                              background: 'rgba(0,0,0,0.6)',
-                              color: '#fff',
-                              fontSize: '20px',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '999px',
+                              border: '1px solid rgba(52, 225, 255, 0.35)',
+                              background: 'rgba(2, 7, 10, 0.75)',
+                              color: 'var(--ink)',
+                              fontSize: '18px',
                               cursor: 'pointer',
                               lineHeight: 1,
+                              boxShadow: '0 0 10px rgba(52, 225, 255, 0.2)',
                             }}
                           >
                             &times;
@@ -1422,6 +1444,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 80px)', objectFit: 'contain', display: 'block', borderRadius: '8px' }}
                             />
                             {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleGalleryDelete(galleryModalEntry.id);
+                                setGalleryModalEntry(null);
+                              }}
+                              disabled={galleryDeletingId === galleryModalEntry.id}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255, 107, 0, 0.35)',
+                                background: 'rgba(255, 107, 0, 0.12)',
+                                color: '#ff6b6b',
+                                fontSize: '12px',
+                                cursor: galleryDeletingId === galleryModalEntry.id ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
+                            </button>
                           </div>
                         </div>
                       )}
