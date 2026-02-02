@@ -5897,9 +5897,9 @@ header::before {
 
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
-    width: 240px !important;
-    max-width: min(240px, calc(100vw - 32px)) !important;
-    min-width: min(220px, calc(100vw - 32px)) !important;
+    width: 190px !important;
+    max-width: min(190px, calc(100vw - 32px)) !important;
+    min-width: min(170px, calc(100vw - 32px)) !important;
     height: auto !important;
   }
   
@@ -5921,8 +5921,8 @@ header::before {
   .notifications-popover-errl.notifications-popover {
     /* Allow content-driven sizing without overflow */
     width: min(320px, 92vw) !important;
-    max-width: min(340px, 92vw) !important;
-    min-width: min(220px, 92vw) !important;
+    max-width: min(320px, 92vw) !important;
+    min-width: min(260px, 92vw) !important;
     /* Keep right alignment to logo */
     right: 0 !important;
     left: auto !important;
@@ -5947,9 +5947,9 @@ header::before {
       left: auto !important;
       transform: translateX(0) !important; /* Remove any centering transforms */
       /* Keep original width unless viewport is smaller */
-      width: fit-content !important;
-      max-width: min(420px, 92vw) !important;
-      min-width: min(220px, 92vw) !important;
+      width: min(320px, 92vw) !important;
+      max-width: min(320px, 92vw) !important;
+      min-width: min(260px, 92vw) !important;
       /* Ensure high z-index */
       z-index: 9999 !important;
       margin: 0 !important;

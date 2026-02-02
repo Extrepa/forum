@@ -117,22 +117,22 @@ export default function UserPopover({ username, onClose, anchorRef }) {
   return createPortal(
     <div
       ref={popoverRef}
-      className="card notifications-popover-errl user-popover"
+      className="card neon-outline-card notifications-popover-errl user-popover"
       style={{
         position: 'fixed',
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: 240,
-        maxWidth: 'min(240px, calc(100vw - 32px))',
-        maxHeight: '280px',
+        width: 190,
+        maxWidth: 'min(190px, calc(100vw - 32px))',
+        maxHeight: '220px',
         overflow: 'hidden',
-        padding: '16px',
+        padding: '10px',
         background: 'var(--errl-panel)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '10px',
+        gap: '6px',
         backdropFilter: 'blur(10px)',
         animation: 'popoverIn 0.2s ease-out'
       }}
@@ -147,17 +147,17 @@ export default function UserPopover({ username, onClose, anchorRef }) {
       `}</style>
 
       {loading ? (
-        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
+        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', animate: 'pulse 1.5s infinite' }} />
       ) : (
-        <div style={{ position: 'relative', width: '80px', height: '80px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+        <div style={{ position: 'relative', width: '56px', height: '56px', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
           <AvatarImage
             src={avatarUrl}
             alt={`${username}'s avatar`}
-            size={80}
+            size={56}
             loading="lazy"
             style={{
-              width: '80px',
-              height: '80px',
+              width: '56px',
+              height: '56px',
               borderRadius: '50%',
               background: 'rgba(0,0,0,0.3)'
             }}
@@ -169,7 +169,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
         <div
           className={userInfo ? `username username--${colorIndex}` : ''}
           style={{
-            fontSize: '16px',
+            fontSize: '13px',
             fontWeight: '700',
             color: userInfo ? undefined : 'var(--muted)',
             wordBreak: 'break-word',
@@ -181,7 +181,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           {username}
         </div>
         {userInfo?.role && (
-          <div style={{ fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', marginBottom: '2px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px', marginBottom: '2px', wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0 }}>
             {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : 'Drip'}
           </div>
         )}
@@ -189,7 +189,7 @@ export default function UserPopover({ username, onClose, anchorRef }) {
           href={profileHref}
           onClick={onClose} // Close popover when clicking link
           style={{
-            fontSize: '12px',
+            fontSize: '11px',
             color: 'var(--accent)',
             marginTop: userInfo?.role ? '0px' : '2px',
             display: 'block',

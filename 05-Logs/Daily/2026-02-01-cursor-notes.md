@@ -25,3 +25,5 @@
 - **Edit profile layout:** Kept username controls on one row, labeled color picker, trimmed extra spacing, and allowed username wrapping.
 - **UI popovers:** Restyled notifications panel buttons and resized user hover card to match reference layout.
 - **Popover polish:** Increased notification popover width and boosted user hover sizing/typography to match screenshots.
+- **Popover sizing fix:** Shrunk user hover card padding/size and stabilized notifications width rules.
+- **Notifications height:** Switched to taller popover and constrained list height for scroll.

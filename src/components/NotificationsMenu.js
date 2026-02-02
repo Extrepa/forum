@@ -226,12 +226,13 @@ export default function NotificationsMenu({
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 340,
-        maxWidth: 'min(360px, 92vw)',
-        minWidth: 210,
+        width: 320,
+        maxWidth: 'min(320px, 92vw)',
+        minWidth: 260,
         zIndex: 1100,
         padding: '20px',
-        maxHeight: 'min(80vh, 600px)',
+        maxHeight: 'min(86vh, 720px)',
+        height: 'auto',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
@@ -365,7 +366,7 @@ export default function NotificationsMenu({
       </div>
 
       {/* Notifications list - scrollable */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: 'min(52vh, 420px)', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
