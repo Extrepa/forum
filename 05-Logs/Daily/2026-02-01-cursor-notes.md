@@ -27,3 +27,4 @@
 - **Popover polish:** Increased notification popover width and boosted user hover sizing/typography to match screenshots.
 - **Popover sizing fix:** Shrunk user hover card padding/size and stabilized notifications width rules.
 - **Notifications height:** Switched to taller popover and constrained list height for scroll.
+- **User popover sizing:** Reduced card padding/width to fit content while keeping avatar/text sizing.
