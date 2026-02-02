@@ -2625,11 +2625,13 @@ button:hover {
 
 .tabs-pill-inner {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   position: relative;
   min-width: 0;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabs-pill-indicator {
@@ -2642,6 +2644,19 @@ button:hover {
   min-width: 0;
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .tabs-pill-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .tabs-pill-inner .profile-tab,
+  .tabs-pill-inner .account-edit-tab {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 160px;
+  }
 }
 
 .tabs-pill .profile-tab--active,
@@ -5950,11 +5965,11 @@ header::before {
 
   /* Username popover should not stretch to full width on mobile */
   .user-popover.card {
-    width: fit-content !important;
-    max-width: min(160px, calc(100vw - 32px)) !important;
+    width: min(150px, calc(100vw - 32px)) !important;
+    max-width: min(150px, calc(100vw - 32px)) !important;
     min-width: 0 !important;
     height: auto !important;
-    max-height: min(220px, calc(100vh - 48px)) !important;
+    max-height: min(190px, calc(100vh - 48px)) !important;
     padding: 6px 6px 2px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;

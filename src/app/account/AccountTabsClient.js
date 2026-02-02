@@ -28,10 +28,33 @@ const PROFILE_SONG_PROVIDERS = [
   { value: 'youtube-music', label: 'YouTube Music' },
 ];
 
+const SONG_PROVIDER_META = {
+  youtube: { label: 'YouTube', color: '#ff1744', icon: '/icons/social/youtube.png' },
+  soundcloud: { label: 'SoundCloud', color: '#ff7700', icon: '/icons/social/soundcloud.png' },
+  spotify: { label: 'Spotify', color: '#1DB954', icon: '/icons/social/spotify.png' },
+};
+
 const getProfileSongProviderLabel = (value) => {
   if (!value) return '';
   const match = PROFILE_SONG_PROVIDERS.find((provider) => provider.value === value);
   return match ? match.label : value;
+};
+
+const getSongDescriptor = (sourceUrl) => {
+  if (!sourceUrl) return '';
+  try {
+    const parsed = new URL(sourceUrl);
+    if (parsed.searchParams.has('list')) {
+      return `playlist • ${parsed.searchParams.get('list')}`;
+    }
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    if (segments.length) {
+      return segments[segments.length - 1];
+    }
+    return parsed.host;
+  } catch {
+    return sourceUrl;
+  }
 };
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
@@ -993,19 +1016,25 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       <span style={{ color: 'var(--muted)' }}>Status:</span> {stats.profileHeadline}
                     </div>
                   )}
-                  {(stats.profileSongUrl || stats.profileSongProvider) && (
-                    <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px' }}>
-                      <span style={{ color: 'var(--muted)' }}>Song:</span>{' '}
-                      <span style={{ color: 'var(--accent)' }}>
-                        {stats.profileSongProvider ? statsSongProviderLabel : 'Song'}
-                      </span>{' '}
-                      {stats.profileSongUrl ? (
-                        <a href={stats.profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>
-                          {stats.profileSongUrl}
-                        </a>
-                      ) : null}
-                    </div>
+          {(stats.profileSongUrl || stats.profileSongProvider) && (() => {
+            const providerKey = String(stats.profileSongProvider || '').toLowerCase().trim();
+            const providerMeta = SONG_PROVIDER_META[providerKey] || { label: statsSongProviderLabel || 'Song', color: 'var(--accent)', icon: '' };
+            const descriptor = getSongDescriptor(stats.profileSongUrl);
+            return (
+              <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Song:</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: providerMeta.color, fontWeight: '600', textTransform: 'lowercase' }}>
+                  {providerMeta.icon && (
+                    <Image src={providerMeta.icon} alt={providerMeta.label} width={16} height={16} style={{ display: 'block' }} />
                   )}
+                  {providerMeta.label}
+                </span>
+                {descriptor && (
+                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{descriptor}</span>
+                )}
+              </div>
+            );
+          })()}
                 </div>
               </div>
 
