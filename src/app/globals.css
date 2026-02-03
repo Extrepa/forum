@@ -1084,7 +1084,9 @@ main {
 /* Mobile adjustments for account-profile-preview */
 @media (max-width: 640px) {
   .account-profile-preview {
-    padding: 16px; /* Reset padding for mobile */
+    padding: 0px 0px; /* Remove horizontal padding on smallest viewports */
+    width: 100%; /* Ensure it takes full width */
+    margin: 0 auto; /* Center the block horizontally */
     margin-bottom: 0; /* Remove bottom margin for compact mobile display */
     flex-direction: column;
     align-items: center;
@@ -1092,8 +1094,12 @@ main {
   }
 
   .account-profile-preview-avatar-container {
-    position: static; /* Remove absolute positioning */
+    /* Removed position: static; */
+    margin: 0 auto; /* Center avatar horizontally */
     margin-bottom: 12px; /* Add space below avatar */
+    display: flex;
+    justify-content: center; /* Center flex items */
+    align-items: center; /* Center flex items vertically if column direction */
   }
 
   /* This was missed in previous revert attempts */
@@ -2610,19 +2616,19 @@ button:hover {
 }
 
 /* When no tab selected: no extra padding/min-height above the pill */
-.profile-tabs-wrapper--no-selection {
-  min-height: 0;
-  margin-top: 8px !important;
-}
-.profile-tab-content--no-selection {
-  min-height: 0;
-  padding-bottom: 0;
-  flex: 0 0 auto;
-}
-.profile-tab-content--above.profile-tab-content--no-selection {
-  margin-bottom: 0;
-  flex: 0 0 auto;
-}
+  .profile-tabs-wrapper--no-selection {
+    min-height: 0;
+    margin-top: 0px !important; /* Adjusted for smallest viewport */
+  }
+  .profile-tab-content--no-selection {
+    min-height: 0;
+    padding-bottom: 0;
+    flex: 0 0 auto;
+  }
+  .profile-tab-content--above.profile-tab-content--no-selection {
+    margin-bottom: 0;
+    flex: 0 0 auto;
+  }
 
 /* Tighter spacing between tab section title and content on public profile */
 .profile-tab-content--above .section-title {
@@ -6278,8 +6284,16 @@ header::before {
     font-size: 13px;
     min-width: 120px;
   }
-  .account-profile-preview-user-info {
-    align-items: center;
-    text-align: center;
+  .profile-song-player .embed-frame {
+    margin: 0;
+  }
+
+  .profile-tabs-wrapper {
+    margin-top: 4px;
+    gap: 4px;
+  }
+
+  .profile-tab-content--above {
+    margin-bottom: 6px;
   }
 }
