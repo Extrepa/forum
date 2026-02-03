@@ -120,6 +120,14 @@ export default function UserPopover({
     ? Math.max(0, Math.min(7, Math.floor(preferredIndex)))
     : 0;
 
+  const safeName = String(username || '').trim();
+  const baseMaxWidth = 180;
+  const overflowThreshold = 14;
+  const extraWidth = Math.max(0, safeName.length - overflowThreshold) * 8;
+  const viewportMax = viewportWidth ? Math.max(160, viewportWidth - 32) : 220;
+  const expandedMax = Math.min(viewportMax, baseMaxWidth + extraWidth);
+  const computedWidth = Math.max(140, Math.min(expandedMax, viewportMax));
+
   return createPortal(
     <div
       ref={popoverRef}
@@ -129,8 +137,8 @@ export default function UserPopover({
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: 'min(150px, calc(100vw - 32px))',
-        maxWidth: 'min(150px, calc(100vw - 32px))',
+        width: `${computedWidth}px`,
+        maxWidth: `${computedWidth}px`,
         maxHeight: 'min(190px, calc(100vh - 48px))',
         overflowY: 'auto',
         overflowX: 'hidden',

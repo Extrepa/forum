@@ -2633,7 +2633,7 @@ button:hover {
   position: relative;
   width: 100%;
   padding-block: clamp(6px, 1vw, 8px);
-  padding-inline: clamp(10px, 1vw, 14px);
+  padding-inline: clamp(6px, 1vw, 10px);
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.3);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(2, 7, 10, 0.6));
@@ -2658,7 +2658,7 @@ button:hover {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 0 clamp(8px, 1vw, 12px);
+  padding: 0 clamp(4px, 1vw, 10px);
   justify-content: stretch;
 }
 
@@ -5259,6 +5259,39 @@ header::before {
   .project-links {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .profile-card-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .profile-card-header-avatar {
+    align-self: center;
+  }
+
+  .profile-card-header-meta {
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-card-header-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    order: 3;
+  }
+
+  .profile-tabs-wrapper {
+    margin-top: 4px;
+    gap: 4px;
+  }
+
+  .profile-tab-content--above {
+    margin-bottom: 6px;
   }
 
   .project-link {

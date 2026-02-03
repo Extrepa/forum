@@ -20,14 +20,28 @@ export default function Username({
   style,
 }) {
   const [showPopover, setShowPopover] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState(null);
   const [isTouch, setIsTouch] = useState(false);
   const anchorRef = useRef(null);
+  const hoverOpenTimer = useRef(null);
+  const hoverCloseTimer = useRef(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setIsTouch(window.matchMedia('(hover: none)').matches);
   }, []);
+
+  const cancelHoverTimers = () => {
+    if (hoverOpenTimer.current) {
+      clearTimeout(hoverOpenTimer.current);
+      hoverOpenTimer.current = null;
+    }
+    if (hoverCloseTimer.current) {
+      clearTimeout(hoverCloseTimer.current);
+      hoverCloseTimer.current = null;
+    }
+  };
+
+  useEffect(() => () => cancelHoverTimers(), []);
 
   const safeName = String(name || '').trim();
   if (!safeName) return null;
@@ -50,31 +64,37 @@ export default function Username({
 
   const disableLink = href === null || href === false;
 
-  const cancelHoverTimeout = () => {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
-    }
-  };
-
   const openPopover = () => {
-    cancelHoverTimeout();
+    cancelHoverTimers();
     setShowPopover(true);
   };
 
   const schedulePopoverClose = () => {
-    cancelHoverTimeout();
-    const timeout = setTimeout(() => {
+    cancelHoverTimers();
+    hoverCloseTimer.current = setTimeout(() => {
       setShowPopover(false);
-      setHoverTimeout(null);
-    }, 200); // 200ms delay to allow moving to popover
-    setHoverTimeout(timeout);
+      hoverCloseTimer.current = null;
+    }, 350);
+  };
+
+  const handleMouseEnter = () => {
+    if (isTouch) return;
+    cancelHoverTimers();
+    hoverOpenTimer.current = setTimeout(() => {
+      setShowPopover(true);
+      hoverOpenTimer.current = null;
+    }, 150);
+  };
+
+  const handleMouseLeave = () => {
+    if (isTouch) return;
+    schedulePopoverClose();
   };
 
   const handleClick = () => {
     if (!isTouch) return;
-    cancelHoverTimeout();
-    setShowPopover(prev => !prev);
+    cancelHoverTimers();
+    setShowPopover(true);
   };
 
   return (
@@ -86,8 +106,8 @@ export default function Username({
         className={classes}
         title={title || safeName}
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
-        onMouseEnter={openPopover}
-        onMouseLeave={schedulePopoverClose}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
         {avatarUrl && (
@@ -103,13 +123,17 @@ export default function Username({
       </span>
 
       {showPopover && (
-        <UserPopover 
-          username={safeName} 
-          avatarKey={avatarKey} 
+        <UserPopover
+          username={safeName}
+          avatarKey={avatarKey}
           onClose={() => setShowPopover(false)}
           anchorRef={anchorRef}
-          onPopoverMouseEnter={openPopover}
-          onPopoverMouseLeave={schedulePopoverClose}
+          onPopoverMouseEnter={() => {
+            if (!isTouch) openPopover();
+          }}
+          onPopoverMouseLeave={() => {
+            if (!isTouch) schedulePopoverClose();
+          }}
         />
       )}
     </span>

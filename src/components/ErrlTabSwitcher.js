@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, useCallback, useEffect } from 'react';
 
 const ERRL_TAB_COLOR_SEQUENCE = [
   '#34E1FF',
@@ -24,6 +24,8 @@ export default function ErrlTabSwitcher({
 }) {
   const tabsInnerRef = useRef(null);
   const tabButtonsRef = useRef([]);
+  const autoScrollRAF = useRef(null);
+  const autoScrollDirection = useRef(0);
   const [hoveredTabId, setHoveredTabId] = useState(null);
   const [indicatorStyle, setIndicatorStyle] = useState({
     width: 0,
@@ -73,12 +75,81 @@ export default function ErrlTabSwitcher({
     };
   }, [activeTab, hoveredTabId, tabs, colorSequence]);
 
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRAF.current) {
+      cancelAnimationFrame(autoScrollRAF.current);
+      autoScrollRAF.current = null;
+    }
+  }, []);
+
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollRAF.current) return;
+    const step = () => {
+      const direction = autoScrollDirection.current;
+      if (!direction) {
+        autoScrollRAF.current = null;
+        return;
+      }
+      const container = tabsInnerRef.current;
+      if (container) {
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if ((direction < 0 && container.scrollLeft <= 0) || (direction > 0 && container.scrollLeft >= maxScroll)) {
+          autoScrollDirection.current = 0;
+          stopAutoScroll();
+          return;
+        }
+        container.scrollLeft += direction * 1.5;
+      }
+      autoScrollRAF.current = requestAnimationFrame(step);
+    };
+    autoScrollRAF.current = requestAnimationFrame(step);
+  }, [stopAutoScroll]);
+
+  const handlePointerMove = (event) => {
+    const container = tabsInnerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const threshold = 30;
+    const relativeX = event.clientX - rect.left;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    let desiredDir = 0;
+    if (relativeX < threshold && container.scrollLeft > 0) {
+      desiredDir = -1;
+    } else if (relativeX > rect.width - threshold && container.scrollLeft < maxScroll - 1) {
+      desiredDir = 1;
+    }
+    if (desiredDir !== autoScrollDirection.current) {
+      autoScrollDirection.current = desiredDir;
+      if (desiredDir === 0) {
+        stopAutoScroll();
+      } else {
+        startAutoScroll();
+      }
+    }
+  };
+
+  const handlePointerLeave = () => {
+    autoScrollDirection.current = 0;
+    stopAutoScroll();
+  };
+
   const defaultLabel = (tab) => tab.label;
   const renderLabel = renderTabLabel || defaultLabel;
 
+  useEffect(() => {
+    return () => {
+      stopAutoScroll();
+    };
+  }, [stopAutoScroll]);
+
   return (
     <div className={`tabs-pill neon-outline-card ${className}`} role="tablist" aria-label="Errl tab switcher">
-      <div className="tabs-pill-inner" ref={tabsInnerRef}>
+      <div
+        className="tabs-pill-inner"
+        ref={tabsInnerRef}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={handlePointerLeave}
+      >
         <div
           className="tabs-pill-indicator"
           style={{
