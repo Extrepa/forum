@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -12,6 +12,7 @@ import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
 import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
+import ErrlTabSwitcher from '../../components/ErrlTabSwitcher';
 
 function getRarityColor(value) {
   if (value === 0) return 'var(--muted)';
@@ -733,18 +734,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   const [editProfileSubTab, setEditProfileSubTab] = useState('activity');
-  const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
-  const tabsInnerRef = useRef(null);
-  const tabButtonsRef = useRef([]);
-  const [indicatorStyle, setIndicatorStyle] = useState({
-    width: 0,
-    left: 0,
-    top: 0,
-    height: 0,
-    color: TAB_COLOR_SEQUENCE[0],
-  });
-  const [hoveredTabId, setHoveredTabId] = useState(null);
-
   const renderTabLabel = (tab) => {
     if (tab.id === 'username') {
       return (
@@ -766,45 +755,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       </span>
     );
   };
-
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const updateIndicator = () => {
-      const targetId = hoveredTabId ?? editProfileSubTab;
-      const tabIndex = EDIT_PROFILE_SUB_TABS.findIndex((tab) => tab.id === targetId);
-      const index = tabIndex >= 0 ? tabIndex : 0;
-      const button = tabButtonsRef.current[index];
-      const container = tabsInnerRef.current;
-      if (!button || !container) {
-        setIndicatorStyle((prev) => ({
-          ...prev,
-          width: 0,
-          left: 0,
-          color: TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length],
-        }));
-        return;
-      }
-      const containerRect = container.getBoundingClientRect();
-      const buttonRect = button.getBoundingClientRect();
-      setIndicatorStyle({
-        width: buttonRect.width,
-        left: buttonRect.left - containerRect.left + container.scrollLeft,
-        top: buttonRect.top - containerRect.top,
-        height: buttonRect.height,
-        color: TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length],
-      });
-    };
-
-    updateIndicator();
-    const handleResize = () => {
-      window.requestAnimationFrame(updateIndicator);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [editProfileSubTab, editProfileSubTabIndex, hoveredTabId]);
+  const getTabClassName = (tab) => {
+    const classes = ['account-edit-tab'];
+    if (tab.id === 'username') classes.push('account-edit-tab--username');
+    if (tab.id === 'mood') classes.push('account-edit-tab--mood');
+    return classes.join(' ');
+  };
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
   const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
@@ -2004,52 +1960,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             </div>
             )}
-            <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections">
-              <div className="tabs-pill-inner" ref={tabsInnerRef}>
-                <div
-                  className="tabs-pill-indicator"
-                  style={{
-                    width: indicatorStyle.width,
-                    height: indicatorStyle.height,
-                    left: indicatorStyle.left,
-                    top: indicatorStyle.top,
-                    borderColor: indicatorStyle.color,
-                    boxShadow: `0 0 28px ${indicatorStyle.color}`,
-                    opacity: indicatorStyle.width ? 1 : 0,
-                    background: 'rgba(2, 7, 10, 0.45)',
-                  }}
-                  aria-hidden
-                />
-                {EDIT_PROFILE_SUB_TABS.map((tab, index) => {
-                  const tabColor = TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length];
-                  const classNames = [
-                    'account-edit-tab',
-                    editProfileSubTab === tab.id ? 'account-edit-tab--active' : null,
-                    tab.id === 'username' ? 'account-edit-tab--username' : null,
-                    tab.id === 'mood' ? 'account-edit-tab--mood' : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' ');
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={editProfileSubTab === tab.id}
-                      onClick={() => handleSubTabChange(tab.id)}
-                      onMouseEnter={() => setHoveredTabId(tab.id)}
-                      onMouseLeave={() => setHoveredTabId(null)}
-                      className={classNames}
-                      style={{ '--tab-color': tabColor }}
-                      ref={(el) => { tabButtonsRef.current[index] = el; }}
-                      data-username-tab-label={tab.label}
-                    >
-                      {renderTabLabel(tab)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <ErrlTabSwitcher
+              tabs={EDIT_PROFILE_SUB_TABS}
+              activeTab={editProfileSubTab}
+              onTabChange={handleSubTabChange}
+              className=""
+              renderTabLabel={renderTabLabel}
+              getTabClassName={getTabClassName}
+              colorSequence={TAB_COLOR_SEQUENCE}
+            />
           </div>
         </div>
       )}

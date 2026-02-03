@@ -979,6 +979,7 @@ main {
   overflow-y: visible;
   min-height: 0;
   scrollbar-width: none; /* Hide scrollbar on Firefox */
+  padding: clamp(12px, 1vw, 16px);
 }
 .account-edit-card--tabs-bottom::-webkit-scrollbar {
   display: none; /* Hide scrollbar on Chrome/Safari */
@@ -1392,7 +1393,10 @@ main {
 
 /* Tighter spacing between tab section title and content (Notes, Gallery, Activity, Mood, Socials, Stats) */
 .account-edit-panel .section-title {
-  margin-bottom: 2px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: #F5FFB7;
+  text-shadow: 0 0 10px rgba(245, 255, 183, 0.6);
 }
 
 /* Notes (guestbook) delete: small button, top-right only, never full width */
@@ -2611,7 +2615,7 @@ button:hover {
 .tabs-pill {
   position: relative;
   width: 100%;
-  padding: clamp(3px, 0.7vw, 4px) clamp(8px, 1vw, 12px);
+  padding: clamp(6px, 1vw, 8px) clamp(10px, 1vw, 14px);
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.3);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(2, 7, 10, 0.6));
@@ -2636,7 +2640,7 @@ button:hover {
   gap: 0;
   min-width: 0;
   overflow: hidden;
-  padding-bottom: 4px;
+  padding: 0 clamp(8px, 1vw, 12px);
   justify-content: stretch;
 }
 
@@ -2646,7 +2650,7 @@ button:hover {
   top: 0;
   border-radius: 999px;
   border: 2px solid transparent;
-  background: linear-gradient(120deg, rgba(2, 7, 10, 0.5), rgba(2, 7, 10, 0.1));
+  background: transparent;
   pointer-events: none;
   transition:
     width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -2660,18 +2664,6 @@ button:hover {
   box-sizing: border-box;
   backdrop-filter: blur(2px);
 }
-.tabs-pill-indicator::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35), transparent 60%),
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.12), transparent 55%);
-  filter: blur(6px);
-  opacity: 0.7;
-  transition: opacity 0.25s ease;
-}
-
 .tabs-pill .profile-tab,
 .tabs-pill .account-edit-tab {
   position: relative;
@@ -2680,7 +2672,7 @@ button:hover {
   min-width: 0;
   border-radius: 999px;
   border: none;
-  background: rgba(2, 7, 10, 0.3);
+  background: transparent;
   color: var(--tab-color, rgba(255, 255, 255, 0.92));
   font-size: clamp(11px, 1vw, 14px);
   font-weight: 500;
@@ -2689,7 +2681,7 @@ button:hover {
   white-space: nowrap;
   text-transform: none;
   text-align: center;
-  padding: clamp(6px, 0.9vw, 10px) clamp(12px, 1.5vw, 16px);
+  padding: clamp(6px, 0.9vw, 9px) clamp(12px, 1.5vw, 16px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2718,6 +2710,7 @@ button:hover {
   align-items: center;
   justify-content: center;
   gap: 0.15em;
+  text-shadow: none;
   white-space: nowrap;
 }
 .tabs-pill .account-edit-tab--username .account-edit-tab-label,
