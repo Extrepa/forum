@@ -1090,6 +1090,20 @@ main {
   flex-wrap: nowrap; /* PREVENT WRAPPING */
 }
 
+/* Ensure user info doesn't collapse */
+.account-profile-preview-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  width: auto;
+  gap: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: visible; /* Let text overflow naturally if needed instead of hiding block */
+}
+
 .account-profile-extras {
   display: flex;
   flex-direction: column;
