@@ -1069,7 +1069,7 @@ main {
   flex-direction: row; /* Row layout for desktop */
   flex-wrap: wrap; /* Allow wrapping */
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center; /* Center items to keep spacing balanced */
   gap: 24px;
   width: 100%;
   flex: 1 1 auto;
@@ -1082,7 +1082,7 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center; /* Ensure content is centered if it wraps */
   gap: 16px;
   width: auto;
   flex-shrink: 0;
@@ -1109,8 +1109,9 @@ main {
   }
 
   .account-profile-header-group {
-    width: 100%;
+    width: auto; /* Allow it to shrink to fit content so it stays centered */
     justify-content: center;
+    max-width: 100%;
   }
 
   .account-profile-extras {
