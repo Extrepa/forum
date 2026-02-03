@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import ProfileSongPlayer from './ProfileSongPlayer';
 import { isProfileFlagEnabled } from '../lib/featureFlags';
@@ -81,7 +82,13 @@ export default function ProfileMoodSongBlock({
       ) : hasSong ? (
         <div className="profile-song-compact">
           {songProviderInfo?.icon && (
-            <img src={songProviderInfo.icon} alt={songProviderInfo.label} className="profile-song-provider-icon" />
+            <Image
+              src={songProviderInfo.icon}
+              alt={songProviderInfo.label}
+              width={16}
+              height={16}
+              className="profile-song-provider-icon"
+            />
           )}
           <span className="profile-song-provider">{songProviderLabel}</span>
           <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">

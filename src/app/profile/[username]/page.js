@@ -39,33 +39,13 @@ export default async function ProfilePage({ params }) {
   try {
     profileUser = await db
       .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes, profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline, default_profile_tab, profile_cover_mode FROM users WHERE username_norm = ?'
       )
       .bind(username.toLowerCase())
       .first();
-  } catch (_) {
-    profileUser = await db
-      .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
-      )
-      .bind(username.toLowerCase())
-      .first();
-  }
-  // Profile extras (mood, song, headline, default tab) – separate query for migration 0054 columns
-  if (profileUser) {
-    try {
-      const extras = await db
-        .prepare(
-          `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
-           profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-           profile_headline, default_profile_tab FROM users WHERE id = ?`
-        )
-        .bind(profileUser.id)
-        .first();
-      if (extras) profileUser = { ...profileUser, ...extras };
-    } catch (_) {
-      profileUser.default_profile_tab = profileUser.default_profile_tab ?? null;
-    }
+  } catch (e) {
+    console.error("Error fetching profile user:", e);
+    profileUser = null; // Ensure profileUser is null on error
   }
 
   if (!profileUser) {
@@ -282,16 +262,12 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const moodText = profileUser?.profile_mood_text?.trim() || stats.profileMoodText || '';
-  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || stats.profileMoodEmoji || '';
-  const profileHeadline = profileUser?.profile_headline?.trim() || stats.profileHeadline || '';
-  const songUrl = profileUser?.profile_song_url?.trim() || stats.profileSongUrl || '';
-  const songProvider = profileUser?.profile_song_provider?.trim() || stats.profileSongProvider || '';
-  const songAutoplayEnabled = Boolean(
-    profileUser?.profile_song_autoplay_enabled ??
-      stats.profileSongAutoplayEnabled ??
-      false
-  );
+  const moodText = profileUser?.profile_mood_text?.trim() || '';
+  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || '';
+  const profileHeadline = profileUser?.profile_headline?.trim() || '';
+  const songUrl = profileUser?.profile_song_url?.trim() || '';
+  const songProvider = profileUser?.profile_song_provider?.trim() || '';
+  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled ?? false);
 
   // Combine profileUser with stats for consistent data in ProfileMoodSongBlock
   const combinedProfileUser = {
@@ -505,9 +481,9 @@ export default async function ProfilePage({ params }) {
           profileUsername={profileUser.username}
           canLeaveMessage={!isOwnProfile && !!currentUser}
           galleryEntries={galleryEntries}
-          isOwnProfile={isOwnProfile}
         />
       </section>
     </div>
   );
 }
+
