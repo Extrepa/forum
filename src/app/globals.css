@@ -1086,6 +1086,7 @@ main {
   gap: 16px;
   width: auto;
   flex-shrink: 0;
+  max-width: 100%;
 }
 
 .account-profile-extras {
@@ -1129,7 +1130,7 @@ main {
   text-align: left; /* Align text to left */
   width: auto;
   gap: 2px;
-  flex: 1; /* Allow to grow */
+  flex: 0 1 auto; /* Use natural width, don't force grow */
   min-width: 0; /* Allow shrinking */
 }
 .account-profile-preview-user-info > * {
@@ -1188,6 +1189,7 @@ main {
     justify-content: center; /* Center the group */
     width: auto; /* Allow shrinking */
     max-width: 100%;
+    align-items: center; /* Vertical center alignment */
   }
 
   /* Force user info to stay left-aligned relative to avatar in this specific group */
@@ -1197,6 +1199,9 @@ main {
     width: auto;
     flex: 0 1 auto; /* Allow shrinking but don't force grow */
     padding-top: 0;
+    min-width: 0;
+    max-width: 100%;
+    margin-left: 0;
   }
 
   .account-edit-card--tabs-bottom {
