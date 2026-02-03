@@ -2646,7 +2646,7 @@ button:hover {
   top: 0;
   border-radius: 999px;
   border: 2px solid transparent;
-  background: rgba(2, 7, 10, 0.5);
+  background: linear-gradient(120deg, rgba(2, 7, 10, 0.5), rgba(2, 7, 10, 0.1));
   pointer-events: none;
   transition:
     width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -2658,6 +2658,18 @@ button:hover {
   z-index: 0;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.45);
   box-sizing: border-box;
+  backdrop-filter: blur(2px);
+}
+.tabs-pill-indicator::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.12), transparent 55%);
+  filter: blur(6px);
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
 }
 
 .tabs-pill .profile-tab,
