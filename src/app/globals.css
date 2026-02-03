@@ -1100,8 +1100,8 @@ main {
   width: auto;
   gap: 2px;
   flex: 0 1 auto;
-  min-width: 0;
-  overflow: visible; /* Let text overflow naturally if needed instead of hiding block */
+  min-width: auto; /* Allow natural size, don't crush */
+  overflow: visible;
   max-width: 100%;
 }
 
@@ -1210,17 +1210,17 @@ main {
       max-width: 100%;
     }
 
-    /* Force user info to stay left-aligned relative to avatar in this specific group */
-    .account-profile-preview-user-info {
-      align-items: flex-start;
-      text-align: left;
-      width: auto;
-      flex: 0 1 auto;
-      padding-top: 0;
-      min-width: 0;
-      max-width: 100%;
-      margin-left: 0;
-    }
+  /* Force user info to stay left-aligned relative to avatar in this specific group */
+  .account-profile-preview-user-info {
+    align-items: flex-start;
+    text-align: left;
+    width: auto;
+    flex: 0 1 auto;
+    padding-top: 0;
+    min-width: auto;
+    max-width: 100%;
+    margin-left: 0;
+  }
 
   .account-edit-card--tabs-bottom {
     margin-bottom: 0; /* Reduce gap on mobile */
