@@ -1,6 +1,7 @@
 'use client';
 
 import { safeEmbedFromUrl } from '../lib/embeds';
+import { getSongProviderMeta } from '../lib/songProviders';
 
 export default function ProfileSongPlayer({
   provider,
@@ -10,11 +11,15 @@ export default function ProfileSongPlayer({
   embedStyle = 'auto',
   className = '',
   style,
+  showGlow = true,
+  glowColor,
 }) {
   const embed = safeEmbedFromUrl(provider, songUrl, embedStyle, autoPlay);
   const providerType = provider || '';
   const normalizedProvider = providerType === 'youtube-music' ? 'youtube' : providerType;
   const supportedProviders = ['soundcloud', 'spotify', 'youtube'];
+  const providerMeta = getSongProviderMeta(provider);
+  const effectiveGlowColor = showGlow ? (glowColor ?? providerMeta?.color ?? 'rgba(52, 225, 255, 0.4)') : undefined;
 
   if (!embed || !supportedProviders.includes(normalizedProvider)) return null;
 
@@ -33,6 +38,7 @@ export default function ProfileSongPlayer({
 
   const classes = [
     'profile-song-player',
+    showGlow ? 'profile-song-player--glow' : '',
     'neon-outline-card',
     `profile-song-player--${normalizedProvider}`,
     embedStyle === 'compact' ? 'profile-song-player--compact' : '',
@@ -40,18 +46,22 @@ export default function ProfileSongPlayer({
   ].filter(Boolean).join(' ');
   const containerHeight = embed?.height ? embed.height : 'auto';
   const iframeTitle = providerLabel ? `${providerLabel} player` : 'Profile song';
+  const containerStyle = {
+    position: 'relative',
+    width: '100%',
+    height: containerHeight,
+    boxSizing: 'border-box',
+    ...style,
+  };
+  if (effectiveGlowColor) {
+    containerStyle['--song-player-glow-color'] = effectiveGlowColor;
+  }
 
   // Basic rendering with provider-specific styling
   return (
     <div
       className={classes}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: containerHeight,
-        boxSizing: 'border-box',
-        ...style
-      }}
+      style={containerStyle}
     >
       {normalizedProvider === 'soundcloud' && embed && (
         <div

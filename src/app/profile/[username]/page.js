@@ -343,6 +343,13 @@ export default async function ProfilePage({ params }) {
     profile_song_autoplay_enabled: songAutoplayEnabled,
   };
 
+  const showRoleOnProfile = combinedProfileUser.profile_show_role != null
+    ? Boolean(combinedProfileUser.profile_show_role)
+    : (stats.profileShowRole ?? true);
+  const songProviderGlow = combinedProfileUser.profile_song_provider_glow != null
+    ? Boolean(combinedProfileUser.profile_song_provider_glow)
+    : (stats.profileSongProviderGlow ?? true);
+
   const formatProviderLabel = (value) => {
     if (!value) return 'Song';
     if (value === 'youtube-music') return 'YouTube Music';
@@ -467,9 +474,11 @@ export default async function ProfilePage({ params }) {
                 textShadow: `0 0 25px ${userColor}66, 0 0 10px ${userColor}44`,
               }}
             />
-            <div className="profile-role-label" style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px', marginBottom: '12px' }}>
-              {roleLabel}
-            </div>
+            {showRoleOnProfile && (
+              <div className="profile-role-label" style={{ color: roleColor, textShadow: '0 0 10px currentColor', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px', marginBottom: '12px' }}>
+                {roleLabel}
+              </div>
+            )}
             {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}
           <ProfileMoodSongBlock
             initialMoodText={combinedProfileUser.profile_mood_text}
@@ -480,6 +489,7 @@ export default async function ProfilePage({ params }) {
             initialHeadline={combinedProfileUser.profile_headline}
             songProviderLabel={songProviderLabel}
             isOwnProfile={isOwnProfile}
+            initialSongProviderGlow={songProviderGlow}
           />
             {(() => {
               const validLinks = profileLinks.filter(l => {

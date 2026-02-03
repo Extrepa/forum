@@ -188,68 +188,23 @@ export default function NotificationsMenu({
     if (!open || typeof window === 'undefined') return;
     
     const updatePosition = () => {
-      if (window.innerWidth > 640) {
-        // Desktop - use default positioning
-        setPopoverStyle({});
+      if (window.innerWidth <= 640) {
+        setPopoverStyle({
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          left: 0,
+          bottom: 0,
+          width: '100vw',
+          minWidth: '100vw',
+          maxWidth: '100vw',
+          height: '100vh',
+          maxHeight: '100vh',
+          margin: 0,
+        });
         return;
       }
-      
-      // Mobile - find the logo trigger element and calculate position
-      const trigger = document.querySelector('.notifications-logo-trigger');
-      if (!trigger) return;
-      
-      const triggerRect = trigger.getBoundingClientRect();
-      const popoverWidth = 380;
-      const viewportWidth = window.innerWidth;
-      const margin = 12; // Margin to ensure borders are visible
-      
-      // Determine width first - shrink if needed, but ensure margins
-      const maxPopoverWidth = viewportWidth - margin * 2;
-      const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
-      
-      // Calculate right position: align to logo's right edge if possible
-      // triggerRect.right is the distance from left edge of viewport to right edge of logo
-      const logoRightEdge = viewportWidth - triggerRect.right;
-      
-      // Check if we can align to logo without overflow
-      const spaceNeeded = finalWidth + margin;
-      const spaceAvailable = triggerRect.right; // Space from logo's right edge to viewport left
-      
-      let actualRight;
-      if (spaceAvailable >= spaceNeeded && logoRightEdge >= margin) {
-        // Enough space - align to logo
-        actualRight = logoRightEdge;
-      } else {
-        // Not enough space - center it with equal margins
-        // Calculate centered position: (viewportWidth - finalWidth) / 2
-        // This gives us equal space on both sides
-        const centeredRight = (viewportWidth - finalWidth) / 2;
-        actualRight = centeredRight;
-      }
-      
-      // Critical: Ensure popover doesn't overflow left edge
-      // Calculate where left edge would be: viewportWidth - actualRight - finalWidth
-      const leftEdgePosition = viewportWidth - actualRight - finalWidth;
-      if (leftEdgePosition < margin) {
-        // Would overflow left - adjust to ensure minimum margin
-        actualRight = viewportWidth - finalWidth - margin;
-      }
-      
-      // Final bounds check: ensure right is within valid range
-      // Right position must be: margin <= right <= viewportWidth - finalWidth - margin
-      actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
-      
-      // Calculate top position: below the logo
-      const top = triggerRect.bottom + 8;
-      
-      setPopoverStyle({
-        position: 'fixed',
-        top: `${top}px`,
-        right: `${actualRight}px`,
-        left: 'auto',
-        width: `${finalWidth}px`,
-        maxWidth: `${finalWidth}px`
-      });
+      setPopoverStyle({});
     };
     
     // Small delay to ensure DOM is ready

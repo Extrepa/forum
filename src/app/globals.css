@@ -2536,6 +2536,11 @@ button:hover {
   --neon-outline-glow-2: rgba(30, 215, 96, 0.25);
 }
 
+.profile-song-player--glow {
+  --song-player-glow-color: rgba(52, 225, 255, 0.35);
+  box-shadow: 0 20px 60px -28px var(--song-player-glow-color, rgba(52, 225, 255, 0.45));
+}
+
 
 
 .profile-socials-inline {
@@ -6167,34 +6172,21 @@ header::before {
     overflow: visible !important;
   }
   
-  /* On mobile, use fixed positioning to ensure it stays in viewport */
   @media (max-width: 640px) {
     .notifications-popover,
     .notifications-popover-errl.notifications-popover {
-      /* Keep original absolute positioning, but ensure it doesn't go off-screen */
-      position: absolute !important;
-      /* Align to the right of the anchor, or center if it helps */
-      right: 0 !important; 
-      left: auto !important;
-      transform: translateX(0) !important; /* Remove any centering transforms */
-      /* Keep original width unless viewport is smaller */
-      width: min(300px, 92vw) !important;
-      max-width: min(300px, 92vw) !important;
-      min-width: min(240px, 92vw) !important;
-      /* Ensure high z-index */
-      z-index: 9999 !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      min-width: 100vw !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
       margin: 0 !important;
-    }
-    
-  }
-  
-  /* On very small screens where 380px doesn't fit, shrink it */
-  @media (max-width: 396px) {
-  .notifications-popover,
-  .notifications-popover-errl.notifications-popover {
-      width: calc(100vw - 16px) !important;
-      max-width: calc(100vw - 16px) !important;
-      min-width: 0 !important;
+      border-radius: 0 !important;
     }
   }
   

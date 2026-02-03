@@ -150,8 +150,8 @@ export default function UserPopover({
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: `${finalComputedWidth}px`,
-        maxWidth: `${finalComputedWidth}px`,
+        width: `min(calc(100vw - ${padding}px), ${finalComputedWidth}px)`,
+        maxWidth: `min(calc(100vw - ${padding}px), ${finalComputedWidth}px)`,
         minWidth: `${minContentWidth}px`,
         maxHeight: 'min(190px, calc(100vh - 48px))',
         overflowY: 'auto',
@@ -163,6 +163,7 @@ export default function UserPopover({
         alignItems: 'center',
         gap: '2px',
         backdropFilter: 'blur(10px)',
+        boxSizing: 'border-box',
         animation: 'popoverIn 0.2s ease-out'
       }}
       onMouseEnter={onPopoverMouseEnter}

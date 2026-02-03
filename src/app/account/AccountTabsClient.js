@@ -12,6 +12,7 @@ import { formatDateTime, formatDate } from '../../lib/dates';
 import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
 import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
+import { getSongProviderMeta } from '../../lib/songProviders';
 import ErrlTabSwitcher from '../../components/ErrlTabSwitcher';
 
 function getRarityColor(value) {
@@ -28,13 +29,6 @@ const PROFILE_SONG_PROVIDERS = [
   { value: 'youtube', label: 'YouTube' },
   { value: 'youtube-music', label: 'YouTube Music' },
 ];
-
-const SONG_PROVIDER_META = {
-  youtube: { label: 'YouTube', abbr: 'Y', color: '#ff1744', icon: '/icons/social/youtube.png' },
-  'youtube-music': { label: 'YouTube Music', abbr: 'Y', color: '#ff1744', icon: '/icons/social/youtube.png' },
-  soundcloud: { label: 'SoundCloud', abbr: 'SC', color: '#ff7700', icon: '/icons/social/soundcloud.png' },
-  spotify: { label: 'Spotify', abbr: 'S', color: '#1DB954', icon: '/icons/social/spotify.svg' },
-};
 
 const getProfileSongProviderLabel = (value) => {
   if (!value) return '';
@@ -84,6 +78,8 @@ const TAB_COLOR_SEQUENCE = [
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
+  const [profileShowRole, setProfileShowRole] = useState(initialStats?.profileShowRole ?? true);
+  const [profileSongProviderGlow, setProfileSongProviderGlow] = useState(initialStats?.profileSongProviderGlow ?? true);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [isEditingSocials, setIsEditingSocials] = useState(false);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
@@ -141,6 +137,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     : '';
   const accountMoodChipStyle = getMoodChipStyle(accountMoodDescriptor);
   const statsSongProviderLabel = stats ? getProfileSongProviderLabel(stats.profileSongProvider) : '';
+
+  useEffect(() => {
+    setProfileShowRole(stats?.profileShowRole ?? true);
+  }, [stats?.profileShowRole]);
+
+  useEffect(() => {
+    setProfileSongProviderGlow(stats?.profileSongProviderGlow ?? true);
+  }, [stats?.profileSongProviderGlow]);
 
   // Refresh stats when tab becomes active or on focus
   useEffect(() => {
@@ -298,8 +302,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
     const usernameChanged = trimmed !== (user?.username || '');
     const colorChanged = selectedColorIndex !== (user?.preferred_username_color_index ?? null);
+    const showRoleChanged = profileShowRole !== (stats?.profileShowRole ?? true);
 
-    if (!usernameChanged && !colorChanged) {
+    if (!usernameChanged && !colorChanged && !showRoleChanged) {
       handleCancelUsername();
       return;
     }
@@ -324,6 +329,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           setUsernameStatus({ type: 'error', message: data.error || 'Failed to update color' });
           return;
         }
+      }
+      if (showRoleChanged) {
+        const res = await fetch('/api/account/profile-show-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_show_role: profileShowRole }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setUsernameStatus({ type: 'error', message: data.error || 'Failed to update role visibility' });
+          return;
+        }
+        setStats((prev) => (prev ? { ...prev, profileShowRole } : prev));
       }
       setUsernameStatus({ type: 'success', message: 'Profile updated!' });
       setTimeout(() => {
@@ -411,6 +429,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setSelectedColorIndex(user?.preferred_username_color_index ?? null);
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
+    setProfileShowRole(stats?.profileShowRole ?? true);
   };
 
   const handleCancelSocials = () => {
@@ -455,6 +474,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           profile_song_url: (profileSongUrl ?? '').trim(),
           profile_song_provider: (profileSongProvider ?? '').trim() || null,
           profile_song_autoplay_enabled: profileSongAutoplay,
+          profile_song_provider_glow: profileSongProviderGlow,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -472,6 +492,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       const songUrl = data.profileSongUrl ?? (profileSongUrl ?? '').trim();
       const songProvider = (data.profileSongProvider ?? (profileSongProvider ?? '').trim()) || null;
       const savedAutoplay = data.profileSongAutoplayEnabled !== undefined ? data.profileSongAutoplayEnabled : profileSongAutoplay;
+      const savedGlow = data.profileSongProviderGlow !== undefined ? Boolean(data.profileSongProviderGlow) : profileSongProviderGlow;
       setStats((prev) => ({
         ...prev,
         profileMoodText: moodText,
@@ -480,6 +501,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         profileSongUrl: songUrl,
         profileSongProvider: songProvider,
         profileSongAutoplayEnabled: savedAutoplay,
+        profileSongProviderGlow: savedGlow,
       }));
       setProfileMoodText(moodText);
       setProfileMoodEmoji(moodEmoji);
@@ -487,6 +509,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       setProfileSongUrl(songUrl);
       setProfileSongProvider(songProvider || '');
       setProfileSongAutoplay(savedAutoplay);
+      setProfileSongProviderGlow(savedGlow);
       const refreshRes = await fetch('/api/account/stats');
       if (refreshRes.ok) {
         const refreshed = await refreshRes.json();
@@ -537,6 +560,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setProfileSongUrl(stats?.profileSongUrl ?? '');
     setProfileSongProvider(stats?.profileSongProvider ?? '');
     setProfileSongAutoplay(Boolean(stats?.profileSongAutoplayEnabled));
+    setProfileSongProviderGlow(stats?.profileSongProviderGlow ?? true);
   };
 
   const colorOptions = [
@@ -1061,7 +1085,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             const providerKey = rawProviderKey === 'youtube-music' ? 'youtube' : rawProviderKey;
             const fallbackLabel = statsSongProviderLabel || 'Song';
             const fallbackAbbr = fallbackLabel.charAt(0).toUpperCase();
-            const providerMeta = SONG_PROVIDER_META[providerKey] || { label: fallbackLabel, abbr: fallbackAbbr, color: 'var(--accent)', icon: '' };
+            const providerMeta = getSongProviderMeta(providerKey, { label: fallbackLabel, abbr: fallbackAbbr });
             const descriptor = getSongDescriptor(stats.profileSongUrl) || providerMeta.label;
             return (
               <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1145,6 +1169,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     );
                   })}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', marginTop: '10px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={profileShowRole} onChange={(e) => setProfileShowRole(e.target.checked)} style={{ margin: 0 }} />
+                  <span>Show role on profile</span>
+                </label>
                 {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block', textAlign: 'center' }}>{usernameStatus.message}</span>}
               </div>
             )}
@@ -1230,6 +1258,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       </select>
                     </div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={profileSongProviderGlow} onChange={(e) => setProfileSongProviderGlow(e.target.checked)} />
+                      <span>Show song provider color glow behind player</span>
+                    </label>
                   </div>
                 )}
                 {isEditingExtras && (

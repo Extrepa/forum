@@ -129,7 +129,7 @@ export async function getStatsForUser(db, userId, options = {}) {
         .prepare(
           `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
            profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-           profile_headline, default_profile_tab, profile_cover_mode FROM users WHERE id = ?`
+           profile_headline, profile_show_role, profile_song_provider_glow, default_profile_tab, profile_cover_mode FROM users WHERE id = ?`
         )
         .bind(userId)
         .first();
@@ -139,18 +139,18 @@ export async function getStatsForUser(db, userId, options = {}) {
           .prepare(
             `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
              profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-             profile_headline, default_profile_tab FROM users WHERE id = ?`
+             profile_headline, profile_show_role, profile_song_provider_glow, default_profile_tab FROM users WHERE id = ?`
           )
           .bind(userId)
           .first();
       } catch (__) {
         try {
-          extras = await db
-            .prepare(
-              `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
-               profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
-               profile_headline FROM users WHERE id = ?`
-            )
+        extras = await db
+          .prepare(
+            `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+             profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+             profile_headline, profile_show_role, profile_song_provider_glow FROM users WHERE id = ?`
+          )
             .bind(userId)
             .first();
         } catch (___) {}
@@ -193,6 +193,8 @@ export async function getStatsForUser(db, userId, options = {}) {
       profileHeadline: userInfo?.profile_headline ?? '',
       profileCoverMode: userInfo?.profile_cover_mode ?? 'cover',
       defaultProfileTab: userInfo?.default_profile_tab ?? null,
+      profileShowRole: userInfo?.profile_show_role != null ? Boolean(userInfo.profile_show_role) : true,
+      profileSongProviderGlow: userInfo?.profile_song_provider_glow != null ? Boolean(userInfo.profile_song_provider_glow) : true,
     };
   } catch (e) {
     return empty;

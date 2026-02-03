@@ -38,6 +38,8 @@ export async function POST(request) {
   let songUrl = sanitizeText(body.profile_song_url, 2000);
   let songProvider = (body.profile_song_provider || '').toLowerCase().trim();
   const songAutoplayEnabled = Boolean(body.profile_song_autoplay_enabled);
+  const songProviderGlow = body.profile_song_provider_glow;
+  const glowValue = songProviderGlow == null ? null : (songProviderGlow ? 1 : 0);
 
   if (songProvider && !ALLOWED_PROVIDERS.includes(songProvider)) {
     songProvider = '';
@@ -67,6 +69,7 @@ export async function POST(request) {
           profile_song_url = ?,
           profile_song_provider = ?,
           profile_song_autoplay_enabled = ?,
+          profile_song_provider_glow = COALESCE(?, profile_song_provider_glow),
           profile_headline = ?
         WHERE id = ?`
       )
@@ -77,6 +80,7 @@ export async function POST(request) {
         songUrl || null,
         songProvider || null,
         songAutoplayEnabled ? 1 : 0,
+        glowValue,
         headline || null,
         user.id
       )
@@ -84,7 +88,7 @@ export async function POST(request) {
     // Read back from DB to verify write; if this fails, columns may be missing
     const row = await db
       .prepare(
-        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline FROM users WHERE id = ?`
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline FROM users WHERE id = ?`
       )
       .bind(user.id)
       .first();
@@ -96,6 +100,7 @@ export async function POST(request) {
       profileSongUrl: row?.profile_song_url ?? songUrl ?? '',
       profileSongProvider: row?.profile_song_provider ?? songProvider ?? '',
       profileSongAutoplayEnabled: row?.profile_song_autoplay_enabled != null ? Boolean(row.profile_song_autoplay_enabled) : songAutoplayEnabled,
+      profileSongProviderGlow: row?.profile_song_provider_glow != null ? Boolean(row.profile_song_provider_glow) : (songProviderGlow != null ? Boolean(songProviderGlow) : true),
     };
     return NextResponse.json(payload);
   } catch (e) {
@@ -121,7 +126,7 @@ export async function GET() {
   try {
     const row = await db
       .prepare(
-        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline FROM users WHERE id = ?`
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline FROM users WHERE id = ?`
       )
       .bind(user.id)
       .first();
@@ -132,6 +137,7 @@ export async function GET() {
       profileSongUrl: row?.profile_song_url ?? '',
       profileSongProvider: row?.profile_song_provider ?? '',
       profileSongAutoplayEnabled: Boolean(row?.profile_song_autoplay_enabled),
+      profileSongProviderGlow: row?.profile_song_provider_glow != null ? Boolean(row.profile_song_provider_glow) : true,
     });
   } catch (e) {
     console.error('profile-extras GET failed', e?.message ?? e);

@@ -1436,7 +1436,7 @@ export default function AvatarCustomizer({ onSave, initialState, onChanges, prev
             }}
           >
             <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--errl-accent-3)' }}>Mini preview</span>
-            <AvatarImage avatarKey={previewAvatarKey} alt="Mini preview" size={42} loading="lazy" />
+            <AvatarImage avatarKey={previewAvatarKey} alt="Mini preview" size={42} />
           </div>
         )}
       </div>

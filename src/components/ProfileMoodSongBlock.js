@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import ProfileSongPlayer from './ProfileSongPlayer';
 import { isProfileFlagEnabled } from '../lib/featureFlags';
 import { getMoodChipStyle } from '../lib/moodThemes';
+import { getSongProviderMeta } from '../lib/songProviders';
 
 /**
  * Renders mood/song/player on public profile. When server didn't return mood/song
@@ -20,6 +21,7 @@ export default function ProfileMoodSongBlock({
   initialSongAutoplayEnabled,
   initialHeadline,
   isOwnProfile,
+  initialSongProviderGlow,
   songProviderLabel: initialSongProviderLabel,
 }) {
   const [moodText, setMoodText] = useState(initialMoodText ?? '');
@@ -30,16 +32,13 @@ export default function ProfileMoodSongBlock({
   const [headline, setHeadline] = useState(initialHeadline ?? '');
   const [fetched, setFetched] = useState(false);
   const [rightColumnTarget, setRightColumnTarget] = useState(null);
+  const [songProviderGlow, setSongProviderGlow] = useState(initialSongProviderGlow ?? true);
 
   const hasMood = isProfileFlagEnabled('profile_mood') && (moodText || moodEmoji);
   const hasSong = isProfileFlagEnabled('profile_music') && songUrl;
   const moodDescriptor = (moodText?.trim() || moodEmoji?.trim() || '');
   const moodChipStyle = getMoodChipStyle(moodDescriptor);
-  const songProviderInfo = {
-    youtube: { label: 'YouTube', icon: '/icons/social/youtube.png' },
-    soundcloud: { label: 'SoundCloud', icon: '/icons/social/soundcloud.png' },
-    spotify: { label: 'Spotify', icon: '/icons/social/spotify.svg' },
-  }[songProvider];
+  const songProviderInfo = getSongProviderMeta(songProvider, { label: initialSongProviderLabel ?? 'Song' });
 
   const songProviderLabel = songProviderInfo?.label ?? (initialSongProviderLabel ?? 'Song');
 
@@ -51,7 +50,8 @@ export default function ProfileMoodSongBlock({
     setSongProvider((initialSongProvider ?? '').toLowerCase().trim());
     setSongAutoplayEnabled(Boolean(initialSongAutoplayEnabled));
     setHeadline(initialHeadline ?? '');
-  }, [initialMoodText, initialMoodEmoji, initialSongUrl, initialSongProvider, initialSongAutoplayEnabled, initialHeadline]);
+    setSongProviderGlow(initialSongProviderGlow ?? true);
+  }, [initialMoodText, initialMoodEmoji, initialSongUrl, initialSongProvider, initialSongAutoplayEnabled, initialHeadline, initialSongProviderGlow]);
 
   useEffect(() => {
     const target = document.querySelector('[data-profile-mood-song-right-column-slot]');
@@ -78,6 +78,7 @@ export default function ProfileMoodSongBlock({
           autoPlay={songAutoplayEnabled}
           providerLabel={songProviderLabel}
           embedStyle="profile_full_height" /* Use new style for full card height */
+          showGlow={songProviderGlow}
         />
       ) : hasSong ? (
         <div className="profile-song-compact">

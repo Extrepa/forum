@@ -116,7 +116,6 @@ export default function Username({
             alt={`${safeName}'s avatar`}
             size={24}
             className="username-avatar"
-            loading="lazy"
           />
         )}
         <span>{safeName}</span>
