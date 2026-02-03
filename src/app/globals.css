@@ -2615,7 +2615,8 @@ button:hover {
 .tabs-pill {
   position: relative;
   width: 100%;
-  padding: clamp(6px, 1vw, 8px) clamp(10px, 1vw, 14px);
+  padding-block: clamp(6px, 1vw, 8px);
+  padding-inline: clamp(10px, 1vw, 14px);
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.3);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(2, 7, 10, 0.6));
@@ -2635,9 +2636,17 @@ button:hover {
   flex-wrap: nowrap;
   gap: 0;
   min-width: 0;
-  overflow: hidden;
+  /* Allow horizontal swipe on very small viewports (edit profile has 8 tabs). */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   padding: 0 clamp(8px, 1vw, 12px);
   justify-content: stretch;
+}
+
+.tabs-pill-inner::-webkit-scrollbar {
+  display: none;
 }
 
 .tabs-pill-indicator {
@@ -2691,6 +2700,7 @@ button:hover {
 .tabs-pill .account-edit-tab:hover {
   color: var(--tab-color);
   box-shadow: none;
+  background: transparent;
 }
 
 .tabs-pill .account-edit-tab--active,
@@ -2699,6 +2709,7 @@ button:hover {
   color: var(--tab-color);
   box-shadow: none;
   text-shadow: none;
+  background: transparent;
 }
 
 .tabs-pill .account-edit-tab-label {
@@ -2745,30 +2756,21 @@ button:hover {
 .profile-tab {
   flex: 0 0 auto;
   border-radius: 999px;
-  border: 1px solid rgba(52, 225, 255, 0.2);
-  background: rgba(2, 7, 10, 0.4);
-  color: var(--muted);
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 400;
+  padding: clamp(6px, 0.9vw, 9px) clamp(14px, 1.8vw, 16px);
+  font-size: clamp(11px, 1vw, 14px);
+  font-weight: 500;
   cursor: pointer;
   transition: color 0.2s ease;
-  min-height: 40px;
   touch-action: manipulation;
+  background: transparent;
+  border: none;
+  color: var(--tab-color, rgba(255, 255, 255, 0.92));
+  text-shadow: none;
 }
 
+.profile-tab:hover,
 .profile-tab--active {
-  border-color: rgba(245, 255, 183, 0.8);
-  background: rgba(245, 255, 183, 0.2);
-  color: var(--errl-accent-3);
-  font-weight: 600;
-  box-shadow: none;
-  text-shadow: 0 0 12px rgba(245, 255, 183, 0.45);
-}
-
-.profile-tab:hover {
-  border-color: rgba(245, 255, 183, 0.6);
-  color: var(--ink);
+  color: var(--tab-color, rgba(255, 255, 255, 0.92));
 }
 
 .profile-stats-block {
@@ -2977,12 +2979,10 @@ button:hover {
 /* Narrow viewports: same as 768px - Edit Avatar in top right corner */
 @media (max-width: 600px) {
 
-  .account-edit-card--tabs-bottom {
-    padding-bottom: 2px !important;
-  }
   
   .account-edit-card--tabs-bottom .tabs-pill {
     margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   .account-edit-card--tabs-bottom .account-edit-tab-content--above {
@@ -3030,7 +3030,8 @@ button:hover {
   }
 
   .tabs-pill {
-    padding: clamp(6px, 1.4vw, 10px);
+    padding-block: clamp(6px, 1.4vw, 10px);
+    padding-inline: clamp(10px, 1vw, 14px);
   }
 
   .tabs-pill .profile-tab,
@@ -3089,11 +3090,17 @@ button:hover {
     margin-top: 8px;
   }
 
+  .tabs-pill-inner {
+    touch-action: pan-x;
+  }
+
   .tabs-pill .profile-tab,
   .tabs-pill .account-edit-tab {
     padding: 6px 8px;
     font-size: 11px;
     min-width: 56px;
+    /* Improve iOS/Android horizontal swipe behavior in the scrollable pill. */
+    touch-action: pan-x;
   }
 
   .tabs-pill .account-edit-tab--username {

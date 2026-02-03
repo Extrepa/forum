@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 
-const DEFAULT_COLOR_SEQUENCE = [
+const ERRL_TAB_COLOR_SEQUENCE = [
   '#34E1FF',
   '#FF34F5',
   '#FFFF00',
@@ -20,7 +20,7 @@ export default function ErrlTabSwitcher({
   className = '',
   renderTabLabel,
   getTabClassName,
-  colorSequence = DEFAULT_COLOR_SEQUENCE,
+  colorSequence = ERRL_TAB_COLOR_SEQUENCE,
 }) {
   const tabsInnerRef = useRef(null);
   const tabButtonsRef = useRef([]);
@@ -35,13 +35,13 @@ export default function ErrlTabSwitcher({
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
+    const container = tabsInnerRef.current;
 
     const updateIndicator = () => {
       const targetId = hoveredTabId ?? activeTab ?? tabs[0]?.id;
       const targetIndex = tabs.findIndex((tab) => tab.id === targetId);
       const index = targetIndex >= 0 ? targetIndex : 0;
       const button = tabButtonsRef.current[index];
-      const container = tabsInnerRef.current;
       if (!button || !container) {
         setIndicatorStyle((prev) => ({
           ...prev,
@@ -64,8 +64,13 @@ export default function ErrlTabSwitcher({
 
     updateIndicator();
     const handleResize = () => window.requestAnimationFrame(updateIndicator);
+    const handleScroll = () => window.requestAnimationFrame(updateIndicator);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    container?.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      container?.removeEventListener('scroll', handleScroll);
+    };
   }, [activeTab, hoveredTabId, tabs, colorSequence]);
 
   const defaultLabel = (tab) => tab.label;
@@ -82,9 +87,9 @@ export default function ErrlTabSwitcher({
             left: indicatorStyle.left,
             top: indicatorStyle.top,
             borderColor: indicatorStyle.color,
-            boxShadow: `0 0 28px ${indicatorStyle.color}`,
+            boxShadow: `0 0 24px ${indicatorStyle.color}`,
             opacity: indicatorStyle.width ? 1 : 0,
-            background: 'rgba(2, 7, 10, 0.45)',
+            background: 'transparent',
           }}
           aria-hidden
         />
@@ -111,3 +116,5 @@ export default function ErrlTabSwitcher({
     </div>
   );
 }
+
+export { ERRL_TAB_COLOR_SEQUENCE };

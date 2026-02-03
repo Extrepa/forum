@@ -1,8 +1,9 @@
-'use client';
+ 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import ErrlTabSwitcher from './ErrlTabSwitcher';
 
 const GALLERY_MAX = 10;
 const GALLERY_COLS = 5;
@@ -14,6 +15,10 @@ const PROFILE_TABS = [
   { id: 'socials', label: 'Socials' },
   { id: 'stats', label: 'Stats' },
 ];
+
+// Keep public profile tab colors consistent with the edit-profile tab palette:
+// Activity (yellow), Gallery (green), Notes (orange), Socials (cyan), Stats (lime).
+const PROFILE_TAB_COLOR_SEQUENCE = ['#FFFF00', '#00FF41', '#FF6B00', '#00D9FF', '#CCFF00'];
 
 function getRarityColor(value) {
   if (value === 0) return 'var(--muted)';
@@ -63,7 +68,6 @@ export default function ProfileTabsClient({
   const [guestbookSubmitting, setGuestbookSubmitting] = useState(false);
   const [guestbookError, setGuestbookError] = useState(null);
   const [galleryModalEntry, setGalleryModalEntry] = useState(null);
-  const activeIndex = activeTab == null ? -1 : tabs.findIndex(t => t.id === activeTab);
   const displayedGalleryEntries = galleryEntries.slice(0, GALLERY_MAX);
 
   const summaryText = (tabId) => {
@@ -480,31 +484,13 @@ export default function ProfileTabsClient({
 
       </div>
 
-      <div className="tabs-pill" role="tablist" aria-label="Profile sections">
-        <div className="tabs-pill-inner">
-          <div
-            className="tabs-pill-indicator"
-            style={{
-              width: activeIndex >= 0 ? `${100 / tabs.length}%` : 0,
-              transform: activeIndex >= 0 ? `translateX(${activeIndex * 100}%)` : 'translateX(-100%)',
-              opacity: activeIndex >= 0 ? 1 : 0,
-            }}
-            aria-hidden
-          />
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={activeTab === tab.id ? 'profile-tab profile-tab--active' : 'profile-tab'}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ErrlTabSwitcher
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        colorSequence={PROFILE_TAB_COLOR_SEQUENCE}
+        getTabClassName={(tab) => 'profile-tab'}
+      />
     </div>
   );
 }
