@@ -72,7 +72,7 @@ export async function POST(request) {
           profile_song_autoplay_enabled = ?,
           profile_song_provider_glow = COALESCE(?, profile_song_provider_glow),
           profile_headline = ?,
-          profile_show_role = ?
+          profile_show_role = COALESCE(?, profile_show_role)
         WHERE id = ?`
       )
       .bind(

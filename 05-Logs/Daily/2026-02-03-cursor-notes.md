@@ -35,3 +35,9 @@
 - `src/app/api/account/stats/route.js` (uses updated lib)
 - `src/components/ProfileSongPlayer.js` (verified support for youtube-music)
 - `src/app/globals.css` (mobile spacing, tab collapse, and neon outline cleanup)
+
+## Outstanding Notes
+- Errl tab indicator still needs work: start the outline at whichever tab is hovered first (don’t animate in from the top-left), continue showing the glow on hover even if no tab is selected, and only persist the “active” outline when a tab is actually open; leave regular hover styling for other tabs and ensure the initial hover keeps the outline under that tab.
+- Edit profile UX additions: add the “Show role on profile” checkbox beside the username input, add the “Show song provider color glow behind player” checkbox under Mood & Song, adjust the edit profile tab button so it inherits the same styling/hover effects as the View Profile breadcrumb button, and on smaller viewports keep the avatar on the same column as username/role/mood (avatar should live between the name and role when visible, move above username only when absolutely necessary).
+- Notifications popover should stay compact on large viewports but stretch to fill the viewport area on small/mobile screens (reset any overflow and ensure height/width respond to viewport so it never overflows).
+- Need to remind future work to apply migration 0059 (`npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0059_add_profile_display_settings.sql --env preview` / same without `--env preview` for prod) so `profile_show_role` and `profile_song_provider_glow` columns exist everywhere the APIs rely on them.

@@ -1068,12 +1068,13 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center; /* Center the avatar and info group */
+  justify-content: flex-start; /* Changed from center to flex-start to prevent overflow push */
   gap: 16px;
-  width: auto;
-  flex: 0 1 auto; /* Allow shrinking but don't force grow to fill everything if centered */
+  width: 100%; /* Take available width */
+  flex: 1 1 auto; /* Allow grow and shrink */
   min-width: 0;
   padding-top: 0;
+  overflow: hidden; /* Contain children */
 }
 
 .account-profile-preview-user-info {
@@ -1112,9 +1113,9 @@ main {
     width: 100%;
     margin: 0 auto;
     margin-bottom: 0;
-    flex-direction: row;
+    flex-direction: row; /* Keep row layout */
     align-items: center;
-    justify-content: center; /* Ensure centering on mobile */
+    justify-content: flex-start; /* Align start to prevent center overflow issues */
     min-height: auto;
     gap: 12px;
   }
@@ -1130,11 +1131,11 @@ main {
 
   .account-profile-preview-left-column {
     flex-direction: row;
-    justify-content: center; /* Ensure centering on mobile */
+    justify-content: flex-start; /* Align start */
     align-items: center;
     gap: 12px;
     padding: 0;
-    width: auto; /* Auto width to allow centering */
+    width: 100%; /* Fill available width */
     min-width: 0;
   }
 
