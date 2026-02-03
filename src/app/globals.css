@@ -1066,25 +1066,59 @@ main {
 .account-profile-preview-left-column {
   position: relative;
   display: flex;
-  flex-direction: column; /* Stack header group and extras vertically */
-  align-items: center; /* Center everything horizontally */
-  justify-content: center;
-  gap: 12px;
+  flex-direction: row; /* Row layout for desktop */
+  flex-wrap: wrap; /* Allow wrapping */
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
   width: 100%;
   flex: 1 1 auto;
   min-width: 0;
   padding-top: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .account-profile-header-group {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 16px;
-  width: 100%;
+  width: auto;
+  flex-shrink: 0;
 }
+
+.account-profile-extras {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  flex: 1 1 auto;
+  min-width: 250px;
+}
+
+/* Tablet/Mobile Breakpoint for Left Column Layout */
+@media (max-width: 900px) {
+  .account-profile-preview-left-column {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .account-profile-header-group {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .account-profile-extras {
+    width: 100%;
+    align-items: center;
+  }
+}
+
 
 .account-profile-preview-user-info {
   display: flex;

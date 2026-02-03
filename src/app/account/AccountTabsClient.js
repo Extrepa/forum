@@ -1072,7 +1072,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', width: '100%', textAlign: 'center' }}>
+                <div className="account-profile-extras">
                   {(stats.profileMoodText || stats.profileMoodEmoji) && (
                     <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                       <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
