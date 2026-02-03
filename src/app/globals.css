@@ -1066,15 +1066,24 @@ main {
 .account-profile-preview-left-column {
   position: relative;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center; /* Center the group */
-  gap: 16px;
+  flex-direction: column; /* Stack header group and extras vertically */
+  align-items: center; /* Center everything horizontally */
+  justify-content: center;
+  gap: 12px;
   width: 100%;
   flex: 1 1 auto;
   min-width: 0;
   padding-top: 0;
   overflow: hidden;
+}
+
+.account-profile-header-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
 }
 
 .account-profile-preview-user-info {
@@ -1113,7 +1122,7 @@ main {
     width: 100%;
     margin: 0 auto;
     margin-bottom: 0;
-    flex-direction: column; /* Stack main columns (left col vs right col/buttons) if needed, but here we want left col to be main */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: auto;
@@ -1130,13 +1139,19 @@ main {
   }
 
   .account-profile-preview-left-column {
-    flex-direction: row; /* Keep avatar and text side-by-side */
-    justify-content: center; /* Center them together */
+    flex-direction: column; /* Stack vertically on mobile too */
+    justify-content: center;
     align-items: center;
     gap: 12px;
     padding: 0;
     width: 100%;
     min-width: 0;
+  }
+
+  .account-profile-header-group {
+    flex-direction: row; /* Keep avatar and identity side-by-side even on mobile */
+    justify-content: center; /* Center the group */
+    width: 100%;
   }
 
   .account-profile-preview-buttons-container {

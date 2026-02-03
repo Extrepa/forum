@@ -1057,17 +1057,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               style={coverPreviewEntry ? { '--profile-cover-image': `url(/api/media/${coverPreviewEntry.image_key})` } : undefined}
             >
               <div className="account-profile-preview-left-column">
-                <div className="account-profile-preview-avatar-container">
-                  {user.avatar_key ? (
-                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
-                  ) : (
-                    <div className="no-avatar-placeholder">No avatar</div>
-                  )}
-                </div>
+                <div className="account-profile-header-group">
+                  <div className="account-profile-preview-avatar-container">
+                    {user.avatar_key ? (
+                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
+                    ) : (
+                      <div className="no-avatar-placeholder">No avatar</div>
+                    )}
+                  </div>
 
-                <div className="account-profile-preview-user-info">
+                  <div className="account-profile-preview-user-info">
                   <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(20px, 4.5vw, 26px)', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', display: 'block' }} />
                   <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', width: '100%', textAlign: 'center' }}>
                   {(stats.profileMoodText || stats.profileMoodEmoji) && (
                     <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                       <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
