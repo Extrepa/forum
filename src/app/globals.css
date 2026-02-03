@@ -2514,46 +2514,20 @@ button:hover {
   opacity: 1;
 }
 
-.profile-song-player--soundcloud.neon-outline-card::before,
-.profile-song-player--soundcloud.neon-outline-card::after,
-.profile-song-player--youtube.neon-outline-card::after,
-.profile-song-player--spotify.neon-outline-card::after {
-  border-radius: 18px !important;
-  opacity: 1 !important;
+.profile-song-player--soundcloud.neon-outline-card {
+  --neon-outline-gradient: linear-gradient(120deg, rgba(255, 186, 147, 0.9), rgba(255, 107, 0, 0.9));
+  --neon-outline-glow-1: rgba(255, 107, 0, 0.45);
+  --neon-outline-glow-2: rgba(255, 107, 0, 0.25);
 }
-
-.profile-song-player--soundcloud.neon-outline-card::before {
-  background: rgba(255, 107, 0, 0.9) !important; /* Orange */
-  animation: none !important;
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
+.profile-song-player--youtube.neon-outline-card {
+  --neon-outline-gradient: linear-gradient(120deg, rgba(255, 128, 128, 0.9), rgba(255, 0, 0, 0.9));
+  --neon-outline-glow-1: rgba(255, 0, 0, 0.45);
+  --neon-outline-glow-2: rgba(255, 0, 0, 0.25);
 }
-.profile-song-player--soundcloud.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4) !important, 0 0 32px rgba(255, 107, 0, 0.2) !important; /* Orange glow */
-}
-.profile-song-player--youtube.neon-outline-card::before {
-  background: rgba(255, 0, 0, 0.9) !important; /* Red */
-  animation: none !important;
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
-}
-.profile-song-player--youtube.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4) !important, 0 0 32px rgba(255, 0, 0, 0.2) !important; /* Red glow */
-}
-.profile-song-player--spotify.neon-outline-card::before {
-  background: rgba(30, 215, 96, 0.9) !important; /* Green */
-  animation: none !important;
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
-}
-.profile-song-player--spotify.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4) !important, 0 0 32px rgba(30, 215, 96, 0.2) !important; /* Green glow */
+.profile-song-player--spotify.neon-outline-card {
+  --neon-outline-gradient: linear-gradient(120deg, rgba(74, 255, 175, 0.9), rgba(30, 215, 96, 0.9));
+  --neon-outline-glow-1: rgba(30, 215, 96, 0.45);
+  --neon-outline-glow-2: rgba(30, 215, 96, 0.25);
 }
 
 
@@ -4905,8 +4879,7 @@ header::before,
 .list-item::before,
 .tabs-pill::before,
 .profile-card::before,
-.account-edit-card::before,
-.neon-outline-card::before {
+.account-edit-card::before {
   --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
@@ -4931,13 +4904,37 @@ header::before,
   pointer-events: none;
 }
 
+.neon-outline-card::before {
+  --neon-outline-gradient: linear-gradient(
+    120deg,
+    rgba(52, 225, 255, 0.9),
+    rgba(255, 52, 245, 0.9),
+    rgba(245, 255, 183, 0.9),
+    rgba(0, 245, 160, 0.9),
+    rgba(52, 225, 255, 0.9)
+  );
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--neon-outline-gradient);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: neonChase 6s linear infinite;
+  pointer-events: none;
+}
+
 header::after,
 .card::after,
 .list-item::after,
 .tabs-pill::after,
 .profile-card::after,
-.account-edit-card::after,
-.neon-outline-card::after {
+.account-edit-card::after {
   --neon-default-glow-1: rgba(52, 225, 255, 0.18);
   --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";
@@ -4947,6 +4944,20 @@ header::after,
   box-shadow:
     0 0 24px var(--neon-default-glow-1), /* Use variable */
     0 0 32px var(--neon-default-glow-2); /* Use variable */
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.neon-outline-card::after {
+  --neon-outline-glow-1: rgba(52, 225, 255, 0.18);
+  --neon-outline-glow-2: rgba(255, 52, 245, 0.12);
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow:
+    0 0 24px var(--neon-outline-glow-1),
+    0 0 32px var(--neon-outline-glow-2);
   opacity: 0.8;
   pointer-events: none;
 }
