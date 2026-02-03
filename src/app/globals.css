@@ -1186,20 +1186,17 @@ main {
   .account-profile-header-group {
     flex-direction: row; /* Keep avatar and identity side-by-side even on mobile */
     justify-content: center; /* Center the group */
-    width: 100%;
+    width: auto; /* Allow shrinking */
+    max-width: 100%;
   }
 
-  .account-profile-preview-buttons-container {
-    position: static;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-left: auto;
-  }
-
+  /* Force user info to stay left-aligned relative to avatar in this specific group */
   .account-profile-preview-user-info {
-    padding-top: 0;
-    text-align: left;
     align-items: flex-start;
+    text-align: left;
+    width: auto;
+    flex: 0 1 auto; /* Allow shrinking but don't force grow */
+    padding-top: 0;
   }
 
   .account-edit-card--tabs-bottom {
