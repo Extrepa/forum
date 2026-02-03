@@ -19,8 +19,10 @@ export async function GET() {
     const { results } = await db
       .prepare(
         `SELECT n.id, n.type, n.target_type, n.target_id, n.created_at, n.read_at, n.seen_at,
+                p.type AS target_post_category,
                 u.username AS actor_username
          FROM notifications n
+         LEFT JOIN posts p ON n.target_type = 'post' AND p.id = n.target_id
          JOIN users u ON u.id = n.actor_user_id
          WHERE n.user_id = ?
          ORDER BY n.created_at DESC
@@ -38,8 +40,10 @@ export async function GET() {
     const { results } = await db
       .prepare(
         `SELECT n.id, n.type, n.target_type, n.target_id, n.created_at, n.read_at,
+                p.type AS target_post_category,
                 u.username AS actor_username
          FROM notifications n
+         LEFT JOIN posts p ON n.target_type = 'post' AND p.id = n.target_id
          JOIN users u ON u.id = n.actor_user_id
          WHERE n.user_id = ?
          ORDER BY n.created_at DESC
@@ -54,4 +58,3 @@ export async function GET() {
     });
   }
 }
-

@@ -5346,6 +5346,20 @@ header::before {
   }
 }
 
+@media (max-width: 360px) {
+  .site {
+    padding: 12px 8px 28px;
+  }
+
+  .tabs-pill {
+    padding-inline: clamp(6px, 2vw, 10px);
+  }
+
+  .tabs-pill-inner {
+    padding: 0 clamp(5px, 1vw, 8px);
+  }
+}
+
 /* Large screen optimizations */
 @media (min-width: 1025px) {
   .site {
