@@ -2684,12 +2684,11 @@ button:hover {
   overflow: visible;
   box-shadow: none;
   text-shadow: none;
-  transition: color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: color 0.25s ease;
 }
 
 .tabs-pill .profile-tab:hover,
 .tabs-pill .account-edit-tab:hover {
-  transform: translateY(-1px);
   color: var(--tab-color);
   box-shadow: none;
 }
@@ -2697,7 +2696,6 @@ button:hover {
 .tabs-pill .account-edit-tab--active,
 .tabs-pill .profile-tab--active {
   font-weight: 700;
-  transform: translateY(-2px);
   color: var(--tab-color);
   box-shadow: none;
   text-shadow: none;
