@@ -2997,6 +2997,16 @@ button:hover {
   .profile-tab-content--above {
     margin-bottom: 0;
   }
+
+  .profile-tabs-wrapper.profile-tabs-wrapper--no-selection {
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .profile-tab-content.profile-tab-content--no-selection {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
 }
 
 /* Narrow viewports: same as 768px - Edit Avatar in top right corner */
@@ -3070,6 +3080,20 @@ button:hover {
     padding-bottom: 4px;
   }
 
+  .profile-tabs-wrapper.profile-tabs-wrapper--no-selection {
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .profile-tab-content.profile-tab-content--no-selection {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .profile-tab-content--above.profile-tab-content--no-selection {
+    margin-bottom: 0 !important;
+  }
+
   .profile-stats-block--grid {
     padding: 12px 14px !important;
   }
@@ -3111,6 +3135,11 @@ button:hover {
 
   .profile-tabs-wrapper {
     margin-top: 8px;
+  }
+
+  .profile-tabs-wrapper.profile-tabs-wrapper--no-selection {
+    margin-top: 0;
+    gap: 0;
   }
 
   .tabs-pill-inner {
@@ -5302,6 +5331,16 @@ header::before {
 
   .profile-tab-content--above {
     margin-bottom: 6px;
+  }
+
+  .profile-tabs-wrapper.profile-tabs-wrapper--no-selection {
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .profile-tab-content.profile-tab-content--no-selection {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   .project-link {
