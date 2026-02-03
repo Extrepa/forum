@@ -5285,6 +5285,10 @@ header::before {
     order: 3;
   }
 
+  .profile-song-player .embed-frame {
+    margin: 0;
+  }
+
   .profile-tabs-wrapper {
     margin-top: 4px;
     gap: 4px;
