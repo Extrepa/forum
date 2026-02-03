@@ -1082,12 +1082,12 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center; /* Ensure content is centered if it wraps */
-  gap: 16px;
+  justify-content: center;
+  gap: 12px; /* Reduce gap slightly to help fit */
   width: auto;
-  flex-shrink: 0;
+  flex-shrink: 1; /* Allow group to shrink if needed */
   max-width: 100%;
-  flex-wrap: nowrap; /* PREVENT WRAPPING */
+  flex-wrap: nowrap;
 }
 
 /* Ensure user info doesn't collapse */
@@ -1100,7 +1100,7 @@ main {
   width: auto;
   gap: 2px;
   flex: 0 1 auto;
-  min-width: auto; /* Allow natural size, don't crush */
+  min-width: 0; /* Allow shrinking if absolutely needed */
   overflow: visible;
   max-width: 100%;
 }
@@ -1140,17 +1140,6 @@ main {
   }
 
 
-.account-profile-preview-user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Align text to start */
-  justify-content: center;
-  text-align: left; /* Align text to left */
-  width: auto;
-  gap: 2px;
-  flex: 0 1 auto; /* Use natural width, don't force grow */
-  min-width: 0; /* Allow shrinking */
-}
 .account-profile-preview-user-info > * {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
@@ -1217,7 +1206,7 @@ main {
     width: auto;
     flex: 0 1 auto;
     padding-top: 0;
-    min-width: auto;
+    min-width: 0; /* Consistent behavior */
     max-width: 100%;
     margin-left: 0;
   }
