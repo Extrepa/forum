@@ -4906,7 +4906,7 @@ header::before,
 .tabs-pill::before,
 .profile-card::before,
 .account-edit-card::before,
-.neon-outline-card:not(.profile-song-player)::before {
+.neon-outline-card::before {
   --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
@@ -4937,7 +4937,7 @@ header::after,
 .tabs-pill::after,
 .profile-card::after,
 .account-edit-card::after,
-.neon-outline-card:not(.profile-song-player)::after {
+.neon-outline-card::after {
   --neon-default-glow-1: rgba(52, 225, 255, 0.18);
   --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";
