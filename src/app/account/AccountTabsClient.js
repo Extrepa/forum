@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -57,6 +57,28 @@ const getSongDescriptor = (sourceUrl) => {
     return sourceUrl;
   }
 };
+
+const EDIT_PROFILE_SUB_TABS = [
+  { id: 'username', label: 'Username' },
+  { id: 'avatar', label: 'Avatar' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'gallery', label: 'Gallery' },
+  { id: 'guestbook', label: 'Notes' },
+  { id: 'mood', label: 'Mood & Song' },
+  { id: 'socials', label: 'Socials' },
+  { id: 'stats', label: 'Stats' },
+];
+
+const TAB_COLOR_SEQUENCE = [
+  '#34E1FF',
+  '#FF34F5',
+  '#FFFF00',
+  '#00FF41',
+  '#FF6B00',
+  '#B026FF',
+  '#00D9FF',
+  '#CCFF00'
+];
 
 export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
   const router = useRouter();
@@ -710,28 +732,50 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     boxSizing: 'border-box'
   };
 
-const EDIT_PROFILE_SUB_TABS = [
-  { id: 'username', label: 'Username' },
-  { id: 'avatar', label: 'Avatar' },
-  { id: 'activity', label: 'Activity' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'guestbook', label: 'Notes' },
-  { id: 'mood', label: 'Mood & Song' },
-  { id: 'socials', label: 'Socials' },
-  { id: 'stats', label: 'Stats' },
-];
-const TAB_COLOR_SEQUENCE = [
-  '#34E1FF',
-  '#FF34F5',
-  '#FFFF00',
-  '#00FF41',
-  '#FF6B00',
-  '#B026FF',
-  '#00D9FF',
-  '#CCFF00'
-];
   const [editProfileSubTab, setEditProfileSubTab] = useState('activity');
   const editProfileSubTabIndex = EDIT_PROFILE_SUB_TABS.findIndex(t => t.id === editProfileSubTab);
+  const tabsInnerRef = useRef(null);
+  const tabButtonsRef = useRef([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    width: 0,
+    left: 0,
+    color: TAB_COLOR_SEQUENCE[0],
+  });
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateIndicator = () => {
+      const index = editProfileSubTabIndex >= 0 ? editProfileSubTabIndex : 0;
+      const button = tabButtonsRef.current[index];
+      const container = tabsInnerRef.current;
+      if (!button || !container) {
+        setIndicatorStyle((prev) => ({
+          ...prev,
+          width: 0,
+          left: 0,
+          color: TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length],
+        }));
+        return;
+      }
+      const containerRect = container.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+      setIndicatorStyle({
+        width: buttonRect.width,
+        left: buttonRect.left - containerRect.left + container.scrollLeft,
+        color: TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length],
+      });
+    };
+
+    updateIndicator();
+    const handleResize = () => {
+      window.requestAnimationFrame(updateIndicator);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [editProfileSubTabIndex]);
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
   const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
@@ -1932,13 +1976,16 @@ const TAB_COLOR_SEQUENCE = [
             </div>
             )}
             <div className="tabs-pill neon-outline-card" role="tablist" aria-label="Edit profile sections">
-              <div className="tabs-pill-inner">
+              <div className="tabs-pill-inner" ref={tabsInnerRef}>
                 <div
                   className="tabs-pill-indicator"
                   style={{
-                    width: `${100 / EDIT_PROFILE_SUB_TABS.length}%`,
-                    transform: `translateX(${editProfileSubTabIndex >= 0 ? editProfileSubTabIndex * 100 : 0}%)`,
-                    opacity: editProfileSubTabIndex >= 0 ? 1 : 0,
+                    width: indicatorStyle.width,
+                    transform: `translateX(${indicatorStyle.left}px)`,
+                    borderColor: indicatorStyle.color,
+                    boxShadow: `0 0 28px ${indicatorStyle.color}`,
+                    opacity: indicatorStyle.width ? 1 : 0,
+                    background: 'rgba(2, 7, 10, 0.45)',
                   }}
                   aria-hidden
                 />
@@ -1953,6 +2000,7 @@ const TAB_COLOR_SEQUENCE = [
                       onClick={() => handleSubTabChange(tab.id)}
                       className={`${editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}${tab.id === 'username' ? ' account-edit-tab--username' : ''}`}
                       style={{ '--tab-color': tabColor }}
+                      ref={(el) => { tabButtonsRef.current[index] = el; }}
                       data-username-tab-label={tab.label}
                     >
                       {tab.label}
