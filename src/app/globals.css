@@ -1102,6 +1102,7 @@ main {
   flex: 0 1 auto;
   min-width: 0;
   overflow: visible; /* Let text overflow naturally if needed instead of hiding block */
+  max-width: 100%;
 }
 
 .account-profile-extras {

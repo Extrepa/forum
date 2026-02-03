@@ -1067,7 +1067,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   </div>
 
                   <div className="account-profile-preview-user-info">
-                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(20px, 4.5vw, 26px)', fontWeight: '700', overflowWrap: 'anywhere', maxWidth: '100%', display: 'inline-block' }} />
+                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(20px, 4.5vw, 26px)', fontWeight: '700', wordBreak: 'break-word', maxWidth: '100%', display: 'inline-block', lineHeight: '1.2' }} />
                   <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
                   </div>
                 </div>
