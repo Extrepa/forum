@@ -2559,6 +2559,21 @@ button:hover {
   word-break: break-word;
 }
 
+.profile-status-line {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: #F5FFB7;
+  text-shadow: 0 0 10px rgba(245, 255, 183, 0.6);
+}
+.profile-status-line span:first-child {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(245, 255, 183, 0.8);
+}
+
 /* Profile tabs: content above, pill at bottom */
 .profile-tabs-wrapper {
   margin-top: 8px;

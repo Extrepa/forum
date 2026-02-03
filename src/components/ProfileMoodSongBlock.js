@@ -74,10 +74,11 @@ export default function ProfileMoodSongBlock({
     }
   }, []);
 
-  if (!hasMood && !hasSong) {
+  const hasHeadline = Boolean(headline?.trim());
+  if (!hasMood && !hasSong && !hasHeadline) {
     return (
       <div className="profile-card-mood-song">
-        <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
+        <div className="muted" style={{ fontSize: '13px' }}>No mood, status, or song set yet.</div>
       </div>
     );
   }
@@ -113,8 +114,11 @@ export default function ProfileMoodSongBlock({
               <span>{moodText}</span>
             </div>
           )}
-          {headline ? (
-            <div className="profile-headline" style={{ marginTop: '8px', fontSize: '14px' }}>{headline}</div>
+          {hasHeadline ? (
+            <div className="profile-status-line" style={{ marginTop: '8px' }}>
+              <span>Status:</span>
+              <span>{headline}</span>
+            </div>
           ) : null}
         </div>
       </div>
