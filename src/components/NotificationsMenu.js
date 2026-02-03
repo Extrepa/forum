@@ -232,7 +232,7 @@ export default function NotificationsMenu({
       }
 
       actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
-      const top = triggerRect.bottom + 8;
+      const top = triggerRect.bottom + 4;
 
       setPopoverStyle({
         position: 'fixed',
