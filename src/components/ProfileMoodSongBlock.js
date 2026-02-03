@@ -42,25 +42,6 @@ export default function ProfileMoodSongBlock({
 
   const songProviderLabel = songProviderInfo?.label ?? (initialSongProviderLabel ?? 'Song');
 
-  useEffect(() => {
-    if (fetched) return;
-    if (initialMoodText || initialMoodEmoji || initialSongUrl) return;
-    let cancelled = false;
-    fetch('/api/account/profile-extras')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (cancelled || !data) return;
-        setMoodText(data.profileMoodText ?? '');
-        setMoodEmoji(data.profileMoodEmoji ?? '');
-        setSongUrl(data.profileSongUrl ?? '');
-        setSongProvider((data.profileSongProvider ?? '').toLowerCase().trim());
-        setSongAutoplayEnabled(Boolean(data.profileSongAutoplayEnabled));
-        setHeadline(data.profileHeadline ?? '');
-        setFetched(true);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
 
   useEffect(() => {
     setMoodText(initialMoodText ?? '');

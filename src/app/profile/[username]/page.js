@@ -293,6 +293,17 @@ export default async function ProfilePage({ params }) {
       false
   );
 
+  // Combine profileUser with stats for consistent data in ProfileMoodSongBlock
+  const combinedProfileUser = {
+    ...profileUser,
+    profile_mood_text: moodText,
+    profile_mood_emoji: moodEmoji,
+    profile_headline: profileHeadline,
+    profile_song_url: songUrl,
+    profile_song_provider: songProvider,
+    profile_song_autoplay_enabled: songAutoplayEnabled,
+  };
+
   const formatProviderLabel = (value) => {
     if (!value) return 'Song';
     if (value === 'youtube-music') return 'YouTube Music';
@@ -422,13 +433,12 @@ export default async function ProfilePage({ params }) {
             </div>
             {/* Mood/song/player; client fetches profile-extras when server data empty and own profile */}
           <ProfileMoodSongBlock
-            initialMoodText={moodText}
-            initialMoodEmoji={moodEmoji}
-            initialSongUrl={songUrl}
-            initialSongProvider={songProvider}
-            initialSongAutoplayEnabled={songAutoplayEnabled}
-            initialHeadline={profileHeadline}
-            isOwnProfile={isOwnProfile}
+            initialMoodText={combinedProfileUser.profile_mood_text}
+            initialMoodEmoji={combinedProfileUser.profile_mood_emoji}
+            initialSongUrl={combinedProfileUser.profile_song_url}
+            initialSongProvider={combinedProfileUser.profile_song_provider}
+            initialSongAutoplayEnabled={combinedProfileUser.profile_song_autoplay_enabled}
+            initialHeadline={combinedProfileUser.profile_headline}
             songProviderLabel={songProviderLabel}
             />
             {(() => {
