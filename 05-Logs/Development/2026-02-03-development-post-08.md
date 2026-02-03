@@ -50,6 +50,7 @@ Hey everyone! This update is all about **Profile Customization**. The goal was t
 
 - **Visual Inconsistencies**: You may notice some layout differences between desktop and mobile versions of the profile. I'm working on smoothing these out.
 - **GIF Avatars**: Animated avatars (GIFs) might not always play correctly in every location across the forum. This is on the radar.
+- **Easter Egg Fix**: If you tried to find the Easter egg on the home page or sign-in page while signed out and it wasn't working—that's been fixed. It should be working correctly now.
 
 ---
 
