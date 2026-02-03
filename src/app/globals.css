@@ -1127,7 +1127,7 @@ main {
 
     .account-profile-header-group {
       flex-direction: row; /* KEEP it row on tablet/mobile */
-      width: auto;
+      width: 100%; /* Force full width so content can center properly without shrinking prematurely */
       justify-content: center;
       max-width: 100%;
       align-items: center;
@@ -1195,7 +1195,7 @@ main {
       flex-direction: row !important; /* FORCE ROW layout */
       justify-content: center;
       align-items: center;
-      width: auto;
+      width: 100%; /* Force full width */
       max-width: 100%;
     }
 
