@@ -1021,10 +1021,10 @@ main {
   margin-bottom: 8px;
   min-width: 0;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center; /* Center the content horizontally */
-  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(16px, 1.2vw, 24px);
   border-radius: 18px;
   border: 1px solid rgba(52, 225, 255, 0.25);
   background: rgba(1, 6, 12, 0.8);
@@ -1045,8 +1045,8 @@ main {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1054,176 +1054,176 @@ main {
   font-size: 12px;
 }
 
-.account-profile-preview-buttons-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.account-profile-preview-left-column {
-  position: relative;
-  display: flex;
-  flex-direction: row; /* Row layout for desktop */
-  flex-wrap: wrap; /* Allow wrapping */
-  align-items: center;
-  justify-content: center; /* Center items to keep spacing balanced */
-  gap: 24px;
-  width: 100%;
-  flex: 1 1 auto;
-  min-width: 0;
-  padding-top: 0;
-  overflow: visible;
-}
-
-.account-profile-header-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 12px; /* Reduce gap slightly to help fit */
-  width: auto;
-  flex-shrink: 1; /* Allow group to shrink if needed */
+.account-profile-preview-section {
+  flex: 1 1 clamp(260px, 45%, 360px);
   max-width: 100%;
+  min-width: 220px;
+  display: flex;
+  gap: 0;
+}
+
+.account-profile-preview-identity {
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(12px, 1vw, 16px);
+  width: 100%;
   flex-wrap: nowrap;
 }
 
-/* Ensure user info doesn't collapse */
-.account-profile-preview-user-info {
+.account-profile-preview-identity-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  text-align: left;
-  width: auto;
-  gap: 2px;
-  flex: 0 1 auto;
-  min-width: 0; /* Allow shrinking if absolutely needed */
-  overflow: visible;
-  max-width: 100%;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
 }
 
-.account-profile-extras {
+.account-profile-preview-role-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.account-profile-preview-status {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 12px;
+  align-items: flex-start;
   justify-content: center;
-  gap: 6px;
-  text-align: center;
-  flex: 1 1 auto;
-  min-width: 250px;
+  width: 100%;
+  flex: 1 1 clamp(260px, 55%, 420px);
+  min-width: 220px;
 }
 
-  /* Tablet/Mobile Breakpoint for Left Column Layout */
-  @media (max-width: 900px) {
-    .account-profile-preview-left-column {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-    }
-
-    .account-profile-header-group {
-      flex-direction: row; /* KEEP it row on tablet/mobile */
-      width: 100%; /* Force full width so content can center properly without shrinking prematurely */
-      justify-content: center;
-      max-width: 100%;
-      align-items: center;
-    }
-
-    .account-profile-extras {
-      width: 100%;
-      align-items: center;
-    }
-  }
-
-
-.account-profile-preview-user-info > * {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.account-profile-preview-right-column {
+.account-profile-preview-status-row {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
   min-width: 0;
 }
 
-.account-profile-preview-right-column .profile-song-player {
-  width: min(280px, 100%);
-  max-width: 100%;
+.account-profile-preview-status-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-  /* Mobile adjustments for account-profile-preview */
-  @media (max-width: 640px) {
-    .account-profile-preview {
-      padding: 12px;
-      width: 100%;
-      margin: 0 auto;
-      margin-bottom: 0;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: auto;
-      gap: 12px;
-    }
+.account-profile-preview-status-text {
+  color: var(--ink);
+  font-size: 14px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  flex: 1;
+}
 
-    .account-profile-preview-avatar-container {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: static;
-      flex-shrink: 0;
-    }
+.account-profile-preview-song-row {
+  align-items: center;
+  gap: 10px;
+}
 
-    .account-profile-preview-left-column {
-      flex-direction: column; /* Stack vertically on mobile too */
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      padding: 0;
-      width: 100%;
-      min-width: 0;
-    }
+.account-profile-preview-song-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: min(320px, 100%);
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+}
 
-    .account-profile-header-group {
-      flex-direction: row !important; /* FORCE ROW layout */
-      justify-content: center;
-      align-items: center;
-      width: 100%; /* Force full width */
-      max-width: 100%;
-    }
+.account-profile-preview-song-pill img {
+  display: block;
+  flex-shrink: 0;
+}
 
-  /* Force user info to stay left-aligned relative to avatar in this specific group */
-  .account-profile-preview-user-info {
+.account-profile-preview-song-pill-abbr {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #001018;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+.account-profile-preview-song-pill-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+}
+
+.account-profile-preview-autoplay-note {
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Tablet breakpoint: allow the sections to stack when space is limited */
+@media (max-width: 900px) {
+  .account-profile-preview {
+    justify-content: flex-start;
+  }
+
+  .account-profile-preview-section {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .account-profile-preview {
+    padding: 12px;
+    width: 100%;
+    margin: 0 auto;
+    margin-bottom: 0;
+    flex-direction: column;
     align-items: flex-start;
-    text-align: left;
-    width: auto;
-    flex: 0 1 auto;
-    padding-top: 0;
-    min-width: 0; /* Consistent behavior */
-    max-width: 100%;
-    margin-left: 0;
+    justify-content: flex-start;
+    min-height: auto;
+    gap: 12px;
   }
 
-  .account-edit-card--tabs-bottom {
-    margin-bottom: 0; /* Reduce gap on mobile */
-    padding-bottom: 0; /* Remove any bottom padding */
-    gap: 0; /* Remove any gap */
+  .account-profile-preview-avatar-container {
+    margin: 0;
+    justify-content: flex-start;
+    align-items: center;
   }
 
-  .account-edit-tab-content--above {
-    margin-bottom: 0; /* Remove margin from content above tabs */
+  .account-profile-preview-section {
+    width: 100%;
   }
 
-  /* Mobile Player Adjustments */
+  .account-profile-preview-identity {
+    justify-content: flex-start;
+  }
+
+  .account-profile-preview-status {
+    gap: 10px;
+  }
+
   .profile-song-player {
-    width: 100% !important; /* Ensure player takes full width on mobile */
+    width: 100% !important;
     max-width: 100% !important;
   }
 }
@@ -1359,47 +1359,6 @@ main {
   flex-shrink: 0;
   border: 1px solid rgba(52, 225, 255, 0.6);
   box-shadow: 0 0 8px rgba(52, 225, 255, 0.3);
-}
-
-/* Desktop: avatar action (Edit Avatar) doesn't shrink */
-@media (min-width: 769px) {
-  .account-profile-preview-avatar-action {
-    min-width: 100px;
-  }
-}
-
-/* Keep username readable without overflow in edit preview */
-.account-profile-preview .profile-card-header-meta .username {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  display: inline-block;
-  max-width: 100%;
-}
-
-.account-profile-preview--two-col .account-profile-preview-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 320px);
-  gap: 20px;
-  align-items: start;
-}
-
-.account-profile-preview--two-col .account-profile-preview-left {
-  min-width: 0;
-}
-
-.account-profile-preview--two-col .account-profile-preview-stats {
-  min-width: 0;
-}
-
-.account-profile-preview--two-col .account-profile-preview-stats .profile-stats-block--grid {
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .account-profile-preview--two-col .account-profile-preview-top {
-    grid-template-columns: 1fr;
-  }
 }
 
 .account-profile-hint {
@@ -2909,133 +2868,6 @@ button:hover {
     gap: 12px;
   }
 
-  /* Account edit preview: mobile - Edit Avatar in top right corner */
-  .account-profile-preview-row-1 {
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-  }
-
-  .account-profile-preview-avatar-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    position: relative;
-  }
-
-  .account-profile-preview-row-1 .profile-card-header-avatar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .account-profile-preview-row-1-right {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-    align-items: center;
-    text-align: center;
-  }
-
-  .account-profile-preview-user-info {
-    width: 100%;
-    align-items: center;
-    text-align: center;
-  }
-
-  .account-profile-preview-row-1 .account-username-row {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .account-profile-preview-row-1 .account-username-row .username {
-    grid-column: auto;
-    justify-self: auto;
-  }
-  .account-profile-preview-row-1 .account-edit-avatar-btn--desktop {
-    grid-column: auto;
-    justify-self: auto;
-  }
-
-  /* Mobile: Edit Avatar button in top right corner */
-  .account-edit-avatar-btn--mobile {
-    display: block;
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-  }
-  .account-edit-avatar-btn--desktop {
-    display: none;
-  }
-
-  .account-profile-preview-avatar-action {
-    display: none; /* Hide separate avatar action on mobile */
-  }
-
-  .account-profile-preview .account-edit-avatar-btn,
-  .account-profile-preview .account-edit-username-btn {
-    min-width: 0;
-    max-width: 150px;
-    width: auto !important;
-    padding: 4px 10px;
-    font-size: 11px;
-    box-sizing: border-box;
-  }
-
-  /* Compact song player in account preview: center on mobile, fix progress bar */
-  .account-profile-preview-song {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .account-profile-preview .profile-song-player--compact {
-    max-width: 100%;
-    width: fit-content;
-    min-width: min-content;
-  }
-  .account-profile-preview .profile-song-player--compact .profile-song-player-bar {
-    min-width: min-content;
-    width: fit-content;
-  }
-  .account-profile-preview .profile-song-player-progress-wrap {
-    width: 100%;
-    max-width: 100%;
-    margin-top: 6px;
-  }
-
-  .account-username-row {
-    justify-content: center;
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-
-  .account-profile-preview-song {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .account-profile-preview .profile-song-player,
-  .account-profile-preview .profile-song-player-bar {
-    min-width: 0;
-    overflow: visible;
-  }
-
-  .account-profile-preview .profile-song-player-bar {
-    flex-wrap: nowrap;
-  }
-
   .profile-card-header-meta {
     align-items: center;
     text-align: center;
@@ -3088,46 +2920,6 @@ button:hover {
 
   .account-edit-card--tabs-bottom .account-edit-tab-content--above {
     min-height: 0 !important;
-  }
-
-  .account-profile-preview-row-1 {
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-
-  .account-profile-preview-avatar-container {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    position: relative;
-  }
-
-  .account-profile-preview-row-1-right {
-    width: 100%;
-    align-items: center;
-    text-align: center;
-  }
-
-  .account-username-row {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .account-edit-avatar-btn--mobile {
-    display: block;
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-  .account-edit-avatar-btn--desktop {
-    display: none;
-  }
-
-  .account-profile-preview-song {
-    width: 100%;
-    display: flex;
-    justify-content: center;
   }
 
   .tabs-pill {
@@ -6389,18 +6181,6 @@ header::before {
 }
 
 @media (max-width: 640px) {
-  .account-profile-preview {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .account-profile-preview-avatar-container {
-    align-items: center;
-  }
-  .account-profile-preview-buttons-container {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-  }
   .account-edit-profile-btn--small {
     padding: 8px 16px;
     font-size: 13px;

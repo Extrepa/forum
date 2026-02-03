@@ -1056,103 +1056,101 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               data-cover-mode={coverPreviewEntry ? profileCoverMode : undefined}
               style={coverPreviewEntry ? { '--profile-cover-image': `url(/api/media/${coverPreviewEntry.image_key})` } : undefined}
             >
-              <div className="account-profile-preview-left-column">
-                <div className="account-profile-header-group">
-                  <div className="account-profile-preview-avatar-container">
-                    {user.avatar_key ? (
-                      <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
-                    ) : (
-                      <div className="no-avatar-placeholder">No avatar</div>
-                    )}
-                  </div>
-
-                  <div className="account-profile-preview-user-info">
-                  <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} avatarKey={undefined} href={null} style={{ fontSize: 'clamp(20px, 4.5vw, 26px)', fontWeight: '700', wordBreak: 'normal', overflowWrap: 'anywhere', maxWidth: '100%', display: 'inline-block', lineHeight: '1.2' }} />
-                  <div style={{ color: roleColor, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleLabel}</div>
-                  </div>
+              <div className="account-profile-preview-section account-profile-preview-identity">
+                <div className="account-profile-preview-avatar-container">
+                  {user.avatar_key ? (
+                    <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="" size={96} loading="eager" />
+                  ) : (
+                    <div className="no-avatar-placeholder">No avatar</div>
+                  )}
                 </div>
 
-                <div className="account-profile-extras">
-                  {(stats.profileMoodText || stats.profileMoodEmoji) && (
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                      <span style={{color: 'var(--muted)', fontSize: '13px'}}>Mood:</span>
-                      <div className="profile-mood-chip" style={accountMoodChipStyle}>
-                        <span>{stats.profileMoodEmoji}{stats.profileMoodEmoji ? ' ' : ''}{stats.profileMoodText}</span>
-                      </div>
+                <div className="account-profile-preview-identity-info">
+                  <Username
+                    name={user.username}
+                    colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                    avatarKey={undefined}
+                    href={null}
+                    style={{
+                      fontSize: 'clamp(20px, 4.5vw, 26px)',
+                      fontWeight: '700',
+                      wordBreak: 'normal',
+                      overflowWrap: 'normal',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      minWidth: 0,
+                      maxWidth: '100%',
+                      display: 'inline-flex',
+                      lineHeight: '1.2',
+                      direction: 'ltr',
+                    }}
+                  />
+                  <div className="account-profile-preview-role-label" style={{ color: roleColor }}>
+                    {roleLabel}
+                  </div>
+                </div>
+              </div>
+
+              <div className="account-profile-preview-section account-profile-preview-status">
+                {(stats.profileMoodText || stats.profileMoodEmoji) && (
+                  <div className="account-profile-preview-status-row">
+                    <span className="account-profile-preview-status-label">Mood:</span>
+                    <div className="profile-mood-chip" style={accountMoodChipStyle}>
+                      <span>
+                        {stats.profileMoodEmoji}
+                        {stats.profileMoodEmoji ? ' ' : ''}
+                        {stats.profileMoodText}
+                      </span>
                     </div>
-                  )}
-                  {stats.profileHeadline && (
-                    <div style={{ fontSize: '14px', color: 'var(--ink)', marginTop: '8px' }}>
-                      <span style={{ color: 'var(--muted)' }}>Status:</span> {stats.profileHeadline}
-                    </div>
-                  )}
-          {(stats.profileSongUrl || stats.profileSongProvider) && (() => {
-            const rawProviderKey = String(stats.profileSongProvider || '').toLowerCase().trim();
-            const providerKey = rawProviderKey === 'youtube-music' ? 'youtube' : rawProviderKey;
-            const fallbackLabel = statsSongProviderLabel || 'Song';
-            const fallbackAbbr = fallbackLabel.charAt(0).toUpperCase();
-            const providerMeta = getSongProviderMeta(providerKey, { label: fallbackLabel, abbr: fallbackAbbr });
-            const descriptor = getSongDescriptor(stats.profileSongUrl) || providerMeta.label;
-            return (
-              <div style={{ fontSize: '13px', color: 'var(--ink)', marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ color: 'var(--muted)', fontSize: '12px' }}>Song:</span>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    border: `1px solid ${providerMeta.color}`,
-                    background: 'rgba(0, 0, 0, 0.45)',
-                    color: providerMeta.color,
-                    fontWeight: '600',
-                    maxWidth: '260px'
-                  }}
-                >
-                  {providerMeta.icon && (
-                    <Image
-                      src={providerMeta.icon}
-                      alt={providerMeta.label}
-                      width={18}
-                      height={18}
-                      style={{ display: 'block' }}
-                    />
-                  )}
-                  {providerMeta.abbr && (
-                    <span
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '50%',
-                        background: providerMeta.color,
-                        color: '#001018',
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        letterSpacing: '0.2em',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 0 6px rgba(0, 0, 0, 0.5)'
-                      }}
-                    >
-                      {providerMeta.abbr}
-                    </span>
-                  )}
-                  <span style={{ textTransform: 'none', minWidth: 0, flex: '1 1 auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {descriptor}
-                  </span>
-                </span>
-                {stats.profileSongAutoplayEnabled && (
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>(autoplay on)</span>
+                  </div>
                 )}
+                {stats.profileHeadline && (
+                  <div className="account-profile-preview-status-row">
+                    <span className="account-profile-preview-status-label">Status:</span>
+                    <span className="account-profile-preview-status-text">{stats.profileHeadline}</span>
+                  </div>
+                )}
+                {(stats.profileSongUrl || stats.profileSongProvider) && (() => {
+                  const rawProviderKey = String(stats.profileSongProvider || '').toLowerCase().trim();
+                  const providerKey = rawProviderKey === 'youtube-music' ? 'youtube' : rawProviderKey;
+                  const fallbackLabel = statsSongProviderLabel || 'Song';
+                  const fallbackAbbr = fallbackLabel.charAt(0).toUpperCase();
+                  const providerMeta = getSongProviderMeta(providerKey, { label: fallbackLabel, abbr: fallbackAbbr });
+                  const descriptor = getSongDescriptor(stats.profileSongUrl) || providerMeta.label;
+                  return (
+                    <div className="account-profile-preview-status-row account-profile-preview-song-row">
+                      <span className="account-profile-preview-status-label">Song:</span>
+                      <span
+                        className="account-profile-preview-song-pill"
+                        style={{
+                          borderColor: providerMeta.color,
+                          color: providerMeta.color,
+                          background: 'rgba(0, 0, 0, 0.45)',
+                        }}
+                      >
+                        {providerMeta.icon && (
+                          <Image
+                            src={providerMeta.icon}
+                            alt={providerMeta.label}
+                            width={18}
+                            height={18}
+                          />
+                        )}
+                        {providerMeta.abbr && (
+                          <span className="account-profile-preview-song-pill-abbr" style={{ background: providerMeta.color }}>
+                            {providerMeta.abbr}
+                          </span>
+                        )}
+                        <span className="account-profile-preview-song-pill-text">{descriptor}</span>
+                      </span>
+                      {stats.profileSongAutoplayEnabled && (
+                        <span className="account-profile-preview-autoplay-note">(autoplay on)</span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
-            );
-          })()}
-                </div>
-              </div>
-
             </div>
 
             {editProfileSubTab === 'username' && (
