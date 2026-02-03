@@ -1152,9 +1152,8 @@ main {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 700;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 110px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .account-profile-preview-song-pill-separator {
