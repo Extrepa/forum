@@ -124,9 +124,22 @@ export default function UserPopover({
   const baseMaxWidth = 180;
   const overflowThreshold = 14;
   const extraWidth = Math.max(0, safeName.length - overflowThreshold) * 8;
-  const viewportMax = viewportWidth ? Math.max(160, viewportWidth - 32) : 220;
-  const expandedMax = Math.min(viewportMax, baseMaxWidth + extraWidth);
-  const computedWidth = Math.max(140, Math.min(expandedMax, viewportMax));
+
+  const minContentWidth = 140; // Minimum width for popover content
+  const padding = 32; // 16px on each side (left and right)
+
+  // Calculate the maximum available width for the popover within the viewport
+  // Ensure that even if viewportWidth is very small, we allow at least minContentWidth + padding space for calculation
+  const availableViewportWidth = Math.max(minContentWidth + padding, viewportWidth) - padding;
+
+  // Calculate the content-based maximum width, but cap it by the availableViewportWidth
+  const expandedContentWidth = Math.min(baseMaxWidth + extraWidth, availableViewportWidth);
+
+  // The computed width should be at least minContentWidth, but also respect the expandedContentWidth
+  const computedWidth = Math.max(minContentWidth, expandedContentWidth);
+
+  // Finally, ensure the computed width does not exceed the actual viewport space available
+  const finalComputedWidth = Math.min(computedWidth, viewportWidth - padding);
 
   return createPortal(
     <div
@@ -137,8 +150,9 @@ export default function UserPopover({
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: `${computedWidth}px`,
-        maxWidth: `${computedWidth}px`,
+        width: `${finalComputedWidth}px`,
+        maxWidth: `${finalComputedWidth}px`,
+        minWidth: `${minContentWidth}px`,
         maxHeight: 'min(190px, calc(100vh - 48px))',
         overflowY: 'auto',
         overflowX: 'hidden',
@@ -169,7 +183,7 @@ export default function UserPopover({
             src={avatarUrl}
             alt={`${username}'s avatar`}
             size={72}
-            loading="lazy"
+            
             style={{
               width: '72px',
               height: '72px',

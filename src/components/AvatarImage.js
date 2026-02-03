@@ -13,7 +13,6 @@ export default function AvatarImage({
   height,
   className = '',
   style = {},
-  loading = 'lazy',
   decoding = 'async',
   draggable = false,
   ...rest

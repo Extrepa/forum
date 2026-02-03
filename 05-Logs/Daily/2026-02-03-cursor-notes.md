@@ -17,6 +17,11 @@
     - Set `.profile-tabs-wrapper--no-selection { margin-top: 0px !important; }` within `@media (max-width: 480px)` to eliminate extra spacing when no tab is selected.
     - Adjusted `.profile-tab-content--above` margin-bottom to 6px for consistent spacing between content and tabs.
 
+- **Profile Tabs & Song Player Outline Cleanup:**
+  - **Problem:** A mix of responsive overrides and repeated neon rules meant the tab pill still gained padding when no tab was active, and the player glow was inconsistent (sometimes hidden under the iframe or showing the wrong hue).
+  - **Fix:** Collapsed the `profile-tabs-wrapper.profile-tabs-wrapper--no-selection` and `.profile-tab-content--no-selection` rules across `@media` blocks so the pill stays flush with the card, and removed duplicate CSS that fought the neon outline.
+  - **Glow work:** Centralized `.neon-outline-card::before/::after` to use CSS variables and let each `.profile-song-player--[provider]` class override only the gradient/glow colors (`z-index` ensures the outline sits above the iframe).
+
 - **Profile Avatar Alignment Fix (Edit Profile, Mobile):**
   - **Problem:** Avatar was off-center on the edit profile page in small viewports.
   - **Fix:** In `src/app/globals.css` (within `@media (max-width: 640px)`):
@@ -29,4 +34,4 @@
 - `src/components/ProfileMoodSongBlock.js`
 - `src/app/api/account/stats/route.js` (uses updated lib)
 - `src/components/ProfileSongPlayer.js` (verified support for youtube-music)
-- `src/app/globals.css` (mobile spacing and avatar alignment fixes)
+- `src/app/globals.css` (mobile spacing, tab collapse, and neon outline cleanup)
