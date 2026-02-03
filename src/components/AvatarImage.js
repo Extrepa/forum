@@ -39,7 +39,6 @@ export default function AvatarImage({
     <img
       src={resolvedSrc}
       alt={alt}
-      loading={loading}
       decoding={decoding}
       draggable={draggable}
       className={className}
