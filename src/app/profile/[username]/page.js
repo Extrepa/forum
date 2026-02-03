@@ -134,7 +134,18 @@ export default async function ProfilePage({ params }) {
         )
         .bind(profileUser.id)
         .first();
-    } catch (__) {}
+    } catch (__) {
+      try {
+        extras = await db
+          .prepare(
+            `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+             profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+             profile_headline FROM users WHERE id = ?`
+          )
+          .bind(profileUser.id)
+          .first();
+      } catch (___) {}
+    }
   }
   if (extras) {
     profileUser = { ...profileUser, ...extras };
