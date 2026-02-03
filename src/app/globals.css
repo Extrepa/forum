@@ -1140,8 +1140,10 @@ main {
   font-weight: 600;
   max-width: min(100%, 360px);
   min-width: 0;
-  flex-wrap: wrap;
   color: #fff;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .account-profile-preview-song-pill-provider {
@@ -1150,6 +1152,9 @@ main {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 700;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 110px;
 }
 
 .account-profile-preview-song-pill-separator {
@@ -1163,8 +1168,9 @@ main {
 .account-profile-preview-song-pill-text {
   min-width: 0;
   color: #fff;
-  white-space: normal;
-  overflow: visible;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   flex: 1 1 auto;
 }
 
