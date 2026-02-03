@@ -783,6 +783,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     const classes = ['account-edit-tab'];
     if (tab.id === 'username') classes.push('account-edit-tab--username');
     if (tab.id === 'mood') classes.push('account-edit-tab--mood');
+    if (tab.id === editProfileSubTab) classes.push('account-edit-tab--active');
     return classes.join(' ');
   };
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';

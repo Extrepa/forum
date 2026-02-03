@@ -427,22 +427,7 @@ export default async function ProfilePage({ params }) {
         {isOwnProfile && (
           <Link
             href="/account?tab=profile"
-            className="profile-edit-profile-link"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '999px',
-              border: '1px solid rgba(52, 225, 255, 0.4)',
-              background: 'rgba(52, 225, 255, 0.1)',
-              color: 'var(--accent)',
-              textDecoration: 'none',
-              fontSize: '13px',
-              fontWeight: '600',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
+            className="profile-edit-profile-link action-button"
           >
             Edit profile
           </Link>

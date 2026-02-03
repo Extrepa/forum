@@ -40,7 +40,16 @@ export default function ErrlTabSwitcher({
     const container = tabsInnerRef.current;
 
     const updateIndicator = () => {
-      const targetId = hoveredTabId ?? activeTab ?? tabs[0]?.id;
+      const targetId = hoveredTabId ?? activeTab;
+      if (!targetId) {
+        setIndicatorStyle((prev) => ({
+          ...prev,
+          width: 0,
+          left: 0,
+          height: 0,
+        }));
+        return;
+      }
       const targetIndex = tabs.findIndex((tab) => tab.id === targetId);
       const index = targetIndex >= 0 ? targetIndex : 0;
       const button = tabButtonsRef.current[index];
