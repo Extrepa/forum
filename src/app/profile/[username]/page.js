@@ -36,6 +36,7 @@ export default async function ProfilePage({ params }) {
 
   // Base user row (no profile-extras columns) so page never fails if migration 0054 not applied
   let profileUser = null;
+  // 1. Try fetching everything (up to migration 0058)
   try {
     profileUser = await db
       .prepare(
@@ -44,12 +45,28 @@ export default async function ProfilePage({ params }) {
       .bind(username.toLowerCase())
       .first();
   } catch (_) {
-    profileUser = await db
-      .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
-      )
-      .bind(username.toLowerCase())
-      .first();
+    // 2. Fallback: Try fetching up to migration 0055 (mood/song/headline + default tab, NO cover mode)
+    try {
+      profileUser = await db
+        .prepare(
+          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes, profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline, default_profile_tab FROM users WHERE username_norm = ?'
+        )
+        .bind(username.toLowerCase())
+        .first();
+    } catch (__) {
+      // 3. Fallback: Base user row only (minimal columns)
+      try {
+        profileUser = await db
+          .prepare(
+            'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+          )
+          .bind(username.toLowerCase())
+          .first();
+      } catch (e) {
+        console.error("Error fetching profile user:", e);
+        profileUser = null;
+      }
+    }
   }
 
   if (!profileUser) {
