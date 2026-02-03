@@ -40,6 +40,7 @@ export async function POST(request) {
   const songAutoplayEnabled = Boolean(body.profile_song_autoplay_enabled);
   const songProviderGlow = body.profile_song_provider_glow;
   const glowValue = songProviderGlow == null ? null : (songProviderGlow ? 1 : 0);
+  const profileShowRole = body.profile_show_role;
 
   if (songProvider && !ALLOWED_PROVIDERS.includes(songProvider)) {
     songProvider = '';
@@ -70,7 +71,8 @@ export async function POST(request) {
           profile_song_provider = ?,
           profile_song_autoplay_enabled = ?,
           profile_song_provider_glow = COALESCE(?, profile_song_provider_glow),
-          profile_headline = ?
+          profile_headline = ?,
+          profile_show_role = ?
         WHERE id = ?`
       )
       .bind(
@@ -82,17 +84,20 @@ export async function POST(request) {
         songAutoplayEnabled ? 1 : 0,
         glowValue,
         headline || null,
+        profileShowRole === undefined ? null : (profileShowRole ? 1 : 0),
         user.id
       )
       .run();
-    // Read back from DB to verify write; if this fails, columns may be missing
+
+    // Read back from DB to verify write
     const row = await db
       .prepare(
-        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline FROM users WHERE id = ?`
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline, profile_show_role FROM users WHERE id = ?`
       )
       .bind(user.id)
       .first();
-    const payload = {
+
+    return NextResponse.json({
       ok: true,
       profileMoodText: row?.profile_mood_text ?? moodText ?? '',
       profileMoodEmoji: row?.profile_mood_emoji ?? moodEmoji ?? '',
@@ -101,12 +106,12 @@ export async function POST(request) {
       profileSongProvider: row?.profile_song_provider ?? songProvider ?? '',
       profileSongAutoplayEnabled: row?.profile_song_autoplay_enabled != null ? Boolean(row.profile_song_autoplay_enabled) : songAutoplayEnabled,
       profileSongProviderGlow: row?.profile_song_provider_glow != null ? Boolean(row.profile_song_provider_glow) : (songProviderGlow != null ? Boolean(songProviderGlow) : true),
-    };
-    return NextResponse.json(payload);
+      profileShowRole: row?.profile_show_role != null ? Boolean(row.profile_show_role) : (profileShowRole != null ? Boolean(profileShowRole) : true),
+    });
   } catch (e) {
     console.error('profile-extras update failed', e?.message ?? e, e);
     return NextResponse.json(
-      { error: 'update failed', hint: 'Ensure migration 0054_add_profile_mood_song_headline has been applied.' },
+      { error: 'update failed', hint: 'Ensure migration 0059 has been applied.' },
       { status: 500 }
     );
   }
@@ -126,7 +131,7 @@ export async function GET() {
   try {
     const row = await db
       .prepare(
-        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline FROM users WHERE id = ?`
+        `SELECT profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_song_provider_glow, profile_headline, profile_show_role FROM users WHERE id = ?`
       )
       .bind(user.id)
       .first();
@@ -138,11 +143,12 @@ export async function GET() {
       profileSongProvider: row?.profile_song_provider ?? '',
       profileSongAutoplayEnabled: Boolean(row?.profile_song_autoplay_enabled),
       profileSongProviderGlow: row?.profile_song_provider_glow != null ? Boolean(row.profile_song_provider_glow) : true,
+      profileShowRole: row?.profile_show_role != null ? Boolean(row.profile_show_role) : true,
     });
   } catch (e) {
     console.error('profile-extras GET failed', e?.message ?? e);
     return NextResponse.json(
-      { error: 'read failed', hint: 'Ensure migration 0054 has been applied.' },
+      { error: 'read failed', hint: 'Ensure migration 0059 has been applied.' },
       { status: 500 }
     );
   }
