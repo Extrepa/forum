@@ -2624,10 +2624,6 @@ button:hover {
   isolation: isolate;
 }
 
-.account-edit-card--tabs-bottom .tabs-pill {
-  padding-bottom: 4px;
-}
-
 .tabs-pill::-webkit-scrollbar {
   display: none;
 }
