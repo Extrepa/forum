@@ -188,23 +188,63 @@ export default function NotificationsMenu({
     if (!open || typeof window === 'undefined') return;
     
     const updatePosition = () => {
-      if (window.innerWidth <= 640) {
+      if (window.innerWidth > 640) {
+        setPopoverStyle({});
+        return;
+      }
+
+      const trigger = document.querySelector('.notifications-logo-trigger');
+      if (!trigger) {
         setPopoverStyle({
-          position: 'fixed',
-          top: 0,
+          position: 'absolute',
           right: 0,
-          left: 0,
-          bottom: 0,
-          width: '100vw',
-          minWidth: '100vw',
-          maxWidth: '100vw',
-          height: '100vh',
-          maxHeight: '100vh',
+          left: 'auto',
+          top: 'calc(100% + 8px)',
+          width: 'min(300px, 92vw)',
+          maxWidth: 'min(300px, 92vw)',
+          minWidth: 'min(240px, 92vw)',
           margin: 0,
         });
         return;
       }
-      setPopoverStyle({});
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const popoverWidth = 380;
+      const viewportWidth = window.innerWidth;
+      const margin = 12;
+      const maxPopoverWidth = viewportWidth - margin * 2;
+      const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
+      const logoRightEdge = viewportWidth - triggerRect.right;
+      const spaceNeeded = finalWidth + margin;
+      const spaceAvailable = triggerRect.right;
+
+      let actualRight;
+      if (spaceAvailable >= spaceNeeded && logoRightEdge >= margin) {
+        actualRight = logoRightEdge;
+      } else {
+        const centeredRight = (viewportWidth - finalWidth) / 2;
+        actualRight = centeredRight;
+      }
+
+      const leftEdgePosition = viewportWidth - actualRight - finalWidth;
+      if (leftEdgePosition < margin) {
+        actualRight = viewportWidth - finalWidth - margin;
+      }
+
+      actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
+      const top = triggerRect.bottom + 8;
+
+      setPopoverStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        right: `${actualRight}px`,
+        left: 'auto',
+        width: `${finalWidth}px`,
+        maxWidth: `${finalWidth}px`,
+        minWidth: `${finalWidth}px`,
+        height: 'auto',
+        maxHeight: 'calc(100vh - 32px)',
+      });
     };
     
     // Small delay to ensure DOM is ready
