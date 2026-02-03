@@ -739,8 +739,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   const [indicatorStyle, setIndicatorStyle] = useState({
     width: 0,
     left: 0,
+    top: 0,
+    height: 0,
     color: TAB_COLOR_SEQUENCE[0],
   });
+  const [hoveredTabId, setHoveredTabId] = useState(null);
 
   const renderTabLabel = (tab) => {
     if (tab.id === 'username') {
@@ -768,7 +771,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     if (typeof window === 'undefined') return;
 
     const updateIndicator = () => {
-      const index = editProfileSubTabIndex >= 0 ? editProfileSubTabIndex : 0;
+      const targetId = hoveredTabId ?? editProfileSubTab;
+      const tabIndex = EDIT_PROFILE_SUB_TABS.findIndex((tab) => tab.id === targetId);
+      const index = tabIndex >= 0 ? tabIndex : 0;
       const button = tabButtonsRef.current[index];
       const container = tabsInnerRef.current;
       if (!button || !container) {
@@ -785,6 +790,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       setIndicatorStyle({
         width: buttonRect.width,
         left: buttonRect.left - containerRect.left + container.scrollLeft,
+        top: buttonRect.top - containerRect.top,
+        height: buttonRect.height,
         color: TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length],
       });
     };
@@ -797,7 +804,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [editProfileSubTabIndex]);
+  }, [editProfileSubTab, editProfileSubTabIndex, hoveredTabId]);
   const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
   const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
@@ -2003,7 +2010,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   className="tabs-pill-indicator"
                   style={{
                     width: indicatorStyle.width,
-                    transform: `translateX(${indicatorStyle.left}px)`,
+                    height: indicatorStyle.height,
+                    left: indicatorStyle.left,
+                    top: indicatorStyle.top,
                     borderColor: indicatorStyle.color,
                     boxShadow: `0 0 28px ${indicatorStyle.color}`,
                     opacity: indicatorStyle.width ? 1 : 0,
@@ -2028,6 +2037,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       role="tab"
                       aria-selected={editProfileSubTab === tab.id}
                       onClick={() => handleSubTabChange(tab.id)}
+                      onMouseEnter={() => setHoveredTabId(tab.id)}
+                      onMouseLeave={() => setHoveredTabId(null)}
                       className={classNames}
                       style={{ '--tab-color': tabColor }}
                       ref={(el) => { tabButtonsRef.current[index] = el; }}

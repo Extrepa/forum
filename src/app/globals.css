@@ -2611,7 +2611,7 @@ button:hover {
 .tabs-pill {
   position: relative;
   width: 100%;
-  padding: clamp(8px, 1vw, 12px);
+  padding: clamp(3px, 0.7vw, 4px) clamp(8px, 1vw, 12px);
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.3);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(2, 7, 10, 0.6));
@@ -2642,16 +2642,22 @@ button:hover {
 
 .tabs-pill-indicator {
   position: absolute;
-  top: 3px;
   left: 0;
-  height: calc(100% - 6px);
+  top: 0;
   border-radius: 999px;
   border: 2px solid transparent;
   background: rgba(2, 7, 10, 0.5);
   pointer-events: none;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.2s ease;
   z-index: 0;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
 }
 
 .tabs-pill .profile-tab,
