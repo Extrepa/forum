@@ -40,7 +40,7 @@ export default async function ProfilePage({ params }) {
   try {
     profileUser = await db
       .prepare(
-        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes, profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline, default_profile_tab, profile_cover_mode FROM users WHERE username_norm = ?'
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
       )
       .bind(username.toLowerCase())
       .first();
@@ -49,7 +49,7 @@ export default async function ProfilePage({ params }) {
     try {
       profileUser = await db
         .prepare(
-          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes, profile_mood_text, profile_mood_emoji, profile_song_url, profile_song_provider, profile_song_autoplay_enabled, profile_headline, default_profile_tab FROM users WHERE username_norm = ?'
+          'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key, time_spent_minutes, avatar_edit_minutes FROM users WHERE username_norm = ?'
         )
         .bind(username.toLowerCase())
         .first();
@@ -111,6 +111,33 @@ export default async function ProfilePage({ params }) {
       .run();
   } catch (e) {
     console.error('Failed to increment profile views:', e);
+  }
+
+  // Mood/song/headline, default tab, cover mode (from migration 0054+)
+  let extras = null;
+  try {
+    extras = await db
+      .prepare(
+        `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+         profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+         profile_headline, default_profile_tab, profile_cover_mode FROM users WHERE id = ?`
+      )
+      .bind(profileUser.id)
+      .first();
+  } catch (_) {
+    try {
+      extras = await db
+        .prepare(
+          `SELECT profile_mood_text, profile_mood_emoji, profile_mood_updated_at,
+           profile_song_url, profile_song_provider, profile_song_autoplay_enabled,
+           profile_headline, default_profile_tab FROM users WHERE id = ?`
+        )
+        .bind(profileUser.id)
+        .first();
+    } catch (__) {}
+  }
+  if (extras) {
+    profileUser = { ...profileUser, ...extras };
   }
 
   const stats = await getStatsForUser(db, profileUser.id);

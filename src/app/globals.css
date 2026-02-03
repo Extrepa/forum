@@ -43,13 +43,13 @@
 
 html,
 body {
-  padding: 16px;
+  padding: 0;
 }
 
 @media (max-width: 640px) {
   html,
   body {
-    padding: 8px;
+    padding: 0;
   }
 }
 
