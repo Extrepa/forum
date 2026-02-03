@@ -1134,41 +1134,6 @@ main {
   }
 }
 
-/* Player Outline Colors */
-.profile-song-player--soundcloud.neon-outline-card::before {
-  background: rgba(255, 107, 0, 0.9) !important; /* Orange */
-  animation: none !important; /* Disable chasing animation */
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
-}
-.profile-song-player--soundcloud.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4) !important, 0 0 32px rgba(255, 107, 0, 0.2) !important; /* Orange glow */
-}
-.profile-song-player--youtube.neon-outline-card::before {
-  background: rgba(255, 0, 0, 0.9) !important; /* Red */
-  animation: none !important;
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
-}
-.profile-song-player--youtube.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4) !important, 0 0 32px rgba(255, 0, 0, 0.2) !important; /* Red glow */
-}
-.profile-song-player--spotify.neon-outline-card::before {
-  background: rgba(30, 215, 96, 0.9) !important; /* Green */
-  animation: none !important;
-  background-image: none !important;
-  background-size: initial !important;
-  background-origin: border-box !important;
-  background-clip: border-box !important;
-}
-.profile-song-player--spotify.neon-outline-card::after {
-  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4) !important, 0 0 32px rgba(30, 215, 96, 0.2) !important; /* Green glow */
-}
-
 /* Public Profile Desktop Layout (Mood/Song Block) */
 .profile-mood-song-block-desktop-layout {
   display: flex; /* Default to stacked for mobile-first */
@@ -2551,12 +2516,44 @@ button:hover {
 
 .profile-song-player--soundcloud.neon-outline-card::before,
 .profile-song-player--soundcloud.neon-outline-card::after,
-.profile-song-player--youtube.neon-outline-card::before,
 .profile-song-player--youtube.neon-outline-card::after,
-.profile-song-player--spotify.neon-outline-card::before,
 .profile-song-player--spotify.neon-outline-card::after {
   border-radius: 18px !important;
   opacity: 1 !important;
+}
+
+.profile-song-player--soundcloud.neon-outline-card::before {
+  background: rgba(255, 107, 0, 0.9) !important; /* Orange */
+  animation: none !important;
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+}
+.profile-song-player--soundcloud.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4) !important, 0 0 32px rgba(255, 107, 0, 0.2) !important; /* Orange glow */
+}
+.profile-song-player--youtube.neon-outline-card::before {
+  background: rgba(255, 0, 0, 0.9) !important; /* Red */
+  animation: none !important;
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+}
+.profile-song-player--youtube.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4) !important, 0 0 32px rgba(255, 0, 0, 0.2) !important; /* Red glow */
+}
+.profile-song-player--spotify.neon-outline-card::before {
+  background: rgba(30, 215, 96, 0.9) !important; /* Green */
+  animation: none !important;
+  background-image: none !important;
+  background-size: initial !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+}
+.profile-song-player--spotify.neon-outline-card::after {
+  box-shadow: 0 0 12px rgba(30, 215, 96, 0.4) !important, 0 0 32px rgba(30, 215, 96, 0.2) !important; /* Green glow */
 }
 
 
@@ -4909,7 +4906,7 @@ header::before,
 .tabs-pill::before,
 .profile-card::before,
 .account-edit-card::before,
-.neon-outline-card::before {
+.neon-outline-card:not(.profile-song-player)::before {
   --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
@@ -4940,7 +4937,7 @@ header::after,
 .tabs-pill::after,
 .profile-card::after,
 .account-edit-card::after,
-.neon-outline-card::after {
+.neon-outline-card:not(.profile-song-player)::after {
   --neon-default-glow-1: rgba(52, 225, 255, 0.18);
   --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";
