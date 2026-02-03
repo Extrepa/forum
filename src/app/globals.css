@@ -1087,6 +1087,7 @@ main {
   width: auto;
   flex-shrink: 0;
   max-width: 100%;
+  flex-wrap: nowrap; /* PREVENT WRAPPING */
 }
 
 .account-profile-extras {
@@ -1100,26 +1101,28 @@ main {
   min-width: 250px;
 }
 
-/* Tablet/Mobile Breakpoint for Left Column Layout */
-@media (max-width: 900px) {
-  .account-profile-preview-left-column {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-  }
+  /* Tablet/Mobile Breakpoint for Left Column Layout */
+  @media (max-width: 900px) {
+    .account-profile-preview-left-column {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
 
-  .account-profile-header-group {
-    width: auto; /* Allow it to shrink to fit content so it stays centered */
-    justify-content: center;
-    max-width: 100%;
-  }
+    .account-profile-header-group {
+      flex-direction: row; /* KEEP it row on tablet/mobile */
+      width: auto;
+      justify-content: center;
+      max-width: 100%;
+      align-items: center;
+    }
 
-  .account-profile-extras {
-    width: 100%;
-    align-items: center;
+    .account-profile-extras {
+      width: 100%;
+      align-items: center;
+    }
   }
-}
 
 
 .account-profile-preview-user-info {
@@ -1151,58 +1154,58 @@ main {
   max-width: 100%;
 }
 
-/* Mobile adjustments for account-profile-preview */
-@media (max-width: 640px) {
-  .account-profile-preview {
-    padding: 12px;
-    width: 100%;
-    margin: 0 auto;
-    margin-bottom: 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: auto;
-    gap: 12px;
-  }
+  /* Mobile adjustments for account-profile-preview */
+  @media (max-width: 640px) {
+    .account-profile-preview {
+      padding: 12px;
+      width: 100%;
+      margin: 0 auto;
+      margin-bottom: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: auto;
+      gap: 12px;
+    }
 
-  .account-profile-preview-avatar-container {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: static;
-    flex-shrink: 0;
-  }
+    .account-profile-preview-avatar-container {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: static;
+      flex-shrink: 0;
+    }
 
-  .account-profile-preview-left-column {
-    flex-direction: column; /* Stack vertically on mobile too */
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding: 0;
-    width: 100%;
-    min-width: 0;
-  }
+    .account-profile-preview-left-column {
+      flex-direction: column; /* Stack vertically on mobile too */
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 0;
+      width: 100%;
+      min-width: 0;
+    }
 
-  .account-profile-header-group {
-    flex-direction: row; /* Keep avatar and identity side-by-side even on mobile */
-    justify-content: center; /* Center the group */
-    width: auto; /* Allow shrinking */
-    max-width: 100%;
-    align-items: center; /* Vertical center alignment */
-  }
+    .account-profile-header-group {
+      flex-direction: row !important; /* FORCE ROW layout */
+      justify-content: center;
+      align-items: center;
+      width: auto;
+      max-width: 100%;
+    }
 
-  /* Force user info to stay left-aligned relative to avatar in this specific group */
-  .account-profile-preview-user-info {
-    align-items: flex-start;
-    text-align: left;
-    width: auto;
-    flex: 0 1 auto; /* Allow shrinking but don't force grow */
-    padding-top: 0;
-    min-width: 0;
-    max-width: 100%;
-    margin-left: 0;
-  }
+    /* Force user info to stay left-aligned relative to avatar in this specific group */
+    .account-profile-preview-user-info {
+      align-items: flex-start;
+      text-align: left;
+      width: auto;
+      flex: 0 1 auto;
+      padding-top: 0;
+      min-width: 0;
+      max-width: 100%;
+      margin-left: 0;
+    }
 
   .account-edit-card--tabs-bottom {
     margin-bottom: 0; /* Reduce gap on mobile */
