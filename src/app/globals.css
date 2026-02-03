@@ -1068,13 +1068,13 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start; /* Changed from center to flex-start to prevent overflow push */
+  justify-content: center; /* Center the group */
   gap: 16px;
-  width: 100%; /* Take available width */
-  flex: 1 1 auto; /* Allow grow and shrink */
+  width: 100%;
+  flex: 1 1 auto;
   min-width: 0;
   padding-top: 0;
-  overflow: hidden; /* Contain children */
+  overflow: hidden;
 }
 
 .account-profile-preview-user-info {
@@ -1113,9 +1113,9 @@ main {
     width: 100%;
     margin: 0 auto;
     margin-bottom: 0;
-    flex-direction: row; /* Keep row layout */
+    flex-direction: column; /* Stack main columns (left col vs right col/buttons) if needed, but here we want left col to be main */
     align-items: center;
-    justify-content: flex-start; /* Align start to prevent center overflow issues */
+    justify-content: center;
     min-height: auto;
     gap: 12px;
   }
@@ -1130,12 +1130,12 @@ main {
   }
 
   .account-profile-preview-left-column {
-    flex-direction: row;
-    justify-content: flex-start; /* Align start */
+    flex-direction: row; /* Keep avatar and text side-by-side */
+    justify-content: center; /* Center them together */
     align-items: center;
     gap: 12px;
     padding: 0;
-    width: 100%; /* Fill available width */
+    width: 100%;
     min-width: 0;
   }
 
