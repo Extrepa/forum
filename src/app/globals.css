@@ -1346,6 +1346,7 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  max-width: 100%; /* Ensure it doesn't overflow container */
 }
 .account-profile-preview .profile-card-mood-song .profile-song-link {
   word-break: normal;
@@ -1361,6 +1362,7 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  max-width: 100%; /* Prevent overflow */
 }
 .account-profile-preview .profile-song-player-btn {
   visibility: visible;
