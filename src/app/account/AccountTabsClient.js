@@ -1125,23 +1125,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         className="account-profile-preview-song-pill"
                         style={{
                           borderColor: providerMeta.color,
-                          color: providerMeta.color,
-                          background: 'rgba(0, 0, 0, 0.45)',
+                          color: '#fff',
+                          '--song-provider-color': providerMeta.color,
                         }}
                       >
-                        {providerMeta.icon && (
-                          <Image
-                            src={providerMeta.icon}
-                            alt={providerMeta.label}
-                            width={18}
-                            height={18}
-                          />
-                        )}
-                        {providerMeta.abbr && (
-                          <span className="account-profile-preview-song-pill-abbr" style={{ background: providerMeta.color }}>
-                            {providerMeta.abbr}
-                          </span>
-                        )}
+                        <span className="account-profile-preview-song-pill-provider">{providerMeta.label}</span>
+                        <span className="account-profile-preview-song-pill-separator" aria-hidden="true" />
                         <span className="account-profile-preview-song-pill-text">{descriptor}</span>
                       </span>
                       {stats.profileSongAutoplayEnabled && (
