@@ -1118,10 +1118,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   const fallbackAbbr = fallbackLabel.charAt(0).toUpperCase();
                   const providerMeta = getSongProviderMeta(providerKey, { label: fallbackLabel, abbr: fallbackAbbr });
                   const descriptor = getSongDescriptor(stats.profileSongUrl) || providerMeta.label;
+                  const songLink = stats.profileSongUrl?.trim();
+                  const SongPillWrapper = songLink ? 'a' : 'span';
                   return (
                     <div className="account-profile-preview-status-row account-profile-preview-song-row">
                       <span className="account-profile-preview-status-label">Song:</span>
-                      <span
+                      <SongPillWrapper
+                        href={songLink}
+                        target={songLink ? '_blank' : undefined}
+                        rel={songLink ? 'noopener noreferrer' : undefined}
                         className="account-profile-preview-song-pill"
                         style={{
                           borderColor: providerMeta.color,
@@ -1132,7 +1137,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <span className="account-profile-preview-song-pill-provider">{providerMeta.label}</span>
                         <span className="account-profile-preview-song-pill-separator" aria-hidden="true" />
                         <span className="account-profile-preview-song-pill-text">{descriptor}</span>
-                      </span>
+                      </SongPillWrapper>
                       {stats.profileSongAutoplayEnabled && (
                         <span className="account-profile-preview-autoplay-note">(autoplay on)</span>
                       )}

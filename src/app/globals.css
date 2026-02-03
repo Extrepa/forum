@@ -1144,6 +1144,7 @@ main {
   flex-wrap: nowrap;
   overflow: hidden;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .account-profile-preview-song-pill-provider {
