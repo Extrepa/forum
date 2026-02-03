@@ -742,6 +742,28 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     color: TAB_COLOR_SEQUENCE[0],
   });
 
+  const renderTabLabel = (tab) => {
+    if (tab.id === 'username') {
+      return (
+        <span className="account-edit-tab-label">
+          User<wbr />name
+        </span>
+      );
+    }
+    if (tab.id === 'mood') {
+      return (
+        <span className="account-edit-tab-label">
+          Mood &<wbr /> Song
+        </span>
+      );
+    }
+    return (
+      <span className="account-edit-tab-label">
+        {tab.label}
+      </span>
+    );
+  };
+
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -1991,6 +2013,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                 />
                 {EDIT_PROFILE_SUB_TABS.map((tab, index) => {
                   const tabColor = TAB_COLOR_SEQUENCE[index % TAB_COLOR_SEQUENCE.length];
+                  const classNames = [
+                    'account-edit-tab',
+                    editProfileSubTab === tab.id ? 'account-edit-tab--active' : null,
+                    tab.id === 'username' ? 'account-edit-tab--username' : null,
+                    tab.id === 'mood' ? 'account-edit-tab--mood' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
                   return (
                     <button
                       key={tab.id}
@@ -1998,12 +2028,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       role="tab"
                       aria-selected={editProfileSubTab === tab.id}
                       onClick={() => handleSubTabChange(tab.id)}
-                      className={`${editProfileSubTab === tab.id ? 'account-edit-tab account-edit-tab--active' : 'account-edit-tab'}${tab.id === 'username' ? ' account-edit-tab--username' : ''}`}
+                      className={classNames}
                       style={{ '--tab-color': tabColor }}
                       ref={(el) => { tabButtonsRef.current[index] = el; }}
                       data-username-tab-label={tab.label}
                     >
-                      {tab.label}
+                      {renderTabLabel(tab)}
                     </button>
                   );
                 })}
