@@ -310,12 +310,16 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const moodText = profileUser?.profile_mood_text ?? '';
-  const moodEmoji = profileUser?.profile_mood_emoji ?? '';
-  const profileHeadline = profileUser?.profile_headline ?? '';
-  const songUrl = profileUser?.profile_song_url ?? '';
-  const songProvider = profileUser?.profile_song_provider ?? '';
-  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled ?? false);
+  const moodText = profileUser?.profile_mood_text ?? stats.profileMoodText ?? '';
+  const moodEmoji = profileUser?.profile_mood_emoji ?? stats.profileMoodEmoji ?? '';
+  const profileHeadline = profileUser?.profile_headline ?? stats.profileHeadline ?? '';
+  const songUrl = profileUser?.profile_song_url ?? stats.profileSongUrl ?? '';
+  const rawSongProvider = profileUser?.profile_song_provider ?? stats.profileSongProvider ?? '';
+  const songProvider = rawSongProvider ? rawSongProvider.toLowerCase().trim() : '';
+  const songAutoplayEnabled =
+    profileUser?.profile_song_autoplay_enabled != null
+      ? Boolean(profileUser.profile_song_autoplay_enabled)
+      : Boolean(stats.profileSongAutoplayEnabled);
 
   // Combine profileUser with stats for consistent data in ProfileMoodSongBlock
   const combinedProfileUser = {
@@ -440,9 +444,9 @@ export default async function ProfilePage({ params }) {
               userColor={userColor}
             />
           </div>
-          <div className="profile-card-header-meta">
-            <Username
-              name={profileUser.username}
+        <div className="profile-card-header-meta">
+          <Username
+            name={profileUser.username}
               colorIndex={colorIndex}
               href={null}
               style={{
@@ -464,7 +468,8 @@ export default async function ProfilePage({ params }) {
             initialSongAutoplayEnabled={combinedProfileUser.profile_song_autoplay_enabled}
             initialHeadline={combinedProfileUser.profile_headline}
             songProviderLabel={songProviderLabel}
-            />
+            isOwnProfile={isOwnProfile}
+          />
             {(() => {
               const validLinks = profileLinks.filter(l => {
                 const o = typeof l === 'object' ? l : { url: l, platform: null };
@@ -528,10 +533,10 @@ export default async function ProfilePage({ params }) {
           guestbookEntries={guestbookEntries}
           profileUsername={profileUser.username}
           canLeaveMessage={!isOwnProfile && !!currentUser}
+          isOwnProfile={isOwnProfile}
           galleryEntries={galleryEntries}
         />
       </section>
     </div>
   );
 }
-
