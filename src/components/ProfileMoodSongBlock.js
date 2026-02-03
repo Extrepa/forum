@@ -34,12 +34,16 @@ export default function ProfileMoodSongBlock({
   const hasSong = isProfileFlagEnabled('profile_music') && songUrl;
   const moodDescriptor = (moodText?.trim() || moodEmoji?.trim() || '');
   const moodChipStyle = getMoodChipStyle(moodDescriptor);
-  const songProviderLabel = songProvider
-    ? songProvider.charAt(0).toUpperCase() + songProvider.slice(1)
-    : (initialSongProviderLabel ?? 'Song');
+  const songProviderInfo = {
+    youtube: { label: 'YouTube', icon: '/icons/social/youtube.png' },
+    soundcloud: { label: 'SoundCloud', icon: '/icons/social/soundcloud.png' },
+    spotify: { label: 'Spotify', icon: '/icons/social/spotify.svg' },
+  }[songProvider];
+
+  const songProviderLabel = songProviderInfo?.label ?? (initialSongProviderLabel ?? 'Song');
 
   useEffect(() => {
-    if (fetched || !isOwnProfile) return;
+    if (fetched) return;
     if (initialMoodText || initialMoodEmoji || initialSongUrl) return;
     let cancelled = false;
     fetch('/api/account/profile-extras')
@@ -56,7 +60,7 @@ export default function ProfileMoodSongBlock({
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [isOwnProfile, initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
+  }, [initialMoodText, initialMoodEmoji, initialSongUrl, fetched]);
 
   useEffect(() => {
     setMoodText(initialMoodText ?? '');
@@ -78,7 +82,7 @@ export default function ProfileMoodSongBlock({
   if (!hasMood && !hasSong && !hasHeadline) {
     return (
       <div className="profile-card-mood-song">
-        <div className="muted" style={{ fontSize: '13px' }}>No mood, status, or song set yet.</div>
+        <div className="muted" style={{ fontSize: '13px' }}>No mood or song set yet.</div>
       </div>
     );
   }
@@ -95,6 +99,9 @@ export default function ProfileMoodSongBlock({
         />
       ) : hasSong ? (
         <div className="profile-song-compact">
+          {songProviderInfo?.icon && (
+            <img src={songProviderInfo.icon} alt={songProviderInfo.label} className="profile-song-provider-icon" />
+          )}
           <span className="profile-song-provider">{songProviderLabel}</span>
           <a href={songUrl} target="_blank" rel="noopener noreferrer" className="profile-song-link">
             {songUrl}
@@ -115,9 +122,8 @@ export default function ProfileMoodSongBlock({
             </div>
           )}
           {hasHeadline ? (
-            <div className="profile-status-line" style={{ marginTop: '8px' }}>
-              <span>Status:</span>
-              <span>{headline}</span>
+            <div className="profile-status-line" style={{ marginTop: hasMood ? '8px' : '0' }}>
+              {headline}
             </div>
           ) : null}
         </div>

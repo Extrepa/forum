@@ -3,7 +3,6 @@
  * Used by: GET /api/account/stats, profile page, account page.
  * @param {D1Database} db
  * @param {string} userId
- * @param {{ profileViewsDisplay?: number }} [options] - override profile_views (e.g. after increment on profile view)
  * @returns {Promise<StatsShape>}
  */
 export async function getStatsForUser(db, userId, options = {}) {
@@ -151,10 +150,7 @@ export async function getStatsForUser(db, userId, options = {}) {
       }
     }
 
-    const profileViews =
-      options.profileViewsDisplay !== undefined
-        ? options.profileViewsDisplay
-        : Number(userInfo?.profile_views) || 0;
+    const profileViews = Number(userInfo?.profile_views) || 0;
 
     return {
       threadCount: Number(threadCount) || 0,

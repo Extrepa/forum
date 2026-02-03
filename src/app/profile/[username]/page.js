@@ -102,22 +102,17 @@ export default async function ProfilePage({ params }) {
       ? 'var(--role-mod)'
       : 'var(--role-user)';
 
-  // Increment profile views only when viewed by someone else (so own profile and account stats match)
-  if (!isOwnProfile) {
-    try {
-      await db
-        .prepare('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = ?')
-        .bind(profileUser.id)
-        .run();
-    } catch (e) {
-      console.error('Failed to increment profile views:', e);
-    }
+  // Increment profile views
+  try {
+    await db
+      .prepare('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = ?')
+      .bind(profileUser.id)
+      .run();
+  } catch (e) {
+    console.error('Failed to increment profile views:', e);
   }
 
-  const profileViewsDisplay = !isOwnProfile
-    ? (Number(profileUser.profile_views) || 0) + 1
-    : undefined;
-  const stats = await getStatsForUser(db, profileUser.id, profileViewsDisplay !== undefined ? { profileViewsDisplay } : {});
+  const stats = await getStatsForUser(db, profileUser.id);
   if (stats.joinDate == null) stats.joinDate = profileUser.created_at;
   const coverMode = stats?.profileCoverMode || 'cover';
 
