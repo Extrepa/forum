@@ -283,16 +283,12 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const moodText = profileUser?.profile_mood_text?.trim() || stats.profileMoodText || '';
-  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || stats.profileMoodEmoji || '';
-  const profileHeadline = profileUser?.profile_headline?.trim() || stats.profileHeadline || '';
-  const songUrl = profileUser?.profile_song_url?.trim() || stats.profileSongUrl || '';
-  const songProvider = profileUser?.profile_song_provider?.trim() || stats.profileSongProvider || '';
-  const songAutoplayEnabled = Boolean(
-    profileUser?.profile_song_autoplay_enabled ??
-      stats.profileSongAutoplayEnabled ??
-      false
-  );
+  const moodText = profileUser?.profile_mood_text ?? '';
+  const moodEmoji = profileUser?.profile_mood_emoji ?? '';
+  const profileHeadline = profileUser?.profile_headline ?? '';
+  const songUrl = profileUser?.profile_song_url ?? '';
+  const songProvider = profileUser?.profile_song_provider ?? '';
+  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled ?? false);
 
   // Combine profileUser with stats for consistent data in ProfileMoodSongBlock
   const combinedProfileUser = {
