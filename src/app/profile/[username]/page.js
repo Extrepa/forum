@@ -43,9 +43,13 @@ export default async function ProfilePage({ params }) {
       )
       .bind(username.toLowerCase())
       .first();
-  } catch (e) {
-    console.error("Error fetching profile user:", e);
-    profileUser = null; // Ensure profileUser is null on error
+  } catch (_) {
+    profileUser = await db
+      .prepare(
+        'SELECT id, username, role, created_at, profile_bio, profile_links, preferred_username_color_index, profile_views, avatar_key FROM users WHERE username_norm = ?'
+      )
+      .bind(username.toLowerCase())
+      .first();
   }
 
   if (!profileUser) {
@@ -262,12 +266,16 @@ export default async function ProfilePage({ params }) {
     );
   };
 
-  const moodText = profileUser?.profile_mood_text?.trim() || '';
-  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || '';
-  const profileHeadline = profileUser?.profile_headline?.trim() || '';
-  const songUrl = profileUser?.profile_song_url?.trim() || '';
-  const songProvider = profileUser?.profile_song_provider?.trim() || '';
-  const songAutoplayEnabled = Boolean(profileUser?.profile_song_autoplay_enabled ?? false);
+  const moodText = profileUser?.profile_mood_text?.trim() || stats.profileMoodText || '';
+  const moodEmoji = profileUser?.profile_mood_emoji?.trim() || stats.profileMoodEmoji || '';
+  const profileHeadline = profileUser?.profile_headline?.trim() || stats.profileHeadline || '';
+  const songUrl = profileUser?.profile_song_url?.trim() || stats.profileSongUrl || '';
+  const songProvider = profileUser?.profile_song_provider?.trim() || stats.profileSongProvider || '';
+  const songAutoplayEnabled = Boolean(
+    profileUser?.profile_song_autoplay_enabled ??
+      stats.profileSongAutoplayEnabled ??
+      false
+  );
 
   // Combine profileUser with stats for consistent data in ProfileMoodSongBlock
   const combinedProfileUser = {
