@@ -913,8 +913,7 @@ export default function AccountSettings({ user: initialUser }) {
           border: 1px solid transparent;
           box-shadow: none;
         }
-        .secondary-button:hover,
-        .secondary-button:focus-visible {
+        .secondary-button:hover {
           border-color: rgba(255, 255, 255, 0.5);
         }
         .secondary-button:active {
@@ -940,19 +939,11 @@ export default function AccountSettings({ user: initialUser }) {
           border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.6);
           background: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9));
-          background-image: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9)), url("data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2012%209%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M1%201l5%205%205-5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E");
-          background-position: right 12px center;
-          background-repeat: no-repeat;
           color: #fff;
           font-size: 13px;
           cursor: pointer;
-          appearance: none;
-          -webkit-appearance: none;
-          transition: border-color 0.2s ease, background 0.2s ease;
-          position: relative;
-          z-index: 1;
+          transition: border-color 0.2s ease;
           box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-          padding-right: 34px;
         }
         .account-select:focus-visible {
           outline: none;
