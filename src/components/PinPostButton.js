@@ -68,6 +68,12 @@ export default function PinPostButton({ postId, postType = 'post', initialPinned
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
+        ...(isPinned ? {
+          background: 'rgba(255, 52, 245, 0.35)',
+          borderColor: 'rgba(255, 52, 245, 0.8)',
+          boxShadow: '0 0 18px rgba(255, 52, 245, 0.6)',
+          color: 'var(--errl-accent-3)'
+        } : {})
       }}
       title={isPinned ? 'Unpin from top' : 'Pin to top'}
       aria-label={isPinned ? 'Unpin from top' : 'Pin to top'}

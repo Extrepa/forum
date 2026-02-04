@@ -5645,8 +5645,8 @@ header::before {
 .post-action-menu__popover {
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  right: calc(100% + 12px);
+  transform: translateY(-50%);
   display: inline-flex;
   justify-content: space-between;
   gap: 12px;
@@ -5666,7 +5666,9 @@ header::before {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .post-action-menu__right {

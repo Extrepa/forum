@@ -66,7 +66,12 @@ export default function HidePostButton({ postId, postType = 'post', initialHidde
         lineHeight: 1,
         display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        ...(isHidden ? {
+          background: 'rgba(255, 255, 255, 0.2)',
+          borderColor: 'rgba(255, 255, 255, 0.5)',
+          boxShadow: '0 0 16px rgba(255, 255, 255, 0.4)'
+        } : {})
       }}
       title={isHidden ? 'Show post' : 'Hide post'}
       aria-label={isHidden ? 'Show post' : 'Hide post'}
