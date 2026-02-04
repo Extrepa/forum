@@ -257,42 +257,13 @@ function EditSheet({ open, title, onClose, children }) {
           font-size: 14px;
         }
         .toggle-line input {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          background: rgba(255, 255, 255, 0.1);
-          box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4);
-          position: relative;
+          margin: 0;
+          width: auto;
+          height: auto;
+          accent-color: var(--accent);
+          appearance: auto;
           cursor: pointer;
-          transition: background 0.25s ease, border 0.25s ease, transform 0.25s ease;
-        }
-        .toggle-line input::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          margin: auto;
-          width: 8px;
-          height: 8px;
-          background: none;
-          transform: rotate(45deg) scale(0);
-          border: solid #fff;
-          border-width: 0 0 2px 2px;
-          border-radius: 1px;
-          transition: transform 0.2s ease;
-        }
-        .toggle-line input:checked {
-          background: linear-gradient(120deg, #54b0ff, #b026ff);
-          border-color: transparent;
-        }
-        .toggle-line input:checked::after {
-          transform: rotate(45deg) scale(1);
-        }
-        .toggle-line input:focus-visible {
-          outline: none;
-          border-color: #54b0ff;
-          box-shadow: 0 0 0 3px rgba(84, 176, 255, 0.35);
+          vertical-align: middle;
         }
         .notification-alerts {
           display: flex;
@@ -824,7 +795,7 @@ export default function AccountSettings({ user: initialUser }) {
                   label="Default landing page" 
                 right={
                     <select 
-                      className="account-basic-select"
+                      className="account-native-select"
                       value={siteUi.defaultLandingPage}
                       onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
                     >
@@ -852,7 +823,7 @@ export default function AccountSettings({ user: initialUser }) {
                   label="Color theme" 
                 right={
                     <select 
-                      className="account-basic-select"
+                      className="account-native-select"
                       value={siteUi.colorTheme}
                       onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
                     >
@@ -961,6 +932,23 @@ export default function AccountSettings({ user: initialUser }) {
             padding: 6px 12px;
             font-size: 11px;
           }
+        }
+        .account-native-select {
+          appearance: auto;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 4px;
+          padding: 4px 8px;
+          font: inherit;
+          color: inherit;
+          box-shadow: none;
+          cursor: pointer;
+          min-width: 0;
+          max-width: 100%;
+        }
+        .account-native-select:focus-visible {
+          outline: 2px solid rgba(52, 225, 255, 0.8);
+          outline-offset: 1px;
         }
       `}</style>
     </div>
