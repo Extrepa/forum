@@ -100,15 +100,19 @@ function SecondaryButton(props) {
   return (
     <button
       {...props}
+      type={props.type ?? 'button'}
       className={className}
       style={{
         borderRadius: '999px',
         fontWeight: 600,
-        background: 'linear-gradient(120deg, #54b0ff, #ff2dc3)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        color: '#050505',
+        background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+        border: 'none',
+        color: '#001018',
+        boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
         cursor: props.disabled ? 'not-allowed' : 'pointer',
         opacity: props.disabled ? 0.5 : 1,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        outline: 'none',
         ...props.style
       }}
     />
@@ -138,38 +142,40 @@ function EditSheet({ open, title, onClose, children }) {
         zIndex: 1000,
         display: 'flex',
         justifyContent: 'center',
+        alignItems: 'center',
+        padding: '24px 16px',
+        overflowY: 'auto',
       }}
     >
       {/* Backdrop */}
       <div
+        className="edit-sheet-backdrop"
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(2px)',
         }}
         onClick={onClose}
       />
       
       {/* Panel */}
       <div
+        className="edit-sheet-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         style={{
           position: 'relative',
-          width: '100%',
-          maxWidth: '600px', // Max width for desktop
-          background: '#06131a', // Match theme or var(--card)
-          borderTopLeftRadius: '24px',
-          borderTopRightRadius: '24px',
+          width: 'min(780px, 100%)',
+          maxHeight: 'min(90vh, 880px)',
+          background: '#06131a',
+          borderRadius: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderBottom: 'none',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.6)',
           display: 'flex',
           flexDirection: 'column',
-          animation: 'slideUp 0.3s ease-out',
-          marginBottom: 0, // Stick to bottom on mobile
-          overflow: 'visible',
+          overflow: 'hidden',
+          zIndex: 1,
         }}
-        className="edit-sheet-panel"
       >
         <div className="edit-sheet-header" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{title}</div>
@@ -203,22 +209,36 @@ function EditSheet({ open, title, onClose, children }) {
         </div>
       </div>
       <style jsx global>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+        @keyframes editSheetPop {
+          from {
+            opacity: 0;
+            transform: scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
         .edit-sheet-overlay {
-          align-items: flex-start;
-          padding: 32px 0 16px;
-          overflow-y: visible;
+          align-items: center;
+          padding: 24px 16px;
+          overflow-y: auto;
+        }
+        .edit-sheet-backdrop {
+          background: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(4px);
         }
         .edit-sheet-panel {
-          max-width: 640px;
-          width: min(95%, 640px);
-          max-height: none;
+          width: min(780px, 100%);
+          max-width: 780px;
+          max-height: min(90vh, 880px);
+          border-radius: 24px;
+          box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+          animation: editSheetPop 0.24s ease;
         }
         .edit-sheet-content {
           padding: 20px;
+          overflow-y: auto;
         }
         .notifications-grid {
           display: grid;
@@ -289,16 +309,15 @@ function EditSheet({ open, title, onClose, children }) {
           font-size: 13px;
           font-weight: 500;
         }
-        @media (min-width: 768px) {
+        @media (max-width: 640px) {
           .edit-sheet-overlay {
-            align-items: center;
-            padding: 0;
+            padding: 16px;
           }
           .edit-sheet-panel {
             border-radius: 16px;
-            margin-bottom: auto;
-            margin-top: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          .edit-sheet-content {
+            padding: 16px;
           }
         }
       `}</style>
@@ -803,8 +822,9 @@ export default function AccountSettings({ user: initialUser }) {
               <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>Site behavior</div>
                 <Row 
                   label="Default landing page" 
-                  right={
+                right={
                     <select 
+                      className="account-basic-select"
                       value={siteUi.defaultLandingPage}
                       onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
                     >
@@ -830,8 +850,9 @@ export default function AccountSettings({ user: initialUser }) {
               <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>UI</div>
                 <Row 
                   label="Color theme" 
-                  right={
+                right={
                     <select 
+                      className="account-basic-select"
                       value={siteUi.colorTheme}
                       onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
                     >
@@ -904,25 +925,41 @@ export default function AccountSettings({ user: initialUser }) {
       `}</style>
       <style jsx global>{`
         .secondary-button {
-          padding: 8px 16px;
-          font-size: 13px;
-          letter-spacing: 0.01em;
-          transition: transform 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px 14px;
+          font-size: 12px;
+          letter-spacing: 0.02em;
+          text-transform: none;
+          border-radius: 999px;
+          background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
+          color: #001018;
           border: none;
-          box-shadow: none;
+          box-shadow: 0 0 10px rgba(52, 225, 255, 0.35);
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
           outline: none;
         }
-        .secondary-button:active {
+        .secondary-button:hover:not(:disabled) {
+          box-shadow: 0 0 14px rgba(52, 225, 255, 0.45);
+        }
+        .secondary-button:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(52, 225, 255, 0.5);
+        }
+        .secondary-button:active:not(:disabled) {
           transform: translateY(1px);
         }
         .secondary-button:disabled {
           cursor: not-allowed;
+          opacity: 0.6;
+          box-shadow: none;
         }
         @media (max-width: 767px) {
           .secondary-button {
             padding: 6px 12px;
             font-size: 11px;
-            letter-spacing: 0.02em;
           }
         }
       `}</style>

@@ -978,7 +978,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   return (
-    <section className="card account-card neon-outline-card">
+    <>
+      <section className="card account-card neon-outline-card">
       <div
         className="account-tabs"
         style={{
@@ -1300,6 +1301,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div>
                       <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Mood</label>
                       <select
+                        className="account-basic-select"
                         value={MOOD_OPTIONS.some(o => o.text === profileMoodText && o.emoji === profileMoodEmoji) ? MOOD_OPTIONS.find(o => o.text === profileMoodText && o.emoji === profileMoodEmoji).value : (profileMoodText || profileMoodEmoji ? 'custom' : '')}
                         onChange={(e) => {
                           const v = e.target.value;
@@ -1307,7 +1309,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           const opt = MOOD_OPTIONS.find(o => o.value === v);
                           if (opt) { setProfileMoodText(opt.text); setProfileMoodEmoji(opt.emoji); }
                         }}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
                       >
                         <option value="">None</option>
                         {profileMoodText || profileMoodEmoji ? (MOOD_OPTIONS.every(o => o.text !== profileMoodText || o.emoji !== profileMoodEmoji) ? <option value="custom">{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText || 'Custom'}</option> : null) : null}
@@ -1321,9 +1322,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div>
                       <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label>
                       <select
+                        className="account-basic-select"
                         value={profileSongProvider || ''}
                         onChange={(e) => setProfileSongProvider(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
                       >
                         <option value="">—</option>
                         {PROFILE_SONG_PROVIDERS.map((provider) => (
@@ -2080,6 +2081,30 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           </div>
         </div>
       )}
-    </section>
+      </section>
+      <style jsx global>{`
+        .account-basic-select {
+          width: auto;
+          min-height: auto;
+          appearance: auto;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 4px;
+          padding: 4px 8px;
+          font: inherit;
+          color: inherit;
+          cursor: pointer;
+          box-shadow: none;
+        }
+        .account-basic-select:focus-visible {
+          outline: none;
+          border-color: rgba(52, 225, 255, 0.8);
+        }
+        .account-basic-select option {
+          background: var(--card);
+          color: inherit;
+        }
+      `}</style>
+    </>
   );
 }
