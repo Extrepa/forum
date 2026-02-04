@@ -208,30 +208,48 @@ function EditSheet({ open, title, onClose, children }) {
           to { transform: translateY(0); }
         }
         .edit-sheet-overlay {
-          align-items: flex-end;
+          align-items: flex-start;
+          padding: 32px 0 16px;
+          overflow-y: auto;
         }
         .edit-sheet-panel {
-          max-height: 85vh;
+          max-width: 640px;
+          width: min(95%, 640px);
+          max-height: none;
         }
         .edit-sheet-content {
           padding: 20px;
-          overflow-y: auto;
-          flex: 1;
+        }
+        .notifications-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 12px;
+        }
+        .notification-card {
           min-height: 0;
         }
-        .edit-sheet-header {
-          flex-shrink: 0;
+        .toggle-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 6px 0;
+          font-size: 14px;
+        }
+        .toggle-line input {
+          width: 18px;
+          height: 18px;
         }
         @media (min-width: 768px) {
           .edit-sheet-overlay {
             align-items: center;
+            padding: 0;
           }
           .edit-sheet-panel {
             border-radius: 16px;
             margin-bottom: auto;
             margin-top: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 90vh;
           }
         }
       `}</style>
@@ -312,14 +330,13 @@ function PasswordEditor({ draft, onChange, saving, onSave }) {
 
 function ToggleLine({ label, checked, onChange, disabled }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
-      <span style={{ fontWeight: 500 }}>{label}</span>
+    <label className="toggle-line" style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+      <span>{label}</span>
       <input 
         type="checkbox" 
         checked={checked} 
         onChange={(e) => onChange(e.target.checked)} 
         disabled={disabled}
-        style={{ width: '18px', height: '18px' }}
       />
     </label>
   );
@@ -333,76 +350,78 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
 
   return (
     <div className="stack" style={{ gap: '16px' }}>
-      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
-        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Site notifications</div>
-        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Choose what triggers alerts.</div>
-        <Divider />
+      <div className="notifications-grid">
+        <div className="card notification-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Site notifications</div>
+          <div className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Choose what triggers alerts.</div>
+          <Divider />
 
-        <ToggleLine label="RSVP notifications" checked={draft.site.rsvp} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, rsvp: v } }))
-        } />
-        <ToggleLine label="Like notifications" checked={draft.site.likes} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, likes: v } }))
-        } />
-        <ToggleLine label="Project update notifications" checked={draft.site.projectUpdates} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, projectUpdates: v } }))
-        } />
-        <ToggleLine label="Mention notifications" checked={draft.site.mentions} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, mentions: v } }))
-        } />
-        <ToggleLine label="Reply notifications" checked={draft.site.replies} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, replies: v } }))
-        } />
-        <ToggleLine label="Comment notifications" checked={draft.site.comments} onChange={(v) =>
-          setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
-        } />
-      </div>
-
-      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
-        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Delivery channels</div>
-        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>
-          Email is required when site notifications are enabled. SMS requires a phone number.
+          <ToggleLine label="RSVP notifications" checked={draft.site.rsvp} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, rsvp: v } }))
+          } />
+          <ToggleLine label="Like notifications" checked={draft.site.likes} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, likes: v } }))
+          } />
+          <ToggleLine label="Project update notifications" checked={draft.site.projectUpdates} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, projectUpdates: v } }))
+          } />
+          <ToggleLine label="Mention notifications" checked={draft.site.mentions} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, mentions: v } }))
+          } />
+          <ToggleLine label="Reply notifications" checked={draft.site.replies} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, replies: v } }))
+          } />
+          <ToggleLine label="Comment notifications" checked={draft.site.comments} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
+          } />
         </div>
-        <Divider />
 
-        <ToggleLine
-          label="Email notifications"
-          checked={draft.delivery.email}
-          onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, email: v } }))}
-        />
+        <div className="card notification-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Delivery channels</div>
+          <div className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>
+            Email is required when site notifications are enabled. SMS requires a phone number.
+          </div>
+          <Divider />
 
-        <ToggleLine 
-          label="Text (SMS) notifications"
-          checked={draft.delivery.sms}
-          disabled={!hasPhone}
-          onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, sms: v } }))}
-        />
-        {!hasPhone && <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Add a phone number to enable SMS.</div>}
+          <ToggleLine
+            label="Email notifications"
+            checked={draft.delivery.email}
+            onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, email: v } }))}
+          />
 
-        {siteAny && !draft.delivery.email && (
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#ffd700' }}>
-            Email must be enabled to receive site alerts.
+          <ToggleLine 
+            label="Text (SMS) notifications"
+            checked={draft.delivery.sms}
+            disabled={!hasPhone}
+            onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, sms: v } }))}
+          />
+          {!hasPhone && <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Add a phone number to enable SMS.</div>}
+
+          {siteAny && !draft.delivery.email && (
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#ffd700' }}>
+              Email must be enabled to receive site alerts.
+            </div>
+          )}
+        </div>
+
+        {isAdmin && (
+          <div className="card notification-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+            <div style={{ fontWeight: 600, marginBottom: '4px' }}>Admin notifications</div>
+            <div className="muted" style={{ fontSize: '13px', marginBottom: '6px' }}>Extra alerts for moderation/monitoring.</div>
+            <Divider />
+
+            <ToggleLine label="New user signups" checked={admin.newUserSignups} onChange={(v) =>
+              setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newUserSignups: v } }))
+            } />
+            <ToggleLine label="New forum threads" checked={admin.newForumThreads} onChange={(v) =>
+              setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumThreads: v } }))
+            } />
+            <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
+              setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
+            } />
           </div>
         )}
       </div>
-
-      {isAdmin && (
-        <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
-          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Admin notifications</div>
-          <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Extra alerts for moderation/monitoring.</div>
-          <Divider />
-
-          <ToggleLine label="New user signups" checked={admin.newUserSignups} onChange={(v) =>
-            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newUserSignups: v } }))
-          } />
-          <ToggleLine label="New forum threads" checked={admin.newForumThreads} onChange={(v) =>
-            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumThreads: v } }))
-          } />
-          <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
-            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
-          } />
-        </div>
-      )}
 
       {!validation.ok && (
         <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)', color: '#ffd700', fontSize: '13px' }}>
