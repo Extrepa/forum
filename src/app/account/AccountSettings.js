@@ -210,7 +210,7 @@ function EditSheet({ open, title, onClose, children }) {
         .edit-sheet-overlay {
           align-items: flex-start;
           padding: 32px 0 16px;
-          overflow-y: auto;
+          overflow-y: visible;
         }
         .edit-sheet-panel {
           max-width: 640px;
@@ -909,14 +909,20 @@ export default function AccountSettings({ user: initialUser }) {
           padding: 8px 16px;
           font-size: 13px;
           letter-spacing: 0.01em;
-          transition: transform 0.2s ease;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+          border: 1px solid transparent;
+          box-shadow: none;
+        }
+        .secondary-button:hover,
+        .secondary-button:focus-visible {
+          border-color: rgba(255, 255, 255, 0.5);
         }
         .secondary-button:active {
           transform: translateY(1px);
         }
         .secondary-button:focus-visible {
           outline: none;
-          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+          box-shadow: none;
         }
         .secondary-button:disabled {
           cursor: not-allowed;
@@ -930,19 +936,22 @@ export default function AccountSettings({ user: initialUser }) {
         }
         .account-select {
           min-width: 110px;
-          padding: 8px 10px 8px 12px;
+          padding: 8px 12px;
           border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.35);
-          background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(2, 10, 20, 0.65)),
-            url("data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2012%209%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M1%201l5%205%205-5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E");
-          background-position: 0 0, right 12px center;
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          background: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9));
+          background-image: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9)), url("data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2012%209%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M1%201l5%205%205-5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E");
+          background-position: right 12px center;
           background-repeat: no-repeat;
-          background-size: 100% 100%, 12px 9px;
           color: #fff;
           font-size: 13px;
           cursor: pointer;
           appearance: none;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          -webkit-appearance: none;
+          transition: border-color 0.2s ease, background 0.2s ease;
+          position: relative;
+          z-index: 1;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
           padding-right: 34px;
         }
         .account-select:focus-visible {
@@ -958,7 +967,7 @@ export default function AccountSettings({ user: initialUser }) {
           display: none;
         }
         @media (max-width: 767px) {
-          .account-select {
+        .account-select {
             font-size: 12px;
             min-width: 90px;
           }
