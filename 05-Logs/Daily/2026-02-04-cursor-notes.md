@@ -3,4 +3,6 @@
 ## Tasks
 - [x] Commit and merge `fix/username-row` to `main`
 - [x] Deploy to production
-- [ ] Refactor Account Page (feat/account-page-refactor)
+- [x] Refactor Account Page (feat/account-page-refactor)
+- [x] Merge `feat/account-page-refactor` to `main`
+- [ ] Deploy Account Page updates to production
