@@ -344,15 +344,22 @@ export default function NotificationsMenu({
           disabled={signingOut}
           style={{
             fontSize: '11px',
-            padding: '2px 6px',
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: '1px solid transparent',
+            padding: 0,
+            margin: 0,
             background: 'transparent',
+            border: 'none',
             color: 'var(--muted)',
             fontWeight: 600,
-            textDecoration: 'underline',
             cursor: signingOut ? 'not-allowed' : 'pointer',
+            letterSpacing: '0.04em'
+          }}
+          onMouseEnter={(e) => {
+            if (!signingOut) {
+              e.currentTarget.style.color = 'var(--text)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--muted)';
           }}
         >
           {signingOut ? 'Signing out…' : 'Sign out'}
