@@ -909,20 +909,13 @@ export default function AccountSettings({ user: initialUser }) {
           padding: 8px 16px;
           font-size: 13px;
           letter-spacing: 0.01em;
-          transition: transform 0.2s ease, border-color 0.2s ease;
-          border: 1px solid transparent;
+          transition: transform 0.2s ease;
+          border: none;
           box-shadow: none;
           outline: none;
-        }
-        .secondary-button:hover {
-          border-color: rgba(255, 255, 255, 0.5);
         }
         .secondary-button:active {
           transform: translateY(1px);
-        }
-        .secondary-button:focus-visible {
-          outline: none;
-          box-shadow: none;
         }
         .secondary-button:disabled {
           cursor: not-allowed;
@@ -942,13 +935,6 @@ export default function AccountSettings({ user: initialUser }) {
           background: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9));
           color: #fff;
           font-size: 13px;
-          cursor: pointer;
-          transition: border-color 0.2s ease;
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-          appearance: none;
-          -webkit-appearance: none;
-          background-image: none;
-          padding-right: 14px;
         }
         .account-select:focus-visible {
           outline: none;
