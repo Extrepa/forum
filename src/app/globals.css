@@ -5647,8 +5647,9 @@ header::before {
 
 .post-action-menu__popover {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 12px);
+  top: 50%;
+  right: calc(100% + 12px);
+  transform: translateY(-50%);
   display: inline-flex;
   justify-content: space-between;
   gap: 12px;
@@ -5667,9 +5668,8 @@ header::before {
 
 @media (min-width: 900px) {
   .post-action-menu__popover {
-    top: 0;
-    bottom: auto;
-    transform: translateY(-115%);
+    top: 50%;
+    transform: translateY(-55%);
   }
 }
 
