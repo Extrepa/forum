@@ -338,20 +338,29 @@ export default function NotificationsMenu({
             <div className="muted" style={{ fontSize: '12px' }}>Loading…</div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
+        <span
+          role="button"
+          tabIndex={signingOut ? -1 : 0}
+          onClick={signingOut ? undefined : handleSignOut}
+          onKeyDown={(event) => {
+            if (signingOut) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              handleSignOut();
+            }
+          }}
           style={{
             fontSize: '11px',
-            padding: 0,
-            margin: 0,
             background: 'transparent',
-            border: 'none',
-            color: 'var(--muted)',
+            color: signingOut ? 'rgba(255, 255, 255, 0.5)' : 'var(--muted)',
             fontWeight: 600,
             cursor: signingOut ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.04em'
+            letterSpacing: '0.04em',
+            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textDecoration: 'underline'
           }}
           onMouseEnter={(e) => {
             if (!signingOut) {
@@ -359,11 +368,14 @@ export default function NotificationsMenu({
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--muted)';
+            if (!signingOut) {
+              e.currentTarget.style.color = 'var(--muted)';
+            }
           }}
+          aria-disabled={signingOut}
         >
           {signingOut ? 'Signing out…' : 'Sign out'}
-        </button>
+        </span>
       </div>
       <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', marginBottom: '12px' }}>
         <button
