@@ -3,8 +3,6 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUsernameColorIndex } from '../lib/usernameColor';
-import DeleteConfirmModal from './DeleteConfirmModal';
-
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -40,15 +38,6 @@ function TrashIcon({ size = 10 }) {
     </svg>
   );
 }
-
-const ERL_TAGLINES = [
-  'The goo is listening.',
-  'Portal status: active.',
-  'Drip on.',
-  "Errl's got your back.",
-  'Pulled together by chance and light.',
-  'Fresh transmissions detected.'
-];
 
 const POST_ROUTE_OVERRIDES = {
   art: '/art/',
@@ -144,12 +133,21 @@ export default function NotificationsMenu({
   const [currentUsername, setCurrentUsername] = useState(null);
   const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
-  const [showClearAllModal, setShowClearAllModal] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const popoverRef = useRef(null);
   const triggerRef = useRef(null);
   const hasItems = items && items.length > 0;
+  const handleClearAll = async () => {
+    if (!hasItems) return;
+    if (typeof window !== 'undefined') {
+      if (!window.confirm('Are you sure?')) return;
+    }
+    if (onClearAll) {
+      await onClearAll();
+    }
+  };
   
   const usernameColorIndex = useMemo(() => {
     if (!currentUsername) return null;
@@ -160,11 +158,9 @@ export default function NotificationsMenu({
     return 'Notifications';
   }, [unreadCount]);
 
-  const tagline = useMemo(() => {
-    const d = new Date();
-    const seed = (d.getDate() + d.getMonth() * 31 + (currentUsername || '').length) % ERL_TAGLINES.length;
-    return ERL_TAGLINES[Math.abs(seed)] || ERL_TAGLINES[0];
-  }, [currentUsername]);
+  const hasUnread = unreadCount > 0;
+  const showingClearButton = hasItems && !hasUnread;
+  const primaryButtonDisabled = showingClearButton ? !onClearAll : !hasUnread;
 
   // Fetch current user's username and color preference
   useEffect(() => {
@@ -282,6 +278,22 @@ export default function NotificationsMenu({
     }
   };
 
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    if (onClose) {
+      onClose();
+    }
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (error) {
+      // ignore errors but keep trying to redirect
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = 'https://forum.errl.wtf';
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -315,88 +327,102 @@ export default function NotificationsMenu({
       role="menu"
       aria-label={title}
     >
-      {/* Header: user + tagline (left), Account/Profile (right) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+      {/* Header: greeting (left) and sign out (right) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           {currentUsername ? (
-            <>
-              <div style={{ fontSize: '17px', fontWeight: 700, marginBottom: '6px' }}>
-                Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
-              </div>
-              <div style={{ fontSize: '14px', lineHeight: 1.4, color: 'var(--muted)', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none' }}>
-                {tagline}
-              </div>
-            </>
+            <div style={{ fontSize: '17px', fontWeight: 700 }}>
+              Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
+            </div>
           ) : (
             <div className="muted" style={{ fontSize: '12px' }}>Loading…</div>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              router.push('/account?tab=account');
-            }}
-            style={{
-              fontSize: '12px',
-              padding: '6px 12px',
-              whiteSpace: 'nowrap',
-              borderRadius: '999px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-            }}
-          >
-            Account
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
+        <button
+          type="button"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          style={{
+            fontSize: '11px',
+            padding: '2px 6px',
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: '1px solid transparent',
+            background: 'transparent',
+            color: 'var(--muted)',
+            fontWeight: 600,
+            textDecoration: 'underline',
+            cursor: signingOut ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
+      <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', marginBottom: '12px' }}>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            router.push('/account?tab=account');
+          }}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+        >
+          Account
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            router.push('/account?tab=profile');
+          }}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+        >
+          Edit Profile
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            if (currentUsername) {
+              router.push(`/profile/${encodeURIComponent(currentUsername)}`);
+            } else {
               router.push('/account?tab=profile');
-            }}
-            style={{
-              fontSize: '12px',
-              padding: '6px 12px',
-              whiteSpace: 'nowrap',
-              borderRadius: '999px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-            }}
-          >
-            Edit Profile
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              if (currentUsername) {
-                router.push(`/profile/${encodeURIComponent(currentUsername)}`);
-              } else {
-                router.push('/account?tab=profile');
-              }
-            }}
-            style={{
-              fontSize: '12px',
-              padding: '6px 12px',
-              whiteSpace: 'nowrap',
-              borderRadius: '999px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-            }}
-          >
-            View Profile
-          </button>
-        </div>
+            }
+          }}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+        >
+          View Profile
+        </button>
       </div>
 
       {/* Title and refresh button row */}
@@ -472,9 +498,10 @@ export default function NotificationsMenu({
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
         ) : (
-          <div className="list" style={{ gap: '8px' }}>
-            {items.map((n) => {
+          <div className="list" style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)', overflow: 'hidden', background: 'rgba(2, 5, 10, 0.6)' }}>
+            {items.map((n, index) => {
               const isUnread = !n.read_at;
+              const isLastItem = index === items.length - 1;
               let href = '#';
               let label = 'Notification';
               
@@ -537,6 +564,10 @@ export default function NotificationsMenu({
                 label = `${actor} mentioned you in a ${displayType}`;
               }
               
+              const baseBackground = isUnread ? 'rgba(52, 225, 255, 0.08)' : 'rgba(4, 16, 23, 0.5)';
+              const hoverBackground = isUnread ? 'rgba(52, 225, 255, 0.15)' : 'rgba(4, 16, 23, 0.8)';
+              const separatorColor = 'rgba(255, 255, 255, 0.08)';
+              
               return (
                 <a
                   key={n.id}
@@ -552,10 +583,11 @@ export default function NotificationsMenu({
                     textDecoration: 'none',
                     display: 'block',
                     padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: isUnread ? '1px solid rgba(52, 225, 255, 0.4)' : '1px solid rgba(22, 58, 74, 0.4)',
-                    background: isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)',
-                    transition: 'all 0.2s ease',
+                    borderRadius: 0,
+                    border: 'none',
+                    borderBottom: isLastItem ? 'none' : `1px solid ${separatorColor}`,
+                    background: baseBackground,
+                    transition: 'background 0.2s ease',
                     overflowWrap: 'break-word',
                     wordWrap: 'break-word',
                     cursor: href === '#' ? 'default' : 'pointer',
@@ -563,14 +595,12 @@ export default function NotificationsMenu({
                   }}
                   onMouseEnter={(e) => {
                     if (href !== '#') {
-                      e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.15)' : 'rgba(4, 16, 23, 0.8)';
-                      e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.6)' : 'rgba(22, 58, 74, 0.6)';
+                      e.currentTarget.style.background = hoverBackground;
                       e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.2)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isUnread ? 'rgba(52, 225, 255, 0.05)' : 'rgba(4, 16, 23, 0.5)';
-                    e.currentTarget.style.borderColor = isUnread ? 'rgba(52, 225, 255, 0.4)' : 'rgba(22, 58, 74, 0.4)';
+                    e.currentTarget.style.background = baseBackground;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -630,67 +660,34 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      {/* Clear All confirmation modal */}
-      {showClearAllModal && (
-        <DeleteConfirmModal
-          isOpen={true}
-          onClose={() => setShowClearAllModal(false)}
-          onConfirm={async () => {
-            setShowClearAllModal(false);
-            if (onClearAll) {
-              await onClearAll();
-            }
-          }}
-          itemType="all notifications"
-        />
-      )}
-
       {/* Footer with mark all read, clear, and close */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
-          <button 
-            type="button" 
-            onClick={onMarkAllRead} 
-            disabled={unreadCount === 0}
-            style={{
-              fontSize: '11px',
-              padding: '6px 10px',
-              opacity: unreadCount === 0 ? 0.5 : 1,
-              flexShrink: 0,
-              whiteSpace: 'normal',
-              lineHeight: 1.1,
-              borderRadius: '999px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-            }}
-          >
-            <span style={{ display: 'block' }}>Mark all</span>
-            <span style={{ display: 'block' }}>read</span>
-          </button>
-          <button 
-            type="button" 
-            onClick={() => setShowClearAllModal(true)}
-            disabled={!hasItems}
-            style={{
-              fontSize: '11px',
-              padding: '6px 10px',
-              opacity: !hasItems ? 0.5 : 1,
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              borderRadius: '999px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-              color: '#001018',
-              fontWeight: 600,
-              boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-            }}
-          >
-            Clear
-          </button>
-        </div>
+        <button 
+          type="button" 
+          onClick={() => {
+            if (showingClearButton) {
+              handleClearAll();
+            } else {
+              onMarkAllRead?.();
+            }
+          }}
+          disabled={primaryButtonDisabled}
+          style={{
+            fontSize: '11px',
+            padding: '6px 10px',
+            opacity: primaryButtonDisabled ? 0.5 : 1,
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+        >
+          {showingClearButton ? 'Clear' : 'Mark all as read'}
+        </button>
         <button 
           type="button" 
           onClick={onClose}
