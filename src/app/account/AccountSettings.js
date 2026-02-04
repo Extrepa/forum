@@ -167,7 +167,7 @@ function EditSheet({ open, title, onClose, children }) {
           flexDirection: 'column',
           animation: 'slideUp 0.3s ease-out',
           marginBottom: 0, // Stick to bottom on mobile
-          overflow: 'hidden',
+          overflow: 'visible',
         }}
         className="edit-sheet-panel"
       >
