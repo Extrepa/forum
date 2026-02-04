@@ -912,6 +912,7 @@ export default function AccountSettings({ user: initialUser }) {
           transition: transform 0.2s ease, border-color 0.2s ease;
           border: 1px solid transparent;
           box-shadow: none;
+          outline: none;
         }
         .secondary-button:hover {
           border-color: rgba(255, 255, 255, 0.5);
@@ -944,6 +945,10 @@ export default function AccountSettings({ user: initialUser }) {
           cursor: pointer;
           transition: border-color 0.2s ease;
           box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+          appearance: none;
+          -webkit-appearance: none;
+          background-image: none;
+          padding-right: 14px;
         }
         .account-select:focus-visible {
           outline: none;
