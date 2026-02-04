@@ -745,6 +745,12 @@ export default async function LobbyThreadPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-thread-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={safeThreadId} 
+                  postType="thread"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={safeThreadId} postType="thread" initialPinned={isPinned} /> : null}
@@ -775,12 +781,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={safeThreadId} 
-                  postType="thread"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

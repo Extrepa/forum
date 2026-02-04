@@ -203,6 +203,12 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-post-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="post"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={id} postType="post" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={id} postType="post" initialPinned={isPinned} /> : null}
@@ -233,12 +239,6 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={id} 
-                  postType="post"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

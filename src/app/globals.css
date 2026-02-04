@@ -5648,8 +5648,8 @@ header::before {
   left: 50%;
   transform: translate(-50%, -50%);
   display: inline-flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
@@ -5658,6 +5658,19 @@ header::before {
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
   z-index: 50;
   white-space: nowrap;
+  min-width: 180px;
+  max-width: calc(100vw - 32px);
+}
+
+.post-action-menu__left {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.post-action-menu__right {
+  flex-shrink: 0;
 }
 
 .breadcrumb-item {

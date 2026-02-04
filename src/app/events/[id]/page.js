@@ -344,6 +344,12 @@ export default async function EventDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-event-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="event"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={id} postType="event" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={id} postType="event" initialPinned={isPinned} /> : null}
@@ -374,12 +380,6 @@ export default async function EventDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={id} 
-                  postType="event"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

@@ -462,6 +462,12 @@ export default async function ProjectDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-project-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={safeProjectId} 
+                  postType="project"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={safeProjectId} postType="project" initialPinned={isPinned} /> : null}
@@ -492,12 +498,6 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={safeProjectId} 
-                  postType="project"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

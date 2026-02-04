@@ -209,6 +209,12 @@ export default async function BugDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-post-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={post.id} 
+                  postType="post"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={post.id} postType="post" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={post.id} postType="post" initialPinned={isPinned} /> : null}
@@ -239,12 +245,6 @@ export default async function BugDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={post.id} 
-                  postType="post"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

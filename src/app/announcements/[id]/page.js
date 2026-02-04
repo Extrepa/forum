@@ -227,6 +227,12 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-announcement-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={update.id} 
+                  postType="timeline"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={update.id} postType="timeline" initialPinned={isPinned} /> : null}
@@ -257,12 +263,6 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={update.id} 
-                  postType="timeline"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

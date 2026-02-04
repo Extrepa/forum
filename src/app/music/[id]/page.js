@@ -323,6 +323,12 @@ export default async function MusicDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-music-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="music"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={id} postType="music" initialPinned={isPinned} /> : null}
@@ -353,12 +359,6 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={id} 
-                  postType="music"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

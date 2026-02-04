@@ -385,6 +385,12 @@ export default async function DevLogDetailPage({ params, searchParams }) {
             <PostActionMenu
               buttonLabel="Edit Post"
               panelId="edit-devlog-panel"
+              rightChildren={canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="devlog"
+                />
+              ) : null}
             >
               {isAdmin ? <HidePostButton postId={id} postType="devlog" initialHidden={isHidden} /> : null}
               {isAdmin ? <PinPostButton postId={id} postType="devlog" initialPinned={isPinned} /> : null}
@@ -415,12 +421,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     </span>
                   </button>
                 </form>
-              ) : null}
-              {canDelete ? (
-                <DeletePostButton 
-                  postId={id} 
-                  postType="devlog"
-                />
               ) : null}
             </PostActionMenu>
           ) : null

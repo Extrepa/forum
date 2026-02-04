@@ -3,8 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import EditPostButtonWithPanel from './EditPostButtonWithPanel';
 
-export default function PostActionMenu({ buttonLabel = 'Edit Post', panelId, children }) {
-  const hasExtras = Boolean(children);
+export default function PostActionMenu({
+  buttonLabel = 'Edit Post',
+  panelId,
+  children,
+  rightChildren = null
+}) {
+  const hasExtras = Boolean(children) || Boolean(rightChildren);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
   const containerRef = useRef(null);
@@ -69,7 +74,12 @@ export default function PostActionMenu({ buttonLabel = 'Edit Post', panelId, chi
       <EditPostButtonWithPanel buttonLabel={buttonLabel} panelId={panelId} />
       {showMenu && (
         <div className="post-action-menu__popover">
-          {children}
+          <div className="post-action-menu__left">
+            {children}
+          </div>
+          {rightChildren ? (
+            <div className="post-action-menu__right">{rightChildren}</div>
+          ) : null}
         </div>
       )}
     </div>
