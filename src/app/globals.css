@@ -1576,6 +1576,7 @@ form {
 
 .text-field {
   position: relative;
+  width: 100%;
 }
 
 .formatting-toolbar {
@@ -1605,6 +1606,31 @@ form {
   opacity: 0.55;
   transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .formatting-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .formatting-toolbar button {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .text-field textarea {
+    min-height: 220px;
+  }
+
+  form {
+    gap: 10px;
+  }
+
+  input,
+  textarea {
+    font-size: 14px;
+  }
 }
 
 .formatting-toolbar button:hover,
@@ -1666,6 +1692,8 @@ input[type="checkbox"] {
 label {
   word-wrap: break-word;
   overflow-wrap: break-word;
+  display: block;
+  width: 100%;
 }
 
 label span {
