@@ -2030,6 +2030,10 @@ button:hover {
   gap: 12px;
 }
 
+.list.list--tight {
+  gap: 0;
+}
+
 /* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
 @media (min-width: 768px) {
   /* Condensed desktop: author next to title (left), stats on right; hide mobile meta row */

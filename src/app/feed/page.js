@@ -537,7 +537,7 @@ export default async function FeedPage() {
 
       <section className="card">
         <h3 className="section-title">Latest</h3>
-        <div className="list">
+        <div className="list list--tight">
           {items.length === 0 ? (
             <p className="muted">Nothing new… the goo is resting.</p>
           ) : (
