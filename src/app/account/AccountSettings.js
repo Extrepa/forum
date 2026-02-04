@@ -103,8 +103,8 @@ function SecondaryButton(props) {
         borderRadius: '999px',
         padding: '8px 16px',
         fontWeight: 600,
-        background: 'rgba(255, 255, 255, 0.1)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'linear-gradient(120deg, #54b0ff, #9f36ff)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
         color: '#fff',
         cursor: props.disabled ? 'not-allowed' : 'pointer',
         opacity: props.disabled ? 0.5 : 1,
@@ -237,8 +237,57 @@ function EditSheet({ open, title, onClose, children }) {
           font-size: 14px;
         }
         .toggle-line input {
-          width: 18px;
-          height: 18px;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4);
+          position: relative;
+          cursor: pointer;
+          transition: background 0.25s ease, border 0.25s ease, transform 0.25s ease;
+        }
+        .toggle-line input::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          margin: auto;
+          width: 8px;
+          height: 8px;
+          background: none;
+          transform: rotate(45deg) scale(0);
+          border: solid #fff;
+          border-width: 0 0 2px 2px;
+          border-radius: 1px;
+          transition: transform 0.2s ease;
+        }
+        .toggle-line input:checked {
+          background: linear-gradient(120deg, #54b0ff, #b026ff);
+          border-color: transparent;
+        }
+        .toggle-line input:checked::after {
+          transform: rotate(45deg) scale(1);
+        }
+        .toggle-line input:focus-visible {
+          outline: none;
+          border-color: #54b0ff;
+          box-shadow: 0 0 0 3px rgba(84, 176, 255, 0.35);
+        }
+        .notification-alerts {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .notification-alert {
+          padding: 12px 16px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 215, 0, 0.5);
+          background: rgba(255, 215, 0, 0.12);
+          color: #fff7d4;
+          font-size: 13px;
+          font-weight: 500;
         }
         @media (min-width: 768px) {
           .edit-sheet-overlay {
@@ -397,11 +446,6 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
           />
           {!hasPhone && <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Add a phone number to enable SMS.</div>}
 
-          {siteAny && !draft.delivery.email && (
-            <div style={{ marginTop: '8px', fontSize: '12px', color: '#ffd700' }}>
-              Email must be enabled to receive site alerts.
-            </div>
-          )}
         </div>
 
         {isAdmin && (
@@ -424,8 +468,10 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
       </div>
 
       {!validation.ok && (
-        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)', color: '#ffd700', fontSize: '13px' }}>
-          {validation.message}
+        <div className="notification-alerts">
+          <div className="notification-alert">
+            {validation.message}
+          </div>
         </div>
       )}
 
@@ -462,21 +508,43 @@ export default function AccountSettings({ user: initialUser }) {
   // Derived state for preferences
   const notifPrefs = {
     site: {
-      rsvp: user?.notifyRsvpEnabled ?? true,
-      likes: user?.notifyLikeEnabled ?? true,
-      projectUpdates: user?.notifyUpdateEnabled ?? true,
-      mentions: user?.notifyMentionEnabled ?? true,
-      replies: user?.notifyReplyEnabled ?? true,
-      comments: user?.notifyCommentEnabled ?? true,
+      rsvp: user?.notify_rsvp_enabled !== undefined
+        ? Boolean(user.notify_rsvp_enabled)
+        : (user?.notifyRsvpEnabled !== undefined ? Boolean(user.notifyRsvpEnabled) : true),
+      likes: user?.notify_like_enabled !== undefined
+        ? Boolean(user.notify_like_enabled)
+        : (user?.notifyLikeEnabled !== undefined ? Boolean(user.notifyLikeEnabled) : true),
+      projectUpdates: user?.notify_update_enabled !== undefined
+        ? Boolean(user.notify_update_enabled)
+        : (user?.notifyUpdateEnabled !== undefined ? Boolean(user.notifyUpdateEnabled) : true),
+      mentions: user?.notify_mention_enabled !== undefined
+        ? Boolean(user.notify_mention_enabled)
+        : (user?.notifyMentionEnabled !== undefined ? Boolean(user.notifyMentionEnabled) : true),
+      replies: user?.notify_reply_enabled !== undefined
+        ? Boolean(user.notify_reply_enabled)
+        : (user?.notifyReplyEnabled !== undefined ? Boolean(user.notifyReplyEnabled) : true),
+      comments: user?.notify_comment_enabled !== undefined
+        ? Boolean(user.notify_comment_enabled)
+        : (user?.notifyCommentEnabled !== undefined ? Boolean(user.notifyCommentEnabled) : true),
     },
     delivery: {
-      email: !!user?.notifyEmailEnabled,
-      sms: !!user?.notifySmsEnabled,
+      email: user?.notify_email_enabled !== undefined
+        ? Boolean(user.notify_email_enabled)
+        : Boolean(user?.notifyEmailEnabled),
+      sms: user?.notify_sms_enabled !== undefined
+        ? Boolean(user.notify_sms_enabled)
+        : Boolean(user?.notifySmsEnabled),
     },
     admin: {
-      newUserSignups: !!user?.notifyAdminNewUserEnabled,
-      newForumThreads: !!user?.notifyAdminNewPostEnabled,
-      newForumReplies: !!user?.notifyAdminNewReplyEnabled,
+      newUserSignups: user?.notify_admin_new_user_enabled !== undefined
+        ? Boolean(user.notify_admin_new_user_enabled)
+        : Boolean(user?.notifyAdminNewUserEnabled),
+      newForumThreads: user?.notify_admin_new_post_enabled !== undefined
+        ? Boolean(user.notify_admin_new_post_enabled)
+        : Boolean(user?.notifyAdminNewPostEnabled),
+      newForumReplies: user?.notify_admin_new_reply_enabled !== undefined
+        ? Boolean(user.notify_admin_new_reply_enabled)
+        : Boolean(user?.notifyAdminNewReplyEnabled),
     }
   };
 
@@ -674,7 +742,8 @@ export default function AccountSettings({ user: initialUser }) {
   
   const notifValidation = validateNotificationPrefs({ prefs: notifDraft, hasPhone: Boolean(user.phone) || Boolean(contactDraft.phone) });
 
-  const colorIndex = getUsernameColorIndex(user.username, { preferredColorIndex: user.preferredUsernameColorIndex });
+  const preferredColorIndex = user?.preferredUsernameColorIndex ?? user?.preferred_username_color_index ?? null;
+  const colorIndex = getUsernameColorIndex(user.username, { preferredColorIndex });
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
