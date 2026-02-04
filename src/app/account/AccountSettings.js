@@ -171,24 +171,33 @@ function EditSheet({ open, title, onClose, children }) {
         }}
         className="edit-sheet-panel"
       >
-        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
           <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{title}</div>
           <button
             onClick={onClose}
             style={{
-              background: 'transparent',
+              background: 'rgba(255, 255, 255, 0.1)',
               border: 'none',
               color: 'var(--muted)',
-              fontSize: '24px',
+              fontSize: '18px',
               cursor: 'pointer',
               padding: 0,
               lineHeight: 1,
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.2s',
             }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
           >
             ×
           </button>
         </div>
-        <div style={{ padding: '20px', overflowY: 'auto' }}>
+        <div style={{ padding: '20px', overflowY: 'auto', flex: '1', minHeight: 0 }}>
           {children}
         </div>
       </div>
@@ -203,6 +212,7 @@ function EditSheet({ open, title, onClose, children }) {
             margin-bottom: auto;
             margin-top: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 80vh;
           }
         }
       `}</style>

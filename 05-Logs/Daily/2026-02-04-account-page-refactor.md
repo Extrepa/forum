@@ -9,6 +9,8 @@
     - **Danger Zone**: Minimal card containing only the "Sign out" button.
 - Updated `src/app/account/AccountTabsClient.js` to use `AccountSettings` for logged-in users, replacing the monolithic `ClaimUsernameForm` usage in that context. Removed header description text.
 - Preserved existing functionality (API endpoints, persistence) while improving the UX to be cleaner and more mobile-friendly.
+- **Fixes**:
+    - `EditSheet`: Added `flex: 1` and `min-height: 0` to the content container to ensure proper internal scrolling. Reduced desktop `max-height` to `80vh` to prevent cutoff. Restyled the close button to a circular icon.
 
 ## Implementation Details
 - `AccountSettings.js`:
