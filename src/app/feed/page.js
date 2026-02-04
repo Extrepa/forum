@@ -520,6 +520,7 @@ export default async function FeedPage() {
     }
   });
   const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
+  const outlineDurations = [5.2, 5.6, 6.0, 6.4, 6.8];
 
   return (
     <div className="stack">
@@ -540,7 +541,7 @@ export default async function FeedPage() {
           {items.length === 0 ? (
             <p className="muted">Nothing new… the goo is resting.</p>
           ) : (
-            items.map((item) => {
+            items.map((item, index) => {
               const authorPreferredColor = item.authorColorPreference;
               const authorColorIndex = usernameColorMap.get(item.author) ?? getUsernameColorIndex(item.author, { preferredColorIndex: authorPreferredColor });
               const statusIcons = [];
@@ -554,13 +555,14 @@ export default async function FeedPage() {
                   </span>
                 </>
               );
+              const outlineDuration = (outlineDurations[index % outlineDurations.length] + (index * 0.03)).toFixed(2);
               
               return (
                 <a
                   key={`${item.type}:${item.href}`}
                   href={item.href}
                   className={`list-item ${item.is_unread ? 'thread-unread' : ''}`}
-                  style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer', '--list-outline-anim-duration': `${outlineDuration}s` }}
                 >
                   <PostMetaBar
                     title={titleWithType}

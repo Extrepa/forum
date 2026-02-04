@@ -4795,6 +4795,10 @@ header::before,
   pointer-events: none;
 }
 
+.list-item::before {
+  animation: neonChase var(--list-outline-anim-duration, 6s) linear infinite;
+}
+
 .neon-outline-card::before {
   content: "";
   position: absolute;
@@ -4877,16 +4881,16 @@ header::before {
   animation-duration: 4.1s;
 }
 
-.list-item::before {
-  animation-duration: 7.3s;
+.list-item {
+  --list-outline-anim-duration: 7.3s;
 }
 
-.list-item:nth-child(2)::before {
-  animation-duration: 5.1s;
+.list-item:nth-child(2) {
+  --list-outline-anim-duration: 5.1s;
 }
 
-.list-item:nth-child(3)::before {
-  animation-duration: 6.4s;
+.list-item:nth-child(3) {
+  --list-outline-anim-duration: 6.4s;
 }
 
 .tabs-pill::before {

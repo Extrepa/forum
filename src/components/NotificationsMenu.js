@@ -601,7 +601,7 @@ export default function NotificationsMenu({
                   style={{ 
                     textDecoration: 'none',
                     display: 'block',
-                    padding: '10px 12px',
+                    padding: '0 12px',
                     borderRadius: 0,
                     border: 'none',
                     borderBottom: isLastItem ? 'none' : `1px solid ${separatorColor}`,
@@ -623,53 +623,55 @@ export default function NotificationsMenu({
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
-                    <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                      <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
-                        {formatTimeAgo(n.created_at)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDeleteNotification(n.id);
-                        }}
-                        disabled={deletingNotificationId === n.id}
-                        title="Delete notification"
-                        style={{
-                          width: 10,
-                          height: 10,
-                          minWidth: 10,
-                          minHeight: 10,
-                          padding: 0,
-                          margin: 0,
-                          background: 'transparent',
-                          border: 'none',
-                          borderRadius: 2,
-                          cursor: deletingNotificationId === n.id ? 'not-allowed' : 'pointer',
-                          opacity: deletingNotificationId === n.id ? 0.5 : 0.4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--muted)',
-                          boxShadow: 'none',
-                          transition: 'opacity 0.2s ease, color 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (deletingNotificationId !== n.id) {
-                            e.currentTarget.style.opacity = '1';
-                            e.currentTarget.style.color = '#ff6b6b';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.opacity = '0.4';
-                          e.currentTarget.style.color = 'var(--muted)';
-                        }}
-                      >
-                        <TrashIcon size={10} />
-                      </button>
+                  <div style={{ padding: '12px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
+                      <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
+                          {formatTimeAgo(n.created_at)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteNotification(n.id);
+                          }}
+                          disabled={deletingNotificationId === n.id}
+                          title="Delete notification"
+                          style={{
+                            width: 10,
+                            height: 10,
+                            minWidth: 10,
+                            minHeight: 10,
+                            padding: 0,
+                            margin: 0,
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: 2,
+                            cursor: deletingNotificationId === n.id ? 'not-allowed' : 'pointer',
+                            opacity: deletingNotificationId === n.id ? 0.5 : 0.4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--muted)',
+                            boxShadow: 'none',
+                            transition: 'opacity 0.2s ease, color 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (deletingNotificationId !== n.id) {
+                              e.currentTarget.style.opacity = '1';
+                              e.currentTarget.style.color = '#ff6b6b';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.opacity = '0.4';
+                            e.currentTarget.style.color = 'var(--muted)';
+                          }}
+                        >
+                          <TrashIcon size={10} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </a>
