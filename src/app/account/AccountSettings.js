@@ -131,12 +131,12 @@ function EditSheet({ open, title, onClose, children }) {
 
   return (
     <div
+      className="edit-sheet-overlay"
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
         display: 'flex',
-        alignItems: 'flex-end', // Bottom sheet on mobile
         justifyContent: 'center',
       }}
     >
@@ -157,7 +157,6 @@ function EditSheet({ open, title, onClose, children }) {
           position: 'relative',
           width: '100%',
           maxWidth: '600px', // Max width for desktop
-          maxHeight: '85vh',
           background: '#06131a', // Match theme or var(--card)
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
@@ -168,10 +167,11 @@ function EditSheet({ open, title, onClose, children }) {
           flexDirection: 'column',
           animation: 'slideUp 0.3s ease-out',
           marginBottom: 0, // Stick to bottom on mobile
+          overflow: 'hidden',
         }}
         className="edit-sheet-panel"
       >
-        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+        <div className="edit-sheet-header" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{title}</div>
           <button
             onClick={onClose}
@@ -198,7 +198,7 @@ function EditSheet({ open, title, onClose, children }) {
             ×
           </button>
         </div>
-        <div style={{ padding: '20px', overflowY: 'auto', flex: '1', minHeight: 'min-content' }}>
+        <div className="edit-sheet-content">
           {children}
         </div>
       </div>
@@ -207,18 +207,31 @@ function EditSheet({ open, title, onClose, children }) {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
         }
+        .edit-sheet-overlay {
+          align-items: flex-end;
+        }
+        .edit-sheet-panel {
+          max-height: 85vh;
+        }
+        .edit-sheet-content {
+          padding: 20px;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+        }
+        .edit-sheet-header {
+          flex-shrink: 0;
+        }
         @media (min-width: 768px) {
+          .edit-sheet-overlay {
+            align-items: center;
+          }
           .edit-sheet-panel {
             border-radius: 16px;
             margin-bottom: auto;
             margin-top: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 90vh; /* Increased max-height for larger screens */
-            height: fit-content; /* Allow height to adjust to content, up to max-height */
-          }
-          /* Center the modal on desktop */
-          .fixed.inset-0.z-1000 {
-            align-items: center;
+            max-height: 90vh;
           }
         }
       `}</style>
