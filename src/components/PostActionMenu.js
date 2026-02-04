@@ -13,6 +13,22 @@ export default function PostActionMenu({
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
   const containerRef = useRef(null);
+  const closeTimer = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+      }
+    };
+  }, []);
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!hasExtras || !menuOpen) {
@@ -22,6 +38,8 @@ export default function PostActionMenu({
     const handlePointerDown = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setMenuOpen(false);
+        setHovering(false);
+        clearCloseTimer();
       }
     };
 
@@ -34,21 +52,29 @@ export default function PostActionMenu({
   const showMenu = hasExtras && (menuOpen || hovering);
 
   const handlePointerEnter = () => {
-    if (hasExtras) {
-      setHovering(true);
-    }
+    if (!hasExtras) return;
+    clearCloseTimer();
+    setHovering(true);
   };
 
   const handlePointerLeave = () => {
-    if (hasExtras) {
+    if (!hasExtras) return;
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => {
       setHovering(false);
-    }
+    }, 300);
   };
 
   const handleClick = () => {
-    if (hasExtras) {
-      setMenuOpen(true);
-    }
+    if (!hasExtras) return;
+    setMenuOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        clearCloseTimer();
+        setHovering(true);
+      }
+      return next;
+    });
   };
 
   const handleBlur = (event) => {
@@ -61,9 +87,11 @@ export default function PostActionMenu({
     }
   };
 
+  const containerClass = showMenu ? 'post-action-menu post-action-menu--active' : 'post-action-menu';
+
   return (
     <div
-      className="post-action-menu"
+      className={containerClass}
       ref={containerRef}
       onMouseEnter={handlePointerEnter}
       onMouseLeave={handlePointerLeave}
@@ -73,7 +101,11 @@ export default function PostActionMenu({
     >
       <EditPostButtonWithPanel buttonLabel={buttonLabel} panelId={panelId} />
       {showMenu && (
-        <div className="post-action-menu__popover">
+        <div
+          className="post-action-menu__popover"
+          onMouseEnter={handlePointerEnter}
+          onMouseLeave={handlePointerLeave}
+        >
           <div className="post-action-menu__left">
             {children}
           </div>

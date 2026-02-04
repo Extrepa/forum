@@ -5546,6 +5546,8 @@ header::before {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 0;
+  flex-wrap: nowrap;
+  overflow: visible;
 }
 
 .page-top-row .breadcrumbs {
@@ -5660,6 +5662,7 @@ header::before {
   white-space: nowrap;
   min-width: 180px;
   max-width: calc(100vw - 32px);
+  overflow: visible;
 }
 
 .post-action-menu__left {
@@ -5673,6 +5676,27 @@ header::before {
 
 .post-action-menu__right {
   flex-shrink: 0;
+}
+
+.post-action-menu__popover::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #f4b5ff, #f869d5, #6ad7ff, #ff9acc, #fdf5a1);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.post-action-menu--active > .button {
+  border-color: rgba(255, 52, 245, 0.9);
+  box-shadow: 0 0 14px rgba(255, 52, 245, 0.7);
+  color: var(--errl-accent-3);
 }
 
 .breadcrumb-item {
