@@ -198,7 +198,7 @@ function EditSheet({ open, title, onClose, children }) {
             ×
           </button>
         </div>
-        <div style={{ padding: '20px', overflowY: 'auto', flex: '1', minHeight: 0 }}>
+        <div style={{ padding: '20px', overflowY: 'auto', flex: '1', minHeight: 'min-content' }}>
           {children}
         </div>
       </div>
@@ -213,13 +213,13 @@ function EditSheet({ open, title, onClose, children }) {
             margin-bottom: auto;
             margin-top: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 80vh;
+            max-height: 90vh; /* Increased max-height for larger screens */
+            height: fit-content; /* Allow height to adjust to content, up to max-height */
           }
-        }
-        :root {
-          --button-bg-secondary: rgba(255, 255, 255, 0.1);
-          --button-bg-secondary-hover: rgba(255, 255, 255, 0.2);
-          --text-color-muted: var(--muted); // Assuming --muted is defined elsewhere for color
+          /* Center the modal on desktop */
+          .fixed.inset-0.z-1000 {
+            align-items: center;
+          }
         }
       `}</style>
     </div>
