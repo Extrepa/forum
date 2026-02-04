@@ -176,9 +176,9 @@ function EditSheet({ open, title, onClose, children }) {
           <button
             onClick={onClose}
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'var(--button-bg-secondary)',
               border: 'none',
-              color: 'var(--muted)',
+              color: 'var(--text-color-muted)',
               fontSize: '18px',
               cursor: 'pointer',
               padding: 0,
@@ -190,9 +190,10 @@ function EditSheet({ open, title, onClose, children }) {
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'background 0.2s',
+              boxShadow: '0 0 8px rgba(0, 220, 255, 0.3)', // Added glow effect
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--button-bg-secondary-hover)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(0, 220, 255, 0.5)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--button-bg-secondary)'; e.currentTarget.style.boxShadow = '0 0 8px rgba(0, 220, 255, 0.3)'; }}
           >
             ×
           </button>
@@ -214,6 +215,11 @@ function EditSheet({ open, title, onClose, children }) {
             border: 1px solid rgba(255, 255, 255, 0.1);
             max-height: 80vh;
           }
+        }
+        :root {
+          --button-bg-secondary: rgba(255, 255, 255, 0.1);
+          --button-bg-secondary-hover: rgba(255, 255, 255, 0.2);
+          --text-color-muted: var(--muted); // Assuming --muted is defined elsewhere for color
         }
       `}</style>
     </div>
@@ -582,7 +588,10 @@ export default function AccountSettings({ user: initialUser }) {
           body: JSON.stringify({ landingPage: patch.defaultLandingPage })
         });
         await refreshUser();
-      } catch (_) {}
+        setStatus({ type: 'success', message: 'Landing page preference saved.' });
+      } catch (err) {
+        setStatus({ type: 'error', message: err.message });
+      }
     }
 
     // If updating UI prefs
@@ -607,7 +616,10 @@ export default function AccountSettings({ user: initialUser }) {
         if (patch.loreMode !== undefined) setLoreEnabled(patch.loreMode);
         if (patch.colorTheme !== undefined) setUiColorMode(patch.colorTheme);
         if (patch.invertColors !== undefined) setUiInvertColors(patch.invertColors);
-      } catch (_) {}
+        setStatus({ type: 'success', message: 'Display settings saved.' });
+      } catch (err) {
+        setStatus({ type: 'error', message: err.message });
+      }
     }
   };
 
@@ -724,7 +736,7 @@ export default function AccountSettings({ user: initialUser }) {
                     onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
                     style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '13px' }}
                   >
-                    <option value="0">Rainbow</option>
+                    <option value="0">Rainbow (Default)</option>
                     <option value="1">Black & White</option>
                     <option value="2">Custom Neon</option>
                   </select>
