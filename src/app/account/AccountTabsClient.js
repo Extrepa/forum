@@ -1020,9 +1020,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'account' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ marginBottom: '16px' }}>
             <h2 className="section-title" style={{ margin: 0 }}>Account Settings</h2>
-            <p className="muted" style={{ margin: 0 }}>Simple settings, quick updates.</p>
           </div>
           <hr style={{ marginTop: '16px', marginBottom: '16px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
           

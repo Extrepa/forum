@@ -47,14 +47,14 @@ function validateNotificationPrefs({ prefs, hasPhone }) {
 function SettingsCard({ title, subtitle, actions, children }) {
   return (
     <div className="card" style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-        <div>
-          <div className="section-title" style={{ marginBottom: '4px', borderBottom: 'none', fontSize: '18px' }}>{title}</div>
-          {subtitle && <div className="muted" style={{ fontSize: '13px' }}>{subtitle}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+          <h3 className="section-title" style={{ margin: 0, borderBottom: 'none', fontSize: '18px' }}>{title}</h3>
+          {subtitle && <span className="muted" style={{ fontSize: '13px' }}>{subtitle}</span>}
         </div>
         {actions}
       </div>
-      <div style={{ marginTop: '16px' }}>{children}</div>
+      <div>{children}</div>
     </div>
   );
 }
@@ -168,9 +168,6 @@ function EditSheet({ open, title, onClose, children }) {
           flexDirection: 'column',
           animation: 'slideUp 0.3s ease-out',
           marginBottom: 0, // Stick to bottom on mobile
-          // On desktop, we might want it centered or modal-like, but user asked for "Sheet".
-          // Let's stick to bottom sheet style as requested for mobile, maybe center on desktop?
-          // For now, consistent bottom sheet behavior is fine and often preferred for "settings panels".
         }}
         className="edit-sheet-panel"
       >
@@ -302,6 +299,8 @@ function ToggleLine({ label, checked, onChange, disabled }) {
 function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave }) {
   const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
   const siteAny = anySiteNotifsEnabled(draft.site);
+  const isAdmin = user.role === 'admin';
+  const admin = draft.admin ?? { newUserSignups: false, newForumThreads: false, newForumReplies: false };
 
   return (
     <div className="stack" style={{ gap: '16px' }}>
@@ -358,6 +357,24 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
         )}
       </div>
 
+      {isAdmin && (
+        <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>Admin notifications</div>
+          <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Extra alerts for moderation/monitoring.</div>
+          <Divider />
+
+          <ToggleLine label="New user signups" checked={admin.newUserSignups} onChange={(v) =>
+            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newUserSignups: v } }))
+          } />
+          <ToggleLine label="New forum threads" checked={admin.newForumThreads} onChange={(v) =>
+            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumThreads: v } }))
+          } />
+          <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
+            setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
+          } />
+        </div>
+      )}
+
       {!validation.ok && (
         <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)', color: '#ffd700', fontSize: '13px' }}>
           {validation.message}
@@ -366,36 +383,6 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
 
       <PrimaryButton disabled={saving || !validation.ok} onClick={onSave}>
         {saving ? 'Saving...' : 'Save preferences'}
-      </PrimaryButton>
-    </div>
-  );
-}
-
-function AdminNotificationsEditor({ user, draft, setDraft, saving, onSave }) {
-  if (!user.role === 'admin') return null;
-
-  const admin = draft.admin ?? { newUserSignups: false, newForumThreads: false, newForumReplies: false };
-
-  return (
-    <div className="stack" style={{ gap: '16px' }}>
-      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
-        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Admin notifications</div>
-        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Extra alerts for moderation/monitoring.</div>
-        <Divider />
-
-        <ToggleLine label="New user signups" checked={admin.newUserSignups} onChange={(v) =>
-          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newUserSignups: v } }))
-        } />
-        <ToggleLine label="New forum threads" checked={admin.newForumThreads} onChange={(v) =>
-          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumThreads: v } }))
-        } />
-        <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
-          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
-        } />
-      </div>
-
-      <PrimaryButton disabled={saving} onClick={onSave}>
-        {saving ? 'Saving...' : 'Save admin preferences'}
       </PrimaryButton>
     </div>
   );
@@ -650,7 +637,6 @@ export default function AccountSettings({ user: initialUser }) {
           <SettingsCard
             title="Account"
             subtitle="At-a-glance info + quick edits."
-            actions={<SecondaryButton onClick={() => setOpenPanel('editContact')}>Edit</SecondaryButton>}
           >
             <div className="stack" style={{ gap: '0' }}>
               <Row label="Signed in as" right={<Username name={user.username} colorIndex={colorIndex} />} />
@@ -662,7 +648,6 @@ export default function AccountSettings({ user: initialUser }) {
               <SecondaryButton onClick={() => setOpenPanel('editContact')} style={{ width: '100%', textAlign: 'center' }}>Edit contact info</SecondaryButton>
               <SecondaryButton onClick={() => setOpenPanel('changePassword')} style={{ width: '100%', textAlign: 'center' }}>Change password</SecondaryButton>
             </div>
-            <div className="muted" style={{ fontSize: '12px', marginTop: '12px' }}>Your account is active on this device.</div>
           </SettingsCard>
 
           <SettingsCard
@@ -677,10 +662,7 @@ export default function AccountSettings({ user: initialUser }) {
                 <Row 
                   label="Admin alerts" 
                   right={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="muted">{adminOn ? "On" : "Off"}</span>
-                      <SecondaryButton onClick={() => setOpenPanel('editAdminNotifications')} style={{ padding: '4px 10px', fontSize: '11px' }}>Edit</SecondaryButton>
-                    </div>
+                    <span className="muted">{adminOn ? "On" : "Off"}</span>
                   } 
                 />
               )}
@@ -752,26 +734,22 @@ export default function AccountSettings({ user: initialUser }) {
           </SettingsCard>
 
           <div style={{ borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(0, 0, 0, 0.2)', padding: '20px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', opacity: 0.8 }}>Danger Zone</div>
-            <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Low drama. High consequences.</div>
-            <div style={{ marginTop: '16px' }}>
-              <button
-                onClick={handleSignOut}
-                style={{
-                  width: '100%',
-                  borderRadius: '999px',
-                  padding: '12px',
-                  fontWeight: 600,
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#ff6b6b',
-                  cursor: 'pointer',
-                  fontSize: '13px'
-                }}
-              >
-                Sign out
-              </button>
-            </div>
+            <button
+              onClick={handleSignOut}
+              style={{
+                width: '100%',
+                borderRadius: '999px',
+                padding: '12px',
+                fontWeight: 600,
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#ff6b6b',
+                cursor: 'pointer',
+                fontSize: '13px'
+              }}
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </div>
@@ -787,10 +765,6 @@ export default function AccountSettings({ user: initialUser }) {
 
       <EditSheet open={openPanel === 'editNotifications'} title="Edit notifications" onClose={() => setOpenPanel('none')}>
         <NotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} validation={notifValidation} saving={saving} onSave={handleSaveNotifs} />
-      </EditSheet>
-
-      <EditSheet open={openPanel === 'editAdminNotifications'} title="Edit admin notifications" onClose={() => setOpenPanel('none')}>
-        <AdminNotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} saving={saving} onSave={handleSaveNotifs} />
       </EditSheet>
 
       <style jsx>{`
