@@ -55,26 +55,20 @@ export default function PinPostButton({ postId, postType = 'post', initialPinned
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      className="button"
-      style={{
-        fontSize: '16px',
-        padding: '6px 10px',
-        minWidth: '44px',
-        minHeight: '44px',
-        lineHeight: 1,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...(isPinned ? {
-          background: 'rgba(255, 52, 245, 0.35)',
-          borderColor: 'rgba(255, 52, 245, 0.8)',
-          boxShadow: '0 0 18px rgba(255, 52, 245, 0.6)',
-          color: 'var(--errl-accent-3)'
-        } : {})
-      }}
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="button"
+        style={{
+          fontSize: '16px',
+          padding: '6px 10px',
+          minWidth: '44px',
+          minHeight: '44px',
+          lineHeight: 1,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       title={isPinned ? 'Unpin from top' : 'Pin to top'}
       aria-label={isPinned ? 'Unpin from top' : 'Pin to top'}
       disabled={isSaving}
