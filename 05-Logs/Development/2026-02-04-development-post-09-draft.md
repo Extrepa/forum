@@ -8,6 +8,7 @@ This draft covers the ongoing polish sprint that followed the Profile Customizat
 - **Edit/contact flows** – introduced `PostActionMenu` so lock/pin/hide/delete controls live in a single floating overlay tied to the edit trigger instead of scattering across breadcrumb rows. Mobile edit forms now stack labels/full-width fields and wrap toolbars/buttons below 640px so nothing overflows on phones. (`05-Logs/Daily/2026-02-04-edit-post-menu-notes.md`, `05-Logs/Daily/2026-02-04-edit-post-mobile-notes.md`)
 - **Notifications & feed polish** – tightened the notifications panel header, collapsed the list gap, added an inline Sign Out link, and staggered the animated neon outlines on the Latest feed rows for a more kinetic feel. (`05-Logs/Daily/2026-02-04-notification-feed-refresh.md`)
 - **Profile tab cosmetics** – username and avatar tabs now stretch controls across two columns, share neon-yellow headers, and eliminate extra vertical spacing so the edit sections appear flush and intentional; these updates live on branch `fix/username-row`. (`05-Logs/Daily/2026-02-04-username-avatar-layout-notes.md`)
+- **Account UI polish** – edit sheets now open as centered pop-up modals, edit buttons match the notification panel gradients, the Site & UI dropdowns and notification toggles use native controls, and the Site & UI card shows its confirmation banner immediately beneath it. (`05-Logs/Daily/2026-02-04-account-page-refactor.md`)
 
 ## In progress
 

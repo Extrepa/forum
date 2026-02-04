@@ -488,7 +488,7 @@ export default function AccountSettings({ user: initialUser }) {
   const [user, setUser] = useState(initialUser);
   const [openPanel, setOpenPanel] = useState('none');
   const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState({ type: 'idle', message: null });
+  const [status, setStatus] = useState({ type: 'idle', message: null, context: 'global' });
 
   // Use useEffect to update user if initialUser changes (e.g. parent refetch)
   useEffect(() => {
@@ -602,7 +602,7 @@ export default function AccountSettings({ user: initialUser }) {
       }
       await refreshUser();
       setOpenPanel('none');
-      setStatus({ type: 'success', message: 'Contact info updated.' });
+      setStatus({ type: 'success', message: 'Contact info updated.', context: 'global' });
     } catch (err) {
       alert(err.message);
     } finally {
@@ -623,7 +623,7 @@ export default function AccountSettings({ user: initialUser }) {
         throw new Error(data.error || 'Failed to change password');
       }
       setOpenPanel('none');
-      setStatus({ type: 'success', message: 'Password updated.' });
+      setStatus({ type: 'success', message: 'Password updated.', context: 'global' });
     } catch (err) {
       alert(err.message);
     } finally {
@@ -660,7 +660,7 @@ export default function AccountSettings({ user: initialUser }) {
       }
       await refreshUser();
       setOpenPanel('none');
-      setStatus({ type: 'success', message: 'Preferences saved.' });
+      setStatus({ type: 'success', message: 'Preferences saved.', context: 'global' });
     } catch (err) {
       alert(err.message);
     } finally {
@@ -678,9 +678,9 @@ export default function AccountSettings({ user: initialUser }) {
           body: JSON.stringify({ landingPage: patch.defaultLandingPage })
         });
         await refreshUser();
-        setStatus({ type: 'success', message: 'Landing page preference saved.' });
+        setStatus({ type: 'success', message: 'Landing page preference saved.', context: 'ui' });
       } catch (err) {
-        setStatus({ type: 'error', message: err.message });
+        setStatus({ type: 'error', message: err.message, context: 'ui' });
       }
     }
 
@@ -706,9 +706,9 @@ export default function AccountSettings({ user: initialUser }) {
         if (patch.loreMode !== undefined) setLoreEnabled(patch.loreMode);
         if (patch.colorTheme !== undefined) setUiColorMode(patch.colorTheme);
         if (patch.invertColors !== undefined) setUiInvertColors(patch.invertColors);
-        setStatus({ type: 'success', message: 'Display settings saved.' });
+        setStatus({ type: 'success', message: 'Display settings saved.', context: 'ui' });
       } catch (err) {
-        setStatus({ type: 'error', message: err.message });
+        setStatus({ type: 'error', message: err.message, context: 'ui' });
       }
     }
   };
@@ -738,7 +738,7 @@ export default function AccountSettings({ user: initialUser }) {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       {/* Notice/Status */}
-      {status.type === 'success' && (
+      {status.type === 'success' && status.context !== 'ui' && (
         <div style={{ marginBottom: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(0, 245, 160, 0.15)', color: '#00f5a0', border: '1px solid rgba(0, 245, 160, 0.3)' }}>
           {status.message}
         </div>
@@ -845,6 +845,24 @@ export default function AccountSettings({ user: initialUser }) {
               />
             </div>
           </SettingsCard>
+
+          {status.context === 'ui' && status.message && (
+            <div
+              style={{
+                marginTop: '8px',
+                padding: '12px',
+                borderRadius: '10px',
+                border: status.type === 'error' ? '1px solid rgba(255, 107, 107, 0.6)' : '1px solid rgba(0, 245, 160, 0.5)',
+                background: status.type === 'error' ? 'rgba(255, 107, 107, 0.08)' : 'rgba(0, 245, 160, 0.12)',
+                color: status.type === 'error' ? '#ff8a8a' : '#00f5a0',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                wordBreak: 'break-word',
+              }}
+            >
+              {status.message}
+            </div>
+          )}
 
           <div style={{ borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(0, 0, 0, 0.2)', padding: '20px' }}>
             <button

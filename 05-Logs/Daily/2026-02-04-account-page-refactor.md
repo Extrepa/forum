@@ -7,6 +7,7 @@
     - **Notifications**: Card with summary stats and a single "Edit" action that opens a comprehensive preference sheet. Admin alerts are integrated into the main editor if the user is an admin.
     - **Site & UI**: Compact card with settings for Landing Page, Lore Mode, Color Theme, etc. Descriptions are inline with the header.
     - **Danger Zone**: Minimal card containing only the "Sign out" button.
+- Added a batch of polish after feedback: the edit sheets now behave like centered modals, the edit buttons share the notification-panel gradients, and the Site & UI dropdowns/checkboxes simply use native browser controls with their own confirmation banner beneath the card.
 - Updated `src/app/account/AccountTabsClient.js` to use `AccountSettings` for logged-in users, replacing the monolithic `ClaimUsernameForm` usage in that context. Removed header description text.
 - Preserved existing functionality (API endpoints, persistence) while improving the UX to be cleaner and more mobile-friendly.
 - **Fixes**:
