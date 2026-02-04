@@ -1150,10 +1150,20 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             {editProfileSubTab === 'username' && (
               <div style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                  <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Username</h2>
+                  <h2
+                    className="section-title"
+                    style={{
+                      margin: 0,
+                      marginBottom: 0,
+                      color: '#F5FFB7',
+                      textShadow: '0 0 10px rgba(245, 255, 183, 0.6)',
+                    }}
+                  >
+                    Username
+                  </h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Update your handle and color.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: '8px', flexWrap: 'nowrap', marginTop: '8px', width: '100%' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginTop: '8px', width: '100%' }}>
                   <input
                     type="text"
                     value={newUsername}
@@ -1167,7 +1177,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       background: 'rgba(2, 7, 10, 0.6)',
                       color: 'var(--ink)',
                       fontSize: '14px',
-                      flex: '1 1 0',
                       minWidth: 0,
                       width: '100%',
                     }}
@@ -1184,16 +1193,14 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       borderRadius: '6px',
                       color: 'var(--bg)',
                       cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      flex: '0 1 auto',
-                      minWidth: '96px',
-                      width: 'clamp(96px, 22vw, 140px)',
+                      width: '100%',
                       whiteSpace: 'nowrap',
                     }}
                   >
                     {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
                   </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1234,9 +1241,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       fontSize: '13px',
                       cursor: 'pointer',
                       flexShrink: 0,
+                      color: 'rgba(255, 255, 255, 0.65)',
                     }}
                   >
-                    <input type="checkbox" checked={profileShowRole} onChange={(e) => setProfileShowRole(e.target.checked)} style={{ margin: 0 }} />
+                    <input
+                      type="checkbox"
+                      checked={profileShowRole}
+                      onChange={(e) => setProfileShowRole(e.target.checked)}
+                      style={{ margin: 0, accentColor: 'rgba(255, 255, 255, 0.6)' }}
+                    />
                     <span>Show role on profile</span>
                   </label>
                 </div>
@@ -1247,7 +1260,17 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               <div style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
                   <div>
-                    <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Avatar Editor</h2>
+                    <h2
+                      className="section-title"
+                      style={{
+                        margin: 0,
+                        marginBottom: 0,
+                        color: '#F5FFB7',
+                        textShadow: '0 0 10px rgba(245, 255, 183, 0.6)',
+                      }}
+                    >
+                      Avatar Editor
+                    </h2>
                     <span className="muted" style={{ fontSize: '12px' }}>
                       Customize your avatar that&apos;s shown across the forum. Your Errl avatar.
                     </span>
