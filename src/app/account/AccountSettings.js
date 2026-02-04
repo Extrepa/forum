@@ -96,19 +96,19 @@ function PrimaryButton(props) {
 }
 
 function SecondaryButton(props) {
+  const className = ['secondary-button', props.className].filter(Boolean).join(' ');
   return (
     <button
       {...props}
+      className={className}
       style={{
         borderRadius: '999px',
-        padding: '8px 16px',
         fontWeight: 600,
-        background: 'linear-gradient(120deg, #54b0ff, #9f36ff)',
+        background: 'linear-gradient(120deg, #54b0ff, #ff2dc3)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
-        color: '#fff',
+        color: '#050505',
         cursor: props.disabled ? 'not-allowed' : 'pointer',
         opacity: props.disabled ? 0.5 : 1,
-        fontSize: '13px',
         ...props.style
       }}
     />
@@ -805,9 +805,9 @@ export default function AccountSettings({ user: initialUser }) {
                 label="Default landing page" 
                 right={
                   <select 
+                    className="account-select"
                     value={siteUi.defaultLandingPage}
                     onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
-                    style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '13px' }}
                   >
                     {["feed", "home"].map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
                   </select>
@@ -833,9 +833,9 @@ export default function AccountSettings({ user: initialUser }) {
                 label="Color theme" 
                 right={
                   <select 
+                    className="account-select"
                     value={siteUi.colorTheme}
                     onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
-                    style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '13px' }}
                   >
                     <option value="0">Rainbow (Default)</option>
                     <option value="1">Black & White</option>
@@ -901,6 +901,66 @@ export default function AccountSettings({ user: initialUser }) {
             display: grid;
             grid-template-columns: 1fr 1fr;
             align-items: start;
+          }
+        }
+      `}</style>
+      <style jsx global>{`
+        .secondary-button {
+          padding: 8px 16px;
+          font-size: 13px;
+          letter-spacing: 0.01em;
+          transition: transform 0.2s ease;
+        }
+        .secondary-button:active {
+          transform: translateY(1px);
+        }
+        .secondary-button:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+        }
+        .secondary-button:disabled {
+          cursor: not-allowed;
+        }
+        @media (max-width: 767px) {
+          .secondary-button {
+            padding: 6px 12px;
+            font-size: 11px;
+            letter-spacing: 0.02em;
+          }
+        }
+        .account-select {
+          min-width: 110px;
+          padding: 8px 10px 8px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(2, 10, 20, 0.65)),
+            url("data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2012%209%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M1%201l5%205%205-5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E");
+          background-position: 0 0, right 12px center;
+          background-repeat: no-repeat;
+          background-size: 100% 100%, 12px 9px;
+          color: #fff;
+          font-size: 13px;
+          cursor: pointer;
+          appearance: none;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          padding-right: 34px;
+        }
+        .account-select:focus-visible {
+          outline: none;
+          border-color: #54b0ff;
+          box-shadow: 0 0 0 3px rgba(84, 176, 255, 0.25);
+        }
+        .account-select option {
+          background: #03121a;
+          color: #fff;
+        }
+        .account-select::-ms-expand {
+          display: none;
+        }
+        @media (max-width: 767px) {
+          .account-select {
+            font-size: 12px;
+            min-width: 90px;
           }
         }
       `}</style>
