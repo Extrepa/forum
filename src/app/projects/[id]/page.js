@@ -6,11 +6,11 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
+import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import DeletePostButton from '../../../components/DeletePostButton';
-import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
 import PostHeader from '../../../components/PostHeader';
@@ -458,65 +458,49 @@ export default async function ProjectDetailPage({ params, searchParams }) {
           { href: `/projects/${safeProjectId}`, label: safeProjectTitle },
         ]}
         right={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} /> : null}
-            {isAdmin ? <PinPostButton postId={safeProjectId} postType="project" initialPinned={isPinned} /> : null}
-            {canToggleLock ? (
-              <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="button"
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    minWidth: '90px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                  </span>
-                </button>
-              </form>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-project-panel"
+          (isAdmin || canEdit) ? (
+            <PostActionMenu
+              buttonLabel="Edit Post"
+              panelId="edit-project-panel"
+            >
+              {isAdmin ? <HidePostButton postId={safeProjectId} postType="project" initialHidden={isHidden} /> : null}
+              {isAdmin ? <PinPostButton postId={safeProjectId} postType="project" initialPinned={isPinned} /> : null}
+              {canToggleLock ? (
+                <form action={`/api/projects/${safeProjectId}/lock`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={safeProjectId} 
+                  postType="project"
                 />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={safeProjectId} 
-                    postType="project"
-                  />
-                ) : null}
-              </>
-            ) : canEdit ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-project-panel"
-                />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={safeProjectId} 
-                    postType="project"
-                  />
-                ) : null}
-              </>
-            ) : null}
-          </div>
+              ) : null}
+            </PostActionMenu>
+          ) : null
         }
       />
       <ViewTracker contentType="projects" contentId={safeProjectId} />

@@ -5,6 +5,7 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
+import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
@@ -13,7 +14,6 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import CommentActions from '../../../components/CommentActions';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
-import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostForm from '../../../components/PostForm';
 import HidePostButton from '../../../components/HidePostButton';
@@ -223,49 +223,49 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           { href: `/announcements/${update.id}`, label: update.title || 'Update' }
         ]}
         right={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} /> : null}
-            {isAdmin ? <PinPostButton postId={update.id} postType="timeline" initialPinned={isPinned} /> : null}
-            {canToggleLock ? (
-              <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="button"
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    minWidth: '90px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                  </span>
-                </button>
-              </form>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-announcement-panel" />
-                {canDelete ? <DeletePostButton postId={update.id} postType="timeline" /> : null}
-              </>
-            ) : canEdit ? (
-              <>
-                <EditPostButtonWithPanel buttonLabel="Edit Post" panelId="edit-announcement-panel" />
-                {canDelete ? <DeletePostButton postId={update.id} postType="timeline" /> : null}
-              </>
-            ) : null}
-          </div>
+          (isAdmin || canEdit) ? (
+            <PostActionMenu
+              buttonLabel="Edit Post"
+              panelId="edit-announcement-panel"
+            >
+              {isAdmin ? <HidePostButton postId={update.id} postType="timeline" initialHidden={isHidden} /> : null}
+              {isAdmin ? <PinPostButton postId={update.id} postType="timeline" initialPinned={isPinned} /> : null}
+              {canToggleLock ? (
+                <form action={`/api/timeline/${update.id}/lock`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={update.id} 
+                  postType="timeline"
+                />
+              ) : null}
+            </PostActionMenu>
+          ) : null
         }
       />
 

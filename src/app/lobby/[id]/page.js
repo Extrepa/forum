@@ -5,13 +5,13 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { formatDateTime } from '../../../lib/dates';
 import PageTopRow from '../../../components/PageTopRow';
+import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
 import ReplyFormWrapper from '../../../components/ReplyFormWrapper';
 import DeletePostButton from '../../../components/DeletePostButton';
 import EditThreadForm from '../../../components/EditThreadForm';
-import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
 import { isAdminUser } from '../../../lib/admin';
@@ -741,65 +741,49 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           { href: `/lobby/${safeThreadId}`, label: safeThreadTitle },
         ]}
         right={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} /> : null}
-            {isAdmin ? <PinPostButton postId={safeThreadId} postType="thread" initialPinned={isPinned} /> : null}
-            {canToggleLock ? (
-              <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="button"
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    minWidth: '90px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{safeThreadIsLocked ? 'Unlock' : 'Lock'}</span>
-                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                  </span>
-                </button>
-              </form>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-thread-panel"
+          (isAdmin || canEdit) ? (
+            <PostActionMenu
+              buttonLabel="Edit Post"
+              panelId="edit-thread-panel"
+            >
+              {isAdmin ? <HidePostButton postId={safeThreadId} postType="thread" initialHidden={isHidden} /> : null}
+              {isAdmin ? <PinPostButton postId={safeThreadId} postType="thread" initialPinned={isPinned} /> : null}
+              {canToggleLock ? (
+                <form action={`/api/forum/${safeThreadId}/lock`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="locked" value={safeThreadIsLocked ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{safeThreadIsLocked ? 'Unlock' : 'Lock'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={safeThreadId} 
+                  postType="thread"
                 />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={safeThreadId} 
-                    postType="thread"
-                  />
-                ) : null}
-              </>
-            ) : canEdit ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-thread-panel"
-                />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={safeThreadId} 
-                    postType="thread"
-                  />
-                ) : null}
-              </>
-            ) : null}
-          </div>
+              ) : null}
+            </PostActionMenu>
+          ) : null
         }
       />
       <ThreadViewTracker threadId={safeThreadId} />

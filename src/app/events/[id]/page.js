@@ -5,7 +5,7 @@ import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
-import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
@@ -340,65 +340,49 @@ export default async function EventDetailPage({ params, searchParams }) {
           { href: `/events/${event.id}`, label: event.title },
         ]}
         right={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? <HidePostButton postId={id} postType="event" initialHidden={isHidden} /> : null}
-            {isAdmin ? <PinPostButton postId={id} postType="event" initialPinned={isPinned} /> : null}
-            {canToggleLock ? (
-              <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="button"
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    minWidth: '90px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                  </span>
-                </button>
-              </form>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-event-panel"
+          (isAdmin || canEdit) ? (
+            <PostActionMenu
+              buttonLabel="Edit Post"
+              panelId="edit-event-panel"
+            >
+              {isAdmin ? <HidePostButton postId={id} postType="event" initialHidden={isHidden} /> : null}
+              {isAdmin ? <PinPostButton postId={id} postType="event" initialPinned={isPinned} /> : null}
+              {canToggleLock ? (
+                <form action={`/api/events/${id}/lock`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="event"
                 />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={id} 
-                    postType="event"
-                  />
-                ) : null}
-              </>
-            ) : canEdit ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-event-panel"
-                />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={id} 
-                    postType="event"
-                  />
-                ) : null}
-              </>
-            ) : null}
-          </div>
+              ) : null}
+            </PostActionMenu>
+          ) : null
         }
       />
 

@@ -6,7 +6,7 @@ import { safeEmbedFromUrl } from '../../../lib/embeds';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
-import EditPostButtonWithPanel from '../../../components/EditPostButtonWithPanel';
+import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
@@ -319,65 +319,49 @@ export default async function MusicDetailPage({ params, searchParams }) {
           { href: `/music/${id}`, label: post.title },
         ]}
         right={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
-            {isAdmin ? <PinPostButton postId={id} postType="music" initialPinned={isPinned} /> : null}
-            {canToggleLock ? (
-              <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
-                <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className="button"
-                  style={{
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    minWidth: '90px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1.2,
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                    <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                    <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                  </span>
-                </button>
-              </form>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-music-panel"
+          (isAdmin || canEdit) ? (
+            <PostActionMenu
+              buttonLabel="Edit Post"
+              panelId="edit-music-panel"
+            >
+              {isAdmin ? <HidePostButton postId={id} postType="music" initialHidden={isHidden} /> : null}
+              {isAdmin ? <PinPostButton postId={id} postType="music" initialPinned={isPinned} /> : null}
+              {canToggleLock ? (
+                <form action={`/api/music/${id}/lock`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <DeletePostButton 
+                  postId={id} 
+                  postType="music"
                 />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={id} 
-                    postType="music"
-                  />
-                ) : null}
-              </>
-            ) : canEdit ? (
-              <>
-                <EditPostButtonWithPanel 
-                  buttonLabel="Edit Post" 
-                  panelId="edit-music-panel"
-                />
-                {canDelete ? (
-                  <DeletePostButton 
-                    postId={id} 
-                    postType="music"
-                  />
-                ) : null}
-              </>
-            ) : null}
-          </div>
+              ) : null}
+            </PostActionMenu>
+          ) : null
         }
       />
       <ViewTracker contentType="music" contentId={id} />
