@@ -5548,6 +5548,7 @@ header::before {
   margin-bottom: 0;
   flex-wrap: nowrap;
   overflow: visible;
+  position: relative;
 }
 
 .page-top-row .breadcrumbs {
@@ -5646,19 +5647,18 @@ header::before {
 
 .post-action-menu__popover {
   position: absolute;
-  top: 50%;
-  right: calc(100% + 12px);
-  transform: translateY(-60%);
+  right: 0;
+  bottom: calc(100% + 12px);
   display: inline-flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(4, 10, 20, 0.95);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-  z-index: 60;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+  z-index: 90;
   white-space: nowrap;
   min-width: 180px;
   max-width: calc(100vw - 32px);
@@ -5668,7 +5668,8 @@ header::before {
 @media (min-width: 900px) {
   .post-action-menu__popover {
     top: 0;
-    transform: translateY(-110%);
+    bottom: auto;
+    transform: translateY(-115%);
   }
 }
 
