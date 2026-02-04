@@ -801,14 +801,13 @@ export default function AccountSettings({ user: initialUser }) {
           >
             <div className="stack" style={{ gap: '0' }}>
               <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>Site behavior</div>
-              <Row 
-                label="Default landing page" 
-                right={
-                  <select 
-                    className="account-select"
-                    value={siteUi.defaultLandingPage}
-                    onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
-                  >
+                <Row 
+                  label="Default landing page" 
+                  right={
+                    <select 
+                      value={siteUi.defaultLandingPage}
+                      onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
+                    >
                     {["feed", "home"].map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
                   </select>
                 }
@@ -829,14 +828,13 @@ export default function AccountSettings({ user: initialUser }) {
               <Divider />
               
               <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>UI</div>
-              <Row 
-                label="Color theme" 
-                right={
-                  <select 
-                    className="account-select"
-                    value={siteUi.colorTheme}
-                    onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
-                  >
+                <Row 
+                  label="Color theme" 
+                  right={
+                    <select 
+                      value={siteUi.colorTheme}
+                      onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
+                    >
                     <option value="0">Rainbow (Default)</option>
                     <option value="1">Black & White</option>
                     <option value="2">Custom Neon</option>
@@ -925,33 +923,6 @@ export default function AccountSettings({ user: initialUser }) {
             padding: 6px 12px;
             font-size: 11px;
             letter-spacing: 0.02em;
-          }
-        }
-        .account-select {
-          min-width: 110px;
-          padding: 8px 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          background: linear-gradient(180deg, rgba(4, 17, 28, 0.95), rgba(10, 30, 45, 0.9));
-          color: #fff;
-          font-size: 13px;
-        }
-        .account-select:focus-visible {
-          outline: none;
-          border-color: #54b0ff;
-          box-shadow: 0 0 0 3px rgba(84, 176, 255, 0.25);
-        }
-        .account-select option {
-          background: #03121a;
-          color: #fff;
-        }
-        .account-select::-ms-expand {
-          display: none;
-        }
-        @media (max-width: 767px) {
-        .account-select {
-            font-size: 12px;
-            min-width: 90px;
           }
         }
       `}</style>
