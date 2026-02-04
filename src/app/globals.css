@@ -1633,6 +1633,8 @@ select {
   font-family: inherit;
   background: rgba(2, 7, 10, 0.6);
   color: var(--ink);
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 input::placeholder,
