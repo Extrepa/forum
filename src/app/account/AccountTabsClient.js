@@ -1153,24 +1153,93 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <h2 className="section-title" style={{ margin: 0, marginBottom: 0 }}>Username</h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Update your handle and color.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-                  <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" pattern="[a-z0-9_]{3,20}" style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '14px', minWidth: '160px', flex: '1 1 200px', maxWidth: '320px' }} />
-                  <button type="button" onClick={handleSaveUsername} disabled={usernameStatus.type === 'loading'} style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'var(--bg)', cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer', flex: '0 0 auto', width: '100%' }}>{usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}</button>
+                <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: '8px', flexWrap: 'nowrap', marginTop: '8px', width: '100%' }}>
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="username"
+                    pattern="[a-z0-9_]{3,20}"
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(52, 225, 255, 0.3)',
+                      background: 'rgba(2, 7, 10, 0.6)',
+                      color: 'var(--ink)',
+                      fontSize: '14px',
+                      flex: '1 1 0',
+                      minWidth: 0,
+                      width: '100%',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveUsername}
+                    disabled={usernameStatus.type === 'loading'}
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 12px',
+                      background: 'var(--accent)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'var(--bg)',
+                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                      flex: '0 1 auto',
+                      minWidth: '96px',
+                      width: 'clamp(96px, 22vw, 140px)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                  </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
-                  {colorOptions.map((option) => {
-                    const isSelected = selectedColorIndex === option.index;
-                    const disabled = usernameStatus.type === 'loading';
-                    return (
-                      <button key={option.index ?? 'auto'} type="button" onClick={() => !disabled && setSelectedColorIndex(option.index)} disabled={disabled} title={option.name} className="color-picker-btn" style={{ minHeight: 0, width: 18, height: 18, borderRadius: '50%', border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)', background: option.index === null ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)' : option.color, cursor: disabled ? 'default' : 'pointer', padding: 0 }} />
-                    );
-                  })}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {colorOptions.map((option) => {
+                        const isSelected = selectedColorIndex === option.index;
+                        const disabled = usernameStatus.type === 'loading';
+                        return (
+                          <button
+                            key={option.index ?? 'auto'}
+                            type="button"
+                            onClick={() => !disabled && setSelectedColorIndex(option.index)}
+                            disabled={disabled}
+                            title={option.name}
+                            className="color-picker-btn"
+                            style={{
+                              minHeight: 0,
+                              width: 18,
+                              height: 18,
+                              borderRadius: '50%',
+                              border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                              background:
+                                option.index === null
+                                  ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                                  : option.color,
+                              cursor: disabled ? 'default' : 'pointer',
+                              padding: 0,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <input type="checkbox" checked={profileShowRole} onChange={(e) => setProfileShowRole(e.target.checked)} style={{ margin: 0 }} />
+                    <span>Show role on profile</span>
+                  </label>
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', marginTop: '10px', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={profileShowRole} onChange={(e) => setProfileShowRole(e.target.checked)} style={{ margin: 0 }} />
-                  <span>Show role on profile</span>
-                </label>
                 {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block', textAlign: 'center' }}>{usernameStatus.message}</span>}
               </div>
             )}
