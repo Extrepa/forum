@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Username from '../../components/Username';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import AccountSettings from './AccountSettings';
 import ClaimUsernameForm from '../../components/ClaimUsernameForm';
 import AvatarCustomizer from '../../components/AvatarCustomizer';
 import { formatDateTime, formatDate } from '../../lib/dates';
@@ -1024,26 +1025,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             <p className="muted" style={{ margin: 0 }}>Simple settings, quick updates.</p>
           </div>
           <hr style={{ marginTop: '16px', marginBottom: '16px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
-          <ClaimUsernameForm noCardWrapper={true} />
           
-          {/* Sign out button at bottom of Account tab */}
-          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await fetch('/api/auth/logout', { method: 'POST' });
-                } catch (error) {
-                  // ignore
-                }
-                // Redirect to forum.errl.wtf (sign-in screen)
-                window.location.href = 'https://forum.errl.wtf';
-              }}
-              style={{ width: '100%' }}
-            >
-              Sign out
-            </button>
-          </div>
+          {user ? (
+            <AccountSettings user={user} />
+          ) : (
+            <ClaimUsernameForm noCardWrapper={true} />
+          )}
         </div>
       )}
 

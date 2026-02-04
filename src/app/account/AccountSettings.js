@@ -1,0 +1,812 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUiPrefs } from '../../components/UiPrefsProvider';
+import Username from '../../components/Username';
+import { getUsernameColorIndex } from '../../lib/usernameColor';
+
+/* ---------------------------------------------
+   UTILITIES
+--------------------------------------------- */
+
+function countEnabledSiteNotifs(site) {
+  return Object.values(site).filter(Boolean).length;
+}
+
+function anySiteNotifsEnabled(site) {
+  return Object.values(site).some(Boolean);
+}
+
+function deliverySummary(delivery, hasPhone) {
+  const parts = [];
+  if (delivery.email) parts.push("Email");
+  if (delivery.sms && hasPhone) parts.push("SMS");
+  if (!parts.length) return "Off";
+  return parts.join(" + ");
+}
+
+function validateNotificationPrefs({ prefs, hasPhone }) {
+  const siteAny = anySiteNotifsEnabled(prefs.site);
+
+  if (prefs.delivery.sms && !hasPhone) {
+    return { ok: false, message: "Add a phone number before enabling SMS notifications." };
+  }
+
+  if (siteAny && !prefs.delivery.email) {
+    return { ok: false, message: "Enable Email notifications to receive site alerts." };
+  }
+
+  return { ok: true };
+}
+
+/* ---------------------------------------------
+   COMPONENTS
+--------------------------------------------- */
+
+function SettingsCard({ title, subtitle, actions, children }) {
+  return (
+    <div className="card" style={{ padding: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+        <div>
+          <div className="section-title" style={{ marginBottom: '4px', borderBottom: 'none', fontSize: '18px' }}>{title}</div>
+          {subtitle && <div className="muted" style={{ fontSize: '13px' }}>{subtitle}</div>}
+        </div>
+        {actions}
+      </div>
+      <div style={{ marginTop: '16px' }}>{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, description, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 0' }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 500 }}>{label}</div>
+        {description && <div className="muted" style={{ fontSize: '12px', marginTop: '2px' }}>{description}</div>}
+      </div>
+      <div style={{ flexShrink: 0 }}>{right}</div>
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.1)', margin: '12px 0' }} />;
+}
+
+function PrimaryButton(props) {
+  return (
+    <button
+      {...props}
+      style={{
+        width: '100%',
+        borderRadius: '999px',
+        padding: '12px 16px',
+        fontWeight: 600,
+        background: 'linear-gradient(90deg, rgba(52, 225, 255, 0.8), rgba(176, 38, 255, 0.8), rgba(255, 107, 0, 0.8))',
+        color: '#000',
+        border: 'none',
+        cursor: props.disabled ? 'not-allowed' : 'pointer',
+        opacity: props.disabled ? 0.5 : 1,
+        ...props.style
+      }}
+    />
+  );
+}
+
+function SecondaryButton(props) {
+  return (
+    <button
+      {...props}
+      style={{
+        borderRadius: '999px',
+        padding: '8px 16px',
+        fontWeight: 600,
+        background: 'rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        color: '#fff',
+        cursor: props.disabled ? 'not-allowed' : 'pointer',
+        opacity: props.disabled ? 0.5 : 1,
+        fontSize: '13px',
+        ...props.style
+      }}
+    />
+  );
+}
+
+function EditSheet({ open, title, onClose, children }) {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'flex-end', // Bottom sheet on mobile
+        justifyContent: 'center',
+      }}
+    >
+      {/* Backdrop */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(2px)',
+        }}
+        onClick={onClose}
+      />
+      
+      {/* Panel */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '600px', // Max width for desktop
+          maxHeight: '85vh',
+          background: '#06131a', // Match theme or var(--card)
+          borderTopLeftRadius: '24px',
+          borderTopRightRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: 'none',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'slideUp 0.3s ease-out',
+          marginBottom: 0, // Stick to bottom on mobile
+          // On desktop, we might want it centered or modal-like, but user asked for "Sheet".
+          // Let's stick to bottom sheet style as requested for mobile, maybe center on desktop?
+          // For now, consistent bottom sheet behavior is fine and often preferred for "settings panels".
+        }}
+        className="edit-sheet-panel"
+      >
+        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{title}</div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--muted)',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: 0,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+        <div style={{ padding: '20px', overflowY: 'auto' }}>
+          {children}
+        </div>
+      </div>
+      <style jsx global>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        @media (min-width: 768px) {
+          .edit-sheet-panel {
+            border-radius: 16px;
+            margin-bottom: auto;
+            margin-top: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   EDITORS
+--------------------------------------------- */
+
+function ContactEditor({ draft, onChange, saving, onSave }) {
+  return (
+    <div className="stack" style={{ gap: '16px' }}>
+      <label>
+        <div className="muted" style={{ marginBottom: '4px' }}>Email</div>
+        <input
+          value={draft.email}
+          onChange={(e) => onChange({ ...draft, email: e.target.value })}
+          placeholder="you@example.com"
+          style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.05)', color: '#fff' }}
+        />
+      </label>
+
+      <label>
+        <div className="muted" style={{ marginBottom: '4px' }}>Phone</div>
+        <input
+          value={draft.phone ?? ""}
+          onChange={(e) => onChange({ ...draft, phone: e.target.value })}
+          placeholder="+15551234567"
+          style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.05)', color: '#fff' }}
+        />
+        <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Needed for SMS notifications.</div>
+      </label>
+
+      <PrimaryButton disabled={saving || !draft.email.trim()} onClick={onSave}>
+        {saving ? 'Saving...' : 'Save contact info'}
+      </PrimaryButton>
+    </div>
+  );
+}
+
+function PasswordEditor({ draft, onChange, saving, onSave }) {
+  const newPwOk = draft.newPassword.length >= 8;
+  const oldPwOk = draft.oldPassword.length > 0;
+
+  return (
+    <div className="stack" style={{ gap: '16px' }}>
+      <label>
+        <div className="muted" style={{ marginBottom: '4px' }}>Old password</div>
+        <input
+          type="password"
+          value={draft.oldPassword}
+          onChange={(e) => onChange({ ...draft, oldPassword: e.target.value })}
+          placeholder="Current password"
+          style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.05)', color: '#fff' }}
+        />
+      </label>
+
+      <label>
+        <div className="muted" style={{ marginBottom: '4px' }}>New password</div>
+        <input
+          type="password"
+          value={draft.newPassword}
+          onChange={(e) => onChange({ ...draft, newPassword: e.target.value })}
+          placeholder="New password (8+ chars)"
+          style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.05)', color: '#fff' }}
+        />
+        {!newPwOk && <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Minimum 8 characters.</div>}
+      </label>
+
+      <PrimaryButton disabled={saving || !oldPwOk || !newPwOk} onClick={onSave}>
+        {saving ? 'Updating...' : 'Update password'}
+      </PrimaryButton>
+    </div>
+  );
+}
+
+function ToggleLine({ label, checked, onChange, disabled }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+      <span style={{ fontWeight: 500 }}>{label}</span>
+      <input 
+        type="checkbox" 
+        checked={checked} 
+        onChange={(e) => onChange(e.target.checked)} 
+        disabled={disabled}
+        style={{ width: '18px', height: '18px' }}
+      />
+    </label>
+  );
+}
+
+function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave }) {
+  const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
+  const siteAny = anySiteNotifsEnabled(draft.site);
+
+  return (
+    <div className="stack" style={{ gap: '16px' }}>
+      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Site notifications</div>
+        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Choose what triggers alerts.</div>
+        <Divider />
+
+        <ToggleLine label="RSVP notifications" checked={draft.site.rsvp} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, rsvp: v } }))
+        } />
+        <ToggleLine label="Like notifications" checked={draft.site.likes} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, likes: v } }))
+        } />
+        <ToggleLine label="Project update notifications" checked={draft.site.projectUpdates} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, projectUpdates: v } }))
+        } />
+        <ToggleLine label="Mention notifications" checked={draft.site.mentions} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, mentions: v } }))
+        } />
+        <ToggleLine label="Reply notifications" checked={draft.site.replies} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, replies: v } }))
+        } />
+        <ToggleLine label="Comment notifications" checked={draft.site.comments} onChange={(v) =>
+          setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
+        } />
+      </div>
+
+      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Delivery channels</div>
+        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>
+          Email is required when site notifications are enabled. SMS requires a phone number.
+        </div>
+        <Divider />
+
+        <ToggleLine
+          label="Email notifications"
+          checked={draft.delivery.email}
+          onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, email: v } }))}
+        />
+
+        <ToggleLine 
+          label="Text (SMS) notifications"
+          checked={draft.delivery.sms}
+          disabled={!hasPhone}
+          onChange={(v) => setDraft(d => ({ ...d, delivery: { ...d.delivery, sms: v } }))}
+        />
+        {!hasPhone && <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Add a phone number to enable SMS.</div>}
+
+        {siteAny && !draft.delivery.email && (
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#ffd700' }}>
+            Email must be enabled to receive site alerts.
+          </div>
+        )}
+      </div>
+
+      {!validation.ok && (
+        <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)', color: '#ffd700', fontSize: '13px' }}>
+          {validation.message}
+        </div>
+      )}
+
+      <PrimaryButton disabled={saving || !validation.ok} onClick={onSave}>
+        {saving ? 'Saving...' : 'Save preferences'}
+      </PrimaryButton>
+    </div>
+  );
+}
+
+function AdminNotificationsEditor({ user, draft, setDraft, saving, onSave }) {
+  if (!user.role === 'admin') return null;
+
+  const admin = draft.admin ?? { newUserSignups: false, newForumThreads: false, newForumReplies: false };
+
+  return (
+    <div className="stack" style={{ gap: '16px' }}>
+      <div className="card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
+        <div style={{ fontWeight: 600, marginBottom: '4px' }}>Admin notifications</div>
+        <div className="muted" style={{ fontSize: '13px', marginBottom: '8px' }}>Extra alerts for moderation/monitoring.</div>
+        <Divider />
+
+        <ToggleLine label="New user signups" checked={admin.newUserSignups} onChange={(v) =>
+          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newUserSignups: v } }))
+        } />
+        <ToggleLine label="New forum threads" checked={admin.newForumThreads} onChange={(v) =>
+          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumThreads: v } }))
+        } />
+        <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
+          setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
+        } />
+      </div>
+
+      <PrimaryButton disabled={saving} onClick={onSave}>
+        {saving ? 'Saving...' : 'Save admin preferences'}
+      </PrimaryButton>
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   MAIN COMPONENT
+--------------------------------------------- */
+
+export default function AccountSettings({ user: initialUser }) {
+  const router = useRouter();
+  const { 
+    loreEnabled, setLoreEnabled,
+    uiColorMode, setUiColorMode,
+    uiBorderColor, setUiBorderColor,
+    uiInvertColors, setUiInvertColors
+  } = useUiPrefs();
+
+  const [user, setUser] = useState(initialUser);
+  const [openPanel, setOpenPanel] = useState('none');
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState({ type: 'idle', message: null });
+
+  // Use useEffect to update user if initialUser changes (e.g. parent refetch)
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
+  // Derived state for preferences
+  const notifPrefs = {
+    site: {
+      rsvp: user?.notifyRsvpEnabled ?? true,
+      likes: user?.notifyLikeEnabled ?? true,
+      projectUpdates: user?.notifyUpdateEnabled ?? true,
+      mentions: user?.notifyMentionEnabled ?? true,
+      replies: user?.notifyReplyEnabled ?? true,
+      comments: user?.notifyCommentEnabled ?? true,
+    },
+    delivery: {
+      email: !!user?.notifyEmailEnabled,
+      sms: !!user?.notifySmsEnabled,
+    },
+    admin: {
+      newUserSignups: !!user?.notifyAdminNewUserEnabled,
+      newForumThreads: !!user?.notifyAdminNewPostEnabled,
+      newForumReplies: !!user?.notifyAdminNewReplyEnabled,
+    }
+  };
+
+  const siteUi = {
+    defaultLandingPage: user?.defaultLandingPage || 'feed',
+    loreMode: loreEnabled,
+    colorTheme: uiColorMode,
+    invertColors: uiInvertColors,
+  };
+
+  // Local draft states
+  const [contactDraft, setContactDraft] = useState({ email: '', phone: '' });
+  const [pwDraft, setPwDraft] = useState({ oldPassword: '', newPassword: '' });
+  const [notifDraft, setNotifDraft] = useState(notifPrefs);
+
+  // Sync drafts when opening panels
+  useEffect(() => {
+    if (openPanel === 'editContact' && user) {
+      setContactDraft({ email: user.email || '', phone: user.phone || '' });
+    }
+    if (openPanel === 'changePassword') {
+      setPwDraft({ oldPassword: '', newPassword: '' });
+    }
+    if (openPanel === 'editNotifications' || openPanel === 'editAdminNotifications') {
+      setNotifDraft(notifPrefs);
+    }
+  }, [openPanel, user]); // Removed notifPrefs dependency to avoid reset loop if user object identity changes
+
+  const refreshUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.user) setUser(data.user);
+    } catch (_) {}
+  };
+
+  /* --- ACTIONS --- */
+
+  const handleSaveContact = async () => {
+    setSaving(true);
+    try {
+      // Save email
+      if (contactDraft.email !== user.email) {
+        const res = await fetch('/api/auth/set-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: contactDraft.email })
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to update email');
+        }
+      }
+      // Save phone
+      if (contactDraft.phone !== user.phone) {
+        const res = await fetch('/api/auth/set-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: contactDraft.phone || null })
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to update phone');
+        }
+      }
+      await refreshUser();
+      setOpenPanel('none');
+      setStatus({ type: 'success', message: 'Contact info updated.' });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSavePassword = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPassword: pwDraft.oldPassword, newPassword: pwDraft.newPassword })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to change password');
+      }
+      setOpenPanel('none');
+      setStatus({ type: 'success', message: 'Password updated.' });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveNotifs = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        emailEnabled: notifDraft.delivery.email,
+        smsEnabled: notifDraft.delivery.sms,
+        rsvpEnabled: notifDraft.site.rsvp,
+        likeEnabled: notifDraft.site.likes,
+        updateEnabled: notifDraft.site.projectUpdates,
+        mentionEnabled: notifDraft.site.mentions,
+        replyEnabled: notifDraft.site.replies,
+        commentEnabled: notifDraft.site.comments,
+        // Admin prefs included here
+        adminNewUserEnabled: notifDraft.admin?.newUserSignups,
+        adminNewPostEnabled: notifDraft.admin?.newForumThreads,
+        adminNewReplyEnabled: notifDraft.admin?.newForumReplies,
+      };
+
+      const res = await fetch('/api/auth/notification-prefs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to save preferences');
+      }
+      await refreshUser();
+      setOpenPanel('none');
+      setStatus({ type: 'success', message: 'Preferences saved.' });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveSiteUi = async (patch) => {
+    // If updating landing page
+    if (patch.defaultLandingPage) {
+      try {
+        await fetch('/api/auth/landing-pref', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ landingPage: patch.defaultLandingPage })
+        });
+        await refreshUser();
+      } catch (_) {}
+    }
+
+    // If updating UI prefs
+    const newUi = { 
+      loreEnabled: patch.loreMode !== undefined ? patch.loreMode : siteUi.loreMode,
+      colorMode: patch.colorTheme !== undefined ? patch.colorTheme : siteUi.colorTheme,
+      borderColor: uiBorderColor, // keep existing
+      invertColors: patch.invertColors !== undefined ? patch.invertColors : siteUi.invertColors
+    };
+
+    if (patch.loreMode !== undefined || patch.colorTheme !== undefined || patch.invertColors !== undefined) {
+      const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
+      if (envLore && patch.loreMode !== undefined) return; // Locked
+
+      try {
+        await fetch('/api/auth/ui-prefs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUi)
+        });
+        // Update context
+        if (patch.loreMode !== undefined) setLoreEnabled(patch.loreMode);
+        if (patch.colorTheme !== undefined) setUiColorMode(patch.colorTheme);
+        if (patch.invertColors !== undefined) setUiInvertColors(patch.invertColors);
+      } catch (_) {}
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = 'https://forum.errl.wtf';
+    } catch (_) {}
+  };
+
+  /* --- RENDER HELPERS --- */
+  
+  if (!user) return <div className="muted">Loading account...</div>;
+
+  const enabledCount = countEnabledSiteNotifs(notifPrefs.site);
+  const delivery = deliverySummary(notifPrefs.delivery, Boolean(user.phone));
+  const adminOn = user.role === 'admin' && notifPrefs.admin
+    ? Object.values(notifPrefs.admin).some(Boolean)
+    : false;
+  
+  const notifValidation = validateNotificationPrefs({ prefs: notifDraft, hasPhone: Boolean(user.phone) || Boolean(contactDraft.phone) });
+
+  const colorIndex = getUsernameColorIndex(user.username, { preferredColorIndex: user.preferredUsernameColorIndex });
+
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Notice/Status */}
+      {status.type === 'success' && (
+        <div style={{ marginBottom: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(0, 245, 160, 0.15)', color: '#00f5a0', border: '1px solid rgba(0, 245, 160, 0.3)' }}>
+          {status.message}
+        </div>
+      )}
+
+      <div className="account-grid">
+        {/* LEFT COLUMN */}
+        <div className="stack" style={{ gap: '20px' }}>
+          <SettingsCard
+            title="Account"
+            subtitle="At-a-glance info + quick edits."
+            actions={<SecondaryButton onClick={() => setOpenPanel('editContact')}>Edit</SecondaryButton>}
+          >
+            <div className="stack" style={{ gap: '0' }}>
+              <Row label="Signed in as" right={<Username name={user.username} colorIndex={colorIndex} />} />
+              <Row label="Email" right={<span className="muted">{user.email}</span>} />
+              <Row label="Phone" right={<span className="muted">{user.phone || 'Not added'}</span>} />
+            </div>
+            <Divider />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <SecondaryButton onClick={() => setOpenPanel('editContact')} style={{ width: '100%', textAlign: 'center' }}>Edit contact info</SecondaryButton>
+              <SecondaryButton onClick={() => setOpenPanel('changePassword')} style={{ width: '100%', textAlign: 'center' }}>Change password</SecondaryButton>
+            </div>
+            <div className="muted" style={{ fontSize: '12px', marginTop: '12px' }}>Your account is active on this device.</div>
+          </SettingsCard>
+
+          <SettingsCard
+            title="Notifications"
+            subtitle="Summary first. Edit when you feel the need."
+            actions={<SecondaryButton onClick={() => setOpenPanel('editNotifications')}>Edit</SecondaryButton>}
+          >
+            <div className="stack" style={{ gap: '0' }}>
+              <Row label="Site notifications" right={<span className="muted">{enabledCount} enabled</span>} />
+              <Row label="Delivery" right={<span className="muted">{delivery}</span>} />
+              {user.role === 'admin' && (
+                <Row 
+                  label="Admin alerts" 
+                  right={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="muted">{adminOn ? "On" : "Off"}</span>
+                      <SecondaryButton onClick={() => setOpenPanel('editAdminNotifications')} style={{ padding: '4px 10px', fontSize: '11px' }}>Edit</SecondaryButton>
+                    </div>
+                  } 
+                />
+              )}
+            </div>
+          </SettingsCard>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="stack" style={{ gap: '20px' }}>
+          <SettingsCard
+            title="Site & UI"
+            subtitle="Compact settings."
+          >
+            <div className="stack" style={{ gap: '0' }}>
+              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>Site behavior</div>
+              <Row 
+                label="Default landing page" 
+                right={
+                  <select 
+                    value={siteUi.defaultLandingPage}
+                    onChange={(e) => handleSaveSiteUi({ defaultLandingPage: e.target.value })}
+                    style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '13px' }}
+                  >
+                    {["feed", "home"].map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
+                  </select>
+                }
+              />
+              <Row 
+                label="Lore mode" 
+                description="Swap plain microcopy for Errl-flavored text."
+                right={
+                  <input 
+                    type="checkbox" 
+                    checked={siteUi.loreMode} 
+                    onChange={(e) => handleSaveSiteUi({ loreMode: e.target.checked })}
+                    disabled={process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true'}
+                  />
+                }
+              />
+              
+              <Divider />
+              
+              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px', marginBottom: '4px' }}>UI</div>
+              <Row 
+                label="Color theme" 
+                right={
+                  <select 
+                    value={siteUi.colorTheme}
+                    onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
+                    style={{ padding: '6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '13px' }}
+                  >
+                    <option value="0">Rainbow</option>
+                    <option value="1">Black & White</option>
+                    <option value="2">Custom Neon</option>
+                  </select>
+                }
+              />
+              <Row 
+                label="Invert colors" 
+                right={
+                  <input 
+                    type="checkbox" 
+                    checked={siteUi.invertColors} 
+                    onChange={(e) => handleSaveSiteUi({ invertColors: e.target.checked })}
+                  />
+                }
+              />
+            </div>
+          </SettingsCard>
+
+          <div style={{ borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(0, 0, 0, 0.2)', padding: '20px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', opacity: 0.8 }}>Danger Zone</div>
+            <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>Low drama. High consequences.</div>
+            <div style={{ marginTop: '16px' }}>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  width: '100%',
+                  borderRadius: '999px',
+                  padding: '12px',
+                  fontWeight: 600,
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#ff6b6b',
+                  cursor: 'pointer',
+                  fontSize: '13px'
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sheets */}
+      <EditSheet open={openPanel === 'editContact'} title="Edit contact info" onClose={() => setOpenPanel('none')}>
+        <ContactEditor draft={contactDraft} onChange={setContactDraft} saving={saving} onSave={handleSaveContact} />
+      </EditSheet>
+
+      <EditSheet open={openPanel === 'changePassword'} title="Change password" onClose={() => setOpenPanel('none')}>
+        <PasswordEditor draft={pwDraft} onChange={setPwDraft} saving={saving} onSave={handleSavePassword} />
+      </EditSheet>
+
+      <EditSheet open={openPanel === 'editNotifications'} title="Edit notifications" onClose={() => setOpenPanel('none')}>
+        <NotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} validation={notifValidation} saving={saving} onSave={handleSaveNotifs} />
+      </EditSheet>
+
+      <EditSheet open={openPanel === 'editAdminNotifications'} title="Edit admin notifications" onClose={() => setOpenPanel('none')}>
+        <AdminNotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} saving={saving} onSave={handleSaveNotifs} />
+      </EditSheet>
+
+      <style jsx>{`
+        .account-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        @media (min-width: 1024px) {
+          .account-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
