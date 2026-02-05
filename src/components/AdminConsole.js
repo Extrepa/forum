@@ -17,20 +17,32 @@ function formatTime(timestamp) {
   return date.toLocaleString();
 }
 
-export default function AdminConsole({ stats = {}, posts = [], actions = [], user }) {
+function formatDateInput(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null, user }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [postList, setPostList] = useState(posts);
   const [filter, setFilter] = useState('');
   const [busyPost, setBusyPost] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
   const [drawerPost, setDrawerPost] = useState(null);
+  const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
   const filteredPosts = useMemo(() => {
     const term = filter.toLowerCase().trim();
     if (!term) return postList;
     return postList.filter((post) => {
+      const sectionLabel = String(post.sectionLabel || '').toLowerCase();
+      const authorName = String(post.authorName || '').toLowerCase();
+      const title = String(post.title || '').toLowerCase();
       return (
-        post.title.toLowerCase().includes(term) ||
-        post.authorName.toLowerCase().includes(term)
+        title.includes(term) ||
+        authorName.includes(term) ||
+        sectionLabel.includes(term)
       );
     });
   }, [filter, postList]);
@@ -66,9 +78,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const handleToggleHidden = async (post) => {
     setBusyPost(post.id);
     try {
+      if (!post.hideHref) {
+        throw new Error('Hide unavailable');
+      }
       const formData = new FormData();
       formData.append('hidden', post.isHidden ? '0' : '1');
-      const response = await fetch(`/api/forum/${post.id}/hide`, {
+      const response = await fetch(post.hideHref, {
         method: 'POST',
         body: formData
       });
@@ -88,9 +103,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const handleToggleLock = async (post) => {
     setBusyPost(post.id);
     try {
+      if (!post.lockHref) {
+        throw new Error('Lock unavailable');
+      }
       const formData = new FormData();
       formData.append('locked', post.isLocked ? '0' : '1');
-      const response = await fetch(`/api/forum/${post.id}/lock`, {
+      const response = await fetch(post.lockHref, {
         method: 'POST',
         body: formData
       });
@@ -138,7 +156,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         </div>
         <div className="admin-header-actions">
           {quickActions.map((action) => (
-            <a key={action.label} className="button ghost" href={action.href}>
+            <a key={action.label} className="action-button admin-quick-action" href={action.href}>
               {action.label}
             </a>
           ))}
@@ -190,7 +208,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                     <li key={post.id}>
                       <strong>{post.title}</strong>
                       <div className="muted" style={{ fontSize: '12px' }}>
-                        {post.authorName} · {formatTime(post.createdAt)}
+                        {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
                       </div>
                     </li>
                   ))}
@@ -231,6 +249,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   <tr>
                     <th>Title</th>
                     <th>Author</th>
+                    <th>Section</th>
                     <th>Created</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -241,9 +260,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                     <tr key={post.id}>
                       <td>
                         <strong>{post.title}</strong>
-                        <div className="muted" style={{ fontSize: '12px' }}>{post.type}</div>
+                        <div className="muted" style={{ fontSize: '12px' }}>
+                          {post.type === 'post' && post.subtype ? post.subtype : post.type}
+                        </div>
                       </td>
                       <td>{post.authorName}</td>
+                      <td>{post.sectionLabel}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatTime(post.createdAt)}</td>
                       <td>
                         <div className="admin-status-pills">
@@ -267,10 +289,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                           <button type="button" onClick={() => handleToggleLock(post)} disabled={busyPost === post.id}>
                             {post.isLocked ? 'Unlock' : 'Lock'}
                           </button>
-                          <button type="button" onClick={() => setDrawerPost(post)}>
+                          <button type="button" onClick={() => setDrawerPost(post)} disabled={!post.editHref}>
                             Edit
                           </button>
-                          <a className="button mini ghost" href={`/lobby/${post.id}`} target="_blank" rel="noreferrer">
+                          <a className="button mini ghost" href={post.viewHref || `/lobby/${post.id}`} target="_blank" rel="noreferrer">
                             View
                           </a>
                         </div>
@@ -283,7 +305,116 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           </section>
         )}
 
-        {activeTab !== 'Overview' && activeTab !== 'Posts' && (
+        {activeTab === 'Users' && (
+          <section className="card admin-posts-panel">
+            <div className="admin-posts-header">
+              <div>
+                <h3 className="section-title">Users</h3>
+                <p className="muted">Newest accounts and recent activity.</p>
+              </div>
+            </div>
+            <div className="admin-posts-table-wrapper">
+              <table className="admin-posts-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Last seen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((member) => (
+                    <tr key={member.id}>
+                      <td>{member.username}</td>
+                      <td>{member.role}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.createdAt)}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.lastSeen)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'Reports' && (
+          <section className="card admin-posts-panel">
+            <div className="admin-posts-header">
+              <div>
+                <h3 className="section-title">Reports</h3>
+                <p className="muted">Open moderation items that still need review.</p>
+              </div>
+            </div>
+            <div className="admin-posts-table-wrapper">
+              <table className="admin-posts-table">
+                <thead>
+                  <tr>
+                    <th>Target</th>
+                    <th>Reporter</th>
+                    <th>Reason</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="muted">No open reports right now.</td>
+                    </tr>
+                  ) : (
+                    reports.map((report) => (
+                      <tr key={report.id}>
+                        <td>{report.targetType} · {report.targetId}</td>
+                        <td>{report.reporter}</td>
+                        <td>{report.reason || '—'}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{formatTime(report.createdAt)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'Media' && (
+          <section className="card stack admin-overview">
+            <div>
+              <h3 className="section-title">Media overview</h3>
+              <p className="muted">Uploads from posts, galleries, and announcements.</p>
+            </div>
+            <div className="admin-stat-grid">
+              {(media?.totals || []).map((entry) => (
+                <AdminStatCard key={entry.label} label={`${entry.label} images`} value={entry.count} />
+              ))}
+              <AdminStatCard label="Gallery images" value={media?.galleryCount || 0} />
+            </div>
+            <div className="admin-panel">
+              <h3 className="section-title">Image uploads</h3>
+              <p className="muted">Jump to moderation controls for upload settings and moving content.</p>
+              <a className="action-button" href="/admin/moderation">Open moderation tools</a>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'Settings' && (
+          <section className="card stack">
+            <h3 className="section-title">Settings</h3>
+            <p className="muted">Global toggles for admin workflows.</p>
+            <p className="muted">
+              Image uploads are currently {imageUploadsEnabled ? 'enabled' : 'disabled'}.
+            </p>
+            <form action="/api/admin/settings/image-upload" method="post" className="stack" style={{ gap: '12px' }}>
+              <input type="hidden" name="enabled" value={imageUploadsEnabled ? '0' : '1'} />
+              <button type="submit">
+                {imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads'}
+              </button>
+            </form>
+            <a className="action-button" href="/admin/moderation">More moderation tools</a>
+          </section>
+        )}
+
+        {activeTab !== 'Overview' && activeTab !== 'Posts' && activeTab !== 'Users' && activeTab !== 'Reports' && activeTab !== 'Media' && activeTab !== 'Settings' && (
           <section className="card">
             <h3 className="section-title">{activeTab} tab</h3>
             <p className="muted">This section is coming soon.</p>
@@ -300,25 +431,63 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 ×
               </button>
             </div>
-            <form action={`/api/forum/${drawerPost.id}/edit`} method="post">
-              <label>
-                <div className="muted">Title</div>
-                <input name="title" defaultValue={drawerPost.title} required />
-              </label>
-              <label>
-                <div className="muted">Body</div>
-                <textarea name="body" defaultValue={drawerPost.body || ''} rows={6} required />
-              </label>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setDrawerPost(null)} className="button ghost">
-                  Cancel
-                </button>
-                <a className="button mini ghost" href={`/lobby/${drawerPost.id}`} target="_blank" rel="noreferrer">
-                  View post
-                </a>
-              </div>
-            </form>
+            {drawerPost.editHref ? (
+              <form action={drawerPost.editHref} method="post">
+                <label>
+                  <div className="muted">Title</div>
+                  <input name="title" defaultValue={drawerPost.title} required />
+                </label>
+                <label>
+                  <div className="muted">Body</div>
+                  <textarea name="body" defaultValue={drawerPost.body || ''} rows={6} required />
+                </label>
+                {drawerPost.type === 'event' ? (
+                  <label>
+                    <div className="muted">Starts at (local time)</div>
+                    <input name="starts_at" type="datetime-local" defaultValue={formatDateInput(drawerPost.startsAt)} required />
+                  </label>
+                ) : null}
+                {drawerPost.type === 'project' ? (
+                  <>
+                    <label>
+                      <div className="muted">Status</div>
+                      <select name="status" defaultValue={drawerPost.status || 'active'} required>
+                        <option value="active">Active</option>
+                        <option value="on-hold">On Hold</option>
+                        <option value="completed">Completed</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0 12px 0' }}>
+                      <input
+                        type="checkbox"
+                        name="updates_enabled"
+                        defaultChecked={!!drawerPost.updatesEnabled}
+                        style={{ width: 'auto', margin: 0 }}
+                      />
+                      <span className="muted" style={{ fontSize: '14px' }}>Enable project updates log</span>
+                    </label>
+                  </>
+                ) : null}
+                {drawerPost.type === 'post' ? (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0 12px 0' }}>
+                    <input type="checkbox" name="is_private" value="1" defaultChecked={!!drawerPost.isPrivate} style={{ width: 'auto', margin: 0 }} />
+                    <span className="muted" style={{ fontSize: '14px' }}>Private post</span>
+                  </label>
+                ) : null}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                  <button type="submit">Save</button>
+                  <button type="button" onClick={() => setDrawerPost(null)} className="button ghost">
+                    Cancel
+                  </button>
+                  <a className="button mini ghost" href={drawerPost.viewHref || `/lobby/${drawerPost.id}`} target="_blank" rel="noreferrer">
+                    View post
+                  </a>
+                </div>
+              </form>
+            ) : (
+              <div className="muted">Editing for this content type is not available yet.</div>
+            )}
           </div>
         </div>
       ) : null}
