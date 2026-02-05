@@ -4,6 +4,7 @@ import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
+import { isImageUploadsEnabled } from '../../../../lib/settings';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -46,6 +47,7 @@ export async function POST(request, { params }) {
     .prepare('SELECT author_user_id FROM dev_logs WHERE id = ?')
     .bind(params.id)
     .first();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
 
   if (!existing) {
     redirectUrl.searchParams.set('error', 'notfound');
@@ -71,6 +73,10 @@ export async function POST(request, { params }) {
 
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  if (imageFile && imageFile.size > 0 && !imageUploadsEnabled) {
+    redirectUrl.searchParams.set('error', 'image_uploads_disabled');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
 
   if (!validation.ok) {
@@ -121,4 +127,3 @@ export async function POST(request, { params }) {
 
   return NextResponse.redirect(redirectUrl, 303);
 }
-

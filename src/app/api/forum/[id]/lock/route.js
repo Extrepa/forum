@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
+import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -26,7 +28,8 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  const canToggle = thread.author_user_id === user.id || user.role === 'admin';
+  const isAdmin = isAdminUser(user);
+  const canToggle = thread.author_user_id === user.id || isAdmin;
   if (!canToggle) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
@@ -37,6 +40,15 @@ export async function POST(request, { params }) {
     .bind(locked, Date.now(), params.id)
     .run();
 
+  if (isAdmin) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'toggle_lock',
+      targetType: 'forum_thread',
+      targetId: id,
+      metadata: { locked }
+    });
+  }
+
   return NextResponse.redirect(redirectUrl, 303);
 }
-

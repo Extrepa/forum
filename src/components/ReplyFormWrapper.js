@@ -10,7 +10,8 @@ export default function ReplyFormWrapper({
   hiddenFields = {},
   replyingTo = null,
   replyPrefill = '',
-  allowImageUpload = false
+  allowImageUpload = false,
+  allowImageUploads = allowImageUpload
 }) {
   return (
     <CollapsibleReplyForm
@@ -22,6 +23,7 @@ export default function ReplyFormWrapper({
       replyingTo={replyingTo}
       replyPrefill={replyPrefill}
       allowImageUpload={allowImageUpload}
+      allowImageUploads={allowImageUploads}
     />
   );
 }

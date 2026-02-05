@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { safeEmbedFromUrl } from '../lib/embeds';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -16,7 +17,7 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-export default function MusicPostForm() {
+export default function MusicPostForm({ allowImageUploads = true, allowMarkdownUpload = true }) {
   const bodyRef = useRef(null);
   const [type, setType] = useState('youtube');
   const [url, setUrl] = useState('');
@@ -121,15 +122,28 @@ export default function MusicPostForm() {
         />
       </label>
 
-      <label>
-        <div className="muted">Image (optional)</div>
-        <input
-          name="image"
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+      {allowImageUploads ? (
+        <label>
+          <div className="muted">Image (optional)</div>
+          <input
+            name="image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            disabled={!allowImageUploads}
+          />
+        </label>
+      ) : (
+        <div className="muted image-note" style={{ marginBottom: 8 }}>
+          Image uploads are temporarily disabled by the admin.
+        </div>
+      )}
+      {allowMarkdownUpload ? (
+        <MarkdownUploader
+          targetRef={bodyRef}
+          helper="Upload a Markdown file to describe your notes."
         />
-      </label>
+      ) : null}
 
       {embed || imagePreviewUrl ? (
         <section className="card" style={{ padding: 14, boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>

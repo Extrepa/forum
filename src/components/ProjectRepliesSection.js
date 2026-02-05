@@ -18,7 +18,8 @@ export default function ProjectRepliesSection({
   commentNotice,
   usernameColorMap = new Map(),
   isLocked = false,
-  repliesEnabled = true
+  repliesEnabled = true,
+  allowImageUploads = false
 }) {
   // Log error notice for debugging
   useEffect(() => {
@@ -182,7 +183,7 @@ export default function ProjectRepliesSection({
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}
               replyPrefill={replyPrefill}
-              allowImageUpload={true}
+              allowImageUploads={allowImageUploads}
             />
           </div>
         ) : (

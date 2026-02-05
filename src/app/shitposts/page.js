@@ -20,6 +20,7 @@ export default async function ShitpostsPage({ searchParams }) {
   const db = await getDb();
   let results = [];
   const hiddenFilter = showHidden ? '' : 'AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)';
+  const baseFilters = `${hiddenFilter} AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)`;
   try {
     const out = await db
       .prepare(
@@ -33,10 +34,9 @@ export default async function ShitpostsPage({ searchParams }) {
                 COALESCE((SELECT MAX(created_at) FROM forum_replies WHERE thread_id = forum_threads.id AND is_deleted = 0), forum_threads.created_at) AS last_activity_at
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
-         WHERE forum_threads.image_key IS NOT NULL
+         WHERE forum_threads.is_shitpost = 1
            AND forum_threads.moved_to_id IS NULL
-           ${hiddenFilter}
-           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+           ${baseFilters}
          ORDER BY forum_threads.created_at DESC
          LIMIT 50`
       )
@@ -56,6 +56,8 @@ export default async function ShitpostsPage({ searchParams }) {
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.image_key IS NOT NULL
+           AND forum_threads.moved_to_id IS NULL
+           ${hiddenFilter}
          ORDER BY forum_threads.created_at DESC
          LIMIT 50`
       )

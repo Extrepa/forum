@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -37,6 +38,8 @@ export default function PostForm({
   titleRequired = true,
   bodyRequired = true,
   showImage = false,
+  allowImageUploads = true,
+  allowMarkdownUpload = true,
   initialData
 }) {
   const bodyRef = useRef(null);
@@ -48,6 +51,8 @@ export default function PostForm({
     }
     wrapSelection(bodyRef.current, before, after);
   };
+
+  const shouldShowImageInput = showImage && allowImageUploads;
 
   return (
     <form action={action} method="post" encType="multipart/form-data">
@@ -67,10 +72,17 @@ export default function PostForm({
         </label>
       ) : null}
       {showImage ? (
-        <label>
-          <div className="muted">Image (optional)</div>
-          <input name="image" type="file" accept="image/*" />
-        </label>
+        shouldShowImageInput ? (
+          <label>
+            <div className="muted">Image (optional)</div>
+            <input name="image" type="file" accept="image/*" />
+          </label>
+        ) : (
+          <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+        )
+      ) : null}
+      {allowMarkdownUpload ? (
+        <MarkdownUploader targetRef={bodyRef} helper="Upload a Markdown file to auto-fill the body." />
       ) : null}
       <label className="text-field">
         <div className="muted">{bodyLabel}</div>

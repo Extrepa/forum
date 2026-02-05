@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { parseLocalDateTimeToUTC } from '../../../lib/dates';
 import { createMentionNotifications } from '../../../lib/mentions';
+import { isImageUploadsEnabled } from '../../../lib/settings';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -14,6 +15,8 @@ export async function POST(request) {
     redirectUrl.searchParams.set('error', 'claim');
     return NextResponse.redirect(redirectUrl, 303);
   }
+
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
 
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
@@ -29,6 +32,10 @@ export async function POST(request) {
   // Handle image upload for events
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  if (imageFile && imageFile.size > 0 && !imageUploadsEnabled) {
+    redirectUrl.searchParams.set('error', 'image_uploads_disabled');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
 
   if (!validation.ok) {

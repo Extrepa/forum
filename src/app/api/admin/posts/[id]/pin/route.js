@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
+import { logAdminAction } from '../../../../../../lib/audit';
 
 const VALID_TYPES = ['forum_thread', 'timeline_update', 'post', 'event', 'music_post', 'project', 'dev_log'];
 const TABLE_MAP = {
@@ -57,6 +58,16 @@ export async function POST(request, { params }) {
       .prepare(`UPDATE ${table} SET is_pinned = ? WHERE id = ?`)
       .bind(nextPinned, id)
       .run();
+
+    if (isAdminUser(user)) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: 'toggle_pin',
+        targetType: type,
+        targetId: id,
+        metadata: { pinned: nextPinned === 1 }
+      });
+    }
 
     return NextResponse.json({ id, type, is_pinned: nextPinned === 1 });
   } catch (e) {

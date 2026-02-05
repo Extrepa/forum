@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -25,14 +26,10 @@ function insertAtCursor(textarea, text) {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-export default function DevLogForm({ logId, initialData }) {
+export default function DevLogForm({ logId, initialData, allowImageUploads = true }) {
   const bodyRef = useRef(null);
-  const markdownFileInputRef = useRef(null);
   const [quickUpdate, setQuickUpdate] = useState(false);
   const [colorsOpen, setColorsOpen] = useState(false);
-  const [markdownFileName, setMarkdownFileName] = useState(null);
-  const [isLoadingMarkdown, setIsLoadingMarkdown] = useState(false);
-  const [markdownError, setMarkdownError] = useState(null);
 
   const apply = (before, after) => {
     if (!bodyRef.current) {
@@ -109,133 +106,18 @@ export default function DevLogForm({ logId, initialData }) {
           </label>
         </div>
       </details>
-      <label>
-        <div className="muted">Image (optional)</div>
-        <input name="image" type="file" accept="image/*" />
-      </label>
-      <label>
-        <div className="muted">Upload Markdown file (optional)</div>
-        <input 
-          ref={markdownFileInputRef}
-          type="file" 
-          accept=".md,.markdown" 
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (!file) {
-              setMarkdownFileName(null);
-              setMarkdownError(null);
-              return;
-            }
-
-            // Validate file type
-            const validExtensions = ['.md', '.markdown'];
-            const fileName = file.name.toLowerCase();
-            const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
-            if (!validExtensions.includes(fileExtension)) {
-              setMarkdownError(`Invalid file type. Please select a .md or .markdown file.`);
-              setMarkdownFileName(null);
-              if (markdownFileInputRef.current) {
-                markdownFileInputRef.current.value = '';
-              }
-              return;
-            }
-
-            // Validate file size (5MB limit)
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-              const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-              setMarkdownError(`File is too large (${sizeMB}MB). Maximum size is 5MB.`);
-              setMarkdownFileName(null);
-              if (markdownFileInputRef.current) {
-                markdownFileInputRef.current.value = '';
-              }
-              return;
-            }
-
-            // Clear previous errors and set loading state
-            setMarkdownError(null);
-            setMarkdownFileName(file.name);
-            setIsLoadingMarkdown(true);
-
-            // Read file
-            if (!bodyRef.current) {
-              setMarkdownError('Unable to read file. Please try again.');
-              setIsLoadingMarkdown(false);
-              setMarkdownFileName(null);
-              return;
-            }
-
-            try {
-              const reader = new FileReader();
-              
-              reader.onload = (event) => {
-                try {
-                  bodyRef.current.value = event.target.result;
-                  setIsLoadingMarkdown(false);
-                } catch (err) {
-                  setMarkdownError('Error loading file content. Please try again.');
-                  setIsLoadingMarkdown(false);
-                  setMarkdownFileName(null);
-                }
-              };
-
-              reader.onerror = () => {
-                setMarkdownError('Error reading file. Please try again.');
-                setIsLoadingMarkdown(false);
-                setMarkdownFileName(null);
-                if (markdownFileInputRef.current) {
-                  markdownFileInputRef.current.value = '';
-                }
-              };
-
-              reader.readAsText(file);
-            } catch (err) {
-              setMarkdownError('Unexpected error. Please try again.');
-              setIsLoadingMarkdown(false);
-              setMarkdownFileName(null);
-              if (markdownFileInputRef.current) {
-                markdownFileInputRef.current.value = '';
-              }
-            }
-          }}
-        />
-        {markdownFileName && !markdownError && (
-          <div style={{ marginTop: 8, fontSize: '14px', color: 'var(--muted)' }}>
-            <span style={{ marginRight: 8 }}>✓ {markdownFileName}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setMarkdownFileName(null);
-                setMarkdownError(null);
-                if (markdownFileInputRef.current) {
-                  markdownFileInputRef.current.value = '';
-                }
-              }}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Clear
-            </button>
-          </div>
-        )}
-        {isLoadingMarkdown && (
-          <div style={{ marginTop: 8, fontSize: '14px', color: 'var(--muted)' }}>
-            Loading file...
-          </div>
-        )}
-        {markdownError && (
-          <div style={{ marginTop: 8, fontSize: '14px', color: '#ff6b6b' }}>
-            {markdownError}
-          </div>
-        )}
-      </label>
+      {allowImageUploads ? (
+        <label>
+          <div className="muted">Image (optional)</div>
+          <input name="image" type="file" accept="image/*" />
+        </label>
+      ) : (
+        <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+      )}
+      <MarkdownUploader
+        targetRef={bodyRef}
+        helper="Upload a markdown file to populate the body faster."
+      />
       <label className="text-field">
         <div className="muted">Body</div>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
@@ -295,4 +177,3 @@ export default function DevLogForm({ logId, initialData }) {
     </form>
   );
 }
-

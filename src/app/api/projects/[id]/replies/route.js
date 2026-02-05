@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../../lib/uploads';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { isImageUploadsEnabled } from '../../../../../lib/settings';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -26,10 +27,14 @@ export async function POST(request, { params }) {
   // Check if image is actually a File object with content
   const imageFile = formImage && 
                     typeof formImage === 'object' && 
-                    'arrayBuffer' in formImage && 
+                    'arrayBuffer' in formImage &&
                     'size' in formImage &&
                     formImage.size > 0 
                     ? formImage : null;
+  if (imageFile && imageFile.size > 0 && !imageUploadsEnabled) {
+    redirectUrl.searchParams.set('error', 'image_uploads_disabled');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
   
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
 
@@ -83,6 +88,7 @@ export async function POST(request, { params }) {
   }
 
   const db = await getDb();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
   
   // Check if project is locked (rollout-safe)
   try {

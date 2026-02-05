@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
+import { isImageUploadsEnabled } from '../../../lib/settings';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -19,6 +20,9 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
+  const db = await getDb();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
+
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
@@ -30,6 +34,10 @@ export async function POST(request) {
 
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  if (imageFile && imageFile.size > 0 && !imageUploadsEnabled) {
+    redirectUrl.searchParams.set('error', 'image_uploads_disabled');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
   if (!validation.ok) {
     redirectUrl.searchParams.set('error', validation.reason);
@@ -50,7 +58,6 @@ export async function POST(request) {
     });
   }
 
-  const db = await getDb();
   await db
     .prepare(
       'INSERT INTO timeline_updates (id, author_user_id, title, body, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?)'

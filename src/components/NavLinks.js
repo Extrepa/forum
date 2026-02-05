@@ -10,16 +10,20 @@ export default function NavLinks({ isAdmin, isSignedIn, variant = 'all', easterE
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
-  const primaryLinks = [
-    { href: '/feed', label: 'Feed' },
-    { href: '/announcements', label: strings.tabs.announcements },
-    { href: '/events', label: strings.tabs.events },
-    { href: '/devlog', label: 'Development' },
-    { href: '/lobby', label: 'General' },
-    { href: '/music', label: strings.tabs.music },
-    { href: '/projects', label: strings.tabs.projects },
-    { href: '/shitposts', label: strings.tabs.shitposts },
-  ];
+const primaryLinks = [
+  { href: '/feed', label: 'Feed' },
+  { href: '/announcements', label: strings.tabs.announcements },
+  { href: '/events', label: strings.tabs.events },
+  { href: '/devlog', label: 'Development' },
+  { href: '/lobby', label: 'General' },
+  { href: '/music', label: strings.tabs.music },
+  { href: '/projects', label: strings.tabs.projects },
+  { href: '/shitposts', label: strings.tabs.shitposts },
+];
+
+  if (isAdmin) {
+    primaryLinks.push({ href: '/admin', label: 'Admin' });
+  }
 
   const moreLinks = [
     { href: '/art-nostalgia', label: 'Art & Nostalgia' },

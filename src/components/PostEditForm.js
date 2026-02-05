@@ -21,6 +21,7 @@ export default function PostEditForm({
   bodyLabel = 'Body',
   buttonLabel = 'Update Post',
   showImage = false,
+  allowImageUploads = true,
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
@@ -29,6 +30,8 @@ export default function PostEditForm({
     if (!bodyRef.current) return;
     wrapSelection(bodyRef.current, before, after);
   };
+
+  const shouldShowImageInput = showImage && allowImageUploads;
 
   return (
     <form action={action} method="post" encType="multipart/form-data">
@@ -43,10 +46,14 @@ export default function PostEditForm({
       </label>
 
       {showImage ? (
-        <label>
-          <div className="muted">Image (optional)</div>
-          <input name="image" type="file" accept="image/*" />
-        </label>
+        shouldShowImageInput ? (
+          <label>
+            <div className="muted">Image (optional)</div>
+            <input name="image" type="file" accept="image/*" />
+          </label>
+        ) : (
+          <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+        )
       ) : null}
 
       <label className="text-field">

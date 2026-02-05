@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -14,7 +15,7 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-export default function ProjectForm({ projectId, initialData }) {
+export default function ProjectForm({ projectId, initialData, allowImageUploads = true, allowMarkdownUpload = true }) {
   const descriptionRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
 
@@ -71,10 +72,20 @@ export default function ProjectForm({ projectId, initialData }) {
           </label>
         </div>
       </details>
-      <label>
-        <div className="muted">Image (optional)</div>
-        <input name="image" type="file" accept="image/*" />
-      </label>
+      {allowImageUploads ? (
+        <label>
+          <div className="muted">Image (optional)</div>
+          <input name="image" type="file" accept="image/*" />
+        </label>
+      ) : (
+        <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+      )}
+      {allowMarkdownUpload ? (
+        <MarkdownUploader
+          targetRef={descriptionRef}
+          helper="Load a Markdown file to populate the description."
+        />
+      ) : null}
       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: '4px 0 12px 0' }}>
         <input 
           type="checkbox" 

@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { createMentionNotifications } from '../../../lib/mentions';
+import { isImageUploadsEnabled } from '../../../lib/settings';
 
 export async function GET() {
   const db = await getDb();
@@ -32,6 +33,9 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }  
 
+  const db = await getDb();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
+
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
   const description = String(formData.get('description') || '').trim();
@@ -47,6 +51,10 @@ export async function POST(request) {
 
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
+  if (imageFile && imageFile.size > 0 && !imageUploadsEnabled) {
+    redirectUrl.searchParams.set('error', 'image_uploads_disabled');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
   const validation = imageFile ? isAllowedImage(imageFile) : { ok: true };
 
   if (!validation.ok) {
@@ -68,7 +76,6 @@ export async function POST(request) {
     });
   }
 
-  const db = await getDb();
   const projectId = crypto.randomUUID();
   await db
     .prepare(

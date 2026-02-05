@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -14,7 +15,7 @@ function wrapSelection(textarea, before, after = '') {
   textarea.setSelectionRange(cursor, cursor);
 }
 
-export default function ProjectUpdateForm({ projectId }) {
+export default function ProjectUpdateForm({ projectId, allowImageUploads = true, allowMarkdownUpload = true }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
 
@@ -31,10 +32,20 @@ export default function ProjectUpdateForm({ projectId }) {
         <div className="muted">Update title</div>
         <input name="title" placeholder="What's new?" required />
       </label>
-      <label>
-        <div className="muted">Image (optional)</div>
-        <input name="image" type="file" accept="image/*" />
-      </label>
+      {allowImageUploads ? (
+        <label>
+          <div className="muted">Image (optional)</div>
+          <input name="image" type="file" accept="image/*" />
+        </label>
+      ) : (
+        <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+      )}
+      {allowMarkdownUpload ? (
+        <MarkdownUploader
+          targetRef={bodyRef}
+          helper="Import Markdown to describe the update."
+        />
+      ) : null}
       <label className="text-field">
         <div className="muted">Update details</div>
         <div className="formatting-toolbar">

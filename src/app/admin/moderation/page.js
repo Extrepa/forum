@@ -1,5 +1,7 @@
 import Breadcrumbs from '../../../components/Breadcrumbs';
 import { getSessionUser } from '../../../lib/auth';
+import { getDb } from '../../../lib/db';
+import { isImageUploadsEnabled } from '../../../lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,9 @@ export default async function ModerationPage({ searchParams }) {
       </section>
     );
   }
+
+  const db = await getDb();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
 
   const notice = searchParams?.notice ? String(searchParams.notice) : null;
 
@@ -34,6 +39,20 @@ export default async function ModerationPage({ searchParams }) {
           Note: Moving requires the D1 migration `migrations/0012_move_system.sql` to be applied.
         </p>
         {notice ? <div className="notice">{notice}</div> : null}
+      </section>
+
+      <section className="card">
+        <h3 className="section-title">Image uploads</h3>
+        <p className="muted">Toggle whether post forms across the forum can accept attached images.</p>
+        <p className="muted" style={{ marginBottom: '12px' }}>
+          Currently: {imageUploadsEnabled ? 'Enabled' : 'Disabled'}
+        </p>
+        <form action="/api/admin/settings/image-upload" method="post" className="stack" style={{ gap: '12px' }}>
+          <input type="hidden" name="enabled" value={imageUploadsEnabled ? '0' : '1'} />
+          <button type="submit">
+            {imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads'}
+          </button>
+        </form>
       </section>
 
       <section className="card">
@@ -112,4 +131,3 @@ export default async function ModerationPage({ searchParams }) {
     </div>
   );
 }
-

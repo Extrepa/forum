@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -25,6 +26,8 @@ export default function GenericPostForm({
   buttonLabel = 'Post',
   requireImage = false,
   showImage = false,
+  allowImageUploads = true,
+  allowMarkdownUpload = true,
   showPrivateToggle = true,
   defaultPrivate = false,
   titleRequired = false,
@@ -104,6 +107,9 @@ export default function GenericPostForm({
     ? (currentConfig.buttonLabel || buttonLabel)
     : buttonLabel;
 
+  const showImageField = showImage && allowImageUploads;
+  const showImageDisabled = showImage && !allowImageUploads;
+
   return (
     <form action={action} method="post" encType="multipart/form-data">
       {allowedTypes && allowedTypes.length > 1 ? (
@@ -137,10 +143,20 @@ export default function GenericPostForm({
       ) : null}
 
       {showImage ? (
-        <label>
-          <div className="muted">Image {selectedType === 'art' ? '(required)' : requireImage ? '(required)' : '(optional)'}</div>
-          <input name="image" type="file" accept="image/*" required={selectedType === 'art' || requireImage} />
-        </label>
+        showImageField ? (
+          <label>
+            <div className="muted">Image {selectedType === 'art' ? '(required)' : requireImage ? '(required)' : '(optional)'}</div>
+            <input name="image" type="file" accept="image/*" required={selectedType === 'art' || requireImage} />
+          </label>
+        ) : (
+          <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
+        )
+      ) : null}
+      {allowMarkdownUpload ? (
+        <MarkdownUploader
+          targetRef={bodyRef}
+          helper="Upload a Markdown file to preload the body."
+        />
       ) : null}
 
       <label className="text-field">
@@ -187,4 +203,3 @@ export default function GenericPostForm({
     </form>
   );
 }
-
