@@ -40,9 +40,21 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [drawerUser, setDrawerUser] = useState(null);
   const [showDeletedPosts, setShowDeletedPosts] = useState(false);
   const [showDeletedUsers, setShowDeletedUsers] = useState(false);
-  const [openPostMenuId, setOpenPostMenuId] = useState(null);
-  const [openUserMenuId, setOpenUserMenuId] = useState(null);
+  const [openPostMenu, setOpenPostMenu] = useState(null);
+  const [openUserMenu, setOpenUserMenu] = useState(null);
   const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
+
+  const postKey = (post) => `${post.type || 'post'}:${post.id}`;
+  const userKey = (member) => `${member.id}`;
+  const shouldOpenMenuUp = (triggerElement) => {
+    if (typeof window === 'undefined' || !triggerElement) return false;
+    const rect = triggerElement.getBoundingClientRect();
+    const menuHeightEstimate = 260;
+    const viewportPadding = 16;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    return spaceBelow < (menuHeightEstimate + viewportPadding);
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -86,27 +98,35 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     });
   }, [showDeletedUsers, userFilter, userList]);
 
-  const updatePost = (id, data) => {
-    setPostList((prev) => prev.map((post) => (post.id === id ? { ...post, ...data } : post)));
+  const updatePost = (targetPost, data) => {
+    const targetKey = postKey(targetPost);
+    setPostList((prev) => prev.map((post) => (postKey(post) === targetKey ? { ...post, ...data } : post)));
   };
 
-  const togglePostMenu = (id) => {
-    setOpenUserMenuId(null);
-    setOpenPostMenuId((current) => (current === id ? null : id));
+  const togglePostMenu = (id, triggerElement) => {
+    setOpenUserMenu(null);
+    setOpenPostMenu((current) => {
+      if (current?.id === id) return null;
+      return { id, openUp: shouldOpenMenuUp(triggerElement) };
+    });
   };
 
-  const toggleUserMenu = (id) => {
-    setOpenPostMenuId(null);
-    setOpenUserMenuId((current) => (current === id ? null : id));
+  const toggleUserMenu = (id, triggerElement) => {
+    setOpenPostMenu(null);
+    setOpenUserMenu((current) => {
+      if (current?.id === id) return null;
+      return { id, openUp: shouldOpenMenuUp(triggerElement) };
+    });
   };
 
   const closeMenus = () => {
-    setOpenPostMenuId(null);
-    setOpenUserMenuId(null);
+    setOpenPostMenu(null);
+    setOpenUserMenu(null);
   };
 
   const handleTogglePin = async (post) => {
-    setBusyPost(post.id);
+    const key = postKey(post);
+    setBusyPost(key);
     try {
       const response = await fetch(`/api/admin/posts/${post.id}/pin`, {
         method: 'POST',
@@ -119,7 +139,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         throw new Error('Unable to toggle pin');
       }
       const payload = await response.json();
-      updatePost(post.id, { isPinned: payload.is_pinned });
+      updatePost(post, { isPinned: payload.is_pinned });
       setStatusMessage(payload.is_pinned ? 'Pinned.' : 'Unpinned.');
     } catch (error) {
       console.error(error);
@@ -130,7 +150,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   };
 
   const handleToggleHidden = async (post) => {
-    setBusyPost(post.id);
+    const key = postKey(post);
+    setBusyPost(key);
     try {
       if (!post.hideHref) {
         throw new Error('Hide unavailable');
@@ -144,7 +165,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       if (!response.ok) {
         throw new Error('Unable to toggle hidden');
       }
-      updatePost(post.id, { isHidden: !post.isHidden });
+      updatePost(post, { isHidden: !post.isHidden });
       setStatusMessage(!post.isHidden ? 'Hidden.' : 'Visible again.');
     } catch (error) {
       console.error(error);
@@ -155,7 +176,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   };
 
   const handleToggleLock = async (post) => {
-    setBusyPost(post.id);
+    const key = postKey(post);
+    setBusyPost(key);
     try {
       if (!post.lockHref) {
         throw new Error('Lock unavailable');
@@ -169,7 +191,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       if (!response.ok) {
         throw new Error('Unable to toggle lock');
       }
-      updatePost(post.id, { isLocked: !post.isLocked });
+      updatePost(post, { isLocked: !post.isLocked });
       setStatusMessage(!post.isLocked ? 'Locked comments.' : 'Unlocked.');
     } catch (error) {
       console.error(error);
@@ -230,13 +252,14 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     if (!confirm(`Delete “${post.title}”? This will hide it from public views.`)) {
       return;
     }
-    setBusyPost(post.id);
+    const key = postKey(post);
+    setBusyPost(key);
     try {
       const response = await fetch(post.deleteHref, { method: 'POST' });
       if (!response.ok) {
         throw new Error('Delete failed');
       }
-      updatePost(post.id, { isDeleted: true });
+      updatePost(post, { isDeleted: true });
       setStatusMessage('Post deleted.');
     } catch (error) {
       console.error(error);
@@ -247,7 +270,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   };
 
   const handleRestorePost = async (post) => {
-    setBusyPost(post.id);
+    const key = postKey(post);
+    setBusyPost(key);
     try {
       const response = await fetch(`/api/admin/posts/${post.id}/restore`, {
         method: 'POST',
@@ -257,7 +281,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       if (!response.ok) {
         throw new Error('Restore failed');
       }
-      updatePost(post.id, { isDeleted: false });
+      updatePost(post, { isDeleted: false });
       setStatusMessage('Post restored.');
     } catch (error) {
       console.error(error);
@@ -348,7 +372,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <h3 className="section-title">Latest threads</h3>
                 <ul className="admin-action-list">
                   {postList.slice(0, 6).map((post) => (
-                    <li key={post.id}>
+                    <li key={postKey(post)}>
                       <strong>{post.title}</strong>
                       <div className="muted" style={{ fontSize: '12px' }}>
                         {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
@@ -412,8 +436,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPosts.map((post) => (
-                    <tr key={post.id} className={post.isDeleted ? 'admin-row--deleted' : ''}>
+                  {filteredPosts.map((post) => {
+                    const key = postKey(post);
+                    const menuOpen = openPostMenu?.id === key;
+                    return (
+                    <tr key={key} className={post.isDeleted ? 'admin-row--deleted' : ''}>
                       <td>
                         <strong>{post.title}</strong>
                         <div className="muted" style={{ fontSize: '12px' }}>
@@ -432,13 +459,16 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                         </div>
                       </td>
                       <td>
-                        <details className="admin-actions-menu" open={openPostMenuId === post.id}>
+                        <details
+                          className={['admin-actions-menu', menuOpen && openPostMenu?.openUp ? 'admin-actions-menu--up' : ''].filter(Boolean).join(' ')}
+                          open={menuOpen}
+                        >
                           <summary
                             className="button ghost mini"
                             title="Post actions"
                             onClick={(event) => {
                               event.preventDefault();
-                              togglePostMenu(post.id);
+                              togglePostMenu(key, event.currentTarget);
                             }}
                           >
                             Actions ▾
@@ -450,7 +480,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 closeMenus();
                                 handleTogglePin(post);
                               }}
-                              disabled={busyPost === post.id || post.isDeleted}
+                              disabled={busyPost === key || post.isDeleted}
                               title="Pin or unpin this post"
                             >
                               {post.isPinned ? 'Unpin' : 'Pin'}
@@ -461,7 +491,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 closeMenus();
                                 handleToggleHidden(post);
                               }}
-                              disabled={busyPost === post.id || post.isDeleted}
+                              disabled={busyPost === key || post.isDeleted}
                               title="Hide or show this post"
                             >
                               {post.isHidden ? 'Show' : 'Hide'}
@@ -472,7 +502,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 closeMenus();
                                 handleToggleLock(post);
                               }}
-                              disabled={busyPost === post.id || post.isDeleted}
+                              disabled={busyPost === key || post.isDeleted}
                               title="Lock or unlock comments"
                             >
                               {post.isLocked ? 'Unlock' : 'Lock'}
@@ -495,7 +525,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                   closeMenus();
                                   handleDeletePost(post);
                                 }}
-                                disabled={busyPost === post.id || post.isDeleted}
+                                disabled={busyPost === key || post.isDeleted}
                                 title="Soft delete this post"
                               >
                                 Delete
@@ -508,7 +538,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                   closeMenus();
                                   handleRestorePost(post);
                                 }}
-                                disabled={busyPost === post.id}
+                                disabled={busyPost === key}
                                 title="Restore this post"
                               >
                                 Restore
@@ -528,7 +558,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                         </details>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -579,7 +610,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </thead>
                 <tbody>
                   {filteredUsers.map((member) => (
-                    <tr key={member.id} className={member.isDeleted ? 'admin-row--deleted' : ''}>
+                    <tr key={userKey(member)} className={member.isDeleted ? 'admin-row--deleted' : ''}>
                       <td>
                         <strong>{member.username}</strong>
                         {member.isDeleted ? <div className="muted" style={{ fontSize: '12px' }}>Deleted</div> : null}
@@ -590,13 +621,16 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                       <td>{member.postsCount ?? 0}</td>
                       <td>{member.commentsCount ?? 0}</td>
                       <td>
-                        <details className="admin-actions-menu" open={openUserMenuId === member.id}>
+                        <details
+                          className={['admin-actions-menu', openUserMenu?.id === userKey(member) && openUserMenu?.openUp ? 'admin-actions-menu--up' : ''].filter(Boolean).join(' ')}
+                          open={openUserMenu?.id === userKey(member)}
+                        >
                           <summary
                             className="button ghost mini"
                             title="User actions"
                             onClick={(event) => {
                               event.preventDefault();
-                              toggleUserMenu(member.id);
+                              toggleUserMenu(userKey(member), event.currentTarget);
                             }}
                           >
                             Actions ▾
@@ -721,7 +755,41 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             </div>
             <div className="admin-panel">
               <h3 className="section-title">Image uploads</h3>
-              <p className="muted">Jump to moderation controls for upload settings and moving content.</p>
+              <p className="muted">Browse recent uploads, then jump to source content to edit or moderate.</p>
+              {Array.isArray(media?.recent) && media.recent.length > 0 ? (
+                <div className="admin-media-grid">
+                  {media.recent.map((item) => (
+                    <article key={item.key} className="admin-media-card">
+                      <a href={`/api/media/${item.imageKey}`} target="_blank" rel="noreferrer" title="Open image in new tab">
+                        <img src={`/api/media/${item.imageKey}`} alt={item.title || item.label || 'Uploaded media'} loading="lazy" />
+                      </a>
+                      <div className="admin-media-card-body">
+                        <strong>{item.title || item.label || 'Untitled media'}</strong>
+                        <div className="muted" style={{ fontSize: '12px' }}>
+                          {item.label || item.type} · {item.authorName || 'unknown'} · {formatTime(item.createdAt)}
+                        </div>
+                        <div className="admin-media-card-actions">
+                          <a className="button mini ghost" href={`/api/media/${item.imageKey}`} target="_blank" rel="noreferrer">
+                            View image
+                          </a>
+                          {item.viewHref ? (
+                            <a className="button mini ghost" href={item.viewHref} target="_blank" rel="noreferrer">
+                              Open source
+                            </a>
+                          ) : null}
+                          {item.editHref ? (
+                            <a className="button mini ghost" href={item.editHref} target="_blank" rel="noreferrer">
+                              Edit source
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No recent uploads found yet.</p>
+              )}
               <a className="action-button" href="/admin/moderation">Open moderation tools</a>
             </div>
           </section>

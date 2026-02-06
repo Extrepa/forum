@@ -371,12 +371,198 @@ async function loadMediaStats(db) {
     )
   );
   const galleryCount = await safeCount(db, 'SELECT COUNT(*) as count FROM user_gallery_images', []);
+  const [forumRows, timelineRows, postRows, eventRows, musicRows, projectRows, devLogRows, galleryRows] = await Promise.all([
+    safeAll(
+      db,
+      `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, forum_threads.image_key, users.username AS author_name
+       FROM forum_threads
+       JOIN users ON users.id = forum_threads.author_user_id
+       WHERE forum_threads.image_key IS NOT NULL
+         AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
+       ORDER BY forum_threads.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at, timeline_updates.image_key, users.username AS author_name
+       FROM timeline_updates
+       JOIN users ON users.id = timeline_updates.author_user_id
+       WHERE timeline_updates.image_key IS NOT NULL
+       ORDER BY timeline_updates.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT posts.id, posts.title, posts.created_at, posts.image_key, posts.type, users.username AS author_name
+       FROM posts
+       JOIN users ON users.id = posts.author_user_id
+       WHERE posts.image_key IS NOT NULL
+       ORDER BY posts.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT events.id, events.title, events.created_at, events.image_key, users.username AS author_name
+       FROM events
+       JOIN users ON users.id = events.author_user_id
+       WHERE events.image_key IS NOT NULL
+       ORDER BY events.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT music_posts.id, music_posts.title, music_posts.created_at, music_posts.image_key, users.username AS author_name
+       FROM music_posts
+       JOIN users ON users.id = music_posts.author_user_id
+       WHERE music_posts.image_key IS NOT NULL
+       ORDER BY music_posts.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT projects.id, projects.title, projects.created_at, projects.image_key, users.username AS author_name
+       FROM projects
+       JOIN users ON users.id = projects.author_user_id
+       WHERE projects.image_key IS NOT NULL
+       ORDER BY projects.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at, dev_logs.image_key, users.username AS author_name
+       FROM dev_logs
+       JOIN users ON users.id = dev_logs.author_user_id
+       WHERE dev_logs.image_key IS NOT NULL
+       ORDER BY dev_logs.created_at DESC
+       LIMIT 8`,
+      []
+    ),
+    safeAll(
+      db,
+      `SELECT user_gallery_images.id, user_gallery_images.created_at, user_gallery_images.image_key, users.username AS author_name
+       FROM user_gallery_images
+       JOIN users ON users.id = user_gallery_images.user_id
+       ORDER BY user_gallery_images.created_at DESC
+       LIMIT 8`,
+      []
+    )
+  ]);
+
+  const recent = [
+    ...forumRows.map((row) => ({
+      key: `forum_thread:${row.id}`,
+      id: row.id,
+      type: 'forum_thread',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'General',
+      viewHref: viewPathForContent('forum_thread', row),
+      editHref: editPathForContent('forum_thread', row)
+    })),
+    ...timelineRows.map((row) => ({
+      key: `timeline_update:${row.id}`,
+      id: row.id,
+      type: 'timeline_update',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Announcements',
+      viewHref: viewPathForContent('timeline_update', row),
+      editHref: editPathForContent('timeline_update', row)
+    })),
+    ...postRows.map((row) => ({
+      key: `post:${row.id}`,
+      id: row.id,
+      type: 'post',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: labelForContentType('post', row),
+      viewHref: viewPathForContent('post', row),
+      editHref: editPathForContent('post', row)
+    })),
+    ...eventRows.map((row) => ({
+      key: `event:${row.id}`,
+      id: row.id,
+      type: 'event',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Events',
+      viewHref: viewPathForContent('event', row),
+      editHref: editPathForContent('event', row)
+    })),
+    ...musicRows.map((row) => ({
+      key: `music_post:${row.id}`,
+      id: row.id,
+      type: 'music_post',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Music',
+      viewHref: viewPathForContent('music_post', row),
+      editHref: editPathForContent('music_post', row)
+    })),
+    ...projectRows.map((row) => ({
+      key: `project:${row.id}`,
+      id: row.id,
+      type: 'project',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Projects',
+      viewHref: viewPathForContent('project', row),
+      editHref: editPathForContent('project', row)
+    })),
+    ...devLogRows.map((row) => ({
+      key: `dev_log:${row.id}`,
+      id: row.id,
+      type: 'dev_log',
+      title: row.title,
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Development',
+      viewHref: viewPathForContent('dev_log', row),
+      editHref: editPathForContent('dev_log', row)
+    })),
+    ...galleryRows.map((row) => ({
+      key: `gallery:${row.id}`,
+      id: row.id,
+      type: 'gallery',
+      title: 'Profile gallery image',
+      imageKey: row.image_key,
+      createdAt: row.created_at,
+      authorName: row.author_name,
+      label: 'Gallery',
+      viewHref: `/profile/${row.author_name}`,
+      editHref: null
+    }))
+  ]
+    .filter((entry) => !!entry.imageKey)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .slice(0, 16);
+
   return {
     totals: tables.map((entry, index) => ({
       label: entry.label,
       count: counts[index] || 0
     })),
-    galleryCount
+    galleryCount,
+    recent
   };
 }
 
