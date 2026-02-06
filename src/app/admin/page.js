@@ -3,6 +3,18 @@ import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
 import { getRecentAdminActions } from '../../lib/audit';
 import { isImageUploadsEnabled } from '../../lib/settings';
+import {
+  ADMIN_COMMENT_TABLES,
+  ADMIN_LOCK_TABLES,
+  ADMIN_POST_TABLES,
+  MEDIA_TABLES,
+  contentTypeDeletePath,
+  contentTypeEditPath,
+  contentTypeHidePath,
+  contentTypeLabel,
+  contentTypeLockPath,
+  contentTypeViewPath
+} from '../../lib/contentTypes';
 import AdminConsole from '../../components/AdminConsole';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { redirect } from 'next/navigation';
@@ -53,26 +65,8 @@ async function gatherStats(db) {
     [weekAgo]
   );
 
-  const postTables = [
-    'forum_threads',
-    'posts',
-    'timeline_updates',
-    'events',
-    'music_posts',
-    'projects',
-    'dev_logs'
-  ];
-
-  const commentTables = [
-    'forum_replies',
-    'post_comments',
-    'timeline_comments',
-    'event_comments',
-    'music_comments',
-    'project_comments',
-    'project_replies',
-    'dev_log_comments'
-  ];
+  const postTables = ADMIN_POST_TABLES;
+  const commentTables = ADMIN_COMMENT_TABLES;
 
   const posts24h = await sumCounts(
     db,
@@ -112,7 +106,7 @@ async function gatherStats(db) {
     }))
   );
 
-  const lockedTables = ['forum_threads', 'posts', 'timeline_updates', 'dev_logs'];
+  const lockedTables = ADMIN_LOCK_TABLES;
   const lockedPosts = await sumCounts(
     db,
     lockedTables.map((table) => ({
@@ -148,33 +142,8 @@ async function gatherStats(db) {
   };
 }
 
-function viewPathForPostType(type) {
-  if (type === 'bugs') return '/bugs';
-  if (type === 'rant') return '/rant';
-  if (type === 'art') return '/art';
-  if (type === 'nostalgia') return '/nostalgia';
-  if (type === 'lore') return '/lore';
-  if (type === 'memories') return '/memories';
-  if (type === 'about') return '/about';
-  return '/posts';
-}
-
-function labelForPostType(type) {
-  if (!type) return 'Post';
-  return type.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
 function labelForContentType(type, row) {
-  if (type === 'forum_thread') {
-    return row?.is_shitpost ? 'Shitposts' : 'Forum';
-  }
-  if (type === 'timeline_update') return 'Announcements';
-  if (type === 'post') return labelForPostType(row?.type);
-  if (type === 'event') return 'Events';
-  if (type === 'music_post') return 'Music';
-  if (type === 'project') return 'Projects';
-  if (type === 'dev_log') return 'Development';
-  return 'Post';
+  return contentTypeLabel(type, row);
 }
 
 function viewPathForReportTarget(targetType, targetId) {
@@ -190,54 +159,23 @@ function viewPathForReportTarget(targetType, targetId) {
 }
 
 function viewPathForContent(type, row) {
-  if (type === 'forum_thread') return `/lobby/${row.id}`;
-  if (type === 'timeline_update') return `/announcements/${row.id}`;
-  if (type === 'post') return `${viewPathForPostType(row.type)}/${row.id}`;
-  if (type === 'event') return `/events/${row.id}`;
-  if (type === 'music_post') return `/music/${row.id}`;
-  if (type === 'project') return `/projects/${row.id}`;
-  if (type === 'dev_log') return `/devlog/${row.id}`;
-  return `/lobby/${row.id}`;
+  return contentTypeViewPath(type, row);
 }
 
 function editPathForContent(type, row) {
-  if (type === 'forum_thread') return `/api/forum/${row.id}/edit`;
-  if (type === 'timeline_update') return `/api/timeline/${row.id}`;
-  if (type === 'post') return `/api/posts/${row.id}`;
-  if (type === 'event') return `/api/events/${row.id}`;
-  if (type === 'project') return `/api/projects/${row.id}`;
-  if (type === 'dev_log') return `/api/devlog/${row.id}`;
-  return null;
+  return contentTypeEditPath(type, row);
 }
 
 function hidePathForContent(type, row) {
-  if (type === 'forum_thread') return `/api/forum/${row.id}/hide`;
-  if (type === 'timeline_update') return `/api/timeline/${row.id}/hide`;
-  if (type === 'post') return `/api/posts/${row.id}/hide`;
-  if (type === 'event') return `/api/events/${row.id}/hide`;
-  if (type === 'music_post') return `/api/music/${row.id}/hide`;
-  if (type === 'project') return `/api/projects/${row.id}/hide`;
-  if (type === 'dev_log') return `/api/devlog/${row.id}/hide`;
-  return null;
+  return contentTypeHidePath(type, row);
 }
 
 function lockPathForContent(type, row) {
-  if (type === 'forum_thread') return `/api/forum/${row.id}/lock`;
-  if (type === 'timeline_update') return `/api/timeline/${row.id}/lock`;
-  if (type === 'post') return `/api/posts/${row.id}/lock`;
-  if (type === 'event') return `/api/events/${row.id}/lock`;
-  if (type === 'music_post') return `/api/music/${row.id}/lock`;
-  if (type === 'project') return `/api/projects/${row.id}/lock`;
-  if (type === 'dev_log') return `/api/devlog/${row.id}/lock`;
-  return null;
+  return contentTypeLockPath(type, row);
 }
 
 function deletePathForContent(type, row) {
-  if (type === 'forum_thread') return `/api/forum/${row.id}/delete`;
-  if (type === 'timeline_update') return `/api/timeline/${row.id}/delete`;
-  if (type === 'post') return `/api/posts/${row.id}/delete`;
-  if (type === 'dev_log') return `/api/devlog/${row.id}/delete`;
-  return null;
+  return contentTypeDeletePath(type, row);
 }
 
 async function loadRecentContent(db, limit = 30) {
@@ -426,15 +364,7 @@ async function loadOpenReports(db, limit = 20) {
 }
 
 async function loadMediaStats(db) {
-  const tables = [
-    { label: 'Forum', table: 'forum_threads' },
-    { label: 'Posts', table: 'posts' },
-    { label: 'Announcements', table: 'timeline_updates' },
-    { label: 'Events', table: 'events' },
-    { label: 'Music', table: 'music_posts' },
-    { label: 'Projects', table: 'projects' },
-    { label: 'Dev logs', table: 'dev_logs' }
-  ];
+  const tables = MEDIA_TABLES;
   const counts = await Promise.all(
     tables.map((entry) =>
       safeCount(db, `SELECT COUNT(*) as count FROM ${entry.table} WHERE image_key IS NOT NULL`, [])

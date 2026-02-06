@@ -5,13 +5,10 @@ import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { isValidPostType, postTypeCollectionPath } from '../../../lib/contentTypes';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
-}
-
-function isValidType(type) {
-  return ['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories', 'about'].includes(type);
 }
 
 export async function GET(request) {
@@ -20,7 +17,7 @@ export async function GET(request) {
   const type = normalizeType(url.searchParams.get('type'));
   const includePrivate = !!user;
 
-  if (!isValidType(type)) {
+  if (!isValidPostType(type)) {
     return NextResponse.json({ error: 'invalid_type' }, { status: 400 });
   }
 
@@ -69,23 +66,13 @@ export async function POST(request) {
   const body = String(formData.get('body') || '').trim();
   const isPrivate = String(formData.get('is_private') || '').trim() === '1' ? 1 : 0;
 
-  if (!isValidType(type)) {
+  if (!isValidPostType(type)) {
     redirectUrl.searchParams.set('error', 'invalid_type');
     redirectUrl.pathname = '/';
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  // Map post types to their section URLs
-  const typeToPath = {
-    'bugs': '/bugs-rant',
-    'rant': '/bugs-rant',
-    'art': '/art-nostalgia',
-    'nostalgia': '/art-nostalgia',
-    'lore': '/lore-memories',
-    'memories': '/lore-memories',
-    'about': '/about'
-  };
-  redirectUrl.pathname = typeToPath[type] || `/${type}`;
+  redirectUrl.pathname = postTypeCollectionPath(type);
 
   // Lore/Memories can have empty title; others default.
   const finalTitle = title || (type === 'bugs' ? 'Bug report' : type === 'art' ? 'Untitled' : 'Untitled');

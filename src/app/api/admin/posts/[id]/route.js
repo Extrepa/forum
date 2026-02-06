@@ -2,17 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
-
-const VALID_TYPES = ['forum_thread', 'timeline_update', 'post', 'event', 'music_post', 'project', 'dev_log'];
-const TABLE_MAP = {
-  forum_thread: 'forum_threads',
-  timeline_update: 'timeline_updates',
-  post: 'posts',
-  event: 'events',
-  music_post: 'music_posts',
-  project: 'projects',
-  dev_log: 'dev_logs'
-};
+import { CONTENT_TYPE_KEYS, contentTypeTable } from '../../../../../lib/contentTypes';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -23,11 +13,11 @@ export async function GET(request, { params }) {
   const { id } = await params;
   const type = new URL(request.url).searchParams.get('type') || 'forum_thread';
 
-  if (!id || !VALID_TYPES.includes(type)) {
+  if (!id || !CONTENT_TYPE_KEYS.includes(type)) {
     return NextResponse.json({ error: 'Missing id or invalid type' }, { status: 400 });
   }
 
-  const table = TABLE_MAP[type];
+  const table = contentTypeTable(type);
   const db = await getDb();
 
   try {
@@ -61,11 +51,11 @@ export async function POST(request, { params }) {
   }
 
   const type = String(body.type || '').trim();
-  if (!id || !type || !VALID_TYPES.includes(type)) {
+  if (!id || !type || !CONTENT_TYPE_KEYS.includes(type)) {
     return NextResponse.json({ error: 'Missing id or invalid type' }, { status: 400 });
   }
 
-  const table = TABLE_MAP[type];
+  const table = contentTypeTable(type);
   const db = await getDb();
   const now = Date.now();
 
@@ -112,11 +102,11 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
   const type = new URL(request.url).searchParams.get('type') || 'forum_thread';
 
-  if (!id || !VALID_TYPES.includes(type)) {
+  if (!id || !CONTENT_TYPE_KEYS.includes(type)) {
     return NextResponse.json({ error: 'Missing id or invalid type' }, { status: 400 });
   }
 
-  const table = TABLE_MAP[type];
+  const table = contentTypeTable(type);
   const db = await getDb();
 
   try {

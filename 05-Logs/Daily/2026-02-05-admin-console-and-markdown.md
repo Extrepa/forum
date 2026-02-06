@@ -74,3 +74,13 @@
 ## Preview migration attempt
 - Attempted to apply new migration(s) to preview, but Wrangler returned a 7403 authorization error (account not authorized).
 - Pending migration: 0063_user_soft_delete.sql.
+
+## Content type registry rollout
+- Added registry in `src/lib/contentTypes.js` to centralize post types + content types.
+- Updated admin endpoints to validate content types via registry instead of local arrays.
+- Updated posts API routes to use registry for valid types + redirect paths.
+- Admin console stats and media tables now use registry constants.
+- Build still succeeds (existing lint warning persists).
+
+## Preview migrations
+- 0063_user_soft_delete.sql applied successfully to preview with wrangler.

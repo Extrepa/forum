@@ -3,17 +3,7 @@ import { getDb } from '../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { logAdminAction } from '../../../../../../lib/audit';
-
-const VALID_TYPES = ['forum_thread', 'timeline_update', 'post', 'event', 'music_post', 'project', 'dev_log'];
-const TABLE_MAP = {
-  forum_thread: 'forum_threads',
-  timeline_update: 'timeline_updates',
-  post: 'posts',
-  event: 'events',
-  music_post: 'music_posts',
-  project: 'projects',
-  dev_log: 'dev_logs'
-};
+import { CONTENT_TYPE_KEYS, contentTypeTable } from '../../../../../../lib/contentTypes';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
@@ -33,11 +23,11 @@ export async function POST(request, { params }) {
     // Optional body
   }
   const type = String(body.type || '').trim();
-  if (!type || !VALID_TYPES.includes(type)) {
-    return NextResponse.json({ error: 'Invalid type. Use one of: ' + VALID_TYPES.join(', ') }, { status: 400 });
+  if (!type || !CONTENT_TYPE_KEYS.includes(type)) {
+    return NextResponse.json({ error: 'Invalid type. Use one of: ' + CONTENT_TYPE_KEYS.join(', ') }, { status: 400 });
   }
 
-  const table = TABLE_MAP[type];
+  const table = contentTypeTable(type);
   if (!table) {
     return NextResponse.json({ error: 'Unknown type' }, { status: 400 });
   }

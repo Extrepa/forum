@@ -6,18 +6,11 @@ import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 import { createMentionNotifications } from '../../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
+import { isValidPostType, postTypeCollectionPath, postTypePath } from '../../../../lib/contentTypes';
 import { logAdminAction } from '../../../../lib/audit';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
-}
-
-function isValidType(type) {
-  return ['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories', 'about'].includes(type);
-}
-
-function pagePathForType(type) {
-  return `/${type === 'about' ? 'about' : type}`;
 }
 
 export async function GET(request, { params }) {
@@ -81,22 +74,12 @@ export async function POST(request, { params }) {
   const imageUploadsEnabled = await isImageUploadsEnabled(db);
 
   const type = normalizeType(existing.type);
-  if (!isValidType(type)) {
+  if (!isValidPostType(type)) {
     redirectUrl.searchParams.set('error', 'invalid_type');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  // Map post types to their section URLs
-  const typeToPath = {
-    'bugs': '/bugs-rant',
-    'rant': '/bugs-rant',
-    'art': '/art-nostalgia',
-    'nostalgia': '/art-nostalgia',
-    'lore': '/lore-memories',
-    'memories': '/lore-memories',
-    'about': '/about'
-  };
-  const sectionPath = typeToPath[type] || pagePathForType(type);
+  const sectionPath = postTypeCollectionPath(type) || postTypePath(type);
   redirectUrl.pathname = `${sectionPath}/${existing.id}`;
 
   const isOwner = existing.author_user_id === user.id;
