@@ -2015,6 +2015,10 @@ textarea {
 }
 
 .admin-row--deleted {
+  opacity: 1;
+}
+
+.admin-row--deleted td:not(:last-child) {
   opacity: 0.6;
 }
 

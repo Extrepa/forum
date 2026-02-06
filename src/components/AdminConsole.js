@@ -474,58 +474,62 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                             Actions ▾
                           </summary>
                           <div className="admin-actions-menu-list">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                closeMenus();
-                                handleTogglePin(post);
-                              }}
-                              disabled={busyPost === key || post.isDeleted}
-                              title="Pin or unpin this post"
-                            >
-                              {post.isPinned ? 'Unpin' : 'Pin'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                closeMenus();
-                                handleToggleHidden(post);
-                              }}
-                              disabled={busyPost === key || post.isDeleted}
-                              title="Hide or show this post"
-                            >
-                              {post.isHidden ? 'Show' : 'Hide'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                closeMenus();
-                                handleToggleLock(post);
-                              }}
-                              disabled={busyPost === key || post.isDeleted}
-                              title="Lock or unlock comments"
-                            >
-                              {post.isLocked ? 'Unlock' : 'Lock'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                closeMenus();
-                                setDrawerPost(post);
-                              }}
-                              disabled={!post.editHref || post.isDeleted}
-                              title="Edit this post"
-                            >
-                              Edit
-                            </button>
-                            {post.deleteHref ? (
+                            {!post.isDeleted ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    closeMenus();
+                                    handleTogglePin(post);
+                                  }}
+                                  disabled={busyPost === key}
+                                  title="Pin or unpin this post"
+                                >
+                                  {post.isPinned ? 'Unpin' : 'Pin'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    closeMenus();
+                                    handleToggleHidden(post);
+                                  }}
+                                  disabled={busyPost === key}
+                                  title="Hide or show this post"
+                                >
+                                  {post.isHidden ? 'Show' : 'Hide'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    closeMenus();
+                                    handleToggleLock(post);
+                                  }}
+                                  disabled={busyPost === key}
+                                  title="Lock or unlock comments"
+                                >
+                                  {post.isLocked ? 'Unlock' : 'Lock'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    closeMenus();
+                                    setDrawerPost(post);
+                                  }}
+                                  disabled={!post.editHref}
+                                  title="Edit this post"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            ) : null}
+                            {post.deleteHref && !post.isDeleted ? (
                               <button
                                 type="button"
                                 onClick={() => {
                                   closeMenus();
                                   handleDeletePost(post);
                                 }}
-                                disabled={busyPost === key || post.isDeleted}
+                                disabled={busyPost === key}
                                 title="Soft delete this post"
                               >
                                 Delete
