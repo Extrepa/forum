@@ -5,6 +5,7 @@
  * @param {string} userId
  * @returns {Promise<StatsShape>}
  */
+import { POST_TYPE_KEYS } from './contentTypes';
 export async function getStatsForUser(db, userId, options = {}) {
   const empty = {
     threadCount: 0,
@@ -35,10 +36,14 @@ export async function getStatsForUser(db, userId, options = {}) {
     const timelineUpdates = await db.prepare('SELECT COUNT(*) as count FROM timeline_updates WHERE author_user_id = ?').bind(userId).first();
     const events = await db.prepare('SELECT COUNT(*) as count FROM events WHERE author_user_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)').bind(userId).first();
 
+    const postTypePlaceholders = POST_TYPE_KEYS.map(() => '?').join(',');
     let postsCount = 0;
     let postCommentsCount = 0;
     try {
-      const postsRows = await db.prepare("SELECT COUNT(*) as count FROM posts WHERE author_user_id = ? AND type IN ('art','bugs','rant','nostalgia','lore','memories') AND (is_deleted = 0 OR is_deleted IS NULL)").bind(userId).first();
+      const postsRows = await db
+        .prepare(`SELECT COUNT(*) as count FROM posts WHERE author_user_id = ? AND type IN (${postTypePlaceholders}) AND (is_deleted = 0 OR is_deleted IS NULL)`)
+        .bind(userId, ...POST_TYPE_KEYS)
+        .first();
       const postCommentsRows = await db.prepare('SELECT COUNT(*) as count FROM post_comments WHERE author_user_id = ? AND is_deleted = 0').bind(userId).first();
       postsCount = postsRows?.count || 0;
       postCommentsCount = postCommentsRows?.count || 0;
@@ -78,7 +83,10 @@ export async function getStatsForUser(db, userId, options = {}) {
 
     let recentPostsFromShared = { results: [] };
     try {
-      recentPostsFromShared = await db.prepare("SELECT id, title, created_at, type as post_type FROM posts WHERE author_user_id = ? AND type IN ('art','bugs','rant','nostalgia','lore','memories') AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY created_at DESC LIMIT 10").bind(userId).all();
+      recentPostsFromShared = await db
+        .prepare(`SELECT id, title, created_at, type as post_type FROM posts WHERE author_user_id = ? AND type IN (${postTypePlaceholders}) AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY created_at DESC LIMIT 10`)
+        .bind(userId, ...POST_TYPE_KEYS)
+        .all();
     } catch (_) {}
 
     const recentForumReplies = await db.prepare("SELECT forum_replies.id, forum_replies.created_at, forum_threads.id as thread_id, forum_threads.title as thread_title, 'forum_reply' as reply_type FROM forum_replies JOIN forum_threads ON forum_threads.id = forum_replies.thread_id WHERE forum_replies.author_user_id = ? AND forum_replies.is_deleted = 0 ORDER BY forum_replies.created_at DESC LIMIT 10").bind(userId).all();

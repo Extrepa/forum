@@ -91,7 +91,7 @@ export const CONTENT_TYPES = {
     editApi: (row) => `/api/events/${row.id}`,
     hideApi: (row) => `/api/events/${row.id}/hide`,
     lockApi: (row) => `/api/events/${row.id}/lock`,
-    deleteApi: null
+    deleteApi: (row) => `/api/events/${row.id}/delete`
   },
   music_post: {
     label: 'Music',
@@ -100,7 +100,7 @@ export const CONTENT_TYPES = {
     editApi: null,
     hideApi: (row) => `/api/music/${row.id}/hide`,
     lockApi: (row) => `/api/music/${row.id}/lock`,
-    deleteApi: null
+    deleteApi: (row) => `/api/music/${row.id}/delete`
   },
   project: {
     label: 'Projects',
@@ -109,7 +109,7 @@ export const CONTENT_TYPES = {
     editApi: (row) => `/api/projects/${row.id}`,
     hideApi: (row) => `/api/projects/${row.id}/hide`,
     lockApi: (row) => `/api/projects/${row.id}/lock`,
-    deleteApi: null
+    deleteApi: (row) => `/api/projects/${row.id}/delete`
   },
   dev_log: {
     label: 'Development',
@@ -191,3 +191,26 @@ export const MEDIA_TABLES = [
   { label: 'Projects', table: 'projects' },
   { label: 'Dev logs', table: 'dev_logs' }
 ];
+
+export const LIKE_TARGET_TABLES = {
+  forum_thread: 'forum_threads',
+  music_post: 'music_posts',
+  event: 'events',
+  project: 'projects',
+  dev_log: 'dev_logs',
+  timeline_update: 'timeline_updates',
+  post: 'posts',
+  forum_reply: 'forum_replies',
+  timeline_comment: 'timeline_comments',
+  event_comment: 'event_comments',
+  music_comment: 'music_comments',
+  project_reply: 'project_replies',
+  dev_log_comment: 'dev_log_comments',
+  post_comment: 'post_comments'
+};
+
+export const LIKE_TARGET_TYPES = Object.keys(LIKE_TARGET_TABLES);
+
+export function likeTargetTable(type) {
+  return LIKE_TARGET_TABLES[type] || null;
+}

@@ -8,6 +8,7 @@ import ProfileMoodSongBlock from '../../../components/ProfileMoodSongBlock';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
 import Breadcrumbs from '../../../components/Breadcrumbs';
+import { contentTypeLabel, contentTypeViewPath, postTypeLabel, postTypePath } from '../../../lib/contentTypes';
 import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
 import ProfileTabsClient from '../../../components/ProfileTabsClient';
 
@@ -220,32 +221,24 @@ export default async function ProfilePage({ params }) {
 
   // Section label for post/reply types (for Recent Activity)
   const getSectionLabel = (postType, replyType) => {
-    const t = postType || replyType || '';
-    const map = {
-      forum_thread: 'General',
-      forum_reply: 'General',
-      dev_log: 'Development',
-      dev_log_comment: 'Development',
-      music_post: 'Music',
-      music_comment: 'Music',
-      project: 'Projects',
-      project_reply: 'Projects',
-      timeline_update: 'Announcements',
-      timeline_comment: 'Announcements',
-      event: 'Events',
-      event_comment: 'Events',
-      art: 'Art',
-      bugs: 'Bugs',
-      rant: 'Rant',
-      nostalgia: 'Nostalgia',
-      lore: 'Lore',
-      memories: 'Memories',
-      post_comment: 'Posts',
-    };
-    if (t === 'post_comment' && postType) {
-      return map[postType] || 'Posts';
+    if (replyType) {
+      if (replyType === 'post_comment' && postType) {
+        return postTypeLabel(postType);
+      }
+      const replySectionMap = {
+        forum_reply: 'General',
+        dev_log_comment: 'Development',
+        music_comment: 'Music',
+        project_reply: 'Projects',
+        timeline_comment: 'Announcements',
+        event_comment: 'Events'
+      };
+      return replySectionMap[replyType] || 'General';
     }
-    return map[t] || 'Forum';
+    if (postType === 'forum_thread' || postType === 'timeline_update' || postType === 'dev_log' || postType === 'music_post' || postType === 'project' || postType === 'event') {
+      return contentTypeLabel(postType, {});
+    }
+    return postTypeLabel(postType);
   };
 
   // Extract username from platform URLs
@@ -361,13 +354,11 @@ export default async function ProfilePage({ params }) {
     let href = '#';
     if (item.type === 'thread') {
       const postType = item.postType || item.post_type;
-      if (postType === 'forum_thread') href = `/lobby/${item.id}`;
-      else if (postType === 'dev_log') href = `/devlog/${item.id}`;
-      else if (postType === 'music_post') href = `/music/${item.id}`;
-      else if (postType === 'project') href = `/projects/${item.id}`;
-      else if (postType === 'timeline_update') href = `/announcements/${item.id}`;
-      else if (postType === 'event') href = `/events/${item.id}`;
-      else if (['art', 'bugs', 'rant', 'nostalgia', 'lore', 'memories'].includes(postType)) href = `/${postType}/${item.id}`;
+      if (postType === 'forum_thread' || postType === 'timeline_update' || postType === 'dev_log' || postType === 'music_post' || postType === 'project' || postType === 'event') {
+        href = contentTypeViewPath(postType, { id: item.id }) || '#';
+      } else if (postType) {
+        href = `${postTypePath(postType)}/${item.id}`;
+      }
     } else {
       const replyType = item.replyType || item.reply_type;
       const threadId = item.thread_id;
@@ -377,7 +368,7 @@ export default async function ProfilePage({ params }) {
       else if (replyType === 'project_reply') href = `/projects/${threadId}`;
       else if (replyType === 'timeline_comment') href = `/announcements/${threadId}`;
       else if (replyType === 'event_comment') href = `/events/${threadId}`;
-      else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `/${item.post_type || item.postType}/${threadId}`;
+      else if (replyType === 'post_comment' && (item.post_type || item.postType)) href = `${postTypePath(item.post_type || item.postType)}/${threadId}`;
     }
     const postType = item.postType || item.post_type;
     const replyType = item.replyType || item.reply_type;

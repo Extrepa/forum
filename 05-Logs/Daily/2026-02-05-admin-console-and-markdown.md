@@ -95,3 +95,16 @@
 
 ## New API
 - `POST /api/admin/posts/[id]/restore` restores soft-deleted items by type.
+
+## Future-proofing pass (registry + admin actions)
+- Added content type registry usage in notifications menu, outbound notifications, likes API, profile activity, and account activity.
+- Added delete endpoints for events, music, and projects; registry now exposes delete paths for those types.
+- Added restore endpoint for admin posts and wired actions menu so only one menu opens at a time.
+- Added admin stat glow levels for high counts; removed home page stats rendering + query block.
+
+## Future-proofing sweep
+- Added content type registry helpers for likes/notifications/profile/account activity routing.
+- Added delete endpoints for events/music/projects and hooked them into admin actions.
+- Updated outbound notifications to use registry path mapping.
+- Updated user stats to use registry post-type list.
+- Build verified after changes (existing lint warning persists).

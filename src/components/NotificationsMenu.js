@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -39,82 +40,43 @@ function TrashIcon({ size = 10 }) {
   );
 }
 
-const POST_ROUTE_OVERRIDES = {
-  art: '/art/',
-  nostalgia: '/nostalgia/',
-  bugs: '/bugs/',
-  rant: '/rant/',
-  lore: '/lore/',
-  memories: '/lore-memories/',
-  about: '/about/',
-};
-
-const POST_DISPLAY_LABELS = {
-  art: 'art post',
-  nostalgia: 'nostalgia post',
-  bugs: 'bug report',
-  rant: 'rant',
-  lore: 'lore post',
-  memories: 'memory',
-  about: 'about entry',
-};
-
 const CONTENT_BASE_HREFS = {
-  forum_thread: '/lobby/',
-  music_post: '/music/',
-  event: '/events/',
-  project: '/projects/',
-  dev_log: '/devlog/',
-  timeline_update: '/announcements/',
-  timeline_comment: '/announcements/',
-  event_comment: '/events/',
+  forum_reply: '/lobby/',
+  dev_log_comment: '/devlog/',
   music_comment: '/music/',
   project_reply: '/projects/',
-  dev_log_comment: '/devlog/',
+  timeline_comment: '/announcements/',
+  event_comment: '/events/',
   post_comment: '/',
 };
 
 const CONTENT_DISPLAY_LABELS = {
-  forum_thread: 'thread',
   forum_reply: 'thread',
-  dev_log: 'dev log',
   dev_log_comment: 'dev log',
-  music_post: 'music post',
   music_comment: 'music post',
-  project: 'project',
   project_reply: 'project',
-  timeline_update: 'announcement',
   timeline_comment: 'announcement',
-  event: 'event',
   event_comment: 'event',
-  art: 'art post',
-  bugs: 'bug report',
-  rant: 'rant',
-  nostalgia: 'nostalgia post',
-  lore: 'lore post',
-  memories: 'memory',
-  about: 'about entry',
-  post: 'post',
 };
 
 const resolveContentHref = (targetType, targetId, postCategory) => {
   if (targetType === 'post') {
-    if (postCategory && POST_ROUTE_OVERRIDES[postCategory]) {
-      return `${POST_ROUTE_OVERRIDES[postCategory]}${targetId}`;
-    }
+    if (postCategory) return `${postTypePath(postCategory)}/${targetId}`;
     return '#';
   }
-  return `${CONTENT_BASE_HREFS[targetType] || '/'}${targetId}`;
+  const basePath = CONTENT_BASE_HREFS[targetType];
+  if (basePath) {
+    return `${basePath}${targetId}`;
+  }
+  return contentTypeViewPath(targetType, { id: targetId, type: postCategory }) || '#';
 };
 
 const resolveContentLabel = (targetType, postCategory) => {
   if (targetType === 'post') {
-    if (postCategory && POST_DISPLAY_LABELS[postCategory]) {
-      return POST_DISPLAY_LABELS[postCategory];
-    }
-    return 'post';
+    return postCategory ? postTypeLabel(postCategory) : 'Post';
   }
-  return CONTENT_DISPLAY_LABELS[targetType] || 'content';
+  if (CONTENT_DISPLAY_LABELS[targetType]) return CONTENT_DISPLAY_LABELS[targetType];
+  return contentTypeLabel(targetType, { type: postCategory }) || 'content';
 };
 
 export default function NotificationsMenu({

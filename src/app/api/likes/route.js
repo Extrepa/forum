@@ -2,18 +2,14 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { sendOutboundNotification } from '../../../lib/outboundNotifications';
-
-const VALID_POST_TYPES = [
-  'forum_thread', 'music_post', 'event', 'project', 'dev_log', 'timeline_update', 'post',
-  'forum_reply', 'timeline_comment', 'event_comment', 'music_comment', 'project_reply', 'dev_log_comment', 'post_comment'
-];
+import { LIKE_TARGET_TYPES, likeTargetTable } from '../../../lib/contentTypes';
 
 function normalizePostType(raw) {
   return String(raw || '').trim().toLowerCase();
 }
 
 function isValidPostType(type) {
-  return VALID_POST_TYPES.includes(type);
+  return LIKE_TARGET_TYPES.includes(type);
 }
 
 export async function POST(request) {
@@ -66,21 +62,7 @@ export async function POST(request) {
       
       // Notify content author
       try {
-        let table = null;
-        if (postType === 'forum_thread') table = 'forum_threads';
-        else if (postType === 'music_post') table = 'music_posts';
-        else if (postType === 'event') table = 'events';
-        else if (postType === 'project') table = 'projects';
-        else if (postType === 'dev_log') table = 'dev_logs';
-        else if (postType === 'timeline_update') table = 'timeline_updates';
-        else if (postType === 'post') table = 'posts';
-        else if (postType === 'forum_reply') table = 'forum_replies';
-        else if (postType === 'timeline_comment') table = 'timeline_comments';
-        else if (postType === 'event_comment') table = 'event_comments';
-        else if (postType === 'music_comment') table = 'music_comments';
-        else if (postType === 'project_reply') table = 'project_replies';
-        else if (postType === 'dev_log_comment') table = 'dev_log_comments';
-        else if (postType === 'post_comment') table = 'post_comments';
+        const table = likeTargetTable(postType);
 
         if (table) {
           const author = await db

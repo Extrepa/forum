@@ -1,4 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { contentTypeViewPath } from './contentTypes';
 
 async function getEnv() {
   const ctx = await getCloudflareContext({ async: true });
@@ -139,11 +140,10 @@ export async function sendOutboundNotification({
   const baseUrl = String(env.SITE_URL || new URL(requestUrl).origin);
   
   // Build the link based on targetType
-  let path = `/${targetType}/${targetId}`;
-  if (targetType === 'forum_thread') path = `/lobby/${targetId}`;
-  if (targetType === 'timeline_update') path = `/timeline/${targetId}`;
-  if (targetType === 'dev_log') path = `/devlog/${targetId}`;
-  if (targetType === 'music_post') path = `/music/${targetId}`;
+  let path = contentTypeViewPath(targetType, { id: targetId }) || `/${targetType}/${targetId}`;
+  if (targetType === 'post' && (!path || path === '/posts')) {
+    path = `/posts/${targetId}`;
+  }
   
   const link = `${baseUrl}${path}`;
   
@@ -208,4 +208,3 @@ export async function sendOutboundNotification({
   if (!jobs.length) return;
   await Promise.all(jobs);
 }
-
