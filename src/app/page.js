@@ -5,11 +5,8 @@ import { getDb } from '../lib/db';
 import Username from '../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../lib/usernameColor';
 import {
-  getForumStrings,
-  getTimeBasedGreetingTemplate,
-  renderTemplateParts
+  getForumStrings
 } from '../lib/forum-texts';
-import HomeWelcome from '../components/HomeWelcome';
 import HomeSectionCard from '../components/HomeSectionCard';
 
 export const dynamic = 'force-dynamic';
@@ -56,13 +53,6 @@ export default async function HomePage({ searchParams }) {
   const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
-  
-  // Compute greeting on server to avoid hydration mismatch
-  // Also compute fallback text for when user is not logged in
-  const greetingDate = new Date();
-  const greetingTemplate = user ? getTimeBasedGreetingTemplate({ date: greetingDate, useLore, context: 'home' }) : null;
-  const greetingParts = greetingTemplate ? renderTemplateParts(greetingTemplate.template, 'username') : null;
-  const fallbackGreetingText = strings.hero.title; // Use server-computed strings for fallback
 
   const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
     try {
@@ -890,7 +880,6 @@ export default async function HomePage({ searchParams }) {
 
       {hasUsername && (
         <>
-          <HomeWelcome user={user} greetingParts={greetingParts} fallbackText={fallbackGreetingText} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">
