@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import AdminStatCard from './AdminStatCard';
 
 const TAB_LIST = ['Overview', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
@@ -782,7 +783,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   {media.recent.map((item) => (
                     <article key={item.key} className="admin-media-card">
                       <a href={`/api/media/${item.imageKey}`} target="_blank" rel="noreferrer" title="Open image in new tab">
-                        <img src={`/api/media/${item.imageKey}`} alt={item.title || item.label || 'Uploaded media'} loading="lazy" />
+                        <Image
+                          src={`/api/media/${item.imageKey}`}
+                          alt={item.title || item.label || 'Uploaded media'}
+                          width={640}
+                          height={360}
+                          sizes="(max-width: 900px) 100vw, 320px"
+                        />
                       </a>
                       <div className="admin-media-card-body">
                         <strong>{item.title || item.label || 'Untitled media'}</strong>

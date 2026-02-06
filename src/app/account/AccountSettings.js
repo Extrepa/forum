@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import Username from '../../components/Username';
@@ -496,7 +496,7 @@ export default function AccountSettings({ user: initialUser }) {
   }, [initialUser]);
 
   // Derived state for preferences
-  const notifPrefs = {
+  const notifPrefs = useMemo(() => ({
     site: {
       rsvp: user?.notify_rsvp_enabled !== undefined
         ? Boolean(user.notify_rsvp_enabled)
@@ -536,7 +536,7 @@ export default function AccountSettings({ user: initialUser }) {
         ? Boolean(user.notify_admin_new_reply_enabled)
         : Boolean(user?.notifyAdminNewReplyEnabled),
     }
-  };
+  }), [user]);
 
   const siteUi = {
     defaultLandingPage: user?.defaultLandingPage || 'feed',
@@ -561,7 +561,7 @@ export default function AccountSettings({ user: initialUser }) {
     if (openPanel === 'editNotifications' || openPanel === 'editAdminNotifications') {
       setNotifDraft(notifPrefs);
     }
-  }, [openPanel, user]); // Removed notifPrefs dependency to avoid reset loop if user object identity changes
+  }, [openPanel, user, notifPrefs]);
 
   const refreshUser = async () => {
     try {
