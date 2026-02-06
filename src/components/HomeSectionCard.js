@@ -1,10 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 
 export default function HomeSectionCard({ title, description, count, recentActivity, href, usernameColorMap, preferredColors }) {
+  const router = useRouter();
+
   if (!recentActivity) {
     return (
       <Link
@@ -53,10 +56,18 @@ export default function HomeSectionCard({ title, description, count, recentActiv
   );
 
   return (
-    <Link
-      href={recentActivity.href}
+    <div
       className="list-item"
-      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+      style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(href)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          router.push(href);
+        }
+      }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
         <strong>{title}</strong>
@@ -64,10 +75,15 @@ export default function HomeSectionCard({ title, description, count, recentActiv
       </div>
       <div className="list-meta">{description}</div>
       <div className="section-stats" suppressHydrationWarning>
-        <span>
+        <Link
+          href={recentActivity.href}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          style={{ color: 'inherit', textDecoration: 'none' }}
+        >
           Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
-        </span>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
