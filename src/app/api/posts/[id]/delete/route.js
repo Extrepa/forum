@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   // Next.js 15: params is a Promise, must await
@@ -43,6 +44,15 @@ export async function POST(request, { params }) {
     // If is_deleted column doesn't exist, we might need to actually delete
     // But for now, just return error - migration should add is_deleted
     return NextResponse.json({ error: 'notready' }, { status: 409 });
+  }
+
+  if (isAdmin) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'delete_post',
+      targetType: 'post',
+      targetId: id
+    });
   }
 
   return NextResponse.json({ ok: true });

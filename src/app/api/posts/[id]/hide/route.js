@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 function redirectPathForType(type, id) {
   if (type === 'lore') return `/lore/${id}`;
@@ -50,6 +51,15 @@ export async function POST(request, { params }) {
       .prepare('UPDATE posts SET is_hidden = ?, updated_at = ? WHERE id = ?')
       .bind(hidden, Date.now(), id)
       .run();
+    if (isAdmin) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: 'toggle_hidden',
+        targetType: 'post',
+        targetId: id,
+        metadata: { hidden: hidden === 1 }
+      });
+    }
   } catch (e) {
     console.error('Error updating post hidden status (column may not exist yet):', e);
   }

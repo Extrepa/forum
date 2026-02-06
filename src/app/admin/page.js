@@ -4,6 +4,7 @@ import { isAdminUser } from '../../lib/admin';
 import { getRecentAdminActions } from '../../lib/audit';
 import { isImageUploadsEnabled } from '../../lib/settings';
 import AdminConsole from '../../components/AdminConsole';
+import Breadcrumbs from '../../components/Breadcrumbs';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -34,12 +35,23 @@ async function sumCounts(db, queries) {
 }
 
 async function gatherStats(db) {
+  const userColumns = await safeAll(db, "PRAGMA table_info('users')", []);
+  const hasUserDeleted = userColumns.some((column) => column.name === 'is_deleted');
+  const userVisibilityClause = hasUserDeleted ? 'WHERE is_deleted = 0 OR is_deleted IS NULL' : '';
   const now = Date.now();
   const dayAgo = now - 24 * 60 * 60 * 1000;
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-  const totalUsers = await safeCount(db, 'SELECT COUNT(*) as count FROM users', []);
-  const active24h = await safeCount(db, 'SELECT COUNT(*) as count FROM users WHERE last_seen >= ?', [dayAgo]);
-  const active7d = await safeCount(db, 'SELECT COUNT(*) as count FROM users WHERE last_seen >= ?', [weekAgo]);
+  const totalUsers = await safeCount(db, `SELECT COUNT(*) as count FROM users ${userVisibilityClause}`, []);
+  const active24h = await safeCount(
+    db,
+    `SELECT COUNT(*) as count FROM users WHERE last_seen >= ?${hasUserDeleted ? ' AND (is_deleted = 0 OR is_deleted IS NULL)' : ''}`,
+    [dayAgo]
+  );
+  const active7d = await safeCount(
+    db,
+    `SELECT COUNT(*) as count FROM users WHERE last_seen >= ?${hasUserDeleted ? ' AND (is_deleted = 0 OR is_deleted IS NULL)' : ''}`,
+    [weekAgo]
+  );
 
   const postTables = [
     'forum_threads',
@@ -165,6 +177,18 @@ function labelForContentType(type, row) {
   return 'Post';
 }
 
+function viewPathForReportTarget(targetType, targetId) {
+  if (!targetType || !targetId) return null;
+  if (targetType === 'forum_thread') return `/lobby/${targetId}`;
+  if (targetType === 'timeline_update') return `/announcements/${targetId}`;
+  if (targetType === 'post') return `/admin?tab=posts`;
+  if (targetType === 'event') return `/events/${targetId}`;
+  if (targetType === 'music_post') return `/music/${targetId}`;
+  if (targetType === 'project') return `/projects/${targetId}`;
+  if (targetType === 'dev_log') return `/devlog/${targetId}`;
+  return null;
+}
+
 function viewPathForContent(type, row) {
   if (type === 'forum_thread') return `/lobby/${row.id}`;
   if (type === 'timeline_update') return `/announcements/${row.id}`;
@@ -208,6 +232,14 @@ function lockPathForContent(type, row) {
   return null;
 }
 
+function deletePathForContent(type, row) {
+  if (type === 'forum_thread') return `/api/forum/${row.id}/delete`;
+  if (type === 'timeline_update') return `/api/timeline/${row.id}/delete`;
+  if (type === 'post') return `/api/posts/${row.id}/delete`;
+  if (type === 'dev_log') return `/api/devlog/${row.id}/delete`;
+  return null;
+}
+
 async function loadRecentContent(db, limit = 30) {
   const perSource = Math.max(6, Math.ceil(limit / 7));
   const forumColumns = await safeAll(db, "PRAGMA table_info('forum_threads')", []);
@@ -217,35 +249,32 @@ async function loadRecentContent(db, limit = 30) {
     {
       type: 'forum_thread',
       sql: `SELECT forum_threads.id, forum_threads.title, forum_threads.body, forum_threads.created_at,
-                   forum_threads.is_pinned, forum_threads.is_hidden, forum_threads.is_locked,
+                   forum_threads.is_pinned, forum_threads.is_hidden, forum_threads.is_locked, forum_threads.is_deleted,
                    ${forumShitpostSelect},
                    users.username AS author_name
             FROM forum_threads
             JOIN users ON users.id = forum_threads.author_user_id
-            WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
-              AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
+            WHERE (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
             ORDER BY forum_threads.created_at DESC
             LIMIT ?`
     },
     {
       type: 'timeline_update',
       sql: `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body, timeline_updates.created_at,
-                   timeline_updates.is_pinned, timeline_updates.is_hidden, timeline_updates.is_locked,
+                   timeline_updates.is_pinned, timeline_updates.is_hidden, timeline_updates.is_locked, timeline_updates.is_deleted,
                    users.username AS author_name
             FROM timeline_updates
             JOIN users ON users.id = timeline_updates.author_user_id
-            WHERE (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
             ORDER BY timeline_updates.created_at DESC
             LIMIT ?`
     },
     {
       type: 'post',
       sql: `SELECT posts.id, posts.title, posts.body, posts.created_at,
-                   posts.type, posts.is_private, posts.is_pinned, posts.is_hidden, posts.is_locked,
+                   posts.type, posts.is_private, posts.is_pinned, posts.is_hidden, posts.is_locked, posts.is_deleted,
                    users.username AS author_name
             FROM posts
             JOIN users ON users.id = posts.author_user_id
-            WHERE (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
             ORDER BY posts.created_at DESC
             LIMIT ?`
     },
@@ -258,7 +287,6 @@ async function loadRecentContent(db, limit = 30) {
                    users.username AS author_name
             FROM events
             JOIN users ON users.id = events.author_user_id
-            WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
             ORDER BY events.created_at DESC
             LIMIT ?`
     },
@@ -270,7 +298,6 @@ async function loadRecentContent(db, limit = 30) {
                    users.username AS author_name
             FROM music_posts
             JOIN users ON users.id = music_posts.author_user_id
-            WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
             ORDER BY music_posts.created_at DESC
             LIMIT ?`
     },
@@ -282,18 +309,16 @@ async function loadRecentContent(db, limit = 30) {
                    users.username AS author_name
             FROM projects
             JOIN users ON users.id = projects.author_user_id
-            WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
             ORDER BY projects.created_at DESC
             LIMIT ?`
     },
     {
       type: 'dev_log',
       sql: `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.created_at,
-                   dev_logs.is_pinned, dev_logs.is_hidden, dev_logs.is_locked,
+                   dev_logs.is_pinned, dev_logs.is_hidden, dev_logs.is_locked, dev_logs.is_deleted,
                    users.username AS author_name
             FROM dev_logs
             JOIN users ON users.id = dev_logs.author_user_id
-            WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
             ORDER BY dev_logs.created_at DESC
             LIMIT ?`
     }
@@ -318,6 +343,7 @@ async function loadRecentContent(db, limit = 30) {
         isPinned: Boolean(row.is_pinned),
         isHidden: Boolean(row.is_hidden),
         isLocked: Boolean(row.is_locked),
+        isDeleted: Boolean(row.is_deleted),
         isPrivate: Boolean(row.is_private),
         updatesEnabled: row.updates_enabled ? Boolean(row.updates_enabled) : false,
         sectionLabel: labelForContentType(source.type, row),
@@ -325,6 +351,7 @@ async function loadRecentContent(db, limit = 30) {
         editHref: editPathForContent(source.type, row),
         hideHref: hidePathForContent(source.type, row),
         lockHref: lockPathForContent(source.type, row),
+        deleteHref: deletePathForContent(source.type, row),
         startsAt: row.starts_at || null,
         status: row.status || null
       });
@@ -336,11 +363,29 @@ async function loadRecentContent(db, limit = 30) {
 }
 
 async function loadRecentUsers(db, limit = 16) {
+  const userColumns = await safeAll(db, "PRAGMA table_info('users')", []);
+  const hasDeleted = userColumns.some((column) => column.name === 'is_deleted');
+  const deletedSelect = hasDeleted ? 'users.is_deleted' : '0 as is_deleted';
   const rows = await safeAll(
     db,
-    `SELECT id, username, role, created_at, last_seen
+    `SELECT users.id, users.username, users.role, users.created_at, users.last_seen, ${deletedSelect},
+            (SELECT COUNT(*) FROM forum_threads WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM posts WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM timeline_updates WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM events WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM music_posts WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM projects WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM dev_logs WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) AS posts_count,
+            (SELECT COUNT(*) FROM forum_replies WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM post_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM timeline_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM event_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM music_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM project_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM project_replies WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) +
+            (SELECT COUNT(*) FROM dev_log_comments WHERE author_user_id = users.id AND (is_deleted = 0 OR is_deleted IS NULL)) AS comments_count
      FROM users
-     ORDER BY created_at DESC
+     ORDER BY users.created_at DESC
      LIMIT ?`,
     [limit]
   );
@@ -349,7 +394,10 @@ async function loadRecentUsers(db, limit = 16) {
     username: row.username,
     role: row.role,
     createdAt: row.created_at,
-    lastSeen: row.last_seen
+    lastSeen: row.last_seen,
+    isDeleted: Boolean(row.is_deleted),
+    postsCount: row.posts_count || 0,
+    commentsCount: row.comments_count || 0
   }));
 }
 
@@ -372,7 +420,8 @@ async function loadOpenReports(db, limit = 20) {
     reason: row.reason || '',
     createdAt: row.created_at,
     status: row.status,
-    reporter: row.reporter
+    reporter: row.reporter,
+    viewHref: viewPathForReportTarget(row.target_type, row.target_id)
   }));
 }
 
@@ -419,6 +468,12 @@ export default async function AdminPage() {
 
   return (
     <div className="admin-page stack">
+      <Breadcrumbs
+        items={[
+          { href: '/', label: 'Home' },
+          { href: '/admin', label: 'Admin' }
+        ]}
+      />
       <AdminConsole stats={stats} posts={posts} actions={actions} users={users} reports={reports} media={media} user={user} />
     </div>
   );

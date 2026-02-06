@@ -40,3 +40,37 @@
 - Verify the admin console in preview after deployment: counts, mixed content list, new tabs.
 - Validate that the "shitposts to general" misrouting is resolved in posting logic.
 - Decide whether to address the lingering AccountSettings hook warning.
+
+## Follow-up admin console organization pass
+- Condensed post/user actions into dropdown menus and added show-deleted toggles.
+- Added user management actions (role update, delete/anonymize, profile link, details drawer).
+- Expanded mod queue (Reports tab) with clear path to Moderation tools and view links.
+- Added Backups page for clear navigation (manual status + next steps).
+- Added breadcrumbs to Admin + Moderation for clear return paths.
+- Added hover notes (title attributes) to controls and table headers.
+
+## New migrations / API routes
+- Added `migrations/0063_user_soft_delete.sql` (users.is_deleted, deleted_at, deleted_by_user_id).
+- New admin endpoints:
+  - `POST /api/admin/users/[id]/role` for role changes.
+  - `POST /api/admin/users/[id]/delete` to anonymize/delete accounts.
+
+## Audit log improvements
+- Admin action logging now covers hide/lock/edit across posts, timeline updates, events, music, projects, dev logs, and forum edits.
+- User role changes and deletions also log to `admin_actions`.
+
+## Auth/privacy updates
+- Login + session lookup now block deleted users if `is_deleted` exists.
+- User tables avoid email/phone exposure; only show counts and activity.
+
+## Build check (post-changes)
+- `npm run build` succeeded.
+- Existing lint warning persists: `src/app/account/AccountSettings.js:564` missing `notifPrefs` dependency.
+
+## Post routing clarifications
+- Added Lobby filtering to exclude shitposts when `forum_threads.is_shitpost` exists, so General no longer shows shitposts.
+- Shitposts are stored in `forum_threads` with `is_shitpost = 1`; if the migration is missing, they fall back into General.
+
+## Preview migration attempt
+- Attempted to apply new migration(s) to preview, but Wrangler returned a 7403 authorization error (account not authorized).
+- Pending migration: 0063_user_soft_delete.sql.

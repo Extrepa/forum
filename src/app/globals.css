@@ -1932,6 +1932,51 @@ textarea {
   gap: 6px;
 }
 
+.admin-actions-menu {
+  position: relative;
+}
+
+.admin-actions-menu summary {
+  list-style: none;
+}
+
+.admin-actions-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-actions-menu-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(8, 14, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.admin-actions-menu-list button,
+.admin-actions-menu-list a,
+.admin-actions-menu-list select {
+  width: 100%;
+}
+
+.admin-menu-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-row--deleted {
+  opacity: 0.6;
+}
+
 .admin-drawer-overlay {
   position: fixed;
   inset: 0;

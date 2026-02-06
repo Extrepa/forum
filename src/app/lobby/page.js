@@ -222,13 +222,23 @@ export default async function LobbyPage({ searchParams }) {
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   const userId = user.id;
+  let excludeShitpostsClause = '';
+  try {
+    const columns = await db.prepare("PRAGMA table_info('forum_threads')").all();
+    const hasShitpost = (columns?.results || []).some((col) => col.name === 'is_shitpost');
+    if (hasShitpost) {
+      excludeShitpostsClause = ' AND (forum_threads.is_shitpost = 0 OR forum_threads.is_shitpost IS NULL)';
+    }
+  } catch (e) {
+    excludeShitpostsClause = '';
+  }
 
   // Get announcements (admin-authored threads, or is_announcement = 1)
   let announcements = [];
   try {
     announcements = await getThreadsWithMetadata(
       db,
-      `WHERE (users.role = 'admin' OR forum_threads.is_announcement = 1) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      `WHERE (users.role = 'admin' OR forum_threads.is_announcement = 1) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')${excludeShitpostsClause}`,
       'forum_threads.created_at DESC',
       10,
       userId,
@@ -244,7 +254,7 @@ export default async function LobbyPage({ searchParams }) {
   try {
     stickies = await getThreadsWithMetadata(
       db,
-      `WHERE forum_threads.is_pinned = 1 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      `WHERE forum_threads.is_pinned = 1 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')${excludeShitpostsClause}`,
       'last_activity_at DESC',
       20,
       userId,
@@ -260,7 +270,7 @@ export default async function LobbyPage({ searchParams }) {
   try {
     threads = await getThreadsWithMetadata(
       db,
-      `WHERE forum_threads.is_pinned = 0 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')`,
+      `WHERE forum_threads.is_pinned = 0 AND (users.role != 'admin' AND (forum_threads.is_announcement = 0 OR forum_threads.is_announcement IS NULL)) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')${excludeShitpostsClause}`,
       'last_activity_at DESC',
       50,
       userId,
@@ -270,18 +280,18 @@ export default async function LobbyPage({ searchParams }) {
     // Fallback if query fails - try simpler query without new columns
     try {
       const out = await db
-        .prepare(
-          `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
-                  forum_threads.created_at, forum_threads.image_key,
-                  users.username AS author_name,
-                  (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
-           FROM forum_threads
-           JOIN users ON users.id = forum_threads.author_user_id
-           WHERE (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
-           ORDER BY forum_threads.created_at DESC
-           LIMIT 50`
-        )
-        .all();
+          .prepare(
+            `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
+                    forum_threads.created_at, forum_threads.image_key,
+                    users.username AS author_name,
+                    (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
+             FROM forum_threads
+             JOIN users ON users.id = forum_threads.author_user_id
+             WHERE (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')${excludeShitpostsClause}
+             ORDER BY forum_threads.created_at DESC
+             LIMIT 50`
+          )
+          .all();
         threads = (out?.results || []).map(t => ({
           ...t,
           views: 0,
@@ -304,6 +314,7 @@ export default async function LobbyPage({ searchParams }) {
                     (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
              FROM forum_threads
              JOIN users ON users.id = forum_threads.author_user_id
+             ${excludeShitpostsClause ? `WHERE ${excludeShitpostsClause.replace(/^ AND /, '')}` : ''}
              ORDER BY forum_threads.created_at DESC
              LIMIT 50`
           )

@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../lib/auth';
 import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
+import { logAdminAction } from '../../../../lib/audit';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -123,6 +124,15 @@ export async function POST(request, { params }) {
         .bind(title, body, Date.now(), params.id)
         .run();
     }
+  }
+
+  if (isAdminUser(user)) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'edit_post',
+      targetType: 'dev_log',
+      targetId: params.id
+    });
   }
 
   return NextResponse.redirect(redirectUrl, 303);

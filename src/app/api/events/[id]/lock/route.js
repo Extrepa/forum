@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -38,6 +39,15 @@ export async function POST(request, { params }) {
       .prepare('UPDATE events SET is_locked = ? WHERE id = ?')
       .bind(locked, params.id)
       .run();
+    if (isAdminUser(user)) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: 'toggle_lock',
+        targetType: 'event',
+        targetId: id,
+        metadata: { locked: locked === 1 }
+      });
+    }
   } catch (e) {
     // Column doesn't exist yet - that's okay, just skip the update
     // In the future, a migration will add this column

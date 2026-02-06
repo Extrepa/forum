@@ -13,19 +13,26 @@ export async function getSessionUserWithRole() {
   const db = await getDb();
   try {
     const user = await db
-      .prepare('SELECT id, username, role, ui_lore_enabled, ui_color_mode, ui_border_color, ui_invert_colors FROM users WHERE session_token = ?')
+      .prepare('SELECT id, username, role, ui_lore_enabled, ui_color_mode, ui_border_color, ui_invert_colors, is_deleted FROM users WHERE session_token = ?')
       .bind(token)
       .first();
     if (user) {
+      if (user.is_deleted) {
+        return null;
+      }
       return user;
     }
     try {
-      return await db
+      const adminUser = await db
         .prepare(
-          'SELECT users.id, users.username, users.role, users.ui_lore_enabled, users.ui_color_mode, users.ui_border_color, users.ui_invert_colors FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?'
+          'SELECT users.id, users.username, users.role, users.ui_lore_enabled, users.ui_color_mode, users.ui_border_color, users.ui_invert_colors, users.is_deleted FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?'
         )
         .bind(token)
         .first();
+      if (adminUser && adminUser.is_deleted) {
+        return null;
+      }
+      return adminUser;
     } catch (e2) {
       return null;
     }

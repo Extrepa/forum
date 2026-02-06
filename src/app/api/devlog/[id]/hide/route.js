@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -39,6 +40,15 @@ export async function POST(request, { params }) {
       .prepare('UPDATE dev_logs SET is_hidden = ?, updated_at = ? WHERE id = ?')
       .bind(hidden, Date.now(), id)
       .run();
+    if (isAdmin) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: 'toggle_hidden',
+        targetType: 'dev_log',
+        targetId: id,
+        metadata: { hidden: hidden === 1 }
+      });
+    }
   } catch (e) {
     console.error('Error updating dev log hidden status (column may not exist yet):', e);
   }

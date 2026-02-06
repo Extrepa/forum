@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -61,6 +62,15 @@ export async function POST(request, { params }) {
       .prepare('UPDATE posts SET is_locked = ?, updated_at = ? WHERE id = ?')
       .bind(locked, Date.now(), id)
       .run();
+    if (isAdmin) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: 'toggle_lock',
+        targetType: 'post',
+        targetId: id,
+        metadata: { locked: locked === 1 }
+      });
+    }
   } catch (e) {
     // Column might not exist yet - that's okay, migration will add it
     console.error('Error updating post lock status (column may not exist yet):', e);

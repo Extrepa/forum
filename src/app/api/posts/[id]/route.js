@@ -6,6 +6,7 @@ import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 import { createMentionNotifications } from '../../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
+import { logAdminAction } from '../../../../lib/audit';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -151,6 +152,15 @@ export async function POST(request, { params }) {
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
+  }
+
+  if (isAdminUser(user) && existing.author_user_id !== user.id) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'edit_post',
+      targetType: 'post',
+      targetId: id
+    });
   }
 
   return NextResponse.redirect(redirectUrl, 303);

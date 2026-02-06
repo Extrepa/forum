@@ -24,17 +24,29 @@ export async function POST(request) {
   const isEmail = isProbablyEmail(identifierRaw);
   const identifier = isEmail ? normalizeEmail(identifierRaw) : normalizeUsername(identifierRaw);
 
-  const user = await db
-    .prepare(
-      isEmail
-        ? 'SELECT id, username, role, email, password_hash FROM users WHERE email_norm = ?'
-        : 'SELECT id, username, role, email, password_hash FROM users WHERE username_norm = ?'
-    )
-    .bind(identifier)
-    .first();
+  let user = null;
+  try {
+    user = await db
+      .prepare(
+        isEmail
+          ? 'SELECT id, username, role, email, password_hash, is_deleted FROM users WHERE email_norm = ?'
+          : 'SELECT id, username, role, email, password_hash, is_deleted FROM users WHERE username_norm = ?'
+      )
+      .bind(identifier)
+      .first();
+  } catch (e) {
+    user = await db
+      .prepare(
+        isEmail
+          ? 'SELECT id, username, role, email, password_hash FROM users WHERE email_norm = ?'
+          : 'SELECT id, username, role, email, password_hash FROM users WHERE username_norm = ?'
+      )
+      .bind(identifier)
+      .first();
+  }
 
   // Avoid leaking which identifier exists
-  if (!user || !user.password_hash) {
+  if (!user || !user.password_hash || user.is_deleted) {
     return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
   }
 

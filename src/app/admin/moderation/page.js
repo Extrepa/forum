@@ -28,17 +28,24 @@ export default async function ModerationPage({ searchParams }) {
       <Breadcrumbs
         items={[
           { href: '/', label: 'Home' },
-          { href: '/admin/moderation', label: 'Moderation' },
+          { href: '/admin', label: 'Admin' },
+          { href: '/admin/moderation', label: 'Moderation' }
         ]}
       />
 
       <section className="card">
         <h2 className="section-title">Moderation</h2>
         <p className="muted">Move content between sections. Old URLs will redirect automatically after moves.</p>
+        <p className="muted" style={{ marginTop: '6px' }}>
+          Need the mod queue? Use the Admin Console Reports tab for open reports and triage.
+        </p>
         <p className="muted" style={{ marginTop: '8px' }}>
           Note: Moving requires the D1 migration `migrations/0012_move_system.sql` to be applied.
         </p>
         {notice ? <div className="notice">{notice}</div> : null}
+        <a className="action-button" href="/admin" style={{ marginTop: '12px', alignSelf: 'flex-start' }}>
+          Back to Admin Console
+        </a>
       </section>
 
       <section className="card">
@@ -49,7 +56,7 @@ export default async function ModerationPage({ searchParams }) {
         </p>
         <form action="/api/admin/settings/image-upload" method="post" className="stack" style={{ gap: '12px' }}>
           <input type="hidden" name="enabled" value={imageUploadsEnabled ? '0' : '1'} />
-          <button type="submit">
+          <button type="submit" title="Toggle image uploads for all post forms">
             {imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads'}
           </button>
         </form>

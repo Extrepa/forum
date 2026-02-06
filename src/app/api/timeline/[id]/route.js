@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../lib/auth';
 import { isAdminUser } from '../../../../lib/admin';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
+import { logAdminAction } from '../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -75,6 +76,15 @@ export async function POST(request, { params }) {
     .prepare('UPDATE timeline_updates SET title = ?, body = ?, image_key = ?, updated_at = ? WHERE id = ?')
     .bind(title, body, imageKey, Date.now(), id)
     .run();
+
+  if (isAdmin) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'edit_post',
+      targetType: 'timeline_update',
+      targetId: id
+    });
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

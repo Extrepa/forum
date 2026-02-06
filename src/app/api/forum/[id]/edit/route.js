@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
+import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -48,6 +49,14 @@ export async function POST(request, { params }) {
     .prepare('UPDATE forum_threads SET title = ?, body = ?, updated_at = ? WHERE id = ?')
     .bind(title, body, Date.now(), id)
     .run();
+  if (isAdmin) {
+    await logAdminAction({
+      adminUserId: user.id,
+      actionType: 'edit_post',
+      targetType: 'forum_thread',
+      targetId: id
+    });
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }
