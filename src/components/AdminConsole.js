@@ -40,6 +40,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [drawerUser, setDrawerUser] = useState(null);
   const [showDeletedPosts, setShowDeletedPosts] = useState(false);
   const [showDeletedUsers, setShowDeletedUsers] = useState(false);
+  const [openPostMenuId, setOpenPostMenuId] = useState(null);
+  const [openUserMenuId, setOpenUserMenuId] = useState(null);
   const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -86,6 +88,21 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
 
   const updatePost = (id, data) => {
     setPostList((prev) => prev.map((post) => (post.id === id ? { ...post, ...data } : post)));
+  };
+
+  const togglePostMenu = (id) => {
+    setOpenUserMenuId(null);
+    setOpenPostMenuId((current) => (current === id ? null : id));
+  };
+
+  const toggleUserMenu = (id) => {
+    setOpenPostMenuId(null);
+    setOpenUserMenuId((current) => (current === id ? null : id));
+  };
+
+  const closeMenus = () => {
+    setOpenPostMenuId(null);
+    setOpenUserMenuId(null);
   };
 
   const handleTogglePin = async (post) => {
@@ -229,6 +246,27 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     }
   };
 
+  const handleRestorePost = async (post) => {
+    setBusyPost(post.id);
+    try {
+      const response = await fetch(`/api/admin/posts/${post.id}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: post.type })
+      });
+      if (!response.ok) {
+        throw new Error('Restore failed');
+      }
+      updatePost(post.id, { isDeleted: false });
+      setStatusMessage('Post restored.');
+    } catch (error) {
+      console.error(error);
+      setStatusMessage('Restore failed.');
+    } finally {
+      setBusyPost(null);
+    }
+  };
+
   const overviewStats = [
     { label: 'Total users', value: stats.totalUsers || 0, helper: 'All accounts' },
     { label: 'Active (24h)', value: stats.active24h || 0 },
@@ -342,7 +380,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <button
                   type="button"
                   className="button ghost"
-                  onClick={() => setShowDeletedPosts((value) => !value)}
+                  onClick={() => {
+                    closeMenus();
+                    setShowDeletedPosts((value) => !value);
+                  }}
                   title="Toggle deleted items visibility"
                 >
                   {showDeletedPosts ? 'Hide deleted' : 'Show deleted'}
@@ -391,32 +432,96 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                         </div>
                       </td>
                       <td>
-                        <details className="admin-actions-menu">
-                          <summary className="button ghost mini" title="Post actions">Actions ▾</summary>
+                        <details className="admin-actions-menu" open={openPostMenuId === post.id}>
+                          <summary
+                            className="button ghost mini"
+                            title="Post actions"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              togglePostMenu(post.id);
+                            }}
+                          >
+                            Actions ▾
+                          </summary>
                           <div className="admin-actions-menu-list">
                             <button
                               type="button"
-                              onClick={() => handleTogglePin(post)}
+                              onClick={() => {
+                                closeMenus();
+                                handleTogglePin(post);
+                              }}
                               disabled={busyPost === post.id || post.isDeleted}
                               title="Pin or unpin this post"
                             >
                               {post.isPinned ? 'Unpin' : 'Pin'}
                             </button>
-                            <button type="button" onClick={() => handleToggleHidden(post)} disabled={busyPost === post.id || post.isDeleted} title="Hide or show this post">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                closeMenus();
+                                handleToggleHidden(post);
+                              }}
+                              disabled={busyPost === post.id || post.isDeleted}
+                              title="Hide or show this post"
+                            >
                               {post.isHidden ? 'Show' : 'Hide'}
                             </button>
-                            <button type="button" onClick={() => handleToggleLock(post)} disabled={busyPost === post.id || post.isDeleted} title="Lock or unlock comments">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                closeMenus();
+                                handleToggleLock(post);
+                              }}
+                              disabled={busyPost === post.id || post.isDeleted}
+                              title="Lock or unlock comments"
+                            >
                               {post.isLocked ? 'Unlock' : 'Lock'}
                             </button>
-                            <button type="button" onClick={() => setDrawerPost(post)} disabled={!post.editHref || post.isDeleted} title="Edit this post">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                closeMenus();
+                                setDrawerPost(post);
+                              }}
+                              disabled={!post.editHref || post.isDeleted}
+                              title="Edit this post"
+                            >
                               Edit
                             </button>
                             {post.deleteHref ? (
-                              <button type="button" onClick={() => handleDeletePost(post)} disabled={busyPost === post.id || post.isDeleted} title="Soft delete this post">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  closeMenus();
+                                  handleDeletePost(post);
+                                }}
+                                disabled={busyPost === post.id || post.isDeleted}
+                                title="Soft delete this post"
+                              >
                                 Delete
                               </button>
                             ) : null}
-                            <a className="button mini ghost" href={post.viewHref || `/lobby/${post.id}`} target="_blank" rel="noreferrer" title="View post in new tab">
+                            {post.isDeleted ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  closeMenus();
+                                  handleRestorePost(post);
+                                }}
+                                disabled={busyPost === post.id}
+                                title="Restore this post"
+                              >
+                                Restore
+                              </button>
+                            ) : null}
+                            <a
+                              className="button mini ghost"
+                              href={post.viewHref || `/lobby/${post.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="View post in new tab"
+                              onClick={closeMenus}
+                            >
                               View
                             </a>
                           </div>
@@ -449,7 +554,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <button
                   type="button"
                   className="button ghost"
-                  onClick={() => setShowDeletedUsers((value) => !value)}
+                  onClick={() => {
+                    closeMenus();
+                    setShowDeletedUsers((value) => !value);
+                  }}
                   title="Toggle deleted users visibility"
                 >
                   {showDeletedUsers ? 'Hide deleted' : 'Show deleted'}
@@ -482,13 +590,36 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                       <td>{member.postsCount ?? 0}</td>
                       <td>{member.commentsCount ?? 0}</td>
                       <td>
-                        <details className="admin-actions-menu">
-                          <summary className="button ghost mini" title="User actions">Actions ▾</summary>
+                        <details className="admin-actions-menu" open={openUserMenuId === member.id}>
+                          <summary
+                            className="button ghost mini"
+                            title="User actions"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              toggleUserMenu(member.id);
+                            }}
+                          >
+                            Actions ▾
+                          </summary>
                           <div className="admin-actions-menu-list">
-                            <a className="button mini ghost" href={`/profile/${member.username}`} target="_blank" rel="noreferrer" title="Open public profile">
+                            <a
+                              className="button mini ghost"
+                              href={`/profile/${member.username}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open public profile"
+                              onClick={closeMenus}
+                            >
                               View profile
                             </a>
-                            <button type="button" onClick={() => setDrawerUser(member)} title="Open user details drawer">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                closeMenus();
+                                setDrawerUser(member);
+                              }}
+                              title="Open user details drawer"
+                            >
                               Details
                             </button>
                             <label className="admin-menu-label">
@@ -504,7 +635,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 <option value="admin">Admin</option>
                               </select>
                             </label>
-                            <button type="button" onClick={() => handleDeleteUser(member)} disabled={member.isDeleted} title="Anonymize and delete this account">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                closeMenus();
+                                handleDeleteUser(member);
+                              }}
+                              disabled={member.isDeleted}
+                              title="Anonymize and delete this account"
+                            >
                               Delete account
                             </button>
                           </div>

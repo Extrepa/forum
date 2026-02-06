@@ -10,7 +10,6 @@ import {
   renderTemplateParts
 } from '../lib/forum-texts';
 import HomeWelcome from '../components/HomeWelcome';
-import HomeStats from '../components/HomeStats';
 import HomeSectionCard from '../components/HomeSectionCard';
 
 export const dynamic = 'force-dynamic';
@@ -625,97 +624,6 @@ export default async function HomePage({ searchParams }) {
   };
 }
 
-// Calculate stats and recent posts for signed-in users (parallelized for CPU limit)
-let stats = null;
-if (hasUsername && sectionData) {
-  const db = await getDb();
-  try {
-    const totalPosts =
-      (sectionData.timeline?.count || 0) +
-      (sectionData.forum?.count || 0) +
-      (sectionData.events?.count || 0) +
-      (sectionData.music?.count || 0) +
-      (sectionData.projects?.count || 0) +
-      (sectionData.shitposts?.count || 0) +
-      (sectionData.artNostalgia?.count || 0) +
-      (sectionData.bugsRant?.count || 0) +
-      (sectionData.devlog?.count || 0) +
-      (sectionData.loreMemories?.count || 0);
-
-    const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
-    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-
-    const safeCount = async (sql, binds = []) => {
-      try {
-        const stmt = db.prepare(sql);
-        const bound = binds.length ? stmt.bind(...binds) : stmt;
-        const row = await bound.first();
-        return Number(row?.count) || 0;
-      } catch (e) {
-        return 0;
-      }
-    };
-
-    const [
-      totalUsersCount,
-      activeUsersCount,
-      forumPosts24,
-      eventPosts24,
-      musicPosts24,
-      projectPosts24,
-      devLogPosts24,
-      timelinePosts24,
-      sharedPosts24,
-      forumReplies24,
-      eventReplies24,
-      musicReplies24,
-      projectReplies24,
-      devLogReplies24,
-      timelineReplies24,
-      sharedReplies24
-    ] = await Promise.all([
-      safeCount('SELECT COUNT(*) as count FROM users'),
-      safeCount('SELECT COUNT(*) as count FROM users WHERE last_seen IS NOT NULL AND last_seen > ?', [fiveMinutesAgo]),
-      safeCount('SELECT COUNT(*) as count FROM forum_threads WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM events WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM music_posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM projects WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM dev_logs WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM timeline_updates WHERE created_at > ?', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM posts WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM forum_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM event_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM music_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM project_replies WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM dev_log_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM timeline_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours]),
-      safeCount('SELECT COUNT(*) as count FROM post_comments WHERE created_at > ? AND (is_deleted = 0 OR is_deleted IS NULL)', [last24Hours])
-    ]);
-
-    const recentPostsCount = forumPosts24 + eventPosts24 + musicPosts24 + projectPosts24 + devLogPosts24 + timelinePosts24 + sharedPosts24;
-    const recentRepliesCount = forumReplies24 + eventReplies24 + musicReplies24 + projectReplies24 + devLogReplies24 + timelineReplies24 + sharedReplies24;
-
-    stats = {
-      totalPosts,
-      totalUsers: totalUsersCount,
-      activeUsers: activeUsersCount,
-      recentPostsCount,
-      recentRepliesCount,
-      recentActivity: recentPostsCount + recentRepliesCount
-    };
-    } catch (e) {
-      // Fallback if queries fail
-      stats = {
-        totalPosts: 0,
-        totalUsers: 0,
-        activeUsers: 0,
-        recentPostsCount: 0,
-        recentRepliesCount: 0,
-        recentActivity: 0
-      };
-    }
-  }
-
   // Collect all usernames from sectionData
   const allUsernames = [];
   
@@ -983,7 +891,6 @@ if (hasUsername && sectionData) {
       {hasUsername && (
         <>
           <HomeWelcome user={user} greetingParts={greetingParts} fallbackText={fallbackGreetingText} />
-          <HomeStats stats={stats} />
           <section className="card">
             <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
             <div className="list grid-tiles">

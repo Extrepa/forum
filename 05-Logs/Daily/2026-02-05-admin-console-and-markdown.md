@@ -84,3 +84,14 @@
 
 ## Preview migrations
 - 0063_user_soft_delete.sql applied successfully to preview with wrangler.
+
+## Admin console action/menu updates
+- Ensured only one action menu opens at a time (post/user menus are mutually exclusive).
+- Added restore action for deleted posts and a new admin restore API.
+- Added value-based glow styling for admin stat cards (mirrors the "cool color" effect request).
+
+## Homepage
+- Removed the HomeStats block and the heavy stats queries from the home page.
+
+## New API
+- `POST /api/admin/posts/[id]/restore` restores soft-deleted items by type.
