@@ -28,7 +28,7 @@ function formatDateInput(timestamp) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null, user }) {
+export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [postList, setPostList] = useState(posts);
   const [userList, setUserList] = useState(users);
@@ -122,6 +122,18 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const closeMenus = () => {
     setOpenPostMenu(null);
     setOpenUserMenu(null);
+  };
+
+  const handleJumpToAuditLog = () => {
+    setActiveTab('Overview');
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById('admin-actions');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
   };
 
   const handleTogglePin = async (post) => {
@@ -308,7 +320,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const quickActions = [
     { label: 'Create announcement', href: '/announcements', title: 'Create a new announcement post' },
     { label: 'Mod queue', href: '/admin?tab=reports', title: 'Open moderation queue' },
-    { label: 'Audit log', href: '/admin?tab=overview#admin-actions', title: 'Jump to recent admin actions' },
+    { label: 'Audit log', action: handleJumpToAuditLog, title: 'Jump to recent admin actions' },
     { label: 'Backup status', href: '/admin/backups', title: 'Review backup status and workflows' }
   ];
 
@@ -318,13 +330,18 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         <div>
           <p className="muted" style={{ marginBottom: '6px' }}>Admin Console</p>
           <h1 className="section-title" style={{ marginBottom: 0 }}>Mission Control</h1>
-          {user?.username ? <p className="muted" style={{ marginBottom: 0 }}>Signed in as {user.username}</p> : null}
         </div>
         <div className="admin-header-actions">
           {quickActions.map((action) => (
-            <a key={action.label} className="action-button admin-quick-action" href={action.href} title={action.title}>
-              {action.label}
-            </a>
+            action.href ? (
+              <a key={action.label} className="action-button admin-quick-action" href={action.href} title={action.title}>
+                {action.label}
+              </a>
+            ) : (
+              <button key={action.label} type="button" className="action-button admin-quick-action" onClick={action.action} title={action.title}>
+                {action.label}
+              </button>
+            )
           ))}
         </div>
       </section>

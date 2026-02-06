@@ -2054,7 +2054,16 @@ textarea {
 .admin-media-card-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.admin-media-card-actions .button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: center;
 }
 
 .admin-drawer-overlay {
