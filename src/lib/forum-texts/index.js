@@ -1,14 +1,6 @@
 import { errlForumStrings } from './strings';
 
 export { errlForumStrings };
-export {
-  formatTemplate,
-  getTimeBasedGreeting,
-  getTimeBasedGreetingTemplate,
-  getTimeOfDay,
-  pick,
-  renderTemplateParts
-} from './variations';
 
 export function isLoreEnabled() {
   return process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
@@ -38,4 +30,3 @@ export function getEasterEgg({ useLore = isLoreEnabled(), date = new Date() } = 
   const seed = date.getDate() + date.getMonth() * 31 + date.getFullYear() * 366 + (useLore ? 7 : 0);
   return eggs[Math.abs(seed) % eggs.length] || null;
 }
-

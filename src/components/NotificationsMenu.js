@@ -2,7 +2,6 @@
 
 import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUsernameColorIndex } from '../lib/usernameColor';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
@@ -93,7 +92,6 @@ export default function NotificationsMenu({
 }) {
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState(null);
-  const [preferredColorIndex, setPreferredColorIndex] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [signingOut, setSigningOut] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState({});
@@ -111,10 +109,6 @@ export default function NotificationsMenu({
     }
   };
   
-  const usernameColorIndex = useMemo(() => {
-    if (!currentUsername) return null;
-    return getUsernameColorIndex(currentUsername, { preferredColorIndex });
-  }, [currentUsername, preferredColorIndex]);
   const title = useMemo(() => {
     if (unreadCount > 0) return `Notifications (${unreadCount})`;
     return 'Notifications';
@@ -132,7 +126,6 @@ export default function NotificationsMenu({
         .then(data => {
           if (data?.user?.username) {
             setCurrentUsername(data.user.username);
-            setPreferredColorIndex(data.user.preferredUsernameColorIndex ?? null);
           }
         })
         .catch(() => {
@@ -289,17 +282,8 @@ export default function NotificationsMenu({
       role="menu"
       aria-label={title}
     >
-      {/* Header: greeting (left) and sign out (right) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          {currentUsername ? (
-            <div style={{ fontSize: '17px', fontWeight: 700 }}>
-              Hey, <span className={usernameColorIndex !== null ? `username username--${usernameColorIndex}` : ''} style={{ color: usernameColorIndex === null ? 'inherit' : undefined }}>{currentUsername}</span>
-            </div>
-          ) : (
-            <div className="muted" style={{ fontSize: '12px' }}>Loading…</div>
-          )}
-        </div>
+      {/* Header controls */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
         <span
           role="button"
           tabIndex={signingOut ? -1 : 0}
@@ -477,7 +461,7 @@ export default function NotificationsMenu({
       {/* Notifications list - scrollable */}
       <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '120px', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
-          <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet. The goo is quiet.</div>
+          <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet.</div>
         ) : (
           <div className="list" style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)', overflow: 'hidden', background: 'rgba(2, 5, 10, 0.6)' }}>
             {items.map((n, index) => {
@@ -489,10 +473,10 @@ export default function NotificationsMenu({
               const actor = n.actor_username || 'Someone';
               if (n.type === 'welcome' && n.target_type === 'account') {
                 href = '/account';
-                label = 'Welcome! Click here to navigate to your account and check your notifications. Clicking the Errl logo in the header also opens this menu.';
+                label = 'Account setup';
               } else if (n.type === 'test' && n.target_type === 'system') {
                 href = '/account';
-                label = 'Test notification - system check';
+                label = 'System notification';
               } else if (n.type === 'admin_signup' && n.target_type === 'user') {
                 href = `/profile/${n.target_id}`;
                 label = `New user signed up: ${actor}`;

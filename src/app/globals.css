@@ -6604,11 +6604,6 @@ header::before {
     gap: 8px !important;
   }
   
-  .notifications-popover > div:first-child > div:last-child,
-  .notifications-popover-errl.notifications-popover > div:first-child > div:last-child {
-    flex-shrink: 0 !important;
-  }
-  
   /* Ensure content inside notifications popover doesn't overflow */
   .notifications-popover *,
   .notifications-popover-errl.notifications-popover * {
