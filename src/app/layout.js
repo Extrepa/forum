@@ -1,7 +1,6 @@
 import './globals.css';
 import { UiPrefsProvider } from '../components/UiPrefsProvider';
 import SiteHeader from '../components/SiteHeader';
-import NotificationTutorial from '../components/NotificationTutorial';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
 import { getEasterEgg, getForumStrings } from '../lib/forum-texts';
@@ -74,7 +73,6 @@ export default async function RootLayout({ children }) {
         >
           <div className="site">
             <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} user={user} />
-            <NotificationTutorial isSignedIn={isSignedIn} />
             <ActiveTimeTracker enabled={isSignedIn} />
             <main>{children}</main>
             <footer>
