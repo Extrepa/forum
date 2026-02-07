@@ -87,6 +87,22 @@ export async function POST(request, { params }) {
       updates.push('type = ?');
       values.push(nextSubtype);
     }
+    if (body.forumSection !== undefined && type === 'forum_thread') {
+      const nextForumSection = String(body.forumSection || '').trim().toLowerCase();
+      if (nextForumSection !== 'general' && nextForumSection !== 'shitposts') {
+        return NextResponse.json({ error: 'Invalid forum section' }, { status: 400 });
+      }
+      const columns = await db.prepare("PRAGMA table_info('forum_threads')").all();
+      const hasShitpostColumn = (columns?.results || []).some((column) => column.name === 'is_shitpost');
+      if (!hasShitpostColumn) {
+        if (nextForumSection === 'shitposts') {
+          return NextResponse.json({ error: 'Shitposts section is not available in this database yet' }, { status: 400 });
+        }
+      } else {
+        updates.push('is_shitpost = ?');
+        values.push(nextForumSection === 'shitposts' ? 1 : 0);
+      }
+    }
     if (updates.length > 0) {
       updates.push('edited_at = ?', 'updated_by_user_id = ?');
       values.push(now, user.id);

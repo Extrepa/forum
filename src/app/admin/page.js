@@ -278,6 +278,7 @@ async function loadRecentContent(db, limit = 30) {
         authorName: row.author_name,
         type: source.type,
         subtype: row.type || null,
+        isShitpost: Boolean(row.is_shitpost),
         isPinned: Boolean(row.is_pinned),
         isHidden: Boolean(row.is_hidden),
         isLocked: Boolean(row.is_locked),

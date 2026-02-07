@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import AdminStatCard from './AdminStatCard';
 
 const TAB_LIST = ['Overview', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
@@ -18,6 +17,7 @@ const STATUS_PILLS = {
 
 const CONTENT_MOVE_DESTINATIONS = [
   { value: 'forum_thread', label: 'General' },
+  { value: 'forum_thread_shitpost', label: 'Shitposts' },
   { value: 'timeline_update', label: 'Announcements' },
   { value: 'event', label: 'Events' },
   { value: 'music_post', label: 'Music' },
@@ -54,6 +54,36 @@ function formatDateInput(timestamp) {
   const date = new Date(timestamp);
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function mediaPreviewUrl(imageKey) {
+  const raw = String(imageKey || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw) || raw.startsWith('data:') || raw.startsWith('blob:')) {
+    return raw;
+  }
+  if (raw.startsWith('/')) {
+    return raw;
+  }
+  const encodedKey = raw
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  return `/api/media/${encodedKey}`;
+}
+
+function currentMoveDestination(post) {
+  if (!post) return '';
+  if (post.type === 'post') {
+    return post.subtype || '';
+  }
+  if (post.type === 'forum_thread') {
+    if (post.isShitpost || String(post.sectionLabel || '').toLowerCase() === 'shitposts') {
+      return 'forum_thread_shitpost';
+    }
+    return 'forum_thread';
+  }
+  return post.type || '';
 }
 
 export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null }) {
@@ -161,9 +191,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   };
 
   const openMoveDialog = (post) => {
+    const currentDestination = currentMoveDestination(post);
     const defaultDestination = post.type === 'post'
       ? (post.subtype && post.subtype !== 'art' ? 'art' : 'nostalgia')
-      : (CONTENT_MOVE_DESTINATIONS.find((option) => option.value !== post.type)?.value || '');
+      : (CONTENT_MOVE_DESTINATIONS.find((option) => option.value !== currentDestination)?.value || '');
     setMovePost(post);
     setMoveDestination(defaultDestination);
     setMoveStartsAt('');
@@ -391,10 +422,47 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         return;
       }
 
+      if (movePost.type === 'forum_thread' && (moveDestination === 'forum_thread' || moveDestination === 'forum_thread_shitpost')) {
+        const forumSection = moveDestination === 'forum_thread_shitpost' ? 'shitposts' : 'general';
+        const response = await fetch(`/api/admin/posts/${movePost.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'forum_thread',
+            forumSection
+          })
+        });
+        if (!response.ok) {
+          let errorMessage = 'Unable to move forum section';
+          try {
+            const payload = await response.json();
+            if (payload?.error) {
+              errorMessage = payload.error;
+            }
+          } catch (_) {
+            // ignore parse failures
+          }
+          throw new Error(errorMessage);
+        }
+        const updated = await response.json();
+        const label = forumSection === 'shitposts' ? 'Shitposts' : 'General';
+        updatePost(movePost, {
+          sectionLabel: label,
+          isShitpost: Boolean(updated?.is_shitpost)
+        });
+        setStatusMessage(`Moved to ${label}.`);
+        closeMoveDialog();
+        return;
+      }
+
       const formData = new FormData();
       formData.append('source_type', movePost.type);
       formData.append('source_id', movePost.id);
-      formData.append('dest_type', moveDestination);
+      const destinationTypeForApi = moveDestination === 'forum_thread_shitpost' ? 'forum_thread' : moveDestination;
+      formData.append('dest_type', destinationTypeForApi);
+      if (moveDestination === 'forum_thread_shitpost') {
+        formData.append('forum_section', 'shitposts');
+      }
       if (moveDestination === 'event') {
         if (!moveStartsAt) {
           throw new Error('Start time is required for events.');
@@ -945,13 +1013,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <div className="admin-media-grid">
                   {media.recent.map((item) => (
                     <article key={item.key} className="admin-media-card">
-                      <a href={`/api/media/${item.imageKey}`} target="_blank" rel="noreferrer" title="Open image in new tab">
-                        <Image
-                          src={`/api/media/${item.imageKey}`}
+                      <a href={mediaPreviewUrl(item.imageKey)} target="_blank" rel="noreferrer" title="Open image in new tab">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={mediaPreviewUrl(item.imageKey)}
                           alt={item.title || item.label || 'Uploaded media'}
                           width={640}
                           height={360}
-                          sizes="(max-width: 900px) 100vw, 320px"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </a>
                       <div className="admin-media-card-body">
@@ -960,7 +1030,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                           {item.label || item.type} · {item.authorName || 'unknown'} · {formatTime(item.createdAt)}
                         </div>
                         <div className="admin-media-card-actions">
-                          <a className="button mini ghost" href={`/api/media/${item.imageKey}`} target="_blank" rel="noreferrer">
+                          <a className="button mini ghost" href={mediaPreviewUrl(item.imageKey)} target="_blank" rel="noreferrer">
                             View image
                           </a>
                           {item.viewHref ? (
@@ -1158,7 +1228,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))
                     : CONTENT_MOVE_DESTINATIONS
-                        .filter((option) => option.value !== movePost.type)
+                        .filter((option) => option.value !== currentMoveDestination(movePost))
                         .map((option) => (
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}

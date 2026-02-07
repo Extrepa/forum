@@ -316,12 +316,31 @@ async function createDestination(db, { destType, sourceType, source, extra }) {
         : sourceType === 'music_post'
         ? `Source: ${source.url}\n\n${source.body || ''}`.trim()
         : source.body || '';
-    await db
-      .prepare(
-        'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, updated_at, is_locked, is_pinned, image_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-      )
-      .bind(id, source.author_user_id, title, body, now, null, 0, 0, source.image_key || null)
-      .run();
+    const forumSection = String(extra.forum_section || '').trim().toLowerCase();
+    const isShitpost = forumSection === 'shitposts' ? 1 : 0;
+    if (isShitpost) {
+      try {
+        await db
+          .prepare(
+            'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, updated_at, is_locked, is_pinned, image_key, is_shitpost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          )
+          .bind(id, source.author_user_id, title, body, now, null, 0, 0, source.image_key || null, 1)
+          .run();
+      } catch (e) {
+        const message = String(e?.message || e);
+        if (message.includes('is_shitpost')) {
+          throw new Error('shitposts_not_available');
+        }
+        throw e;
+      }
+    } else {
+      await db
+        .prepare(
+          'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, updated_at, is_locked, is_pinned, image_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        )
+        .bind(id, source.author_user_id, title, body, now, null, 0, 0, source.image_key || null)
+        .run();
+    }
     return id;
   }
 
@@ -470,6 +489,7 @@ export async function POST(request) {
     type: formData.get('type'),
     tags: formData.get('tags'),
     status: formData.get('status'),
+    forum_section: formData.get('forum_section'),
   };
 
   let destId;
@@ -494,4 +514,3 @@ export async function POST(request) {
   const to = destPathFor(destType, destId);
   return NextResponse.redirect(new URL(to || '/', request.url), 303);
 }
-
