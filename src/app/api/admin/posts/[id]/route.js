@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
-import { CONTENT_TYPE_KEYS, contentTypeTable } from '../../../../../lib/contentTypes';
+import { CONTENT_TYPE_KEYS, contentTypeTable, isValidPostType } from '../../../../../lib/contentTypes';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -78,6 +78,14 @@ export async function POST(request, { params }) {
     if (body.details !== undefined && type === 'event') {
       updates.push('details = ?');
       values.push(String(body.details ?? ''));
+    }
+    if (body.postSubtype !== undefined && type === 'post') {
+      const nextSubtype = String(body.postSubtype || '').trim().toLowerCase();
+      if (!isValidPostType(nextSubtype)) {
+        return NextResponse.json({ error: 'Invalid post subtype' }, { status: 400 });
+      }
+      updates.push('type = ?');
+      values.push(nextSubtype);
     }
     if (updates.length > 0) {
       updates.push('edited_at = ?', 'updated_by_user_id = ?');

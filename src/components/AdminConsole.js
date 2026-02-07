@@ -16,6 +16,33 @@ const STATUS_PILLS = {
   locked: 'LOCKED'
 };
 
+const CONTENT_MOVE_DESTINATIONS = [
+  { value: 'forum_thread', label: 'General' },
+  { value: 'timeline_update', label: 'Announcements' },
+  { value: 'event', label: 'Events' },
+  { value: 'music_post', label: 'Music' },
+  { value: 'project', label: 'Projects' },
+  { value: 'dev_log', label: 'Development' }
+];
+
+const POST_SECTION_DESTINATIONS = [
+  { value: 'art', label: 'Art' },
+  { value: 'nostalgia', label: 'Nostalgia' },
+  { value: 'bugs', label: 'Bugs' },
+  { value: 'rant', label: 'Rants' },
+  { value: 'lore', label: 'Lore' },
+  { value: 'memories', label: 'Memories' }
+];
+
+const POST_SUBTYPE_PATHS = {
+  art: '/art',
+  nostalgia: '/nostalgia',
+  bugs: '/bugs',
+  rant: '/rant',
+  lore: '/lore',
+  memories: '/memories'
+};
+
 function formatTime(timestamp) {
   if (!timestamp) return '—';
   const date = new Date(timestamp);
@@ -43,6 +70,14 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [showDeletedUsers, setShowDeletedUsers] = useState(false);
   const [openPostMenu, setOpenPostMenu] = useState(null);
   const [openUserMenu, setOpenUserMenu] = useState(null);
+  const [movePost, setMovePost] = useState(null);
+  const [moveDestination, setMoveDestination] = useState('');
+  const [moveStartsAt, setMoveStartsAt] = useState('');
+  const [moveMusicUrl, setMoveMusicUrl] = useState('');
+  const [moveMusicType, setMoveMusicType] = useState('song');
+  const [moveMusicTags, setMoveMusicTags] = useState('');
+  const [moveProjectStatus, setMoveProjectStatus] = useState('active');
+  const [moveBusy, setMoveBusy] = useState(false);
   const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
@@ -123,6 +158,30 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const closeMenus = () => {
     setOpenPostMenu(null);
     setOpenUserMenu(null);
+  };
+
+  const openMoveDialog = (post) => {
+    const defaultDestination = post.type === 'post'
+      ? (post.subtype && post.subtype !== 'art' ? 'art' : 'nostalgia')
+      : (CONTENT_MOVE_DESTINATIONS.find((option) => option.value !== post.type)?.value || '');
+    setMovePost(post);
+    setMoveDestination(defaultDestination);
+    setMoveStartsAt('');
+    setMoveMusicUrl('');
+    setMoveMusicType('song');
+    setMoveMusicTags('');
+    setMoveProjectStatus('active');
+  };
+
+  const closeMoveDialog = () => {
+    setMovePost(null);
+    setMoveDestination('');
+    setMoveStartsAt('');
+    setMoveMusicUrl('');
+    setMoveMusicType('song');
+    setMoveMusicTags('');
+    setMoveProjectStatus('active');
+    setMoveBusy(false);
   };
 
   const handleJumpToAuditLog = () => {
@@ -304,6 +363,89 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     }
   };
 
+  const handleMovePost = async () => {
+    if (!movePost || !moveDestination) return;
+    setMoveBusy(true);
+    try {
+      if (movePost.type === 'post') {
+        const response = await fetch(`/api/admin/posts/${movePost.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'post',
+            postSubtype: moveDestination
+          })
+        });
+        if (!response.ok) {
+          throw new Error('Unable to move post section');
+        }
+        const updated = await response.json();
+        const label = POST_SECTION_DESTINATIONS.find((entry) => entry.value === updated.type)?.label || 'Post';
+        updatePost(movePost, {
+          subtype: updated.type,
+          sectionLabel: label,
+          viewHref: `${POST_SUBTYPE_PATHS[updated.type] || '/posts'}/${movePost.id}`
+        });
+        setStatusMessage(`Moved to ${label}.`);
+        closeMoveDialog();
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('source_type', movePost.type);
+      formData.append('source_id', movePost.id);
+      formData.append('dest_type', moveDestination);
+      if (moveDestination === 'event') {
+        if (!moveStartsAt) {
+          throw new Error('Start time is required for events.');
+        }
+        formData.append('starts_at', moveStartsAt);
+      }
+      if (moveDestination === 'music_post') {
+        if (!moveMusicUrl.trim()) {
+          throw new Error('Music URL is required.');
+        }
+        if (!moveMusicType.trim()) {
+          throw new Error('Music type is required.');
+        }
+        formData.append('url', moveMusicUrl.trim());
+        formData.append('type', moveMusicType.trim());
+        if (moveMusicTags.trim()) {
+          formData.append('tags', moveMusicTags.trim());
+        }
+      }
+      if (moveDestination === 'project') {
+        formData.append('status', moveProjectStatus);
+      }
+
+      const response = await fetch('/api/admin/move', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        let errorMessage = 'Move failed.';
+        try {
+          const payload = await response.json();
+          if (payload?.error) {
+            errorMessage = `Move failed: ${payload.error}`;
+          }
+        } catch (_) {
+          // ignore parse failures
+        }
+        throw new Error(errorMessage);
+      }
+
+      const destinationLabel = CONTENT_MOVE_DESTINATIONS.find((entry) => entry.value === moveDestination)?.label || 'destination';
+      setPostList((prev) => prev.filter((postRow) => postKey(postRow) !== postKey(movePost)));
+      setStatusMessage(`Moved to ${destinationLabel}.`);
+      closeMoveDialog();
+    } catch (error) {
+      console.error(error);
+      setStatusMessage(error?.message || 'Move failed.');
+      setMoveBusy(false);
+    }
+  };
+
   const overviewStats = [
     { label: 'Total users', value: stats.totalUsers || 0, helper: 'All accounts' },
     { label: 'Active (24h)', value: stats.active24h || 0 },
@@ -410,7 +552,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <h3 className="section-title">Posts control center</h3>
                 <p className="muted" title="All forum content types are consolidated here.">Search, pin, hide, lock, or edit posts across the forum.</p>
               </div>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div className="admin-posts-header-controls">
                 <input
                   type="text"
                   value={filter}
@@ -421,7 +563,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 />
                 <button
                   type="button"
-                  className="button ghost"
+                  className="button ghost admin-control-button"
                   onClick={() => {
                     closeMenus();
                     setShowDeletedPosts((value) => !value);
@@ -432,7 +574,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </button>
                 <button
                   type="button"
-                  className="button ghost"
+                  className="button ghost admin-control-button"
                   onClick={() => setFilter('')}
                   title="Clear search"
                 >
@@ -496,6 +638,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                               <>
                                 <button
                                   type="button"
+                                  className="admin-action-item"
                                   onClick={() => {
                                     closeMenus();
                                     handleTogglePin(post);
@@ -507,6 +650,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 </button>
                                 <button
                                   type="button"
+                                  className="admin-action-item"
                                   onClick={() => {
                                     closeMenus();
                                     handleToggleHidden(post);
@@ -518,6 +662,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 </button>
                                 <button
                                   type="button"
+                                  className="admin-action-item"
                                   onClick={() => {
                                     closeMenus();
                                     handleToggleLock(post);
@@ -529,6 +674,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 </button>
                                 <button
                                   type="button"
+                                  className="admin-action-item"
                                   onClick={() => {
                                     closeMenus();
                                     setDrawerPost(post);
@@ -540,9 +686,23 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 </button>
                               </>
                             ) : null}
+                            {!post.isDeleted ? (
+                              <button
+                                type="button"
+                                className="admin-action-item"
+                                onClick={() => {
+                                  closeMenus();
+                                  openMoveDialog(post);
+                                }}
+                                title="Move this post to another section"
+                              >
+                                Move section
+                              </button>
+                            ) : null}
                             {post.deleteHref && !post.isDeleted ? (
                               <button
                                 type="button"
+                                className="admin-action-item"
                                 onClick={() => {
                                   closeMenus();
                                   handleDeletePost(post);
@@ -556,6 +716,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                             {post.isDeleted ? (
                               <button
                                 type="button"
+                                className="admin-action-item"
                                 onClick={() => {
                                   closeMenus();
                                   handleRestorePost(post);
@@ -567,7 +728,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                               </button>
                             ) : null}
                             <a
-                              className="button mini ghost"
+                              className="button mini ghost admin-action-item"
                               href={post.viewHref || `/lobby/${post.id}`}
                               target="_blank"
                               rel="noreferrer"
@@ -595,7 +756,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <h3 className="section-title">Users</h3>
                 <p className="muted" title="Personal data is intentionally limited in this view.">Newest accounts and recent activity.</p>
               </div>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div className="admin-posts-header-controls">
                 <input
                   type="text"
                   value={userFilter}
@@ -606,7 +767,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 />
                 <button
                   type="button"
-                  className="button ghost"
+                  className="button ghost admin-control-button"
                   onClick={() => {
                     closeMenus();
                     setShowDeletedUsers((value) => !value);
@@ -659,7 +820,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                           </summary>
                           <div className="admin-actions-menu-list">
                             <a
-                              className="button mini ghost"
+                              className="button mini ghost admin-action-item"
                               href={`/profile/${member.username}`}
                               target="_blank"
                               rel="noreferrer"
@@ -670,6 +831,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                             </a>
                             <button
                               type="button"
+                              className="admin-action-item"
                               onClick={() => {
                                 closeMenus();
                                 setDrawerUser(member);
@@ -693,6 +855,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                             </label>
                             <button
                               type="button"
+                              className="admin-action-item"
                               onClick={() => {
                                 closeMenus();
                                 handleDeleteUser(member);
@@ -963,6 +1126,118 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
               <div className="muted" style={{ fontSize: '12px' }}>
                 Privacy note: email/phone/passwords are not shown here. Deleting an account anonymizes personal data.
               </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {movePost ? (
+        <div className="admin-drawer-overlay" onClick={closeMoveDialog}>
+          <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-header">
+              <h3 className="section-title">Move post</h3>
+              <button type="button" onClick={closeMoveDialog} className="icon-button" aria-label="Close drawer">
+                ×
+              </button>
+            </div>
+            <div className="stack admin-move-stack">
+              <p className="muted">
+                Moving <strong>{movePost.title}</strong> from <strong>{movePost.sectionLabel}</strong>.
+              </p>
+              <label>
+                <div className="muted">Destination</div>
+                <select
+                  value={moveDestination}
+                  onChange={(e) => setMoveDestination(e.target.value)}
+                  disabled={moveBusy}
+                >
+                  {movePost.type === 'post'
+                    ? POST_SECTION_DESTINATIONS
+                        .filter((option) => option.value !== movePost.subtype)
+                        .map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))
+                    : CONTENT_MOVE_DESTINATIONS
+                        .filter((option) => option.value !== movePost.type)
+                        .map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                </select>
+              </label>
+              {movePost.type !== 'post' && moveDestination === 'event' ? (
+                <label>
+                  <div className="muted">Event start (local time)</div>
+                  <input
+                    type="datetime-local"
+                    value={moveStartsAt}
+                    onChange={(e) => setMoveStartsAt(e.target.value)}
+                    required
+                    disabled={moveBusy}
+                  />
+                </label>
+              ) : null}
+              {movePost.type !== 'post' && moveDestination === 'music_post' ? (
+                <>
+                  <label>
+                    <div className="muted">Music URL</div>
+                    <input
+                      type="url"
+                      value={moveMusicUrl}
+                      onChange={(e) => setMoveMusicUrl(e.target.value)}
+                      placeholder="https://..."
+                      disabled={moveBusy}
+                    />
+                  </label>
+                  <label>
+                    <div className="muted">Music type</div>
+                    <input
+                      type="text"
+                      value={moveMusicType}
+                      onChange={(e) => setMoveMusicType(e.target.value)}
+                      placeholder="song, album, mix..."
+                      disabled={moveBusy}
+                    />
+                  </label>
+                  <label>
+                    <div className="muted">Tags (optional)</div>
+                    <input
+                      type="text"
+                      value={moveMusicTags}
+                      onChange={(e) => setMoveMusicTags(e.target.value)}
+                      placeholder="lofi, ambient"
+                      disabled={moveBusy}
+                    />
+                  </label>
+                </>
+              ) : null}
+              {movePost.type !== 'post' && moveDestination === 'project' ? (
+                <label>
+                  <div className="muted">Project status</div>
+                  <select
+                    value={moveProjectStatus}
+                    onChange={(e) => setMoveProjectStatus(e.target.value)}
+                    disabled={moveBusy}
+                  >
+                    <option value="active">Active</option>
+                    <option value="on-hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+              ) : null}
+              <div className="admin-drawer-actions">
+                <button type="button" onClick={handleMovePost} disabled={moveBusy || !moveDestination}>
+                  {moveBusy ? 'Moving...' : 'Move now'}
+                </button>
+                <button type="button" className="button ghost" onClick={closeMoveDialog} disabled={moveBusy}>
+                  Cancel
+                </button>
+              </div>
+              <p className="muted admin-move-help">
+                {movePost.type === 'post'
+                  ? 'This keeps the same post and updates its section.'
+                  : 'This creates destination content, migrates discussion, and marks the source as moved.'}
+              </p>
             </div>
           </div>
         </div>

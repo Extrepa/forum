@@ -1773,7 +1773,11 @@ textarea {
 .admin-console {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+}
+
+.admin-console .card {
+  height: auto;
 }
 
 .admin-header-bar {
@@ -1783,7 +1787,7 @@ textarea {
   gap: 12px;
   background: rgba(10, 20, 32, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 16px;
+  padding: 14px 16px;
   border-radius: 18px;
   backdrop-filter: blur(18px);
 }
@@ -1796,25 +1800,30 @@ textarea {
 }
 
 .admin-header-actions .admin-quick-action {
-  min-height: 36px;
+  min-height: 34px;
   padding: 6px 12px;
   font-size: 12px;
+  min-width: 108px;
+  line-height: 1;
 }
 
 .admin-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .admin-tab {
-  padding: 6px 14px;
+  min-height: 34px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: transparent;
   color: inherit;
   cursor: pointer;
   font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .admin-tab--active {
@@ -1825,7 +1834,7 @@ textarea {
 .admin-tab-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .admin-stat-grid {
@@ -1921,14 +1930,34 @@ textarea {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-posts-header-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .admin-search-input {
   background: rgba(2, 7, 10, 0.5);
   border: 1px solid rgba(52, 225, 255, 0.25);
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 8px 14px;
   color: inherit;
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.admin-control-button {
+  min-width: 88px;
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
 }
 
 .admin-posts-table-wrapper {
@@ -1974,6 +2003,11 @@ textarea {
 
 .admin-actions-menu summary {
   list-style: none;
+  min-width: 86px;
+  min-height: 34px;
+  font-size: 11px;
+  line-height: 1;
+  padding: 6px 8px;
 }
 
 .admin-actions-menu summary::-webkit-details-marker {
@@ -1985,7 +2019,7 @@ textarea {
   top: calc(100% + 8px);
   right: 0;
   z-index: 20;
-  min-width: 160px;
+  min-width: 150px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2006,6 +2040,15 @@ textarea {
 .admin-actions-menu-list a,
 .admin-actions-menu-list select {
   width: 100%;
+}
+
+.admin-action-item {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: clamp(10px, 1.1vw, 11px);
+  line-height: 1.05;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .admin-menu-label {
@@ -2086,6 +2129,20 @@ textarea {
   padding: 16px;
 }
 
+.admin-move-stack {
+  gap: 10px;
+}
+
+.admin-drawer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-move-help {
+  font-size: 12px;
+}
+
 .drawer-header {
   display: flex;
   justify-content: space-between;
@@ -2106,6 +2163,19 @@ textarea {
   .admin-header-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+  .admin-posts-header-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .admin-search-input {
+    width: min(280px, 100%);
+  }
+  .admin-control-button {
+    min-width: 84px;
+  }
+  .admin-actions-menu summary {
+    min-width: 78px;
   }
   .admin-posts-table th,
   .admin-posts-table td {
