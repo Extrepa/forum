@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import AdminStatCard from './AdminStatCard';
 
-const TAB_LIST = ['Overview', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
+const TAB_LIST = ['Overview', 'System Log', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
 const TAB_LOOKUP = TAB_LIST.reduce((acc, tab) => {
   acc[tab.toLowerCase()] = tab;
   return acc;
@@ -64,6 +64,80 @@ function formatDateInput(timestamp) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function formatLogClock(timestamp) {
+  if (!timestamp) return '--:--:--';
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour12: false });
+}
+
+function formatActionLabel(value) {
+  return String(value || '').replace(/_/g, ' ').trim();
+}
+
+function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [], reports = [] }) {
+  const bootTime = Date.now();
+  const entries = [
+    {
+      id: `system-boot-${bootTime}`,
+      createdAt: bootTime,
+      level: 'info',
+      source: 'system',
+      message: 'System initialized. Welcome to Errl UI.'
+    },
+    {
+      id: 'system-snapshot',
+      createdAt: bootTime - 1,
+      level: 'info',
+      source: 'stats',
+      message: `Snapshot loaded: ${stats.totalUsers || 0} users, ${stats.active24h || 0} active (24h), ${stats.flaggedItems || 0} flagged.`
+    }
+  ];
+
+  if (reports.length > 0) {
+    entries.push({
+      id: 'system-reports-open',
+      createdAt: bootTime - 2,
+      level: 'warn',
+      source: 'reports',
+      message: `${reports.length} open ${reports.length === 1 ? 'report' : 'reports'} in moderation queue.`
+    });
+  }
+
+  actions.forEach((action) => {
+    entries.push({
+      id: `audit-${action.id}`,
+      createdAt: Number(action.created_at || 0) || bootTime,
+      level: 'info',
+      source: 'audit',
+      message: `${action.admin_username || 'Admin'} ${formatActionLabel(action.action_type)} ${formatActionLabel(action.target_type)}${action.target_id ? ` (${action.target_id})` : ''}.`
+    });
+  });
+
+  posts.slice(0, 6).forEach((post) => {
+    entries.push({
+      id: `post-${post.type}-${post.id}`,
+      createdAt: Number(post.createdAt || 0) || bootTime,
+      level: 'info',
+      source: 'content',
+      message: `Content published in ${post.sectionLabel || post.type}: ${post.title}.`
+    });
+  });
+
+  users.slice(0, 4).forEach((member) => {
+    entries.push({
+      id: `user-${member.id}`,
+      createdAt: Number(member.createdAt || 0) || bootTime,
+      level: 'info',
+      source: 'users',
+      message: `Account observed: ${member.username} (${member.role || 'user'}).`
+    });
+  });
+
+  return entries
+    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
+    .slice(0, 120);
+}
+
 function mediaPreviewUrl(imageKey) {
   const raw = String(imageKey || '').trim();
   if (!raw) return '';
@@ -116,6 +190,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [moveMusicTags, setMoveMusicTags] = useState('');
   const [moveProjectStatus, setMoveProjectStatus] = useState('active');
   const [moveBusy, setMoveBusy] = useState(false);
+  const [systemLogEntries, setSystemLogEntries] = useState(() => buildSystemLogEntries({ stats, actions, posts, users, reports }));
   const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
@@ -223,6 +298,20 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     setMoveBusy(false);
   };
 
+  const appendSystemLog = (message, { level = 'info', source = 'system' } = {}) => {
+    const createdAt = Date.now();
+    setSystemLogEntries((prev) => [
+      {
+        id: `live-${createdAt}-${Math.random().toString(16).slice(2, 8)}`,
+        createdAt,
+        level,
+        source,
+        message
+      },
+      ...prev
+    ].slice(0, 120));
+  };
+
   const handleJumpToAuditLog = () => {
     setActiveTab('Overview');
     if (typeof window !== 'undefined') {
@@ -252,9 +341,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       const payload = await response.json();
       updatePost(post, { isPinned: payload.is_pinned });
       setStatusMessage(payload.is_pinned ? 'Pinned.' : 'Unpinned.');
+      appendSystemLog(`${post.title} ${payload.is_pinned ? 'was pinned' : 'was unpinned'} by admin.`, { source: 'posts' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Pin toggle failed.');
+      appendSystemLog(`Pin toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
     } finally {
       setBusyPost(null);
     }
@@ -278,9 +369,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isHidden: !post.isHidden });
       setStatusMessage(!post.isHidden ? 'Hidden.' : 'Visible again.');
+      appendSystemLog(`${post.title} visibility set to ${!post.isHidden ? 'hidden' : 'visible'}.`, { source: 'posts' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Visibility toggle failed.');
+      appendSystemLog(`Visibility toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
     } finally {
       setBusyPost(null);
     }
@@ -304,9 +397,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isLocked: !post.isLocked });
       setStatusMessage(!post.isLocked ? 'Locked comments.' : 'Unlocked.');
+      appendSystemLog(`${post.title} comment lock ${!post.isLocked ? 'enabled' : 'removed'}.`, { source: 'posts' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Lock toggle failed.');
+      appendSystemLog(`Lock toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
     } finally {
       setBusyPost(null);
     }
@@ -329,8 +424,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       setUserList((prev) => prev.map((userRow) => (
         userRow.id === member.id ? { ...userRow, role: payload.role } : userRow
       )));
+      appendSystemLog(`Role updated: ${member.username} -> ${payload.role}.`, { source: 'users' });
     } catch (error) {
       console.error(error);
+      appendSystemLog(`Role update failed for ${member.username}.`, { level: 'error', source: 'users' });
     }
   };
 
@@ -353,8 +450,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       if (drawerUser && drawerUser.id === member.id) {
         setDrawerUser({ ...member, isDeleted: true, role: 'user' });
       }
+      appendSystemLog(`Account deleted: ${member.username}.`, { level: 'warn', source: 'users' });
     } catch (error) {
       console.error(error);
+      appendSystemLog(`Account delete failed for ${member.username}.`, { level: 'error', source: 'users' });
     }
   };
 
@@ -372,9 +471,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isDeleted: true });
       setStatusMessage('Post deleted.');
+      appendSystemLog(`Post deleted: ${post.title}.`, { level: 'warn', source: 'posts' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Delete failed.');
+      appendSystemLog(`Post delete failed: ${post.title}.`, { level: 'error', source: 'posts' });
     } finally {
       setBusyPost(null);
     }
@@ -394,9 +495,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isDeleted: false });
       setStatusMessage('Post restored.');
+      appendSystemLog(`Post restored: ${post.title}.`, { source: 'posts' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Restore failed.');
+      appendSystemLog(`Post restore failed: ${post.title}.`, { level: 'error', source: 'posts' });
     } finally {
       setBusyPost(null);
     }
@@ -426,6 +529,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           viewHref: `${POST_SUBTYPE_PATHS[updated.type] || '/posts'}/${movePost.id}`
         });
         setStatusMessage(`Moved to ${label}.`);
+        appendSystemLog(`Post moved: ${movePost.title} -> ${label}.`, { source: 'move' });
         closeMoveDialog();
         return;
       }
@@ -459,6 +563,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           isShitpost: Boolean(updated?.is_shitpost)
         });
         setStatusMessage(`Moved to ${label}.`);
+        appendSystemLog(`Thread moved: ${movePost.title} -> ${label}.`, { source: 'move' });
         closeMoveDialog();
         return;
       }
@@ -520,10 +625,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       const destinationLabel = CONTENT_MOVE_DESTINATIONS.find((entry) => entry.value === moveDestination)?.label || 'destination';
       setPostList((prev) => prev.filter((postRow) => postKey(postRow) !== postKey(movePost)));
       setStatusMessage(`Moved to ${destinationLabel}.`);
+      appendSystemLog(`Content moved: ${movePost.title} -> ${destinationLabel}.`, { source: 'move' });
       closeMoveDialog();
     } catch (error) {
       console.error(error);
       setStatusMessage(error?.message || 'Move failed.');
+      appendSystemLog(`Move failed for ${movePost?.title || 'content'}.`, { level: 'error', source: 'move' });
       setMoveBusy(false);
     }
   };
@@ -548,6 +655,22 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     { label: 'Audit log', action: handleJumpToAuditLog, title: 'Jump to recent admin actions' },
     { label: 'Backup status', href: '/admin/backups', title: 'Review backup status and workflows' }
   ];
+
+  const trafficSeries = [
+    { label: 'Active (24h)', value: stats.active24h || 0 },
+    { label: 'Posts (24h)', value: stats.posts24h || 0 },
+    { label: 'Comments (24h)', value: stats.comments24h || 0 },
+    { label: 'Active (7d)', value: stats.active7d || 0 },
+    { label: 'Posts (7d)', value: stats.posts7d || 0 },
+    { label: 'Comments (7d)', value: stats.comments7d || 0 },
+    { label: 'Hidden posts', value: stats.hiddenPosts || 0 },
+    { label: 'Locked posts', value: stats.lockedPosts || 0 },
+    { label: 'Pinned posts', value: stats.pinnedPosts || 0 },
+    { label: 'Flagged', value: stats.flaggedItems || 0 },
+    { label: 'Open reports', value: reports.length || 0 },
+    { label: 'Audit rows', value: actions.length || 0 }
+  ];
+  const maxTrafficValue = Math.max(...trafficSeries.map((point) => point.value), 1);
 
   return (
     <div className="admin-console stack">
@@ -623,6 +746,67 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   ))}
                 </ul>
               </div>
+              <div className="admin-panel admin-panel--system">
+                <div className="admin-panel-header-row">
+                  <h3 className="section-title">System log</h3>
+                  <button type="button" className="button mini ghost" onClick={() => setActiveTab('System Log')}>
+                    Open tab
+                  </button>
+                </div>
+                <div className="admin-system-log-window">
+                  <div className="admin-system-log-titlebar">
+                    <span>system.log</span>
+                    <span className="admin-system-log-dot" aria-hidden="true" />
+                  </div>
+                  <ul className="admin-system-log-list">
+                    {systemLogEntries.slice(0, 8).map((entry) => (
+                      <li key={entry.id} className={`admin-system-log-line admin-system-log-line--${entry.level || 'info'}`}>
+                        <span className="admin-system-log-time">[{formatLogClock(entry.createdAt)}]</span>
+                        <span>{entry.message}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'System Log' && (
+          <section className="card stack admin-system-tab">
+            <div className="admin-traffic-card">
+              <h3 className="section-title">Network traffic</h3>
+              <div className="admin-traffic-bars">
+                {trafficSeries.map((point) => {
+                  const height = Math.max(16, Math.round((point.value / maxTrafficValue) * 100));
+                  return (
+                    <div key={point.label} className="admin-traffic-bar-column" title={`${point.label}: ${point.value}`}>
+                      <span className="admin-traffic-bar" style={{ height: `${height}%` }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="admin-system-log-window admin-system-log-window--expanded">
+              <div className="admin-system-log-titlebar">
+                <span>system.log</span>
+                <span className="admin-system-log-dot" aria-hidden="true" />
+              </div>
+              <ul className="admin-system-log-list">
+                {systemLogEntries.length === 0 ? (
+                  <li className="admin-system-log-line admin-system-log-line--info">
+                    <span className="admin-system-log-time">[{formatLogClock(Date.now())}]</span>
+                    <span>No system events captured yet.</span>
+                  </li>
+                ) : (
+                  systemLogEntries.map((entry) => (
+                    <li key={entry.id} className={`admin-system-log-line admin-system-log-line--${entry.level || 'info'}`}>
+                      <span className="admin-system-log-time">[{formatLogClock(entry.createdAt)}]</span>
+                      <span>{entry.message}</span>
+                    </li>
+                  ))
+                )}
+              </ul>
             </div>
           </section>
         )}
@@ -1087,7 +1271,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           </section>
         )}
 
-        {activeTab !== 'Overview' && activeTab !== 'Posts' && activeTab !== 'Users' && activeTab !== 'Reports' && activeTab !== 'Media' && activeTab !== 'Settings' && (
+        {activeTab !== 'Overview' && activeTab !== 'System Log' && activeTab !== 'Posts' && activeTab !== 'Users' && activeTab !== 'Reports' && activeTab !== 'Media' && activeTab !== 'Settings' && (
           <section className="card">
             <h3 className="section-title">{activeTab} tab</h3>
             <p className="muted">This section is coming soon.</p>
