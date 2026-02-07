@@ -7,12 +7,8 @@ import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
 import HeaderSetupBanner from './HeaderSetupBanner';
 import SearchResultsPopover from './SearchResultsPopover';
-import SearchBar from './SearchBar';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
-import AvatarImage from './AvatarImage';
-import { getAvatarUrl } from '../lib/media';
-import { getUsernameColorIndex } from '../lib/usernameColor';
 
 function isDetailPath(pathname) {
   if (!pathname) return false;
@@ -28,11 +24,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const strings = getForumStrings({ useLore: loreEnabled });
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuQuery, setMenuQuery] = useState('');
   const menuRef = useRef(null);
   const menuExpandedRef = useRef(null);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreWrapRef = useRef(null);
-  const moreNavRef = useRef(null);
   const [titleClicked, setTitleClicked] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,6 +46,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [dragLabel, setDragLabel] = useState('Feed');
   const [mounted, setMounted] = useState(false);
   const [eggIframeSrc, setEggIframeSrc] = useState('');
+  const swipeStartRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -65,7 +60,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   useEffect(() => {
     setMenuOpen(false);
-    setMoreOpen(false);
+    setMenuQuery('');
     setSearchMode(false);
     setSearchQuery('');
     setSearchResults([]);
@@ -73,11 +68,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   useEffect(() => {
     if (navDisabled) {
-      setMoreOpen(false);
+      setMenuOpen(false);
+      setMenuQuery('');
       setSearchMode(false);
       setSearchQuery('');
       setSearchResults([]);
-      /* Keep menuOpen true when navDisabled - allows Easter egg (drag Feed to face) on mobile */
     }
     if (!navDisabled) {
       setMenuOpen(false);
@@ -86,6 +81,90 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       setEggDragging(false);
     }
   }, [navDisabled]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    if (menuOpen) {
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = previousOverflow;
+      };
+    }
+
+    return undefined;
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        setMenuQuery('');
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || navDisabled) return undefined;
+
+    const isMobileViewport = () => window.matchMedia('(max-width: 1000px)').matches;
+
+    const onTouchStart = (event) => {
+      if (!isMobileViewport()) {
+        swipeStartRef.current = null;
+        return;
+      }
+      const touch = event.touches?.[0];
+      if (!touch) return;
+
+      if (!menuOpen && touch.clientX <= 26) {
+        swipeStartRef.current = { x: touch.clientX, y: touch.clientY, canOpen: true, canClose: false };
+        return;
+      }
+
+      if (menuOpen && touch.clientX <= 340) {
+        swipeStartRef.current = { x: touch.clientX, y: touch.clientY, canOpen: false, canClose: true };
+        return;
+      }
+
+      swipeStartRef.current = null;
+    };
+
+    const onTouchEnd = (event) => {
+      const start = swipeStartRef.current;
+      swipeStartRef.current = null;
+      if (!start || !isMobileViewport()) return;
+
+      const touch = event.changedTouches?.[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - start.x;
+      const deltaY = Math.abs(touch.clientY - start.y);
+      if (deltaY > 64) return;
+
+      if (start.canOpen && deltaX > 72) {
+        setMenuOpen(true);
+      }
+
+      if (start.canClose && deltaX < -72) {
+        setMenuOpen(false);
+        setMenuQuery('');
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [menuOpen, navDisabled]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
@@ -97,17 +176,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           setMenuOpen(false);
         }
       }
-      if (moreOpen && moreWrapRef.current && moreNavRef.current) {
-        const isInsideToggle = moreWrapRef.current.contains(event.target);
-        const isInsideNav = moreNavRef.current.contains(event.target);
-        if (!isInsideToggle && !isInsideNav) {
-          setMoreOpen(false);
-        }
-      }
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [menuOpen, moreOpen]);
+  }, [menuOpen]);
 
   const performSearch = useCallback(async (query) => {
     if (!query.trim()) {
@@ -263,12 +335,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const headerClassName = useMemo(() => {
     const bits = [];
     if (detail) bits.push('header--detail');
-    if (moreOpen) bits.push('header--expanded');
     if (menuOpen) bits.push('header--menu-open');
     if (searchMode) bits.push('header--search-open');
     if (eggActive) bits.push('header--easter-egg');
     return bits.join(' ');
-  }, [detail, moreOpen, menuOpen, searchMode, eggActive]);
+  }, [detail, menuOpen, searchMode, eggActive]);
 
   return (
     <header
@@ -305,71 +376,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       )}
 
       {!eggActive && (
-        <div className="header-nav-section">
-          <nav className="nav-inline">
-            <NavLinks
-              isAdmin={isAdmin}
-              isSignedIn={isSignedIn}
-              variant="primary"
-              easterEgg={{
-                armed: eggArmed,
-                dragging: eggDragging,
-                feedRef: feedLinkRef,
-                onArm: handleEggArm,
-                onDragStart: handleEggDragStart
-              }}
-            />
-          </nav>
-
-          <div className="header-right-controls" ref={moreWrapRef}>
-            <button
-              type="button"
-              className="icon-button nav-more-toggle"
-              onClick={() => {
-                if (navDisabled) return;
-                setMoreOpen((v) => !v);
-              }}
-              aria-label="More pages"
-              aria-expanded={moreOpen ? 'true' : 'false'}
-              title="More"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            <SearchBar disabled={navDisabled} />
-          </div>
-        </div>
-      )}
-
-      {!eggActive && moreOpen ? (
-        <nav ref={moreNavRef} className="nav-inline nav-inline--more" aria-label="More pages">
-          <NavLinks
-            isAdmin={isAdmin}
-            isSignedIn={isSignedIn}
-            variant="more"
-            easterEgg={{
-              armed: eggArmed,
-              dragging: eggDragging,
-              feedRef: feedLinkRef,
-              onArm: handleEggArm,
-              onDragStart: handleEggDragStart
-            }}
-          />
-        </nav>
-      ) : null}
-
-      {!eggActive && (
         <div className="header-bottom-controls">
           <div className="header-bottom-left" ref={menuRef}>
             {searchMode ? (
@@ -396,23 +402,43 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 </button>
               </form>
             ) : (
-              <button
-                type="button"
-                className="nav-menu-button"
-                onClick={() => {
-                  setMenuOpen((v) => !v);
-                  setSearchMode(false);
-                }}
-                aria-label="Open navigation menu"
-                aria-expanded={menuOpen ? 'true' : 'false'}
-              >
-                Navigation
-              </button>
+              <>
+                {!navDisabled ? (
+                  <button
+                    type="button"
+                    className="nav-menu-button"
+                    onClick={() => {
+                      setMenuOpen((v) => !v);
+                      if (menuOpen) {
+                        setMenuQuery('');
+                      }
+                      setSearchMode(false);
+                    }}
+                    aria-label="Open navigation menu"
+                    aria-expanded={menuOpen ? 'true' : 'false'}
+                  >
+                    Navigation
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={`feed-egg-trigger ${eggArmed ? 'feed-egg-trigger--armed' : ''} ${eggDragging ? 'feed-egg-trigger--hidden' : ''}`}
+                    ref={feedLinkRef}
+                    onDoubleClick={handleEggArm}
+                    onPointerDown={handleEggDragStart}
+                    onClick={(event) => event.preventDefault()}
+                    aria-label="Feed easter egg trigger"
+                    title="Double-click to arm, then drag to the face"
+                  >
+                    Feed
+                  </button>
+                )}
+              </>
             )}
           </div>
 
           <div className="header-bottom-right">
-            {!searchMode && (
+            {!searchMode && !navDisabled && (
               <button
                 type="button"
                 onClick={handleSearchClick}
@@ -427,25 +453,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               </button>
             )}
           </div>
-        </div>
-      )}
-
-      {!eggActive && menuOpen && (
-        <div ref={menuExpandedRef} className="nav-menu-expanded" role="menu" aria-label="Site menu">
-          <nav className="nav-menu-links-scrollable">
-            <NavLinks
-              isAdmin={isAdmin}
-              isSignedIn={isSignedIn}
-              variant="all"
-              easterEgg={{
-                armed: eggArmed,
-                dragging: eggDragging,
-                feedRef: feedLinkRef,
-                onArm: handleEggArm,
-                onDragStart: handleEggDragStart
-              }}
-            />
-          </nav>
         </div>
       )}
 
@@ -484,6 +491,93 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           />
         </div>
       ) : null}
+
+      {mounted && !eggActive && !navDisabled
+        ? createPortal(
+            <>
+              {!menuOpen ? (
+                <button
+                  type="button"
+                  className="nav-neon-handle"
+                  onClick={() => setMenuOpen(true)}
+                  aria-label="Open navigation sidebar"
+                >
+                  <span>NAV</span>
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                className={`nav-sidebar-backdrop ${menuOpen ? 'is-open' : ''}`}
+                aria-label="Close navigation sidebar"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setMenuQuery('');
+                }}
+              />
+
+              <aside
+                ref={menuExpandedRef}
+                className={`nav-sidebar ${menuOpen ? 'is-open' : ''}`}
+                aria-hidden={menuOpen ? 'false' : 'true'}
+                aria-label="Site navigation sidebar"
+              >
+                <div className="nav-sidebar-header">
+                  <h2 className="nav-sidebar-title">Menu</h2>
+                  <button
+                    type="button"
+                    className="nav-sidebar-close"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setMenuQuery('');
+                    }}
+                    aria-label="Close navigation sidebar"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m18 6-12 12"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="nav-sidebar-search-wrap">
+                  <svg className="nav-sidebar-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                  <input
+                    type="text"
+                    className="nav-sidebar-search-input"
+                    value={menuQuery}
+                    onChange={(event) => setMenuQuery(event.target.value)}
+                    placeholder="Search navigation..."
+                  />
+                </div>
+
+                <nav className="nav-sidebar-links">
+                  <NavLinks
+                    isAdmin={isAdmin}
+                    isSignedIn={isSignedIn}
+                    variant="all"
+                    filterQuery={menuQuery}
+                    onNavigate={() => {
+                      setMenuOpen(false);
+                      setMenuQuery('');
+                    }}
+                    easterEgg={{
+                      armed: eggArmed,
+                      dragging: eggDragging,
+                      feedRef: feedLinkRef,
+                      onArm: handleEggArm,
+                      onDragStart: handleEggDragStart
+                    }}
+                  />
+                </nav>
+              </aside>
+            </>,
+            document.body
+          )
+        : null}
 
       {!eggActive && <HeaderSetupBanner />}
     </header>
