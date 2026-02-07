@@ -31,7 +31,8 @@ const POST_SECTION_DESTINATIONS = [
   { value: 'bugs', label: 'Bugs' },
   { value: 'rant', label: 'Rants' },
   { value: 'lore', label: 'Lore' },
-  { value: 'memories', label: 'Memories' }
+  { value: 'memories', label: 'Memories' },
+  { value: 'about', label: 'About' }
 ];
 
 const POST_SUBTYPE_PATHS = {
@@ -40,7 +41,8 @@ const POST_SUBTYPE_PATHS = {
   bugs: '/bugs',
   rant: '/rant',
   lore: '/lore',
-  memories: '/memories'
+  memories: '/memories',
+  about: '/about'
 };
 
 function formatTime(timestamp) {
