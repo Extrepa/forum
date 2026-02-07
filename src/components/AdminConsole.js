@@ -22,7 +22,13 @@ const CONTENT_MOVE_DESTINATIONS = [
   { value: 'event', label: 'Events' },
   { value: 'music_post', label: 'Music' },
   { value: 'project', label: 'Projects' },
-  { value: 'dev_log', label: 'Development' }
+  { value: 'dev_log', label: 'Development' },
+  { value: 'post:art', label: 'Art' },
+  { value: 'post:nostalgia', label: 'Nostalgia' },
+  { value: 'post:bugs', label: 'Bugs' },
+  { value: 'post:rant', label: 'Rants' },
+  { value: 'post:lore', label: 'Lore' },
+  { value: 'post:memories', label: 'Memories' }
 ];
 
 const POST_SECTION_DESTINATIONS = [
@@ -460,10 +466,16 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       const formData = new FormData();
       formData.append('source_type', movePost.type);
       formData.append('source_id', movePost.id);
-      const destinationTypeForApi = moveDestination === 'forum_thread_shitpost' ? 'forum_thread' : moveDestination;
+      const isPostDestination = moveDestination.startsWith('post:');
+      const destinationTypeForApi = isPostDestination
+        ? 'post'
+        : (moveDestination === 'forum_thread_shitpost' ? 'forum_thread' : moveDestination);
       formData.append('dest_type', destinationTypeForApi);
       if (moveDestination === 'forum_thread_shitpost') {
         formData.append('forum_section', 'shitposts');
+      }
+      if (isPostDestination) {
+        formData.append('post_subtype', moveDestination.slice('post:'.length));
       }
       if (moveDestination === 'event') {
         if (!moveStartsAt) {

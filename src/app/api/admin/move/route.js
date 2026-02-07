@@ -17,9 +17,18 @@ function destPathFor(type, id) {
       return `/events/${id}`;
     case 'dev_log':
       return `/devlog/${id}`;
+    case 'post':
+      return `/posts/${id}`;
     default:
       return null;
   }
+}
+
+function postSubtypePath(type, id) {
+  const subtype = String(type || '').trim().toLowerCase();
+  if (!subtype || !id) return null;
+  if (subtype === 'about') return '/about';
+  return `/${subtype}/${id}`;
 }
 
 function normalizeType(raw) {
@@ -73,6 +82,18 @@ async function getMoveTarget(db, sourceType, sourceId) {
     // Migrations not applied yet.
     return null;
   }
+}
+
+async function resolveDestinationPath(db, type, id) {
+  if (type === 'post') {
+    try {
+      const row = await db.prepare('SELECT type FROM posts WHERE id = ?').bind(id).first();
+      return postSubtypePath(row?.type, id) || `/posts/${id}`;
+    } catch (e) {
+      return `/posts/${id}`;
+    }
+  }
+  return destPathFor(type, id);
 }
 
 async function markMoved(db, { sourceType, sourceId, destType, destId, movedByUserId, movedAt }) {
@@ -281,6 +302,18 @@ async function migrateDiscussion(db, { sourceType, sourceId, destType, destId })
         .bind(crypto.randomUUID(), destId, item.author_user_id, item.body, item.created_at, null, 0)
         .run();
     }
+    return;
+  }
+
+  if (destType === 'post') {
+    for (const item of sourceItems) {
+      await db
+        .prepare(
+          'INSERT INTO post_comments (id, post_id, author_user_id, body, reply_to_id, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+        )
+        .bind(crypto.randomUUID(), destId, item.author_user_id, item.body, null, item.created_at)
+        .run();
+    }
   }
 }
 
@@ -426,6 +459,32 @@ async function createDestination(db, { destType, sourceType, source, extra }) {
     return id;
   }
 
+  if (destType === 'post') {
+    const postSubtype = String(extra.post_subtype || '').trim().toLowerCase();
+    const allowedPostSubtypes = new Set(['art', 'nostalgia', 'bugs', 'rant', 'lore', 'memories', 'about']);
+    if (!allowedPostSubtypes.has(postSubtype)) {
+      throw new Error('invalid_post_subtype');
+    }
+
+    const title = source.title || '(untitled)';
+    const body =
+      sourceType === 'project'
+        ? source.description
+        : sourceType === 'event'
+        ? source.details || ''
+        : sourceType === 'music_post'
+        ? `Source: ${source.url}\n\n${source.body || ''}`.trim()
+        : source.body || '';
+
+    await db
+      .prepare(
+        'INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(id, source.author_user_id, postSubtype, title, body || null, source.image_key || null, 0, now)
+      .run();
+    return id;
+  }
+
   throw new Error('unsupported_dest');
 }
 
@@ -468,7 +527,7 @@ export async function POST(request) {
   // If already moved, redirect to canonical destination.
   const existingMove = await getMoveTarget(db, sourceType, sourceId);
   if (existingMove) {
-    const to = destPathFor(existingMove.type, existingMove.id);
+    const to = await resolveDestinationPath(db, existingMove.type, existingMove.id);
     return NextResponse.redirect(new URL(to || '/', request.url), 303);
   }
 
@@ -479,7 +538,7 @@ export async function POST(request) {
 
   // Prevent moving already-marked sources (even if moves table isn't present yet in local dev).
   if (source.moved_to_id) {
-    const to = destPathFor(source.moved_to_type, source.moved_to_id);
+    const to = await resolveDestinationPath(db, source.moved_to_type, source.moved_to_id);
     return NextResponse.redirect(new URL(to || '/', request.url), 303);
   }
 
@@ -490,6 +549,7 @@ export async function POST(request) {
     tags: formData.get('tags'),
     status: formData.get('status'),
     forum_section: formData.get('forum_section'),
+    post_subtype: formData.get('post_subtype'),
   };
 
   let destId;
@@ -511,6 +571,6 @@ export async function POST(request) {
     movedAt: Date.now(),
   });
 
-  const to = destPathFor(destType, destId);
+  const to = await resolveDestinationPath(db, destType, destId);
   return NextResponse.redirect(new URL(to || '/', request.url), 303);
 }
