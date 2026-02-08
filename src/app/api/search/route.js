@@ -16,6 +16,7 @@ export async function GET(request) {
 
   const db = await getDb();
   const searchTerm = `%${query.trim()}%`;
+  const normalizedTerm = `%${query.trim().toLowerCase()}%`;
 
   // Search forum threads
   let threads = [];
@@ -303,6 +304,39 @@ export async function GET(request) {
     posts = [];
   }
 
+  // Search users
+  let users = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT users.id, users.username, users.created_at
+         FROM users
+         WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
+           AND (users.is_deleted = 0 OR users.is_deleted IS NULL)
+         ORDER BY users.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, normalizedTerm)
+      .all();
+    users = out?.results || [];
+  } catch (e) {
+    try {
+      const out = await db
+        .prepare(
+          `SELECT users.id, users.username, users.created_at
+           FROM users
+           WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
+           ORDER BY users.created_at DESC
+           LIMIT 20`
+        )
+        .bind(searchTerm, normalizedTerm)
+        .all();
+      users = out?.results || [];
+    } catch (e2) {
+      users = [];
+    }
+  }
+
   // Process results
   const processedThreads = threads.map(t => ({
     ...t,
@@ -376,6 +410,14 @@ export async function GET(request) {
     };
   });
 
+  const processedUsers = users.map((u) => ({
+    ...u,
+    title: u.username,
+    author_name: u.username,
+    type: 'user',
+    url: `/profile/${encodeURIComponent(u.username)}`
+  }));
+
   const allResults = [
     ...processedThreads,
     ...processedUpdates,
@@ -383,7 +425,8 @@ export async function GET(request) {
     ...processedMusic,
     ...processedProjects,
     ...processedReplies,
-    ...processedPosts
+    ...processedPosts,
+    ...processedUsers
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return NextResponse.json({ results: allResults });

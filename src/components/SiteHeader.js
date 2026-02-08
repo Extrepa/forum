@@ -6,13 +6,30 @@ import { usePathname, useRouter } from 'next/navigation';
 import NavLinks from './NavLinks';
 import NotificationsLogoTrigger from './NotificationsLogoTrigger';
 import HeaderSetupBanner from './HeaderSetupBanner';
-import SearchResultsPopover from './SearchResultsPopover';
-import { useUiPrefs } from './UiPrefsProvider';
-import { getForumStrings } from '../lib/forum-texts';
 
 function isDetailPath(pathname) {
   if (!pathname) return false;
   return /^\/(announcements|lobby|projects|music|events|devlog)\/[^/]+$/.test(pathname);
+}
+
+function getTypeLabel(type) {
+  const labels = {
+    thread: 'Thread',
+    announcement: 'Announcement',
+    event: 'Event',
+    music: 'Music',
+    project: 'Project',
+    reply: 'Reply',
+    user: 'User',
+    art: 'Art',
+    bugs: 'Bug',
+    rant: 'Rant',
+    nostalgia: 'Nostalgia',
+    lore: 'Lore',
+    memories: 'Memory',
+    about: 'About',
+  };
+  return labels[type] || type;
 }
 
 export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
@@ -20,21 +37,16 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const router = useRouter();
   const detail = isDetailPath(pathname);
   const navDisabled = !isSignedIn;
-  const { loreEnabled } = useUiPrefs();
-  const strings = getForumStrings({ useLore: loreEnabled });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuQuery, setMenuQuery] = useState('');
+  const [menuResults, setMenuResults] = useState([]);
+  const [menuSearching, setMenuSearching] = useState(false);
   const menuRef = useRef(null);
   const menuExpandedRef = useRef(null);
   const [titleClicked, setTitleClicked] = useState(false);
-  const [searchMode, setSearchMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const searchInputRef = useRef(null);
-  const searchFormRef = useRef(null);
-  const searchTimeoutRef = useRef(null);
+  const menuSearchTimeoutRef = useRef(null);
+  const menuSearchInputRef = useRef(null);
   const logoWrapRef = useRef(null);
   const feedLinkRef = useRef(null);
   const [eggArmed, setEggArmed] = useState(false);
@@ -48,6 +60,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [eggIframeSrc, setEggIframeSrc] = useState('');
   const swipeStartRef = useRef(null);
 
+  const clearSidebarSearch = useCallback(() => {
+    setMenuQuery('');
+    setMenuResults([]);
+    setMenuSearching(false);
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    setMenuOpen(false);
+    clearSidebarSearch();
+  }, [clearSidebarSearch]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -60,19 +83,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   useEffect(() => {
     setMenuOpen(false);
-    setMenuQuery('');
-    setSearchMode(false);
-    setSearchQuery('');
-    setSearchResults([]);
-  }, [pathname]);
+    clearSidebarSearch();
+  }, [pathname, clearSidebarSearch]);
 
   useEffect(() => {
     if (navDisabled) {
       setMenuOpen(false);
-      setMenuQuery('');
-      setSearchMode(false);
-      setSearchQuery('');
-      setSearchResults([]);
+      clearSidebarSearch();
     }
     if (!navDisabled) {
       setMenuOpen(false);
@@ -80,7 +97,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       setEggActive(false);
       setEggDragging(false);
     }
-  }, [navDisabled]);
+  }, [navDisabled, clearSidebarSearch]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -101,14 +118,21 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
-        setMenuOpen(false);
-        setMenuQuery('');
+        closeSidebar();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [menuOpen]);
+  }, [menuOpen, closeSidebar]);
+
+  useEffect(() => {
+    if (!menuOpen || navDisabled) return;
+    const timer = setTimeout(() => {
+      menuSearchInputRef.current?.focus();
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [menuOpen, navDisabled]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || navDisabled) return undefined;
@@ -153,8 +177,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       }
 
       if (start.canClose && deltaX < -72) {
-        setMenuOpen(false);
-        setMenuQuery('');
+        closeSidebar();
       }
     };
 
@@ -164,97 +187,79 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchend', onTouchEnd);
     };
-  }, [menuOpen, navDisabled]);
+  }, [menuOpen, navDisabled, closeSidebar]);
 
   useEffect(() => {
     const onDocMouseDown = (event) => {
       if (menuOpen) {
         const isInsideButton = menuRef.current && menuRef.current.contains(event.target);
         const isInsideMenu = menuExpandedRef.current && menuExpandedRef.current.contains(event.target);
-        // Only close if click is outside both the button and the expanded menu
         if (!isInsideButton && !isInsideMenu) {
-          setMenuOpen(false);
+          closeSidebar();
         }
       }
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [menuOpen]);
+  }, [menuOpen, closeSidebar]);
 
-  const performSearch = useCallback(async (query) => {
+  const performSidebarSearch = useCallback(async (query) => {
     if (!query.trim()) {
-      setSearchResults([]);
+      setMenuResults([]);
       return;
     }
 
-    setIsSearching(true);
+    setMenuSearching(true);
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.results || []);
+        setMenuResults(data.results || []);
       } else {
-        setSearchResults([]);
+        setMenuResults([]);
       }
     } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
+      console.error('Sidebar search error:', error);
+      setMenuResults([]);
     } finally {
-      setIsSearching(false);
+      setMenuSearching(false);
     }
   }, []);
 
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+    if (menuSearchTimeoutRef.current) {
+      clearTimeout(menuSearchTimeoutRef.current);
     }
 
-    if (searchMode && searchQuery) {
-      searchTimeoutRef.current = setTimeout(() => {
-        performSearch(searchQuery);
-      }, 300);
-    } else {
-      setSearchResults([]);
+    if (!menuOpen || navDisabled || !menuQuery.trim()) {
+      setMenuResults([]);
+      setMenuSearching(false);
+      return undefined;
     }
+
+    menuSearchTimeoutRef.current = setTimeout(() => {
+      performSidebarSearch(menuQuery);
+    }, 250);
 
     return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+      if (menuSearchTimeoutRef.current) {
+        clearTimeout(menuSearchTimeoutRef.current);
       }
     };
-  }, [searchQuery, searchMode, performSearch]);
+  }, [menuQuery, menuOpen, navDisabled, performSidebarSearch]);
 
-  const handleSearchClick = () => {
-    if (navDisabled) {
+  const handleSidebarSearchSubmit = (event) => {
+    event.preventDefault();
+    if (navDisabled || !menuQuery.trim()) {
       return;
     }
-    setSearchMode(true);
-    setMenuOpen(false);
-    setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 100);
+    router.push(`/search?q=${encodeURIComponent(menuQuery.trim())}`);
+    closeSidebar();
   };
 
-  const handleSearchClose = () => {
-    setSearchMode(false);
-    setSearchQuery('');
-    setSearchResults([]);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (navDisabled) {
-      return;
-    }
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      handleSearchClose();
-    }
-  };
-
-  const handleResultClick = (url) => {
+  const handleSidebarResultClick = (url) => {
     router.push(url);
-    handleSearchClose();
+    closeSidebar();
   };
 
   const handleEggArm = useCallback(
@@ -271,18 +276,16 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     (event) => {
       if (!navDisabled || !eggArmed || eggActive) return;
       if (event.button !== undefined && event.button !== 0) return;
-      
-      // Use currentTarget to get the element being interacted with, 
-      // which is more reliable than the ref (especially if multiple NavLinks exist)
+
       const target = event.currentTarget;
       const rect = target.getBoundingClientRect();
-      
+
       const label = target.textContent?.trim();
       if (label) setDragLabel(label);
-      
+
       event.preventDefault();
       event.stopPropagation();
-      
+
       if (event.target.setPointerCapture) {
         event.target.setPointerCapture(event.pointerId);
       }
@@ -336,20 +339,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     const bits = [];
     if (detail) bits.push('header--detail');
     if (menuOpen) bits.push('header--menu-open');
-    if (searchMode) bits.push('header--search-open');
     if (eggActive) bits.push('header--easter-egg');
     return bits.join(' ');
-  }, [detail, menuOpen, searchMode, eggActive]);
+  }, [detail, menuOpen, eggActive]);
 
   return (
-    <header
-      className={headerClassName}
-    >
+    <header className={headerClassName}>
       {!eggActive && (
         <div className="brand">
           <div className="brand-left">
             <div>
-              <h1 
+              <h1
                 className="forum-title"
                 onClick={() => {
                   if (navDisabled) return;
@@ -359,7 +359,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     setTitleClicked(false);
                   }, 300);
                 }}
-                style={{ 
+                style={{
                   animation: titleClicked ? 'gooey-click 0.3s ease' : undefined,
                   cursor: navDisabled ? 'default' : 'pointer'
                 }}
@@ -378,92 +378,39 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       {!eggActive && (
         <div className="header-bottom-controls">
           <div className="header-bottom-left" ref={menuRef}>
-            {searchMode ? (
-              <form ref={searchFormRef} onSubmit={handleSearchSubmit} className="header-search-form-inline">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={strings.search.placeholder || "Search posts, threads, events..."}
-                  className="header-search-input-inline"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={handleSearchClose}
-                  className="header-search-close"
-                  aria-label="Close search"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m18 6-12 12"></path>
-                    <path d="m6 6 12 12"></path>
-                  </svg>
-                </button>
-              </form>
-            ) : (
-              <>
-                {!navDisabled ? (
-                  <button
-                    type="button"
-                    className="nav-menu-button"
-                    onClick={() => {
-                      setMenuOpen((v) => !v);
-                      if (menuOpen) {
-                        setMenuQuery('');
-                      }
-                      setSearchMode(false);
-                    }}
-                    aria-label="Open navigation menu"
-                    aria-expanded={menuOpen ? 'true' : 'false'}
-                  >
-                    Navigation
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={`feed-egg-trigger ${eggArmed ? 'feed-egg-trigger--armed' : ''} ${eggDragging ? 'feed-egg-trigger--hidden' : ''}`}
-                    ref={feedLinkRef}
-                    onDoubleClick={handleEggArm}
-                    onPointerDown={handleEggDragStart}
-                    onClick={(event) => event.preventDefault()}
-                    aria-label="Feed easter egg trigger"
-                    title="Double-click to arm, then drag to the face"
-                  >
-                    Feed
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="header-bottom-right">
-            {!searchMode && !navDisabled && (
+            {!navDisabled ? (
               <button
                 type="button"
-                onClick={handleSearchClick}
-                className="header-search-toggle"
-                aria-label="Search"
-                title="Search"
+                className="nav-menu-button"
+                onClick={() => {
+                  setMenuOpen((current) => {
+                    if (current) {
+                      clearSidebarSearch();
+                    }
+                    return !current;
+                  });
+                }}
+                aria-label="Open navigation menu"
+                aria-expanded={menuOpen ? 'true' : 'false'}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
+                Navigation
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={`feed-egg-trigger ${eggArmed ? 'feed-egg-trigger--armed' : ''} ${eggDragging ? 'feed-egg-trigger--hidden' : ''}`}
+                ref={feedLinkRef}
+                onDoubleClick={handleEggArm}
+                onPointerDown={handleEggDragStart}
+                onClick={(event) => event.preventDefault()}
+                aria-label="Feed easter egg trigger"
+                title="Double-click to arm, then drag to the face"
+              >
+                Feed
               </button>
             )}
           </div>
         </div>
-      )}
-
-      {!eggActive && searchMode && searchResults.length > 0 && (
-        <SearchResultsPopover
-          results={searchResults}
-          query={searchQuery}
-          onClose={handleSearchClose}
-          onResultClick={handleResultClick}
-          excludeRef={searchFormRef}
-        />
       )}
 
       {mounted && eggDragging ? createPortal(
@@ -510,10 +457,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 type="button"
                 className={`nav-sidebar-backdrop ${menuOpen ? 'is-open' : ''}`}
                 aria-label="Close navigation sidebar"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setMenuQuery('');
-                }}
+                onClick={closeSidebar}
               />
 
               <aside
@@ -527,32 +471,62 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <button
                     type="button"
                     className="nav-sidebar-close"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setMenuQuery('');
-                    }}
+                    onClick={closeSidebar}
                     aria-label="Close navigation sidebar"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m18 6-12 12"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
+                    <span aria-hidden="true">×</span>
                   </button>
                 </div>
 
-                <div className="nav-sidebar-search-wrap">
+                <form className="nav-sidebar-search-wrap" onSubmit={handleSidebarSearchSubmit}>
                   <svg className="nav-sidebar-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
                   </svg>
                   <input
+                    ref={menuSearchInputRef}
                     type="text"
                     className="nav-sidebar-search-input"
                     value={menuQuery}
                     onChange={(event) => setMenuQuery(event.target.value)}
-                    placeholder="Search navigation..."
+                    placeholder="Search posts, users, threads, events..."
                   />
-                </div>
+                </form>
+
+                {menuQuery.trim() ? (
+                  <section className="nav-sidebar-results" aria-label="Search results">
+                    <div className="nav-sidebar-results-heading">
+                      {menuSearching
+                        ? 'Searching...'
+                        : `${menuResults.length} result${menuResults.length === 1 ? '' : 's'}`}
+                    </div>
+                    {!menuSearching && menuResults.length === 0 ? (
+                      <p className="nav-sidebar-results-empty">No matches yet.</p>
+                    ) : null}
+                    {menuResults.slice(0, 8).map((result) => (
+                      <button
+                        key={`${result.type}-${result.id}`}
+                        type="button"
+                        className="nav-sidebar-result-item"
+                        onClick={() => handleSidebarResultClick(result.url)}
+                      >
+                        <span className="nav-sidebar-result-title">
+                          {result.title || result.thread_title || result.author_name || 'Untitled'}
+                        </span>
+                        <span className="nav-sidebar-result-meta">{getTypeLabel(result.type)}</span>
+                      </button>
+                    ))}
+                    {!menuSearching && menuResults.length > 0 ? (
+                      <a
+                        href={`/search?q=${encodeURIComponent(menuQuery.trim())}`}
+                        className="nav-sidebar-results-more"
+                        onClick={() => closeSidebar()}
+                      >
+                        View full search results
+                      </a>
+                    ) : null}
+                  </section>
+                ) : null}
 
                 <nav className="nav-sidebar-links">
                   <NavLinks
@@ -561,8 +535,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     variant="all"
                     filterQuery={menuQuery}
                     onNavigate={() => {
-                      setMenuOpen(false);
-                      setMenuQuery('');
+                      closeSidebar();
                     }}
                     easterEgg={{
                       armed: eggArmed,

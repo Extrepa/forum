@@ -13,6 +13,7 @@ export default async function SearchResults({ query }) {
 
   const db = await getDb();
   const searchTerm = `%${query}%`;
+  const normalizedTerm = `%${String(query).toLowerCase()}%`;
 
   // Search forum threads
   let threads = [];
@@ -276,6 +277,39 @@ export default async function SearchResults({ query }) {
     posts = [];
   }
 
+  // Search users
+  let users = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT users.id, users.username, users.created_at
+         FROM users
+         WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
+           AND (users.is_deleted = 0 OR users.is_deleted IS NULL)
+         ORDER BY users.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, normalizedTerm)
+      .all();
+    users = out?.results || [];
+  } catch (e) {
+    try {
+      const out = await db
+        .prepare(
+          `SELECT users.id, users.username, users.created_at
+           FROM users
+           WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
+           ORDER BY users.created_at DESC
+           LIMIT 20`
+        )
+        .bind(searchTerm, normalizedTerm)
+        .all();
+      users = out?.results || [];
+    } catch (e2) {
+      users = [];
+    }
+  }
+
   // Pre-render markdown for results
   const processedThreads = threads.map(t => ({
     ...t,
@@ -350,6 +384,14 @@ export default async function SearchResults({ query }) {
     };
   });
 
+  const processedUsers = users.map((u) => ({
+    ...u,
+    title: u.username,
+    author_name: u.username,
+    type: 'user',
+    url: `/profile/${encodeURIComponent(u.username)}`
+  }));
+
   const allResults = [
     ...processedThreads,
     ...processedUpdates,
@@ -357,7 +399,8 @@ export default async function SearchResults({ query }) {
     ...processedMusic,
     ...processedProjects,
     ...processedReplies,
-    ...processedPosts
+    ...processedPosts,
+    ...processedUsers
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return <SearchClient query={query} results={allResults} />;

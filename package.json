@@ -6,7 +6,7 @@
     "build": "next build",
     "build:cf": "opennextjs-cloudflare build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "preview": "wrangler dev",
     "deploy": "wrangler deploy",
     "deploy:full": "./deploy.sh"

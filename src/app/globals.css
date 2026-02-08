@@ -136,11 +136,11 @@ a {
 header {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: var(--radius);
   background: var(--card);
-  padding: 16px 20px;
+  padding: 12px 16px;
   box-shadow: var(--shadow);
   position: relative;
   z-index: 1000;
@@ -151,9 +151,8 @@ header {
   align-items: stretch;
 }
 
-header.header--menu-open,
-header.header--search-open {
-  padding-bottom: 16px;
+header.header--menu-open {
+  padding-bottom: 12px;
 }
 
 .nav-menu-expanded,
@@ -189,8 +188,8 @@ header.header--search-open {
   color: var(--ink);
   font-size: 14px;
   font-family: inherit;
-  min-height: 44px;
-  padding: 10px 16px;
+  min-height: 40px;
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -226,10 +225,10 @@ header.header--search-open {
 /* Header bottom controls row */
 .header-bottom-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 4px;
   gap: 12px;
 }
 
@@ -245,7 +244,7 @@ header.header--search-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
+  min-height: 40px;
   min-width: 112px;
   padding: 10px 18px;
   border-radius: 999px;
@@ -253,7 +252,7 @@ header.header--search-open {
   background: rgba(2, 7, 10, 0.52);
   color: var(--ink);
   font-family: "Unbounded", "Space Grotesk", sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   letter-spacing: 0.7px;
   box-shadow: 0 0 14px rgba(52, 225, 255, 0.2);
   cursor: default;
@@ -313,7 +312,7 @@ header.header--search-open {
   z-index: 2000;
   width: min(420px, 88vw);
   height: 100vh;
-  padding: 24px 18px 20px;
+  padding: 18px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -335,13 +334,13 @@ header.header--search-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .nav-sidebar-title {
   margin: 0;
   font-family: "Unbounded", "Space Grotesk", sans-serif;
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -350,17 +349,21 @@ header.header--search-open {
 }
 
 .nav-sidebar-close {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.28);
   background: rgba(2, 7, 10, 0.55);
-  color: var(--ink);
+  color: var(--accent);
   cursor: pointer;
-  box-shadow: 0 0 14px rgba(52, 225, 255, 0.2);
+  box-shadow: 0 0 16px rgba(52, 225, 255, 0.24);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(52, 225, 255, 0.55);
 }
 
 .nav-sidebar-close:hover {
@@ -384,7 +387,7 @@ header.header--search-open {
 
 .nav-sidebar-search-input {
   width: 100%;
-  padding: 11px 14px 11px 38px;
+  padding: 10px 14px 10px 38px;
   border-radius: 999px;
   border: 1px solid rgba(130, 248, 49, 0.6);
   background: rgba(3, 11, 19, 0.8);
@@ -406,6 +409,81 @@ header.header--search-open {
   overflow-y: auto;
   min-height: 0;
   padding-right: 6px;
+}
+
+.nav-sidebar-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(2, 8, 18, 0.66);
+  box-shadow: inset 0 0 16px rgba(52, 225, 255, 0.08);
+}
+
+.nav-sidebar-results-heading {
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nav-sidebar-results-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.nav-sidebar-result-item {
+  width: 100%;
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  background: rgba(3, 11, 19, 0.72);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+}
+
+.nav-sidebar-result-item:hover {
+  border-color: rgba(255, 52, 245, 0.58);
+  box-shadow: 0 0 16px rgba(255, 52, 245, 0.22);
+}
+
+.nav-sidebar-result-title {
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 74%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nav-sidebar-result-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-sidebar-results-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(130, 248, 49, 0.45);
+  color: var(--ink);
+  font-size: 13px;
+  text-decoration: none;
+  background: rgba(10, 19, 12, 0.5);
+}
+
+.nav-sidebar-results-more:hover {
+  border-color: rgba(130, 248, 49, 0.75);
+  box-shadow: 0 0 16px rgba(130, 248, 49, 0.2);
 }
 
 .nav-sidebar-links a {
@@ -672,9 +750,9 @@ header.header--search-open {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
-  min-height: 88px;
+  min-height: 74px;
   position: relative;
   /* Prevent brand from growing taller unnecessarily when viewport shrinks */
   flex-shrink: 0;
@@ -706,7 +784,7 @@ header.header--search-open {
 .brand-left {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
@@ -776,9 +854,9 @@ header.header--search-open {
 
 .forum-title {
   font-family: "Unbounded", "Space Grotesk", sans-serif;
-  font-size: 104px; /* Doubled from 52px */
+  font-size: 72px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: var(--accent);
   text-shadow: 0 0 20px rgba(52, 225, 255, 0.5);
   animation: gooey-slow 6s ease-in-out infinite;

@@ -34,6 +34,7 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
       music: 'Music',
       project: 'Project',
       reply: 'Reply',
+      user: 'User',
       art: 'Art',
       bugs: 'Bug Report',
       rant: 'Rant',
