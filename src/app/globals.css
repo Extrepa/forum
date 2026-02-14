@@ -1016,25 +1016,20 @@ a {
 
 @media (max-width: 480px) {
   .header-left {
-    max-width: min(50vw, 180px);
+    max-width: min(56vw, 220px);
   }
 
-  .forum-logo-header .forum-logo-face-wrapper {
-    width: 42px;
-    height: 42px;
-  }
-
-  .forum-logo-header {
-    min-width: 42px;
+  .header-brand .forum-logo-header {
+    display: none;
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(15px, 6vw, 20px);
+    font-size: clamp(15px, 6.2vw, 20px);
     line-height: 0.96;
   }
 
   .header-brand-text {
-    max-width: min(28vw, 116px);
+    max-width: min(50vw, 200px);
   }
 
   .header-right {
@@ -1054,16 +1049,7 @@ a {
 
 @media (max-width: 380px) {
   .header-left {
-    max-width: min(48vw, 154px);
-  }
-
-  .forum-logo-header .forum-logo-face-wrapper {
-    width: 38px;
-    height: 38px;
-  }
-
-  .forum-logo-header {
-    min-width: 38px;
+    max-width: min(54vw, 186px);
   }
 
   .header-brand .forum-title.forum-title--header {
@@ -1071,7 +1057,7 @@ a {
   }
 
   .header-brand-text {
-    max-width: 98px;
+    max-width: min(48vw, 172px);
   }
 
   .header-nav-pill {
