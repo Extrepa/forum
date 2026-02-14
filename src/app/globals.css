@@ -924,7 +924,11 @@ a {
 
   .site-header--guest .header-brand .forum-title.forum-title--header {
     font-size: clamp(20px, 7vw, 30px);
-    max-height: 48px;
+    white-space: normal;
+    line-height: 1.1;
+    max-height: none;
+    overflow: visible;
+    text-wrap: balance;
   }
 
   .header-guest-pill {
