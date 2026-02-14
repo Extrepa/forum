@@ -645,32 +645,19 @@ a {
 
 @media (max-width: 1000px) {
   .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "left right"
-      "center center";
-    row-gap: 8px;
-    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
   }
 
   .header-center {
-    grid-area: center;
     display: flex;
     justify-content: flex-start;
   }
 
-  .header-left {
-    grid-area: left;
-  }
-
-  .header-right {
-    grid-area: right;
-    justify-self: end;
-    align-self: start;
-  }
-
   .header-nav {
-    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
@@ -747,12 +734,10 @@ a {
   }
 
   .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "left right"
-      "center center";
-    min-height: 0;
-    row-gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 56px;
   }
 
   .header-right {
@@ -767,19 +752,33 @@ a {
     gap: 6px;
   }
 
+  .header-center {
+    min-width: 0;
+  }
+
+  .header-nav {
+    padding-bottom: 0;
+  }
+
   .forum-logo-header .forum-logo-face-wrapper {
-    width: 58px;
-    height: 58px;
+    width: 52px;
+    height: 52px;
   }
 
   .forum-logo-header {
-    min-width: 58px;
+    min-width: 52px;
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(24px, 9.8vw, 34px);
+    font-size: clamp(20px, 8.2vw, 30px);
     letter-spacing: 0.02em;
     white-space: nowrap;
+  }
+
+  .header-nav-pill {
+    min-height: 30px;
+    font-size: 10px;
+    padding: 4px 9px;
   }
 
   .header-icon-button,
