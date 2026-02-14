@@ -36,6 +36,7 @@
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   --radius: 18px;
   --max-width: 1440px;
+  --header-content-inset: 3px;
 
   /* Custom UI Prefs */
   --ui-border-color: var(--border);
@@ -158,6 +159,7 @@ a {
   gap: 5px;
   position: relative;
   min-height: 56px;
+  padding-inline: var(--header-content-inset);
 }
 
 .site-header--guest .site-header__inner {
@@ -186,6 +188,7 @@ a {
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
+  padding-inline-start: var(--header-content-inset);
 }
 
 .header-brand {
@@ -374,6 +377,7 @@ a {
   justify-content: flex-end;
   gap: 6px;
   flex: 0 0 auto;
+  padding-inline-end: var(--header-content-inset);
 }
 
 .header-guest-actions {
@@ -1037,18 +1041,6 @@ a {
     padding-inline: 10px;
   }
 
-  .site-header__inner {
-    padding-inline: 2px;
-  }
-
-  .header-left {
-    padding-left: 2px;
-  }
-
-  .header-right {
-    padding-right: 2px;
-  }
-
   .header-left {
     max-width: min(42vw, 150px);
   }
@@ -1108,12 +1100,10 @@ a {
 
   .site-header__inner {
     gap: 4px;
-    padding-inline: 2px;
   }
 
   .header-left {
     max-width: min(34vw, 112px);
-    padding-left: 2px;
   }
 
   .header-brand {
@@ -1141,7 +1131,6 @@ a {
 
   .header-right {
     gap: 2px;
-    padding-right: 2px;
   }
 
   .header-icon-button {
