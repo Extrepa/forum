@@ -7,12 +7,16 @@
     *   Guests now only see the `ClaimUsernameForm` (Sign-in/Sign-up). The "Explore Sections" grid is neither fetched nor rendered.
     *   Verified `src/app/feed/page.js` redirects guests to the home page, enforcing the "sign-in required" rule.
 
-*   **Header & Layout Polish (Mobile & Guest):**
+    *   **Header & Layout Polish (Mobile & Guest):**
     *   **Removed Welcome Message:** Deleted "Good to see you..." section from Home Page for a cleaner look.
     *   **Mobile Header Optimization:**
         *   Hidden "Home" button on mobile for logged-in users to reduce clutter.
         *   Ensured "Feed" and "Library" buttons display full text labels on mobile, improving clarity and resolving the "multi-open button" confusion.
+        *   **Feed Button:** Removed the icon entirely for the Feed button (Text only: "Feed") to reduce visual noise.
+        *   **Library Button:** Removed the icon on mobile, showing only the text "Library".
+        *   **Layout Fix:** Added `!important` to mobile header button styles (`.header-nav-pill`, `.header-guest-pill`) in `globals.css` to override global `.action-button` styles defined at the end of the file. This ensures correct button heights (32px vs 40px) and alignment on small screens.
         *   Fixed "Errl Forum" title wrapping on small screens by adding `width: min-content`, adjusting `white-space` to `normal`, and tightening `line-height` in CSS (`.forum-title--header`).
+        *   **Fixed Text Truncation:** Explicitly set `text-overflow: clip`, `overflow: visible`, and `white-space: normal` for the header title on mobile to prevent the ellipsis truncation issue ("Errl Fo..."). Also adjusted `.header-brand-text` to prevent parent clipping.
     *   **Guest Header:** Updated `src/app/globals.css` to:
         *   Ensure Guest Header buttons ("Home" and "Feed") are right-aligned using `justify-self: end`.
         *   Hide the unnecessary icons for guest buttons on mobile (`.header-nav-icon`), displaying only text.

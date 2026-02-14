@@ -849,28 +849,34 @@ a {
     line-height: 0.95;
     max-height: none;
     overflow: visible;
+    text-overflow: clip;
     text-wrap: balance;
     width: min-content;
     text-align: left;
   }
 
+  .header-brand-text {
+    overflow: visible;
+    min-width: auto;
+  }
+
   .header-nav-pill {
-    min-height: 32px;
-    width: 32px;
-    min-width: 32px;
-    padding: 0;
+    min-height: 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
     justify-content: center;
     border-radius: 999px;
   }
 
   .nav-pill-home {
-    display: none;
+    display: none !important;
   }
 
   .nav-pill-feed, .nav-pill-library {
-    width: auto;
-    min-width: auto;
-    padding: 0 10px;
+    width: auto !important;
+    min-width: auto !important;
+    padding: 0 10px !important;
   }
 
   .nav-pill-feed .header-nav-label,
@@ -879,8 +885,20 @@ a {
     margin-left: 6px;
   }
 
+  .nav-pill-feed {
+    padding: 0 12px;
+  }
+
+  .nav-pill-feed .header-nav-label {
+    margin-left: 0;
+  }
+
   .nav-pill-library .nav-pill-caret {
     display: inline;
+  }
+
+  .nav-pill-library .header-nav-icon {
+    display: none;
   }
 
   .header-nav-icon {
@@ -930,13 +948,16 @@ a {
     line-height: 1.1;
     max-height: none;
     overflow: visible;
+    text-overflow: clip;
     text-wrap: balance;
+    width: min-content;
   }
 
   .header-guest-pill {
-    min-width: 68px;
-    width: auto;
-    padding: 0 10px;
+    min-width: 68px !important;
+    width: auto !important;
+    padding: 0 10px !important;
+    min-height: 32px !important;
   }
 
   .header-guest-pill .header-nav-label {
