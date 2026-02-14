@@ -7914,6 +7914,12 @@ header::before {
   box-shadow: none;
 }
 
+.edit-post-modal > .card::before,
+.edit-post-modal > .card::after {
+  content: none;
+  display: none;
+}
+
 .edit-post-modal > .card > .section-title:first-child {
   display: none;
 }
