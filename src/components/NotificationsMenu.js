@@ -184,6 +184,7 @@ export default function NotificationsMenu({
 
       actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
       const top = triggerRect.bottom + 4;
+      const maxHeight = Math.max(220, window.innerHeight - top - margin);
 
       setPopoverStyle({
         position: 'fixed',
@@ -194,7 +195,7 @@ export default function NotificationsMenu({
         maxWidth: `${finalWidth}px`,
         minWidth: `${finalWidth}px`,
         height: 'auto',
-        maxHeight: 'calc(100vh - 32px)',
+        maxHeight: `${maxHeight}px`,
       });
     };
     
@@ -323,51 +324,7 @@ export default function NotificationsMenu({
           {signingOut ? 'Signing out…' : 'Sign out'}
         </span>
       </div>
-      <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap', marginBottom: '12px' }}>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            router.push('/account?tab=profile');
-          }}
-          style={{
-            fontSize: '12px',
-            padding: '6px 12px',
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
-            fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-          }}
-        >
-          Edit Profile
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            if (currentUsername) {
-              router.push(`/profile/${encodeURIComponent(currentUsername)}`);
-            } else {
-              router.push('/account?tab=profile');
-            }
-          }}
-          style={{
-            fontSize: '12px',
-            padding: '6px 12px',
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
-            fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-          }}
-        >
-          View Profile
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
         <button
           type="button"
           onClick={() => {
@@ -376,17 +333,16 @@ export default function NotificationsMenu({
           }}
           style={{
             fontSize: '12px',
-            padding: '6px 12px',
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
+            padding: '4px 0',
+            background: 'transparent',
             border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
+            color: 'var(--muted)',
+            textDecoration: 'underline',
             fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+            cursor: 'pointer'
           }}
         >
-          Messages
+          Open messages
         </button>
       </div>
 

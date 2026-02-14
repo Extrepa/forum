@@ -34,6 +34,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [notifyUnreadCount, setNotifyUnreadCount] = useState(0);
   const [notifyItems, setNotifyItems] = useState([]);
   const [notifyStatus, setNotifyStatus] = useState('idle');
+  const [guestFeedArmed, setGuestFeedArmed] = useState(false);
+  const [guestFeedDragging, setGuestFeedDragging] = useState(false);
+  const [guestFeedGhost, setGuestFeedGhost] = useState(null);
+  const [headerEasterOpen, setHeaderEasterOpen] = useState(false);
 
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
@@ -41,6 +45,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const avatarRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
+  const brandRef = useRef(null);
+  const guestFeedArmTimerRef = useRef(null);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -76,6 +82,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     setSearchOpen(false);
     setKebabOpen(false);
     setNotifyOpen(false);
+    setHeaderEasterOpen(false);
+    setGuestFeedArmed(false);
+    setGuestFeedDragging(false);
+    setGuestFeedGhost(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -117,9 +127,45 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       setKebabOpen(false);
       setNotifyOpen(false);
       setSearchOpen(false);
+      setGuestFeedArmed(false);
+      setGuestFeedDragging(false);
+      setGuestFeedGhost(null);
+      setHeaderEasterOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!guestFeedDragging) return undefined;
+    const handleMove = (event) => {
+      setGuestFeedGhost({ x: event.clientX, y: event.clientY });
+    };
+    const handleUp = (event) => {
+      const rect = brandRef.current?.getBoundingClientRect();
+      const droppedOnMascot = !!rect
+        && event.clientX >= rect.left
+        && event.clientX <= rect.right
+        && event.clientY >= rect.top
+        && event.clientY <= rect.bottom;
+      setGuestFeedDragging(false);
+      setGuestFeedGhost(null);
+      if (droppedOnMascot) {
+        setHeaderEasterOpen(true);
+      }
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp, { once: true });
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
+  }, [guestFeedDragging]);
+
+  useEffect(() => () => {
+    if (guestFeedArmTimerRef.current) {
+      clearTimeout(guestFeedArmTimerRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -171,10 +217,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   return (
     <>
-      <header className={`site-header ${isSignedIn ? '' : 'site-header--guest'}`.trim()}>
+      <header className={`site-header ${isSignedIn ? '' : 'site-header--guest'} ${headerEasterOpen ? 'header--easter-egg' : ''}`.trim()}>
         <div className="site-header__inner">
         <div className="header-left">
-          <div className="header-brand">
+          <div className="header-brand" ref={brandRef}>
             <ForumLogo variant="header" as="span" showText={false} interactive={false} />
             <div className="header-brand-text">
               <h1 className="forum-title forum-title--header">Errl Forum</h1>
@@ -303,36 +349,74 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             </button>
           ) : null}
 
-          <div className="header-avatar" ref={avatarRef}>
-            <button
-              type="button"
-              className="header-avatar-button"
-              onClick={async () => {
-                if (!isSignedIn) {
-                  router.push('/');
-                  return;
-                }
-                const next = !notifyOpen;
-                setLibraryOpen(false);
-                setNotifyOpen(next);
-                setKebabOpen(false);
-                if (next) await refreshNotifications();
-              }}
-              aria-label={isSignedIn ? notificationLabel : 'Sign in or create account'}
-              title={isSignedIn ? notificationLabel : 'Sign in or create account'}
-            >
-              {user?.avatar_key ? (
-                <AvatarImage avatarKey={user.avatar_key} alt="" size={30} className="header-avatar-image" />
-              ) : (
-                <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
-              )}
-              {isSignedIn && notifyUnreadCount > 0 ? (
-                <span className="header-avatar-badge" aria-hidden="true">
-                  {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
+          {isSignedIn ? (
+            <div className="header-avatar" ref={avatarRef}>
+              <button
+                type="button"
+                className="header-avatar-button"
+                onClick={async () => {
+                  const next = !notifyOpen;
+                  setLibraryOpen(false);
+                  setNotifyOpen(next);
+                  setKebabOpen(false);
+                  if (next) await refreshNotifications();
+                }}
+                aria-label={notificationLabel}
+                title={notificationLabel}
+              >
+                {user?.avatar_key ? (
+                  <AvatarImage avatarKey={user.avatar_key} alt="" size={30} className="header-avatar-image" />
+                ) : (
+                  <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
+                )}
+                {notifyUnreadCount > 0 ? (
+                  <span className="header-avatar-badge" aria-hidden="true">
+                    {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
+                  </span>
+                ) : null}
+              </button>
+            </div>
+          ) : (
+            <div className="header-guest-actions">
+              <button type="button" className="action-button header-nav-pill header-guest-pill" aria-disabled="true" title="Home">
+                <span className="header-nav-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 10.5 12 3l9 7.5" />
+                    <path d="M5 9.5V21h14V9.5" />
+                  </svg>
                 </span>
-              ) : null}
-            </button>
-          </div>
+                <span className="header-nav-label">Home</span>
+              </button>
+              <button
+                type="button"
+                className={`action-button header-nav-pill header-guest-pill header-guest-feed ${guestFeedArmed ? 'nav-link-egg-armed' : ''} ${guestFeedDragging ? 'nav-link-egg-hidden' : ''}`}
+                aria-disabled="true"
+                title="Feed"
+                onDoubleClick={() => {
+                  setGuestFeedArmed(true);
+                  if (guestFeedArmTimerRef.current) clearTimeout(guestFeedArmTimerRef.current);
+                  guestFeedArmTimerRef.current = setTimeout(() => {
+                    setGuestFeedArmed(false);
+                  }, 6000);
+                }}
+                onPointerDown={(event) => {
+                  if (!guestFeedArmed) return;
+                  event.preventDefault();
+                  setGuestFeedDragging(true);
+                  setGuestFeedGhost({ x: event.clientX, y: event.clientY });
+                }}
+              >
+                <span className="header-nav-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 5h16" />
+                    <path d="M4 12h16" />
+                    <path d="M4 19h16" />
+                  </svg>
+                </span>
+                <span className="header-nav-label">Feed</span>
+              </button>
+            </div>
+          )}
 
           {isSignedIn ? (
             <div className="header-kebab" ref={kebabRef}>
@@ -426,6 +510,22 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           ) : null}
         </div>
       </div>
+      {headerEasterOpen ? (
+        <div className="header-easter-egg-overlay" role="dialog" aria-label="Header easter egg">
+          <button
+            type="button"
+            className="header-easter-egg-close"
+            onClick={() => setHeaderEasterOpen(false)}
+          >
+            Close
+          </button>
+          <iframe
+            className="header-easter-egg-iframe"
+            src="/easter-eggs/errl-bubbles-header.html"
+            title="Header easter egg"
+          />
+        </div>
+      ) : null}
       </header>
 
       {isSignedIn && searchOpen ? (
@@ -450,6 +550,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       ) : null}
 
       <HeaderSetupBanner />
+      {guestFeedDragging && guestFeedGhost ? (
+        <div
+          className="nav-egg-drag-ghost"
+          style={{ transform: `translate(${guestFeedGhost.x - 40}px, ${guestFeedGhost.y - 22}px)` }}
+        >
+          Feed
+        </div>
+      ) : null}
     </>
   );
 }

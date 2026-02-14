@@ -1136,7 +1136,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       onChange={(event) => setLoginIdentifier(event.target.value)}
                       onFocus={() => setLoginIdentifierFocused(true)}
                       onBlur={() => setLoginIdentifierFocused(false)}
-                      placeholder={loginIdentifier ? '' : (loginIdentifierActive ? loginIdentifierPlaceholder.placeholder : 'you@example.com')}
+                      placeholder=""
                       autoComplete="username"
                       required
                       style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
@@ -1153,7 +1153,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           color: 'var(--muted)',
                           fontSize: '16px',
                           zIndex: 0,
-                          opacity: loginIdentifierPlaceholder.opacity * 0.4,
+                          opacity: loginIdentifierPlaceholder.opacity * 0.7,
                           transition: 'opacity 0.6s ease-in-out',
                           maxWidth: 'calc(100% - 24px)',
                           overflow: 'hidden',
@@ -1209,12 +1209,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <>
               <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
               <p className="muted" style={{ marginBottom: '20px' }}>
-                Create an account with email, username, and password. Phone and name are optional.
+                Create your account with your details, email, username, and password.
               </p>
               <form onSubmit={submitSignup}>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <label style={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <div className="muted">First name (optional)</div>
+                    <div className="muted">First name</div>
                     <input
                       name="firstName"
                       value={signupFirstName}
@@ -1230,7 +1230,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     {signupFieldErrors.firstName ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.firstName}</div> : null}
                   </label>
                   <label style={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <div className="muted">Last name (optional)</div>
+                    <div className="muted">Last name</div>
                     <input
                       name="lastName"
                       value={signupLastName}
@@ -1247,10 +1247,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                   </label>
                 </div>
                 <div className="muted" style={{ fontSize: '12px', marginTop: '-4px' }}>
-                  Name is optional and is not shown on your public profile.
+                  Your name is not shown on your public profile.
                 </div>
                 <label>
-                  <div className="muted">Email (required)</div>
+                  <div className="muted">Email</div>
                   <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
                       name="email"
@@ -1261,7 +1261,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       }}
                       onFocus={() => setSignupEmailFocused(true)}
                       onBlur={() => setSignupEmailFocused(false)}
-                      placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
+                      placeholder=""
                       autoComplete="email"
                       required
                       className="signup-input"
@@ -1279,7 +1279,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           color: 'var(--muted)',
                           fontSize: '16px',
                           zIndex: 0,
-                          opacity: signupEmailPlaceholder.opacity * 0.4,
+                          opacity: signupEmailPlaceholder.opacity * 0.7,
                           transition: 'opacity 0.6s ease-in-out',
                           maxWidth: 'calc(100% - 24px)',
                           overflow: 'hidden',
@@ -1305,7 +1305,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       }}
                       onFocus={() => setSignupUsernameFocused(true)}
                       onBlur={() => setSignupUsernameFocused(false)}
-                      placeholder={signupUsername ? '' : (signupUsernameActive ? signupUsernamePlaceholder.placeholder : 'errlmember')}
+                      placeholder=""
                       autoComplete="username"
                       required
                       className="signup-input"
@@ -1323,7 +1323,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                           color: 'var(--muted)',
                           fontSize: '16px',
                           zIndex: 0,
-                          opacity: signupUsernamePlaceholder.opacity * 0.4,
+                          opacity: signupUsernamePlaceholder.opacity * 0.7,
                           transition: 'opacity 0.6s ease-in-out',
                           maxWidth: 'calc(100% - 24px)',
                           overflow: 'hidden',

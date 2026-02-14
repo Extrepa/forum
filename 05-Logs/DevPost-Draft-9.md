@@ -11,10 +11,12 @@ We've mapped out three distinct experiences to ensure everyone feels at home:
 *   **The New Visitor (Guest):**
     *   **Goal:** Immediate value and clear direction.
     *   **Experience:** A curated public feed showcasing the best of the community. Navigation is simplified, highlighting "About Us" and "Sign Up." No overwhelming notifications or empty dashboards—just content and a clear invitation to join.
+    *   **Update:** Guests now see a "Preview" of the forum sections below the signup form, allowing them to explore public content before committing.
 
 *   **The Returning Member:**
     *   **Goal:** Re-engagement and discovery.
     *   **Experience:** A personalized welcome back ("Good to see you!"). The homepage mixes their followed content with trending community topics. Notifications are prominent, alerting them to replies and mentions they missed while away.
+    *   **Update:** We've introduced a personalized greeting on the dashboard and ensured the full "Explore Sections" grid is available.
 
 *   **The Long-Time Regular:**
     *   **Goal:** Efficiency and deep connection.

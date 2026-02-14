@@ -54,23 +54,26 @@ export default async function HomePage({ searchParams }) {
   const useLore = !!user?.ui_lore_enabled || envLore;
   const strings = getForumStrings({ useLore });
 
-  const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
-    try {
-      const stmt = db.prepare(primarySql);
-      const bound = primaryBinds?.length ? stmt.bind(...primaryBinds) : stmt;
-      return await bound.first();
-    } catch (e) {
-      const stmt = db.prepare(fallbackSql);
-      const bound = fallbackBinds?.length ? stmt.bind(...fallbackBinds) : stmt;
-      return await bound.first();
-    }
-  };
-
-  // Fetch section data for logged-in users (parallelized to reduce CPU time)
+  // Fetch section data for all users (guests get public content)
   let sectionData = null;
+  
   if (hasUsername) {
     const db = await getDb();
+    const safeFirst = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
+      try {
+        const stmt = db.prepare(primarySql);
+        const bound = primaryBinds?.length ? stmt.bind(...primaryBinds) : stmt;
+        return await bound.first();
+      } catch (e) {
+        const stmt = db.prepare(fallbackSql);
+        const bound = fallbackBinds?.length ? stmt.bind(...fallbackBinds) : stmt;
+        return await bound.first();
+      }
+    };
     const safeFirstNull = (d, sql) => d.prepare(sql).first().catch(() => null);
+
+    // Helper to inject private check
+    const privateCheck = '1=1';
 
     const results = await Promise.all([
       safeFirst(db, 'SELECT COUNT(*) as count FROM timeline_updates WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)', [], 'SELECT COUNT(*) as count FROM timeline_updates WHERE (is_deleted = 0 OR is_deleted IS NULL)', []),
@@ -89,12 +92,12 @@ export default async function HomePage({ searchParams }) {
       safeFirstNull(db, `SELECT project_replies.created_at, projects.id AS project_id, projects.title AS project_title, reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference, project_users.username AS project_author, project_users.preferred_username_color_index AS project_author_color_preference FROM project_replies JOIN projects ON projects.id = project_replies.project_id JOIN users AS reply_users ON reply_users.id = project_replies.author_user_id JOIN users AS project_users ON project_users.id = projects.author_user_id WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL) AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL) ORDER BY project_replies.created_at DESC LIMIT 1`),
       safeFirst(db, 'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)', [], 'SELECT COUNT(*) as count FROM forum_threads WHERE image_key IS NOT NULL AND (is_deleted = 0 OR is_deleted IS NULL)', []),
       safeFirst(db, `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM forum_threads JOIN users ON users.id = forum_threads.author_user_id WHERE forum_threads.image_key IS NOT NULL AND forum_threads.moved_to_id IS NULL AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) ORDER BY forum_threads.created_at DESC LIMIT 1`, [], `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM forum_threads JOIN users ON users.id = forum_threads.author_user_id WHERE forum_threads.image_key IS NOT NULL AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) ORDER BY forum_threads.created_at DESC LIMIT 1`, []),
-      safeFirst(db, `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (is_deleted = 0 OR is_deleted IS NULL) AND (1=1)`, [], 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\') AND (is_deleted = 0 OR is_deleted IS NULL)', []),
-      safeFirst(db, `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (1=1) ORDER BY posts.created_at DESC LIMIT 1`, [], `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, []),
-      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (1=1) AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`),
-      safeFirst(db, `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (is_deleted = 0 OR is_deleted IS NULL) AND (1=1)`, [], 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\') AND (is_deleted = 0 OR is_deleted IS NULL)', []),
-      safeFirst(db, `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (1=1) ORDER BY posts.created_at DESC LIMIT 1`, [], `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, []),
-      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (1=1) AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`),
+      safeFirst(db, `SELECT COUNT(*) as count FROM posts WHERE type IN ('art', 'nostalgia') AND (is_deleted = 0 OR is_deleted IS NULL) AND (${privateCheck})`, [], 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'art\', \'nostalgia\') AND (is_deleted = 0 OR is_deleted IS NULL)', []),
+      safeFirst(db, `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (${privateCheck}) ORDER BY posts.created_at DESC LIMIT 1`, [], `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, []),
+      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('art', 'nostalgia') AND (${privateCheck}) AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`),
+      safeFirst(db, `SELECT COUNT(*) as count FROM posts WHERE type IN ('bugs', 'rant') AND (is_deleted = 0 OR is_deleted IS NULL) AND (${privateCheck})`, [], 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'bugs\', \'rant\') AND (is_deleted = 0 OR is_deleted IS NULL)', []),
+      safeFirst(db, `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (${privateCheck}) ORDER BY posts.created_at DESC LIMIT 1`, [], `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, []),
+      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('bugs', 'rant') AND (${privateCheck}) AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`),
       safeFirst(db, 'SELECT COUNT(*) as count FROM dev_logs WHERE (is_deleted = 0 OR is_deleted IS NULL)', [], 'SELECT COUNT(*) as count FROM dev_logs WHERE (is_deleted = 0 OR is_deleted IS NULL)', []),
       safeFirst(db, `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM dev_logs JOIN users ON users.id = dev_logs.author_user_id WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) ORDER BY dev_logs.created_at DESC LIMIT 1`, [], `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM dev_logs JOIN users ON users.id = dev_logs.author_user_id WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) ORDER BY dev_logs.created_at DESC LIMIT 1`, []),
       safeFirstNull(db, `SELECT dev_log_comments.created_at, dev_logs.id AS log_id, dev_logs.title AS log_title, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, log_users.username AS log_author, log_users.preferred_username_color_index AS log_author_color_preference FROM dev_log_comments JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id JOIN users AS comment_users ON comment_users.id = dev_log_comments.author_user_id JOIN users AS log_users ON log_users.id = dev_logs.author_user_id WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL) AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) ORDER BY dev_log_comments.created_at DESC LIMIT 1`),
@@ -149,7 +152,9 @@ export default async function HomePage({ searchParams }) {
         postId: forumRecentPost.id,
         postTitle: forumRecentPost.title,
         postAuthor: forumRecentPost.author_name,
+        postAuthorColorPreference: forumRecentPost.author_color_preference !== null && forumRecentPost.author_color_preference !== undefined ? Number(forumRecentPost.author_color_preference) : null,
         activityAuthor: forumRecentPost.author_name,
+        activityAuthorColorPreference: forumRecentPost.author_color_preference !== null && forumRecentPost.author_color_preference !== undefined ? Number(forumRecentPost.author_color_preference) : null,
         createdAt: forumRecentPost.created_at,
         href: `/lobby/${forumRecentPost.id}`
       };
@@ -159,7 +164,9 @@ export default async function HomePage({ searchParams }) {
         postId: forumRecentReply.thread_id,
         postTitle: forumRecentReply.thread_title,
         postAuthor: forumRecentReply.thread_author,
+        postAuthorColorPreference: forumRecentReply.thread_author_color_preference !== null && forumRecentReply.thread_author_color_preference !== undefined ? Number(forumRecentReply.thread_author_color_preference) : null,
         activityAuthor: forumRecentReply.reply_author,
+        activityAuthorColorPreference: forumRecentReply.reply_author_color_preference !== null && forumRecentReply.reply_author_color_preference !== undefined ? Number(forumRecentReply.reply_author_color_preference) : null,
         createdAt: forumRecentReply.created_at,
         href: `/lobby/${forumRecentReply.thread_id}`
       };
@@ -611,8 +618,8 @@ export default async function HomePage({ searchParams }) {
             }
           : null
       } : null
-  };
-}
+    };
+  }
 
   // Collect all usernames from sectionData
   const allUsernames = [];
@@ -849,7 +856,7 @@ export default async function HomePage({ searchParams }) {
     });
   }
 
-  if (hasUsername && sectionData?.devlog !== null) {
+  if (hasUsername && sectionData?.devlog !== null && sectionData?.devlog !== undefined) {
     sections.push({
       title: strings.cards.devlog.title,
       description: strings.cards.devlog.description,
@@ -859,7 +866,7 @@ export default async function HomePage({ searchParams }) {
     });
   }
 
-  if (hasUsername && sectionData?.loreMemories !== null) {
+  if (hasUsername && sectionData?.loreMemories !== null && sectionData?.loreMemories !== undefined) {
     sections.push({
       title: strings.cards.loreMemories.title,
       description: strings.cards.loreMemories.description,
@@ -875,29 +882,37 @@ export default async function HomePage({ searchParams }) {
   return (
     <div className="stack">
       {!hasUsername && (
-        <ClaimUsernameForm />
+        <div style={{ marginBottom: '32px' }}>
+          <ClaimUsernameForm />
+        </div>
       )}
 
       {hasUsername && (
-        <>
-          <section className="card">
-            <h3 className="section-title" style={{ marginBottom: '16px' }}>Explore Sections</h3>
-            <div className="list grid-tiles">
-              {sections.map((section) => (
-                <HomeSectionCard
-                  key={section.href}
-                  title={section.title}
-                  description={section.description}
-                  count={section.count}
-                  recentActivity={section.recentActivity}
-                  href={section.href}
-                  usernameColorMap={usernameColorMap}
-                  preferredColors={preferredColors}
-                />
-              ))}
-            </div>
-          </section>
-        </>
+        <section className="card">
+          <div style={{ marginBottom: '24px' }}>
+            <h3 className="section-title" style={{ borderBottom: 'none', marginBottom: '4px', fontSize: '18px' }}>
+              Good to see you, <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} />
+            </h3>
+            <p className="muted" style={{ fontSize: '14px' }}>Welcome back to the portal.</p>
+          </div>
+          <h3 className="section-title" style={{ marginBottom: '16px' }}>
+            Explore Sections
+          </h3>
+          <div className="list grid-tiles">
+            {sections.map((section) => (
+              <HomeSectionCard
+                key={section.href}
+                title={section.title}
+                description={section.description}
+                count={section.count}
+                recentActivity={section.recentActivity}
+                href={section.href}
+                usernameColorMap={usernameColorMap}
+                preferredColors={preferredColors}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

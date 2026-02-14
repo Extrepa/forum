@@ -58,3 +58,27 @@
   - Guest mode stays minimal to avoid text/control overlap.
 - CSS compatibility cleanup:
   - Replaced `align-items: end` with `align-items: flex-end` in admin chart styles to remove autoprefixer warning.
+
+## Header + Signup follow-up (current pass)
+- Signed-out header controls changed from avatar-right to compact `Home` + `Feed` pills on the right.
+- Added guest header easter-egg flow:
+  - Double-click `Feed` to arm.
+  - Drag `Feed` onto the mascot/title area to launch header easter-egg overlay.
+- Added/updated guest easter-egg styles for armed, drag-hidden, and close-button states.
+- Prevented title/nav overlap by constraining header brand/title overflow and enabling ellipsis where needed.
+- Notifications panel simplification:
+  - Removed redundant profile action pills from notifications card.
+  - Kept focused notifications list with lightweight `Open messages` action.
+- Signup copy and density polish:
+  - Removed explicit `(optional)` wording from first/last name labels.
+  - Kept privacy line: name is not shown on public profile.
+  - Kept compact two-column rows for name and password fields.
+- Rotating placeholder glitch fix:
+  - Disabled native input placeholders where animated overlay is used.
+  - Increased animated overlay opacity to avoid faint duplicate/stacked text effect.
+- Responsive refinement pass:
+  - Guest `Home`/`Feed` pills now include icons and collapse cleanly to icon-only at mobile width.
+  - Header center/nav now hard-constrained (`min-width: 0`, overflow guard) to avoid title collision.
+  - Search now shrinks earlier (intermediate squeeze range) and collapses to icon sooner (`<=1360px`).
+- Tiny-viewport popover hardening:
+  - Notifications popover mobile max-height is now computed from trigger `top` + viewport height, so it stays on-screen and scrollable on short devices.
