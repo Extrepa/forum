@@ -221,7 +221,7 @@ export default function NotificationsMenu({
       `}</style>
     <div
       ref={popoverRef}
-      className="neon-outline-card header-popover notifications-popover notifications-popover-errl"
+      className="neon-outline-card notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
         right: anchor === 'right' ? 0 : 'auto',
