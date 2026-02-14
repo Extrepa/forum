@@ -328,26 +328,6 @@ export default function NotificationsMenu({
           type="button"
           onClick={() => {
             onClose();
-            router.push('/account?tab=account');
-          }}
-          style={{
-            fontSize: '12px',
-            padding: '6px 12px',
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
-            fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-          }}
-        >
-          Account
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
             router.push('/account?tab=profile');
           }}
           style={{
@@ -387,6 +367,26 @@ export default function NotificationsMenu({
           }}
         >
           View Profile
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            router.push('/messages');
+          }}
+          style={{
+            fontSize: '12px',
+            padding: '6px 12px',
+            whiteSpace: 'nowrap',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+            color: '#001018',
+            fontWeight: 600,
+            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+        >
+          Messages
         </button>
       </div>
 

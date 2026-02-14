@@ -23,14 +23,11 @@ export async function POST(request) {
 
   const firstName = String(payload.firstName || '').trim();
   const lastName = String(payload.lastName || '').trim();
-  if (!firstName || !lastName) {
-    return NextResponse.json({ error: 'Please provide a first and last name.' }, { status: 400 });
-  }
 
   const emailRaw = String(payload.email || '').trim();
   const email = emailRaw ? normalizeEmail(emailRaw) : null;
-  if (payload.notifyEmailEnabled && !email) {
-    return NextResponse.json({ error: 'Please provide an email to enable email notifications.' }, { status: 400 });
+  if (!email) {
+    return NextResponse.json({ error: 'Please provide an email address.' }, { status: 400 });
   }
   if (email && !email.includes('@')) {
     return NextResponse.json({ error: 'Please provide a valid email.' }, { status: 400 });

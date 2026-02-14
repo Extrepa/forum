@@ -28,8 +28,11 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const [signupLastName, setSignupLastName] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [signupNotifyEmail, setSignupNotifyEmail] = useState(false);
   const [signupNotifySms, setSignupNotifySms] = useState(false);
+  const [signupFieldErrors, setSignupFieldErrors] = useState({});
+  const [usernameCheck, setUsernameCheck] = useState({ status: 'idle', message: null, available: null });
 
   // login (email or username)
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -111,6 +114,57 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
   const signupUsernamePlaceholder = useRotatingPlaceholder(USERNAME_SUGGESTIONS, signupUsernameActive, { minMs: 3000, maxMs: 5000 });
 
   useEffect(() => {
+    const username = String(signupUsername || '').trim();
+    if (!username) {
+      setUsernameCheck({ status: 'idle', message: null, available: null });
+      return undefined;
+    }
+
+    const invalid = username.length > 20 || /\s/.test(username);
+    if (invalid) {
+      setUsernameCheck({
+        status: 'invalid',
+        message: 'Pick a username up to 20 characters (letters, numbers, symbols — no spaces).',
+        available: false
+      });
+      return undefined;
+    }
+
+    setUsernameCheck((prev) => ({
+      status: 'checking',
+      message: prev.status === 'available' ? prev.message : 'Checking username availability…',
+      available: prev.status === 'available' ? true : null
+    }));
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/username-availability?username=${encodeURIComponent(username)}`, {
+          method: 'GET',
+          signal: controller.signal
+        });
+        const payload = await res.json();
+        if (!res.ok || payload.ok === false) {
+          setUsernameCheck({ status: 'error', message: payload.message || 'Unable to verify username right now.', available: null });
+          return;
+        }
+        setUsernameCheck({
+          status: payload.available ? 'available' : 'taken',
+          message: payload.message || (payload.available ? 'Username is available.' : 'That username is already taken.'),
+          available: !!payload.available
+        });
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+        setUsernameCheck({ status: 'error', message: 'Unable to verify username right now.', available: null });
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [signupUsername]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const savedIdentifier = window.localStorage.getItem('errl_forum_remembered_identifier');
     if (savedIdentifier) {
@@ -145,6 +199,29 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
     const pw = String(value || '').trim();
     if (pw.length < 8) return 'Password must be at least 8 characters.';
     if (/\s/.test(pw)) return 'Password cannot contain spaces.';
+    return null;
+  };
+
+  const setSignupFieldError = (field, message) => {
+    setSignupFieldErrors((prev) => ({ ...prev, [field]: message }));
+  };
+
+  const clearSignupFieldError = (field) => {
+    setSignupFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const mapSignupErrorToField = (message) => {
+    const text = String(message || '').toLowerCase();
+    if (text.includes('username')) return 'username';
+    if (text.includes('password')) return 'password';
+    if (text.includes('first and last name') || text.includes('first name')) return 'firstName';
+    if (text.includes('email')) return 'email';
+    if (text.includes('phone') || text.includes('sms')) return 'phone';
     return null;
   };
 
@@ -326,38 +403,83 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
 
   const submitSignup = async (event) => {
     event.preventDefault();
+    setSignupFieldErrors({});
+
+    const firstName = String(signupFirstName || '').trim();
+    const lastName = String(signupLastName || '').trim();
+    const username = String(signupUsername || '').trim();
     const trimmedPassword = String(signupPassword || '').trim();
+    const confirmPassword = String(signupConfirmPassword || '').trim();
+    const email = String(signupEmail || '').trim();
+    const phone = String(signupPhone || '').trim();
+
+    if (!username) {
+      setSignupFieldError('username', 'Username is required.');
+      setStatus({ type: 'error', message: 'Enter a username.' });
+      return;
+    }
+
+    if (usernameCheck.status === 'taken' || usernameCheck.available === false) {
+      setSignupFieldError('username', 'That username is already taken.');
+      setStatus({ type: 'error', message: 'Choose a different username.' });
+      return;
+    }
+
+    if (usernameCheck.status === 'checking') {
+      setSignupFieldError('username', 'Please wait for username availability check.');
+      setStatus({ type: 'error', message: 'Please wait for username availability check.' });
+      return;
+    }
+
+    if (usernameCheck.status === 'invalid') {
+      setSignupFieldError('username', usernameCheck.message || 'Invalid username.');
+      setStatus({ type: 'error', message: usernameCheck.message || 'Invalid username.' });
+      return;
+    }
+
     const pwError = validatePassword(trimmedPassword);
     if (pwError) {
+      setSignupFieldError('password', pwError);
       setStatus({ type: 'error', message: pwError });
       return;
     }
-    if (!String(signupFirstName || '').trim() || !String(signupLastName || '').trim()) {
-      setStatus({ type: 'error', message: 'Enter a first and last name.' });
+
+    if (!confirmPassword) {
+      setSignupFieldError('confirmPassword', 'Please confirm your password.');
+      setStatus({ type: 'error', message: 'Please confirm your password.' });
       return;
     }
-    if (signupNotifyEmail && !String(signupEmail || '').trim()) {
-      setStatus({ type: 'error', message: 'Enter an email to enable email notifications.' });
+
+    if (trimmedPassword !== confirmPassword) {
+      setSignupFieldError('confirmPassword', 'Passwords do not match.');
+      setStatus({ type: 'error', message: 'Passwords do not match.' });
       return;
     }
-    if (signupNotifySms && !String(signupPhone || '').trim()) {
+
+    if (!email) {
+      setSignupFieldError('email', 'Email is required.');
+      setStatus({ type: 'error', message: 'Enter an email address.' });
+      return;
+    }
+    if (signupNotifySms && !phone) {
+      setSignupFieldError('phone', 'Phone number is required when SMS notifications are enabled.');
       setStatus({ type: 'error', message: 'Enter a phone number to enable SMS notifications.' });
       return;
     }
     setStatus({ type: 'loading', message: 'Creating account...' });
 
     try {
-      const emailForSignup = signupNotifyEmail ? signupEmail : '';
-      const phoneForSignup = signupNotifySms ? signupPhone : '';
+      const emailForSignup = email;
+      const phoneForSignup = signupNotifySms ? phone : '';
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: emailForSignup,
           phone: phoneForSignup,
-          firstName: signupFirstName,
-          lastName: signupLastName,
-          username: signupUsername,
+          firstName,
+          lastName,
+          username,
           password: trimmedPassword,
           notifyEmailEnabled: signupNotifyEmail,
           notifySmsEnabled: signupNotifySms
@@ -376,8 +498,11 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setSignupLastName('');
       setSignupUsername('');
       setSignupPassword('');
+      setSignupConfirmPassword('');
       setSignupNotifyEmail(false);
       setSignupNotifySms(false);
+      setSignupFieldErrors({});
+      setUsernameCheck({ status: 'idle', message: null, available: null });
       const user = await refreshMe();
       // Navigate to preferred landing page (or home if not set)
       // Force a full reload so server auth state is guaranteed to refresh.
@@ -388,7 +513,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
         router.replace(landingPage === 'feed' ? '/feed' : '/');
       }
     } catch (error) {
-      setStatus({ type: 'error', message: error.message });
+      const message = error?.message || 'Unable to claim that username.';
+      const field = mapSignupErrorToField(message);
+      if (field) setSignupFieldError(field, message);
+      setStatus({ type: 'error', message });
     }
   };
 
@@ -1058,6 +1186,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 type="button"
                 onClick={() => {
                   setStatus({ type: 'idle', message: null });
+                  setSignupFieldErrors({});
+                  setUsernameCheck({ status: 'idle', message: null, available: null });
                   setMode('signup');
                 }}
                 disabled={status.type === 'loading'}
@@ -1079,34 +1209,89 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <>
               <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
               <p className="muted" style={{ marginBottom: '20px' }}>
-                Create an account with a username and password. Add email or phone only if you want notifications.
+                Create an account with email, username, and password. Phone and name are optional.
               </p>
               <form onSubmit={submitSignup}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <label style={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <div className="muted">First name (optional)</div>
+                    <input
+                      name="firstName"
+                      value={signupFirstName}
+                      onChange={(event) => {
+                        setSignupFirstName(event.target.value);
+                        clearSignupFieldError('firstName');
+                      }}
+                      placeholder="First name"
+                      autoComplete="given-name"
+                      className="signup-input"
+                      style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    />
+                    {signupFieldErrors.firstName ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.firstName}</div> : null}
+                  </label>
+                  <label style={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <div className="muted">Last name (optional)</div>
+                    <input
+                      name="lastName"
+                      value={signupLastName}
+                      onChange={(event) => {
+                        setSignupLastName(event.target.value);
+                        clearSignupFieldError('lastName');
+                      }}
+                      placeholder="Last name"
+                      autoComplete="family-name"
+                      className="signup-input"
+                      style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    />
+                    {signupFieldErrors.lastName ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.lastName}</div> : null}
+                  </label>
+                </div>
+                <div className="muted" style={{ fontSize: '12px', marginTop: '-4px' }}>
+                  Name is optional and is not shown on your public profile.
+                </div>
                 <label>
-                  <div className="muted">First name</div>
-                  <input
-                    name="firstName"
-                    value={signupFirstName}
-                    onChange={(event) => setSignupFirstName(event.target.value)}
-                    placeholder="First name"
-                    autoComplete="given-name"
-                    required
-                    className="signup-input"
-                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                  />
-                </label>
-                <label>
-                  <div className="muted">Last name</div>
-                  <input
-                    name="lastName"
-                    value={signupLastName}
-                    onChange={(event) => setSignupLastName(event.target.value)}
-                    placeholder="Last name"
-                    autoComplete="family-name"
-                    required
-                    className="signup-input"
-                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                  />
+                  <div className="muted">Email (required)</div>
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
+                    <input
+                      name="email"
+                      value={signupEmail}
+                      onChange={(event) => {
+                        setSignupEmail(event.target.value);
+                        clearSignupFieldError('email');
+                      }}
+                      onFocus={() => setSignupEmailFocused(true)}
+                      onBlur={() => setSignupEmailFocused(false)}
+                      placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
+                      autoComplete="email"
+                      required
+                      className="signup-input"
+                      style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    />
+                    {!signupEmail && signupEmailActive && (
+                      <div
+                        className="rotating-placeholder-overlay"
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          pointerEvents: 'none',
+                          color: 'var(--muted)',
+                          fontSize: '16px',
+                          zIndex: 0,
+                          opacity: signupEmailPlaceholder.opacity * 0.4,
+                          transition: 'opacity 0.6s ease-in-out',
+                          maxWidth: 'calc(100% - 24px)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {signupEmailPlaceholder.placeholder}
+                      </div>
+                    )}
+                  </div>
+                  {signupFieldErrors.email ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.email}</div> : null}
                 </label>
                 <label>
                   <div className="muted">Pick a username up to 20 characters (letters, numbers, symbols — no spaces)</div>
@@ -1114,7 +1299,10 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     <input
                       name="username"
                       value={signupUsername}
-                      onChange={(event) => setSignupUsername(event.target.value)}
+                      onChange={(event) => {
+                        setSignupUsername(event.target.value);
+                        clearSignupFieldError('username');
+                      }}
                       onFocus={() => setSignupUsernameFocused(true)}
                       onBlur={() => setSignupUsernameFocused(false)}
                       placeholder={signupUsername ? '' : (signupUsernameActive ? signupUsernamePlaceholder.placeholder : 'errlmember')}
@@ -1147,77 +1335,91 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       </div>
                     )}
                   </div>
+                  {signupFieldErrors.username ? (
+                    <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.username}</div>
+                  ) : signupUsername ? (
+                    <div
+                      className="muted"
+                      style={{
+                        marginTop: 6,
+                        color:
+                          usernameCheck.status === 'available'
+                            ? '#7fffd4'
+                            : usernameCheck.status === 'taken' || usernameCheck.status === 'invalid'
+                            ? '#ff9aa8'
+                            : 'var(--muted)'
+                      }}
+                    >
+                      {usernameCheck.message || 'Checking username availability…'}
+                    </div>
+                  ) : null}
                 </label>
-                <label>
-                  <div className="muted">Password (8+ chars)</div>
-                  <input
-                    name="password"
-                    type="password"
-                    value={signupPassword}
-                    onChange={(event) => setSignupPassword(event.target.value)}
-                    placeholder="Password"
-                    required
-                    className="signup-input"
-                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                  />
-                </label>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <label style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <div className="muted">Password (8+ chars)</div>
+                    <input
+                      name="password"
+                      type="password"
+                      value={signupPassword}
+                      onChange={(event) => {
+                        setSignupPassword(event.target.value);
+                        clearSignupFieldError('password');
+                        clearSignupFieldError('confirmPassword');
+                      }}
+                      placeholder="Password"
+                      required
+                      className="signup-input"
+                      style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    />
+                    {signupFieldErrors.password ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.password}</div> : null}
+                  </label>
+                  <label style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <div className="muted">Confirm password</div>
+                    <input
+                      name="confirmPassword"
+                      type="password"
+                      value={signupConfirmPassword}
+                      onChange={(event) => {
+                        setSignupConfirmPassword(event.target.value);
+                        clearSignupFieldError('confirmPassword');
+                      }}
+                      placeholder="Re-enter password"
+                      required
+                      className="signup-input"
+                      style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                    />
+                    {signupFieldErrors.confirmPassword ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.confirmPassword}</div> : null}
+                  </label>
+                </div>
                 <div style={{ marginTop: '12px', marginBottom: '8px' }}>
                   <div className="muted" style={{ marginBottom: '8px' }}>Notification preferences</div>
+                  <div className="muted" style={{ fontSize: '13px', marginBottom: '10px', lineHeight: '1.4' }}>
+                    Your email is used for your account. These toggles only control off-site alert delivery.
+                  </div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <input
                       type="checkbox"
                       checked={signupNotifyEmail}
-                      onChange={(e) => setSignupNotifyEmail(e.target.checked)}
+                      onChange={(e) => {
+                        setSignupNotifyEmail(e.target.checked);
+                        if (!e.target.checked) clearSignupFieldError('email');
+                      }}
                     />
                     <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
                   </label>
                   {signupNotifyEmail ? (
-                    <label style={{ marginTop: '8px', display: 'block' }}>
-                      <div className="muted">Email</div>
-                      <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
-                        <input
-                          name="email"
-                          value={signupEmail}
-                          onChange={(event) => setSignupEmail(event.target.value)}
-                          onFocus={() => setSignupEmailFocused(true)}
-                          onBlur={() => setSignupEmailFocused(false)}
-                          placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
-                          autoComplete="email"
-                          required
-                          className="signup-input"
-                          style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                        />
-                        {!signupEmail && signupEmailActive && (
-                          <div
-                            className="rotating-placeholder-overlay"
-                            style={{
-                              position: 'absolute',
-                              left: '12px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              pointerEvents: 'none',
-                              color: 'var(--muted)',
-                              fontSize: '16px',
-                              zIndex: 0,
-                              opacity: signupEmailPlaceholder.opacity * 0.4,
-                              transition: 'opacity 0.6s ease-in-out',
-                              maxWidth: 'calc(100% - 24px)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {signupEmailPlaceholder.placeholder}
-                          </div>
-                        )}
-                      </div>
-                    </label>
+                    <div className="muted" style={{ fontSize: '12px', marginTop: '-2px', marginBottom: '8px' }}>
+                      Email alerts will be sent to <strong>{signupEmail || 'your signup email'}</strong>.
+                    </div>
                   ) : null}
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="checkbox"
                       checked={signupNotifySms}
-                      onChange={(e) => setSignupNotifySms(e.target.checked)}
+                      onChange={(e) => {
+                        setSignupNotifySms(e.target.checked);
+                        if (!e.target.checked) clearSignupFieldError('phone');
+                      }}
                     />
                     <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
                   </label>
@@ -1227,13 +1429,17 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       <input
                         name="phone"
                         value={signupPhone}
-                        onChange={(event) => setSignupPhone(event.target.value)}
+                        onChange={(event) => {
+                          setSignupPhone(event.target.value);
+                          clearSignupFieldError('phone');
+                        }}
                         placeholder="+15551234567"
                         autoComplete="tel"
                         required
                         className="signup-input"
                         style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                       />
+                      {signupFieldErrors.phone ? <div className="muted" style={{ color: '#ff9aa8', marginTop: 6 }}>{signupFieldErrors.phone}</div> : null}
                     </label>
                   ) : null}
                 </div>
@@ -1245,6 +1451,8 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                 type="button"
                 onClick={() => {
                   setStatus({ type: 'idle', message: null });
+                  setSignupFieldErrors({});
+                  setUsernameCheck({ status: 'idle', message: null, available: null });
                   setMode('login');
                 }}
                 disabled={status.type === 'loading'}

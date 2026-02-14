@@ -158,6 +158,18 @@ a {
   position: relative;
 }
 
+.site-header--guest .site-header__inner {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.site-header--guest .header-center {
+  display: none;
+}
+
+.site-header--guest .header-right {
+  gap: 4px;
+}
+
 .header-left,
 .header-center,
 .header-right {
@@ -234,6 +246,17 @@ a {
   font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.header-nav-icon {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.header-nav-label {
+  display: inline;
 }
 
 .header-nav-pill.is-active {
@@ -643,6 +666,16 @@ a {
   display: none;
 }
 
+@media (max-width: 1220px) {
+  .header-search-inline {
+    display: none;
+  }
+
+  .header-icon-button--search {
+    display: inline-flex;
+  }
+}
+
 @media (max-width: 1000px) {
   .site-header__inner {
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -696,6 +729,10 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(26px, 8vw, 38px);
+  }
+
+  .site-header--guest .site-header__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 
@@ -770,15 +807,31 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(20px, 8.2vw, 30px);
+    font-size: clamp(18px, 7.2vw, 28px);
     letter-spacing: 0.02em;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 0.88;
+    max-height: 52px;
+    overflow: hidden;
+    text-wrap: balance;
   }
 
   .header-nav-pill {
-    min-height: 30px;
-    font-size: 10px;
-    padding: 4px 9px;
+    min-height: 32px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 999px;
+  }
+
+  .header-nav-icon {
+    display: inline-flex;
+  }
+
+  .header-nav-label,
+  .nav-pill-caret {
+    display: none;
   }
 
   .header-icon-button,
@@ -802,6 +855,20 @@ a {
   .header-library-menu {
     width: min(96vw, 360px) !important;
     max-height: calc(100vh - 16px) !important;
+  }
+
+  .site-header--guest .forum-logo-header .forum-logo-face-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .site-header--guest .forum-logo-header {
+    min-width: 48px;
+  }
+
+  .site-header--guest .header-brand .forum-title.forum-title--header {
+    font-size: clamp(20px, 7vw, 30px);
+    max-height: 48px;
   }
 }
 
@@ -3113,14 +3180,14 @@ textarea {
   padding: 12px;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: end;
+  align-items: flex-end;
   gap: 8px;
 }
 
 .admin-traffic-bar-column {
   height: 100%;
   display: flex;
-  align-items: end;
+  align-items: flex-end;
 }
 
 .admin-traffic-bar {

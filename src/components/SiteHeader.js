@@ -17,18 +17,6 @@ function isActivePath(pathname, href) {
   return pathname.startsWith(href);
 }
 
-function formatTimeAgo(timestamp) {
-  const now = Date.now();
-  const diff = Math.max(0, now - Number(timestamp || 0));
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return 'just now';
-}
-
 export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -39,7 +27,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [avatarOpen, setAvatarOpen] = useState(false);
   const [kebabOpen, setKebabOpen] = useState(false);
   const [libraryStyle, setLibraryStyle] = useState({});
 
@@ -47,34 +34,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [notifyUnreadCount, setNotifyUnreadCount] = useState(0);
   const [notifyItems, setNotifyItems] = useState([]);
   const [notifyStatus, setNotifyStatus] = useState('idle');
-  const [messageOpen, setMessageOpen] = useState(false);
-  const [messageItems, setMessageItems] = useState([]);
-  const [messageStatus, setMessageStatus] = useState('idle');
-  const [isCompactHeader, setIsCompactHeader] = useState(false);
 
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
   const searchModalRef = useRef(null);
   const avatarRef = useRef(null);
-  const avatarMenuRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
-  const notificationRef = useRef(null);
-  const messageRef = useRef(null);
-  const messageMenuRef = useRef(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const media = window.matchMedia('(max-width: 1000px)');
-    const updateCompact = () => setIsCompactHeader(media.matches);
-    updateCompact();
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', updateCompact);
-      return () => media.removeEventListener('change', updateCompact);
-    }
-    media.addListener(updateCompact);
-    return () => media.removeListener(updateCompact);
-  }, []);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -90,25 +56,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     }
   }, [navDisabled]);
 
-  const refreshMessages = useCallback(async () => {
-    if (navDisabled) return;
-    setMessageStatus('loading');
-    try {
-      const res = await fetch('/api/messages/preview', { method: 'GET' });
-      const payload = await res.json();
-      setMessageItems(Array.isArray(payload.items) ? payload.items : []);
-      setMessageStatus('idle');
-    } catch (e) {
-      setMessageStatus('error');
-    }
-  }, [navDisabled]);
-
   useEffect(() => {
     if (navDisabled) return undefined;
     let mounted = true;
     const run = async () => {
       if (!mounted) return;
-      await Promise.all([refreshNotifications(), refreshMessages()]);
+      await refreshNotifications();
     };
     run();
     const id = setInterval(run, 25000);
@@ -116,15 +69,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       mounted = false;
       clearInterval(id);
     };
-  }, [navDisabled, refreshNotifications, refreshMessages]);
+  }, [navDisabled, refreshNotifications]);
 
   useEffect(() => {
     setLibraryOpen(false);
     setSearchOpen(false);
-    setAvatarOpen(false);
     setKebabOpen(false);
     setNotifyOpen(false);
-    setMessageOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -137,12 +88,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         if (!inTrigger && !inMenu) setLibraryOpen(false);
       }
 
-      if (avatarOpen) {
-        const inTrigger = avatarRef.current?.contains(target);
-        const inMenu = avatarMenuRef.current?.contains(target);
-        if (!inTrigger && !inMenu) setAvatarOpen(false);
-      }
-
       if (kebabOpen) {
         const inTrigger = kebabRef.current?.contains(target);
         const inMenu = kebabMenuRef.current?.contains(target);
@@ -150,15 +95,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       }
 
       if (notifyOpen) {
-        const inTrigger = notificationRef.current?.contains(target) || (isCompactHeader && avatarRef.current?.contains(target));
+        const inTrigger = avatarRef.current?.contains(target);
         const inMenu = document.querySelector('.notifications-popover');
         if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
-      }
-
-      if (messageOpen) {
-        const inTrigger = messageRef.current?.contains(target) || (isCompactHeader && avatarRef.current?.contains(target));
-        const inMenu = messageMenuRef.current?.contains(target);
-        if (!inTrigger && !inMenu) setMessageOpen(false);
       }
 
       if (searchOpen) {
@@ -169,16 +108,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [libraryOpen, avatarOpen, kebabOpen, notifyOpen, messageOpen, searchOpen, isCompactHeader]);
+  }, [libraryOpen, kebabOpen, notifyOpen, searchOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key !== 'Escape') return;
       setLibraryOpen(false);
-      setAvatarOpen(false);
       setKebabOpen(false);
       setNotifyOpen(false);
-      setMessageOpen(false);
       setSearchOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -227,64 +164,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     setSearchOpen(false);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (error) {
-      // ignore
-    }
-    if (typeof window !== 'undefined') {
-      window.location.href = 'https://forum.errl.wtf';
-    }
-  };
-
   const notificationLabel = useMemo(() => {
     if (notifyUnreadCount > 0) return `Notifications (${notifyUnreadCount})`;
     return 'Notifications';
   }, [notifyUnreadCount]);
 
-  const messageMenu = (
-    <div className="header-menu header-message-menu" ref={messageMenuRef} role="menu">
-      <div className="header-message-menu-title">Messages</div>
-      {messageStatus === 'loading' ? <div className="header-message-empty">Loading…</div> : null}
-      {messageStatus !== 'loading' && messageItems.length === 0 ? (
-        <div className="header-message-empty">No recent messages yet.</div>
-      ) : null}
-      {messageItems.slice(0, 5).map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className="header-message-item"
-          onClick={() => {
-            if (item.profileHref) {
-              router.push(item.profileHref);
-            } else {
-              router.push('/messages');
-            }
-            setMessageOpen(false);
-          }}
-        >
-          <span className="header-message-main">
-            <strong>{item.author_username}</strong> {item.preview}
-          </span>
-          <span className="header-message-time">{formatTimeAgo(item.created_at)}</span>
-        </button>
-      ))}
-      <button
-        type="button"
-        onClick={() => {
-          router.push('/messages');
-          setMessageOpen(false);
-        }}
-      >
-        Open inbox
-      </button>
-    </div>
-  );
-
   return (
     <>
-      <header className="site-header">
+      <header className={`site-header ${isSignedIn ? '' : 'site-header--guest'}`.trim()}>
         <div className="site-header__inner">
         <div className="header-left">
           <div className="header-brand">
@@ -296,156 +183,190 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           </div>
         </div>
 
-        <div className="header-center">
-          <nav className="header-nav" aria-label="Primary">
-            <Link
-              href="/?home=1"
-              className={`action-button header-nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
-              aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
-            >
-              Home
-            </Link>
-            <Link
-              href="/feed"
-              className={`action-button header-nav-pill ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
-              aria-current={isActivePath(pathname, '/feed') ? 'page' : undefined}
-            >
-              Feed
-            </Link>
-            <div className="header-library">
-              <button
-                type="button"
-                className={`action-button header-nav-pill nav-pill-button ${libraryOpen ? 'is-active' : ''}`}
-                onClick={(event) => {
-                  if (navDisabled) return;
-                  libraryAnchorRef.current = event.currentTarget;
-                  setNotifyOpen(false);
-                  setMessageOpen(false);
-                  setAvatarOpen(false);
-                  setKebabOpen(false);
-                  setLibraryOpen((current) => !current);
-                }}
-                aria-expanded={libraryOpen ? 'true' : 'false'}
-                aria-haspopup="true"
-                disabled={navDisabled}
+        {isSignedIn ? (
+          <div className="header-center">
+            <nav className="header-nav" aria-label="Primary">
+              <Link
+                href="/?home=1"
+                className={`action-button header-nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
+                aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
+                title="Home"
+                aria-label="Home"
               >
-                Library
-                <span aria-hidden="true" className="nav-pill-caret">▾</span>
-              </button>
-              {libraryOpen ? (
-                <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
-                  <NavLinks
-                    isSignedIn={isSignedIn}
-                    variant="all"
-                    onNavigate={() => setLibraryOpen(false)}
-                  />
-                </div>
-              ) : null}
-            </div>
-          </nav>
+                <span className="header-nav-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 10.5 12 3l9 7.5" />
+                    <path d="M5 9.5V21h14V9.5" />
+                  </svg>
+                </span>
+                <span className="header-nav-label">Home</span>
+              </Link>
+              <Link
+                href="/feed"
+                className={`action-button header-nav-pill ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
+                aria-current={isActivePath(pathname, '/feed') ? 'page' : undefined}
+                title="Feed"
+                aria-label="Feed"
+              >
+                <span className="header-nav-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 5h16" />
+                    <path d="M4 12h16" />
+                    <path d="M4 19h16" />
+                  </svg>
+                </span>
+                <span className="header-nav-label">Feed</span>
+              </Link>
+              <div className="header-library">
+                <button
+                  type="button"
+                  className={`action-button header-nav-pill nav-pill-button ${libraryOpen ? 'is-active' : ''}`}
+                  onClick={(event) => {
+                    if (navDisabled) return;
+                    libraryAnchorRef.current = event.currentTarget;
+                    setNotifyOpen(false);
+                    setKebabOpen(false);
+                    setLibraryOpen((current) => !current);
+                  }}
+                  aria-expanded={libraryOpen ? 'true' : 'false'}
+                  aria-haspopup="true"
+                  disabled={navDisabled}
+                  title="Library"
+                  aria-label="Library"
+                >
+                  <span className="header-nav-icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20"></path>
+                      <path d="M6.5 7H20v10H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 7Z"></path>
+                    </svg>
+                  </span>
+                  <span className="header-nav-label">Library</span>
+                  <span aria-hidden="true" className="nav-pill-caret">▾</span>
+                </button>
+                {libraryOpen ? (
+                  <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
+                    <NavLinks
+                      isSignedIn={isSignedIn}
+                      variant="all"
+                      onNavigate={() => setLibraryOpen(false)}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </nav>
 
-          <form className="header-search-inline" onSubmit={handleSearchSubmit}>
-            <svg className="header-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder={strings.search.placeholder}
-              className="header-search-inline-input"
-              disabled={navDisabled}
-              aria-label="Search"
-            />
-            <button type="submit" className="header-search-submit" disabled={navDisabled || !searchValue.trim()}>
-              Search
-            </button>
-          </form>
-        </div>
-
-        <div className="header-right">
-          <button
-            type="button"
-            className="header-icon-button header-icon-button--search"
-            onClick={() => {
-              if (navDisabled) return;
-              setLibraryOpen(false);
-              setNotifyOpen(false);
-              setMessageOpen(false);
-              setAvatarOpen(false);
-              setKebabOpen(false);
-              setSearchOpen(true);
-            }}
-            aria-label="Open search"
-            title="Search"
-            disabled={navDisabled}
-          >
-            <span className="header-icon-glyph" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <form className="header-search-inline" onSubmit={handleSearchSubmit}>
+              <svg className="header-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
-            </span>
-            <span className="header-icon-text">Search</span>
-          </button>
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder={strings.search.placeholder}
+                className="header-search-inline-input"
+                disabled={navDisabled}
+                aria-label="Search"
+              />
+              <button type="submit" className="header-search-submit" disabled={navDisabled || !searchValue.trim()}>
+                Search
+              </button>
+            </form>
+          </div>
+        ) : null}
 
-          <button
-            type="button"
-            className="header-icon-button header-icon-button--library header-compact-hide"
-            onClick={(event) => {
-              if (navDisabled) return;
-              libraryAnchorRef.current = event.currentTarget;
-              setNotifyOpen(false);
-              setMessageOpen(false);
-              setAvatarOpen(false);
-              setKebabOpen(false);
-              setLibraryOpen((current) => !current);
-            }}
-            aria-label="Open library"
-            title="Library"
-            disabled={navDisabled}
-          >
-            <span className="header-icon-glyph" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20"></path>
-                <path d="M6.5 7H20v10H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 7Z"></path>
-              </svg>
-            </span>
-            <span className="header-icon-text">Library</span>
-          </button>
-
-          <div className="notifications-logo-trigger" ref={notificationRef}>
+        <div className="header-right">
+          {isSignedIn ? (
             <button
               type="button"
-              className="header-icon-button header-icon-button--alerts header-compact-hide"
-              onClick={async () => {
+              className="header-icon-button header-icon-button--search"
+              onClick={() => {
                 if (navDisabled) return;
-                const next = !notifyOpen;
-                setNotifyOpen(next);
                 setLibraryOpen(false);
-                setAvatarOpen(false);
+                setNotifyOpen(false);
                 setKebabOpen(false);
-                setMessageOpen(false);
-                if (next) await refreshNotifications();
+                setSearchOpen(true);
               }}
-              aria-label={notificationLabel}
-              title={notificationLabel}
+              aria-label="Open search"
+              title="Search"
               disabled={navDisabled}
             >
               <span className="header-icon-glyph" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
                 </svg>
               </span>
-              {notifyUnreadCount > 0 ? (
-                <span className="header-icon-badge">
+              <span className="header-icon-text">Search</span>
+            </button>
+          ) : null}
+
+          <div className="header-avatar" ref={avatarRef}>
+            <button
+              type="button"
+              className="header-avatar-button"
+              onClick={async () => {
+                if (!isSignedIn) {
+                  router.push('/');
+                  return;
+                }
+                const next = !notifyOpen;
+                setLibraryOpen(false);
+                setNotifyOpen(next);
+                setKebabOpen(false);
+                if (next) await refreshNotifications();
+              }}
+              aria-label={isSignedIn ? notificationLabel : 'Sign in or create account'}
+              title={isSignedIn ? notificationLabel : 'Sign in or create account'}
+            >
+              {user?.avatar_key ? (
+                <AvatarImage avatarKey={user.avatar_key} alt="" size={30} className="header-avatar-image" />
+              ) : (
+                <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
+              )}
+              {isSignedIn && notifyUnreadCount > 0 ? (
+                <span className="header-avatar-badge" aria-hidden="true">
                   {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
                 </span>
               ) : null}
             </button>
+          </div>
+
+          {isSignedIn ? (
+            <div className="header-kebab" ref={kebabRef}>
+            <button
+              type="button"
+              className="header-icon-button"
+              onClick={() => {
+                if (navDisabled) return;
+                setLibraryOpen(false);
+                setNotifyOpen(false);
+                setKebabOpen((current) => !current);
+              }}
+              aria-label="More settings"
+              title="More"
+              disabled={navDisabled}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+            {kebabOpen ? (
+              <div className="header-menu" ref={kebabMenuRef} role="menu">
+                <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
+                {isAdmin ? <button type="button" onClick={() => router.push('/admin')}>Admin</button> : null}
+              </div>
+            ) : null}
+            </div>
+          ) : null}
+
+          {isSignedIn ? (
             <NotificationsMenu
               open={notifyOpen}
               onClose={() => setNotifyOpen(false)}
@@ -491,7 +412,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                   });
-                  const payload = await res.json();
                   if (res.ok) {
                     setNotifyUnreadCount(0);
                     setNotifyItems([]);
@@ -501,140 +421,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 }
               }}
               anchor="right"
-              anchorRef={isCompactHeader ? avatarRef : notificationRef}
+              anchorRef={avatarRef}
             />
-          </div>
-
-          <div className="header-messages header-compact-hide" ref={messageRef}>
-            <button
-              type="button"
-              className="header-icon-button header-icon-button--messages"
-              onClick={async () => {
-                if (navDisabled) return;
-                const next = !messageOpen;
-                setMessageOpen(next);
-                setLibraryOpen(false);
-                setAvatarOpen(false);
-                setKebabOpen(false);
-                setNotifyOpen(false);
-                if (next) await refreshMessages();
-              }}
-              aria-label="Messages"
-              title="Messages"
-              disabled={navDisabled}
-            >
-              <span className="header-icon-glyph" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </span>
-            </button>
-            {!isCompactHeader && messageOpen ? messageMenu : null}
-          </div>
-
-          <div className="header-avatar" ref={avatarRef}>
-            <button
-              type="button"
-              className="header-avatar-button"
-              onClick={() => {
-                if (navDisabled) return;
-                setLibraryOpen(false);
-                setNotifyOpen(false);
-                setMessageOpen(false);
-                setAvatarOpen((current) => !current);
-                setKebabOpen(false);
-              }}
-              aria-label="Open profile menu"
-              title="Profile"
-              disabled={navDisabled}
-            >
-              {user?.avatar_key ? (
-                <AvatarImage avatarKey={user.avatar_key} alt="" size={30} className="header-avatar-image" />
-              ) : (
-                <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
-              )}
-              <span className="header-avatar-caret" aria-hidden="true">▾</span>
-              {isCompactHeader && notifyUnreadCount > 0 ? (
-                <span className="header-avatar-badge" aria-hidden="true">
-                  {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
-                </span>
-              ) : null}
-            </button>
-            {avatarOpen ? (
-              <div className="header-menu" ref={avatarMenuRef} role="menu">
-                {isCompactHeader ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setLibraryOpen(false);
-                        setAvatarOpen(false);
-                        setKebabOpen(false);
-                        setMessageOpen(false);
-                        setNotifyOpen(true);
-                        await refreshNotifications();
-                      }}
-                    >
-                      Notifications{notifyUnreadCount > 0 ? ` (${notifyUnreadCount > 99 ? '99+' : notifyUnreadCount})` : ''}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setLibraryOpen(false);
-                        setAvatarOpen(false);
-                        setKebabOpen(false);
-                        setNotifyOpen(false);
-                        setMessageOpen(true);
-                        await refreshMessages();
-                      }}
-                    >
-                      Messages
-                    </button>
-                  </>
-                ) : null}
-                <button type="button" onClick={() => router.push(user?.username ? `/profile/${user.username}` : '/account?tab=profile')}>View profile</button>
-                <button type="button" onClick={handleSignOut}>Sign out</button>
-              </div>
-            ) : null}
-            {isCompactHeader && messageOpen ? messageMenu : null}
-          </div>
-
-          <div className="header-kebab" ref={kebabRef}>
-            <button
-              type="button"
-              className="header-icon-button"
-              onClick={() => {
-                if (navDisabled) return;
-                setLibraryOpen(false);
-                setNotifyOpen(false);
-                setMessageOpen(false);
-                setKebabOpen((current) => !current);
-                setAvatarOpen(false);
-              }}
-              aria-label="More settings"
-              title="More"
-              disabled={navDisabled}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="12" cy="5" r="2"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
-                <circle cx="12" cy="19" r="2"></circle>
-              </svg>
-            </button>
-            {kebabOpen ? (
-              <div className="header-menu" ref={kebabMenuRef} role="menu">
-                <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
-                {isAdmin ? <button type="button" onClick={() => router.push('/admin')}>Admin</button> : null}
-              </div>
-            ) : null}
-          </div>
+          ) : null}
         </div>
       </div>
       </header>
 
-      {searchOpen ? (
+      {isSignedIn && searchOpen ? (
         <div className="header-search-modal">
           <div className="header-search-modal-inner" ref={searchModalRef}>
             <div className="header-search-modal-title">Search</div>
