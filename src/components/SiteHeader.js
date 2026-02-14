@@ -17,6 +17,18 @@ function isActivePath(pathname, href) {
   return pathname.startsWith(href);
 }
 
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = Math.max(0, now - Number(timestamp || 0));
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return 'just now';
+}
+
 export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -35,6 +47,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [notifyUnreadCount, setNotifyUnreadCount] = useState(0);
   const [notifyItems, setNotifyItems] = useState([]);
   const [notifyStatus, setNotifyStatus] = useState('idle');
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageItems, setMessageItems] = useState([]);
+  const [messageStatus, setMessageStatus] = useState('idle');
 
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
@@ -44,6 +59,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
   const notificationRef = useRef(null);
+  const messageRef = useRef(null);
+  const messageMenuRef = useRef(null);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -59,12 +76,25 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     }
   }, [navDisabled]);
 
+  const refreshMessages = useCallback(async () => {
+    if (navDisabled) return;
+    setMessageStatus('loading');
+    try {
+      const res = await fetch('/api/messages/preview', { method: 'GET' });
+      const payload = await res.json();
+      setMessageItems(Array.isArray(payload.items) ? payload.items : []);
+      setMessageStatus('idle');
+    } catch (e) {
+      setMessageStatus('error');
+    }
+  }, [navDisabled]);
+
   useEffect(() => {
     if (navDisabled) return undefined;
     let mounted = true;
     const run = async () => {
       if (!mounted) return;
-      await refreshNotifications();
+      await Promise.all([refreshNotifications(), refreshMessages()]);
     };
     run();
     const id = setInterval(run, 25000);
@@ -72,7 +102,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       mounted = false;
       clearInterval(id);
     };
-  }, [navDisabled, refreshNotifications]);
+  }, [navDisabled, refreshNotifications, refreshMessages]);
 
   useEffect(() => {
     setLibraryOpen(false);
@@ -80,6 +110,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     setAvatarOpen(false);
     setKebabOpen(false);
     setNotifyOpen(false);
+    setMessageOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -110,6 +141,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
       }
 
+      if (messageOpen) {
+        const inTrigger = messageRef.current?.contains(target);
+        const inMenu = messageMenuRef.current?.contains(target);
+        if (!inTrigger && !inMenu) setMessageOpen(false);
+      }
+
       if (searchOpen) {
         const inModal = searchModalRef.current?.contains(target);
         if (!inModal) setSearchOpen(false);
@@ -118,7 +155,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [libraryOpen, avatarOpen, kebabOpen, notifyOpen, searchOpen]);
+  }, [libraryOpen, avatarOpen, kebabOpen, notifyOpen, messageOpen, searchOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -127,6 +164,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       setAvatarOpen(false);
       setKebabOpen(false);
       setNotifyOpen(false);
+      setMessageOpen(false);
       setSearchOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -138,17 +176,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
-      const maxWidth = Math.min(420, window.innerWidth - 24);
-      let left = rect.left;
-      if (left + maxWidth > window.innerWidth - 12) {
-        left = window.innerWidth - maxWidth - 12;
+      const menuWidth = Math.min(360, window.innerWidth - 24);
+      let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+      if (left + menuWidth > window.innerWidth - 12) {
+        left = window.innerWidth - menuWidth - 12;
       }
       if (left < 12) left = 12;
       setLibraryStyle({
         position: 'fixed',
-        top: rect.bottom + 8,
+        top: rect.bottom + 6,
         left,
-        width: maxWidth,
+        width: menuWidth,
       });
     };
 
@@ -204,7 +242,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         <div className="header-center">
           <nav className="header-nav" aria-label="Primary">
             <Link
-              href="/"
+              href="/?home=1"
               className={`action-button header-nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
               aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
             >
@@ -224,6 +262,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 onClick={(event) => {
                   if (navDisabled) return;
                   libraryAnchorRef.current = event.currentTarget;
+                  setNotifyOpen(false);
+                  setMessageOpen(false);
+                  setAvatarOpen(false);
+                  setKebabOpen(false);
                   setLibraryOpen((current) => !current);
                 }}
                 aria-expanded={libraryOpen ? 'true' : 'false'}
@@ -236,7 +278,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               {libraryOpen ? (
                 <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
                   <NavLinks
-                    isAdmin={isAdmin}
                     isSignedIn={isSignedIn}
                     variant="all"
                     onNavigate={() => setLibraryOpen(false)}
@@ -272,6 +313,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             className="header-icon-button header-icon-button--search"
             onClick={() => {
               if (navDisabled) return;
+              setLibraryOpen(false);
+              setNotifyOpen(false);
+              setMessageOpen(false);
+              setAvatarOpen(false);
+              setKebabOpen(false);
               setSearchOpen(true);
             }}
             aria-label="Open search"
@@ -293,6 +339,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             onClick={(event) => {
               if (navDisabled) return;
               libraryAnchorRef.current = event.currentTarget;
+              setNotifyOpen(false);
+              setMessageOpen(false);
+              setAvatarOpen(false);
+              setKebabOpen(false);
               setLibraryOpen((current) => !current);
             }}
             aria-label="Open library"
@@ -312,11 +362,15 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           <div className="notifications-logo-trigger" ref={notificationRef}>
             <button
               type="button"
-              className="header-icon-button"
+              className="header-icon-button header-icon-button--alerts"
               onClick={async () => {
                 if (navDisabled) return;
                 const next = !notifyOpen;
                 setNotifyOpen(next);
+                setLibraryOpen(false);
+                setAvatarOpen(false);
+                setKebabOpen(false);
+                setMessageOpen(false);
                 if (next) await refreshNotifications();
               }}
               aria-label={notificationLabel}
@@ -329,7 +383,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </span>
-              <span className="header-icon-text">Alerts</span>
               {notifyUnreadCount > 0 ? (
                 <span className="header-icon-badge">
                   {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
@@ -394,24 +447,69 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             />
           </div>
 
-          <button
-            type="button"
-            className="header-icon-button"
-            onClick={() => {
-              if (navDisabled) return;
-              router.push('/messages');
-            }}
-            aria-label="Messages"
-            title="Messages"
-            disabled={navDisabled}
-          >
-            <span className="header-icon-glyph" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </span>
-            <span className="header-icon-text">Messages</span>
-          </button>
+          <div className="header-messages" ref={messageRef}>
+            <button
+              type="button"
+              className="header-icon-button header-icon-button--messages"
+              onClick={async () => {
+                if (navDisabled) return;
+                const next = !messageOpen;
+                setMessageOpen(next);
+                setLibraryOpen(false);
+                setAvatarOpen(false);
+                setKebabOpen(false);
+                setNotifyOpen(false);
+                if (next) await refreshMessages();
+              }}
+              aria-label="Messages"
+              title="Messages"
+              disabled={navDisabled}
+            >
+              <span className="header-icon-glyph" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </span>
+            </button>
+            {messageOpen ? (
+              <div className="header-menu header-message-menu" ref={messageMenuRef} role="menu">
+                <div className="header-message-menu-title">Messages</div>
+                {messageStatus === 'loading' ? <div className="header-message-empty">Loading…</div> : null}
+                {messageStatus !== 'loading' && messageItems.length === 0 ? (
+                  <div className="header-message-empty">No recent messages yet.</div>
+                ) : null}
+                {messageItems.slice(0, 5).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="header-message-item"
+                    onClick={() => {
+                      if (item.profileHref) {
+                        router.push(item.profileHref);
+                      } else {
+                        router.push('/messages');
+                      }
+                      setMessageOpen(false);
+                    }}
+                  >
+                    <span className="header-message-main">
+                      <strong>{item.author_username}</strong> {item.preview}
+                    </span>
+                    <span className="header-message-time">{formatTimeAgo(item.created_at)}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push('/messages');
+                    setMessageOpen(false);
+                  }}
+                >
+                  Open inbox
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           <div className="header-avatar" ref={avatarRef}>
             <button
@@ -419,7 +517,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               className="header-avatar-button"
               onClick={() => {
                 if (navDisabled) return;
+                setLibraryOpen(false);
+                setNotifyOpen(false);
+                setMessageOpen(false);
                 setAvatarOpen((current) => !current);
+                setKebabOpen(false);
               }}
               aria-label="Open profile menu"
               title="Profile"
@@ -434,12 +536,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             </button>
             {avatarOpen ? (
               <div className="header-menu" ref={avatarMenuRef} role="menu">
-                <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile</button>
-                <button type="button" onClick={() => router.push('/account?tab=account')}>Account</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
-                {isAdmin ? (
-                  <button type="button" onClick={() => router.push('/admin')}>Admin</button>
-                ) : null}
+                <button type="button" onClick={() => router.push(user?.username ? `/profile/${user.username}` : '/account?tab=profile')}>View profile</button>
                 <button type="button" onClick={handleSignOut}>Sign out</button>
               </div>
             ) : null}
@@ -451,7 +548,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               className="header-icon-button"
               onClick={() => {
                 if (navDisabled) return;
+                setLibraryOpen(false);
+                setNotifyOpen(false);
+                setMessageOpen(false);
                 setKebabOpen((current) => !current);
+                setAvatarOpen(false);
               }}
               aria-label="More settings"
               title="More"
@@ -468,6 +569,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
+                {isAdmin ? <button type="button" onClick={() => router.push('/admin')}>Admin</button> : null}
               </div>
             ) : null}
           </div>

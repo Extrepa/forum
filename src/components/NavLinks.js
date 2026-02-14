@@ -4,8 +4,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
-function getPrimaryLinks(strings, isAdmin) {
-  const links = [
+function getPrimaryLinks(strings) {
+  return [
     { href: '/feed', label: 'Feed' },
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },
@@ -15,12 +15,6 @@ function getPrimaryLinks(strings, isAdmin) {
     { href: '/projects', label: strings.tabs.projects },
     { href: '/shitposts', label: strings.tabs.shitposts },
   ];
-
-  if (isAdmin) {
-    links.push({ href: '/admin', label: 'Admin' });
-  }
-
-  return links;
 }
 
 function getMoreLinks() {
@@ -31,8 +25,8 @@ function getMoreLinks() {
   ];
 }
 
-function getLinks(strings, isAdmin, variant) {
-  const primaryLinks = getPrimaryLinks(strings, isAdmin);
+function getLinks(strings, variant) {
+  const primaryLinks = getPrimaryLinks(strings);
   const moreLinks = getMoreLinks();
 
   if (variant === 'primary') return primaryLinks;
@@ -41,7 +35,6 @@ function getLinks(strings, isAdmin, variant) {
 }
 
 export default function NavLinks({
-  isAdmin,
   isSignedIn,
   variant = 'all',
   easterEgg,
@@ -54,7 +47,7 @@ export default function NavLinks({
   const strings = getForumStrings({ useLore: loreEnabled });
 
   const normalizedQuery = filterQuery.trim().toLowerCase();
-  const links = getLinks(strings, isAdmin, variant).filter((link) => {
+  const links = getLinks(strings, variant).filter((link) => {
     if (!normalizedQuery) return true;
     return link.label.toLowerCase().includes(normalizedQuery);
   });
