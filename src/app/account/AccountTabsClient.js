@@ -77,7 +77,7 @@ const TAB_COLOR_SEQUENCE = [
   '#CCFF00'
 ];
 
-export default function AccountTabsClient({ activeTab, user, stats: initialStats }) {
+export default function AccountTabsClient({ activeTab, user, stats: initialStats, profileSubTab }) {
   const router = useRouter();
   const [stats, setStats] = useState(initialStats);
   const [profileShowRole, setProfileShowRole] = useState(initialStats?.profileShowRole ?? true);
@@ -751,7 +751,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     boxSizing: 'border-box'
   };
 
-  const [editProfileSubTab, setEditProfileSubTab] = useState('activity');
+  const [editProfileSubTab, setEditProfileSubTab] = useState(profileSubTab || 'activity');
+  useEffect(() => {
+    if (profileSubTab && profileSubTab !== editProfileSubTab) {
+      setEditProfileSubTab(profileSubTab);
+    }
+  }, [profileSubTab, editProfileSubTab]);
   const renderTabLabel = (tab) => {
     if (tab.id === 'username') {
       return (

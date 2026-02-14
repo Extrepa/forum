@@ -11,8 +11,6 @@ import NotificationsMenu from './NotificationsMenu';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
 
-const EXTERNAL_PORTAL_URL = 'https://errl.wtf';
-
 function isActivePath(pathname, href) {
   if (!pathname) return false;
   if (href === '/') return pathname === '/';
@@ -195,24 +193,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         <div className="site-header__inner">
         <div className="header-left">
           <div className="header-brand">
-            <ForumLogo variant="nav" href="/" showText={false} />
+            <ForumLogo variant="header" as="span" showText={false} interactive={false} />
             <div className="header-brand-text">
-              <span className="header-brand-title">Errl Forum</span>
-              <span className="header-brand-subtitle">{subtitle}</span>
+              <h1 className="forum-title forum-title--header">Errl Forum</h1>
+              <span className="forum-description forum-description--header">{subtitle}</span>
             </div>
-            <a
-              className="header-url-link"
-              href={EXTERNAL_PORTAL_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Visit Errl portal"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M10 13a5 5 0 0 1 0-7l2-2a5 5 0 0 1 7 7l-1 1" />
-                <path d="M14 11a5 5 0 0 1 0 7l-2 2a5 5 0 0 1-7-7l1-1" />
-              </svg>
-              <span>errl.wtf</span>
-            </a>
           </div>
         </div>
 
@@ -220,14 +205,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           <nav className="header-nav" aria-label="Primary">
             <Link
               href="/"
-              className={`nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
+              className={`action-button header-nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
               aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
             >
               Home
             </Link>
             <Link
               href="/feed"
-              className={`nav-pill ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
+              className={`action-button header-nav-pill ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
               aria-current={isActivePath(pathname, '/feed') ? 'page' : undefined}
             >
               Feed
@@ -235,7 +220,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <div className="header-library">
               <button
                 type="button"
-                className={`nav-pill nav-pill-button ${libraryOpen ? 'is-active' : ''}`}
+                className={`action-button header-nav-pill nav-pill-button ${libraryOpen ? 'is-active' : ''}`}
                 onClick={(event) => {
                   if (navDisabled) return;
                   libraryAnchorRef.current = event.currentTarget;
@@ -439,7 +424,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               <div className="header-menu" ref={avatarMenuRef} role="menu">
                 <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile</button>
                 <button type="button" onClick={() => router.push('/account?tab=account')}>Account</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile')}>Avatar &amp; Hair</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
                 {isAdmin ? (
                   <button type="button" onClick={() => router.push('/admin')}>Admin</button>
                 ) : null}
@@ -470,7 +455,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               <div className="header-menu" ref={kebabMenuRef} role="menu">
                 <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile')}>Hair settings</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
               </div>
             ) : null}
           </div>

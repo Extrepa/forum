@@ -19,6 +19,7 @@ export default async function AccountPage({ searchParams }) {
   }
 
   const activeTab = params?.tab || 'profile';
+  const profileSubTab = params?.subtab || null;
 
   return (
     <div className="stack">
@@ -36,6 +37,7 @@ export default async function AccountPage({ searchParams }) {
         activeTab={activeTab}
         user={user}
         stats={stats}
+        profileSubTab={profileSubTab}
       />
     </div>
   );

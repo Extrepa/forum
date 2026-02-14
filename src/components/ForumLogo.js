@@ -7,11 +7,12 @@ export default function ForumLogo({
   variant = 'nav',
   href = '/lobby',
   showText = true,
-  as = 'link', // link | button
+  as = 'link', // link | button | span
   onActivate,
   badgeCount = 0,
   ariaLabel,
-  disabled = false
+  disabled = false,
+  interactive = true
 }) {
   const [isClicked, setIsClicked] = useState(false);
   // Initialize with a fixed value to avoid hydration mismatch
@@ -77,16 +78,18 @@ export default function ForumLogo({
     variant === 'header' ? 'translate(38,-62) scale(.88)' : 'translate(50,-50) scale(.8)';
 
   const isButton = as === 'button';
-  const Element = isButton ? 'button' : Link;
+  const isSpan = as === 'span';
+  const Element = isSpan ? 'span' : (isButton ? 'button' : Link);
 
   return (
     <Element
-      {...(isButton ? { type: 'button' } : { href })}
+      {...(isButton ? { type: 'button' } : (!isSpan ? { href } : {}))}
       aria-label={getLinkAriaLabel()}
       className={`forum-logo forum-logo-${variant} ${isClicked ? 'forum-logo-clicked' : ''} ${
         isButton ? 'forum-logo-button' : ''
       }`}
       onClick={(e) => {
+        if (!interactive) return;
         if (disabled) {
           e.preventDefault();
           return;
