@@ -3,7 +3,6 @@ import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
 import { getSessionUser } from '../../lib/auth';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import DevLogForm from '../../components/DevLogForm';
@@ -148,12 +147,7 @@ export default async function DevLogPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/devlog', label: 'Development' },
-        ]}
-        right={
+      <DevLogClient headerActions={
           isAdmin ? (
             <>
               <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} />
@@ -162,9 +156,7 @@ export default async function DevLogPage({ searchParams }) {
               </NewPostModalButton>
             </>
           ) : null
-        }
-      />
-      <DevLogClient logs={logs} notice={notice} />
+        } logs={logs} notice={notice} />
     </>
   );
 }

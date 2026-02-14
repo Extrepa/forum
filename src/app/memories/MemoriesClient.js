@@ -4,7 +4,7 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function MemoriesClient({ posts, notice }) {
+export default function MemoriesClient({ posts, notice , headerActions}) {
   const title = useMemo(() => 'Memories', []);
   const description = useMemo(
     () => 'Nomad history, documents, and the things we did together.',
@@ -85,6 +85,9 @@ export default function MemoriesClient({ posts, notice }) {
             <h2 className="section-title section-intro__title">{title}</h2>
             <p className="section-intro__desc">{description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

@@ -2,7 +2,6 @@ import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
@@ -108,9 +107,7 @@ export default async function LorePage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[{ href: '/', label: 'Home' }, { href: '/lore', label: 'Lore' }]}
-        right={
+      <LoreClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Lore" title="New Lore Post" disabled={!canCreate} variant="wide">
@@ -130,9 +127,7 @@ export default async function LorePage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <LoreClient posts={posts} notice={notice} />
+        } posts={posts} notice={notice} />
     </>
   );
 }

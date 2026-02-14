@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function ArtNostalgiaClient({ posts, notice }) {
+export default function ArtNostalgiaClient({ posts, notice , headerActions}) {
   const title = useMemo(() => 'Art & Nostalgia', []);
   const description = useMemo(() => 'Image-only posts and memories from the 2000s, childhood, and everything in between.', []);
 
@@ -17,6 +17,9 @@ export default function ArtNostalgiaClient({ posts, notice }) {
             <h2 className="section-title section-intro__title">{title}</h2>
             <p className="section-intro__desc">{description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

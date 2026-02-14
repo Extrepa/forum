@@ -7,7 +7,7 @@ import { getForumStrings } from '../../lib/forum-texts';
 import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming, formatDateTime } from '../../lib/dates';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function EventsClient({ events, notice }) {
+export default function EventsClient({ events, notice , headerActions}) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -19,6 +19,9 @@ export default function EventsClient({ events, notice }) {
             <h2 className="section-title section-intro__title">{strings.cards.events.title}</h2>
             <p className="section-intro__desc">{strings.cards.events.description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

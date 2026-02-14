@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function RantClient({ posts, notice }) {
+export default function RantClient({ posts, notice , headerActions}) {
   const title = useMemo(() => 'Rant', []);
   const description = useMemo(() => 'Vent. Get it out. Be kind.', []);
 
@@ -16,6 +16,9 @@ export default function RantClient({ posts, notice }) {
             <h2 className="section-title section-intro__title">{title}</h2>
             <p className="section-intro__desc">{description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

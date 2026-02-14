@@ -4,7 +4,6 @@ import { renderMarkdown } from '../../lib/markdown';
 import { safeEmbedFromUrl } from '../../lib/embeds';
 import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import MusicPostForm from '../../components/MusicPostForm';
@@ -144,21 +143,14 @@ export default async function MusicPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/music', label: 'Music' },
-        ]}
-        right={
+      <MusicClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Music Post" title="Post to Music Feed" disabled={!canCreate} variant="wide">
               <MusicPostForm />
             </NewPostModalButton>
           </>
-        }
-      />
-      <MusicClient posts={posts} notice={notice} />
+        } posts={posts} notice={notice} />
     </>
   );
 }

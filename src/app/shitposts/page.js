@@ -2,7 +2,6 @@ import ShitpostsClient from './ShitpostsClient';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
@@ -156,12 +155,7 @@ export default async function ShitpostsPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/shitposts', label: 'Shitposts' },
-        ]}
-        right={
+      <ShitpostsClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Shitpost" title="New Shitpost" disabled={!canCreate}>
@@ -175,9 +169,7 @@ export default async function ShitpostsPage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <ShitpostsClient posts={results} notice={notice} />
+        } posts={results} notice={notice} />
     </>
   );
 }

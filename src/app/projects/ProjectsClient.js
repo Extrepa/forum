@@ -7,7 +7,7 @@ import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function ProjectsClient({ projects, canCreate, notice }) {
+export default function ProjectsClient({ projects, canCreate, notice , headerActions}) {
   const router = useRouter();
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
@@ -27,6 +27,9 @@ export default function ProjectsClient({ projects, canCreate, notice }) {
             <h2 className="section-title section-intro__title">{strings.cards.projects.title}</h2>
             <p className="section-intro__desc">{strings.cards.projects.description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

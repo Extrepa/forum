@@ -2,7 +2,6 @@ import ForumClient from '../forum/ForumClient';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { getSessionUserWithRole, isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
@@ -360,9 +359,7 @@ export default async function LobbyPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[{ href: '/', label: 'Home' }, { href: '/lobby', label: 'General' }]}
-        right={
+      <ForumClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate}>
@@ -375,9 +372,7 @@ export default async function LobbyPage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <ForumClient 
+        } 
         announcements={announcements}
         stickies={stickies}
         threads={threads}

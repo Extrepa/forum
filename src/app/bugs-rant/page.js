@@ -2,7 +2,6 @@ import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
@@ -78,9 +77,7 @@ export default async function BugsRantPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[{ href: '/', label: 'Home' }, { href: '/bugs-rant', label: 'Bugs & Rants' }]}
-        right={
+      <BugsRantClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
@@ -100,9 +97,7 @@ export default async function BugsRantPage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <BugsRantClient posts={posts} notice={notice} />
+        } posts={posts} notice={notice} />
     </>
   );
 }

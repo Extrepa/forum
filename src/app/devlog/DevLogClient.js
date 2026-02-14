@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function DevLogClient({ logs, notice }) {
+export default function DevLogClient({ logs, notice , headerActions}) {
   const router = useRouter();
   const latestPostRef = useRef(null);
   const [viewTracked, setViewTracked] = useState(false);
@@ -90,6 +90,9 @@ export default function DevLogClient({ logs, notice }) {
             <h2 className="section-title section-intro__title">Development</h2>
             <p className="section-intro__desc">Updates, notes, and builds in progress.</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

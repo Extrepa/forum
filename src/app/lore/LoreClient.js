@@ -4,7 +4,7 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function LoreClient({ posts, notice }) {
+export default function LoreClient({ posts, notice , headerActions}) {
   const title = useMemo(() => 'Lore', []);
   const description = useMemo(() => "Errl's story and history.", []);
   const latestPostRef = useRef(null);
@@ -82,6 +82,9 @@ export default function LoreClient({ posts, notice }) {
             <h2 className="section-title section-intro__title">{title}</h2>
             <p className="section-intro__desc">{description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

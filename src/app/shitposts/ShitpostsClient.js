@@ -6,7 +6,7 @@ import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function ShitpostsClient({ posts, notice }) {
+export default function ShitpostsClient({ posts, notice , headerActions}) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -32,6 +32,9 @@ export default function ShitpostsClient({ posts, notice }) {
             <h2 className="section-title section-intro__title">{strings.cards.shitposts.title}</h2>
             <p className="section-intro__desc">{strings.cards.shitposts.description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

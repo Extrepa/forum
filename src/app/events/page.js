@@ -3,7 +3,6 @@ import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
@@ -159,12 +158,7 @@ export default async function EventsPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/events', label: 'Events' },
-        ]}
-        right={
+      <EventsClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="Add Event" title="Add Event" disabled={!canCreate}>
@@ -179,9 +173,7 @@ export default async function EventsPage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <EventsClient events={events} notice={notice} />
+        } events={events} notice={notice} />
     </>
   );
 }

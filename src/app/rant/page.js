@@ -2,7 +2,6 @@ import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
@@ -112,9 +111,7 @@ export default async function RantPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[{ href: '/', label: 'Home' }, { href: '/rant', label: 'Rant' }]}
-        right={
+      <RantClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Rant" title="New Rant" disabled={!canCreate} variant="wide">
@@ -132,9 +129,7 @@ export default async function RantPage({ searchParams }) {
               />
             </NewPostModalButton>
           </>
-        }
-      />
-      <RantClient posts={posts} notice={notice} />
+        } posts={posts} notice={notice} />
     </>
   );
 }

@@ -5,7 +5,7 @@ import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function ForumClient({ announcements = [], stickies = [], threads = [], notice, basePath = '/forum' }) {
+export default function ForumClient({ announcements = [], stickies = [], threads = [], notice, basePath = '/forum' , headerActions}) {
   const { loreEnabled } = useUiPrefs();
   const strings = getForumStrings({ useLore: loreEnabled });
 
@@ -119,6 +119,9 @@ export default function ForumClient({ announcements = [], stickies = [], threads
             <h2 className="section-title section-intro__title">{strings.cards.general.title}</h2>
             <p className="section-intro__desc">{strings.cards.general.description}</p>
           </div>
+          {headerActions ? (
+            <div className="section-intro__actions">{headerActions}</div>
+          ) : null}
         </div>
       </section>
 

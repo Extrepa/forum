@@ -3,7 +3,6 @@ import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
 import { isAdminUser } from '../../lib/admin';
-import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import ProjectForm from '../../components/ProjectForm';
@@ -138,21 +137,14 @@ export default async function ProjectsPage({ searchParams }) {
 
   return (
     <>
-      <PageTopRow
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/projects', label: 'Projects' },
-        ]}
-        right={
+      <ProjectsClient headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
             <NewPostModalButton label="New Project" title="New Project" disabled={!canCreate} variant="wide">
               <ProjectForm />
             </NewPostModalButton>
           </>
-        }
-      />
-      <ProjectsClient projects={projects} canCreate={canCreate} notice={notice} />
+        } projects={projects} canCreate={canCreate} notice={notice} />
     </>
   );
 }
