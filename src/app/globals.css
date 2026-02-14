@@ -265,6 +265,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .header-nav-icon {
@@ -484,8 +485,11 @@ a {
   color: var(--muted);
 }
 
-.header-avatar {
+.header-avatar,
+.header-kebab {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .header-avatar-button {
@@ -781,17 +785,14 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(16px, 6vw, 24px); /* Slightly reduced for small screens */
-    letter-spacing: 0.02em;
+    font-size: clamp(20px, 7vw, 24px);
     white-space: normal;
-    word-break: break-word;
     line-height: 1.0;
     max-height: none;
     overflow: visible;
-    text-overflow: clip;
-    text-wrap: balance;
     text-align: left;
-    max-width: min-content;
+    width: min-content;
+    word-break: normal;
   }
 
   .header-brand-text {
