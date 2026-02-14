@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import NavLinks from './NavLinks';
 import HeaderSetupBanner from './HeaderSetupBanner';
 import ForumLogo from './ForumLogo';
 import AvatarImage from './AvatarImage';
@@ -216,6 +215,37 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return 'Notifications';
   }, [notifyUnreadCount]);
 
+  const librarySections = useMemo(() => ([
+    {
+      id: 'updates',
+      label: 'Updates',
+      items: [
+        { href: '/announcements', label: strings.tabs.announcements, meta: 'Timeline + platform news' },
+        { href: '/events', label: strings.tabs.events, meta: 'Events and meetups' },
+        { href: '/devlog', label: 'Development', meta: 'Build notes and updates' },
+      ],
+    },
+    {
+      id: 'community',
+      label: 'Community',
+      items: [
+        { href: '/lobby', label: 'General', meta: 'Threaded discussion hub' },
+        { href: '/music', label: strings.tabs.music, meta: 'Tracks and embeds' },
+        { href: '/projects', label: strings.tabs.projects, meta: 'Projects and update logs' },
+        { href: '/shitposts', label: strings.tabs.shitposts, meta: 'Casual / off-topic' },
+      ],
+    },
+    {
+      id: 'archive',
+      label: 'Archive',
+      items: [
+        { href: '/art-nostalgia', label: 'Art & Nostalgia', meta: 'Visuals and throwbacks' },
+        { href: '/bugs-rant', label: 'Bugs & Rants', meta: 'Issues and vent posts' },
+        { href: '/lore-memories', label: 'Lore & Memories', meta: 'Stories and moments' },
+      ],
+    },
+  ]), [strings]);
+
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
     setSigningOut(true);
@@ -288,12 +318,53 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <span aria-hidden="true" className="nav-pill-caret">▾</span>
                 </button>
                 {libraryOpen ? (
-                  <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
-                    <NavLinks
-                      isSignedIn={isSignedIn}
-                      variant="all"
-                      onNavigate={() => setLibraryOpen(false)}
-                    />
+                  <div className="header-library-menu header-library-tree-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
+                    <div className="header-library-tree-head">
+                      <span className="header-library-tree-title">Library</span>
+                      <button
+                        type="button"
+                        className="header-library-tree-search"
+                        aria-label="Search"
+                        title="Search"
+                        onClick={() => {
+                          if (navDisabled) return;
+                          setLibraryOpen(false);
+                          setNotifyOpen(false);
+                          setKebabOpen(false);
+                          setSearchOpen(true);
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="header-library-tree">
+                      {librarySections.map((section) => (
+                        <details key={section.id} className="header-library-group" open>
+                          <summary>{section.label}</summary>
+                          <div className="header-library-group-items">
+                            {section.items.map((item) => (
+                              <a
+                                key={item.href}
+                                href={item.href}
+                                className={isActivePath(pathname, item.href) ? 'active' : ''}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  if (navDisabled) return;
+                                  router.push(item.href);
+                                  setLibraryOpen(false);
+                                }}
+                              >
+                                <span className="header-library-item-label">{item.label}</span>
+                                <span className="header-library-item-meta">{item.meta}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -302,31 +373,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         ) : null}
 
         <div className="header-right">
-          {isSignedIn ? (
-            <button
-              type="button"
-              className="header-icon-button header-icon-button--search"
-              onClick={() => {
-                if (navDisabled) return;
-                setLibraryOpen(false);
-                setNotifyOpen(false);
-                setKebabOpen(false);
-                setSearchOpen(true);
-              }}
-              aria-label="Open search"
-              title="Search"
-              disabled={navDisabled}
-            >
-              <span className="header-icon-glyph" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
-              </span>
-              <span className="header-icon-text">Search</span>
-            </button>
-          ) : null}
-
           {isSignedIn ? (
             <div className="header-avatar" ref={avatarRef}>
               <button

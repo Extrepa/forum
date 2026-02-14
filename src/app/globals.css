@@ -370,6 +370,149 @@ a {
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.3);
 }
 
+.header-library-tree-menu {
+  padding: 8px;
+  gap: 6px;
+}
+
+.header-library-tree-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 8px;
+  background: linear-gradient(180deg, rgba(4, 10, 20, 0.98), rgba(4, 10, 20, 0.86));
+  backdrop-filter: blur(10px);
+}
+
+.header-library-tree-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(168, 212, 227, 0.9);
+}
+
+.header-library-tree-search {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.24);
+  background: rgba(2, 7, 10, 0.55);
+  color: rgba(168, 212, 227, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-library-tree-search:hover {
+  border-color: rgba(255, 52, 245, 0.6);
+  color: var(--errl-accent-3);
+  box-shadow: 0 0 12px rgba(255, 52, 245, 0.28);
+}
+
+.header-library-tree {
+  display: grid;
+  gap: 5px;
+}
+
+.header-library-group {
+  border: 1px solid rgba(52, 225, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(2, 7, 10, 0.4);
+  overflow: hidden;
+}
+
+.header-library-group summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(220, 243, 250, 0.95);
+  border-bottom: 1px solid transparent;
+}
+
+.header-library-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.header-library-group[open] summary {
+  border-bottom-color: rgba(52, 225, 255, 0.14);
+}
+
+.header-library-group-items {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+}
+
+.header-library-group-items a {
+  display: grid;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  color: var(--ink);
+  transition: all 0.2s ease;
+}
+
+.header-library-group-items a:hover {
+  border-color: rgba(52, 225, 255, 0.3);
+  background: rgba(52, 225, 255, 0.12);
+}
+
+.header-library-group-items a.active {
+  border-color: rgba(52, 225, 255, 0.45);
+  background: rgba(52, 225, 255, 0.18);
+  box-shadow: 0 0 10px rgba(52, 225, 255, 0.22);
+}
+
+.header-library-item-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.header-library-item-meta {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .header-library-tree-menu {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .header-library-tree-title {
+    font-size: 11px;
+  }
+
+  .header-library-group summary {
+    padding: 8px 11px;
+    font-size: 11px;
+  }
+
+  .header-library-group-items a {
+    padding: 7px 9px;
+  }
+
+  .header-library-item-meta {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+}
+
 
 .header-right {
   display: flex;
@@ -771,7 +914,7 @@ a {
   .header-left {
     flex: 0 1 auto;
     min-width: 0;
-    max-width: min(52vw, 320px);
+    max-width: min(48vw, 290px);
   }
 
   .header-right {
@@ -819,20 +962,23 @@ a {
   }
 
   .header-brand-text {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-width: 0;
-    max-width: min(32vw, 200px);
-    overflow: visible;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(18px, 5.6vw, 26px);
     white-space: normal;
-    line-height: 0.95;
+    line-height: 0.92;
     text-wrap: balance;
-    overflow: visible;
+    overflow: hidden;
     text-overflow: clip;
     max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 }
 
@@ -876,7 +1022,7 @@ a {
   }
 
   .header-left {
-    max-width: min(52vw, 210px);
+    max-width: min(48vw, 180px);
   }
 
   .header-nav {
@@ -894,24 +1040,26 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(16px, 6.8vw, 22px);
-    white-space: nowrap;
-    line-height: 1.0;
-    max-height: none;
+    white-space: normal;
+    line-height: 0.9;
     overflow: hidden;
     text-align: left;
-    width: fit-content;
+    width: 100%;
     word-break: normal;
-    text-overflow: ellipsis;
+    text-overflow: clip;
     max-width: 100%;
-    text-wrap: nowrap;
+    text-wrap: balance;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .header-brand-text {
-    max-width: fit-content;
-    width: fit-content;
+    max-width: 100%;
+    width: auto;
     overflow: hidden;
     min-width: 0;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 
   .header-nav-pill {
@@ -994,6 +1142,28 @@ a {
     overflow-y: auto !important;
   }
 
+  .header-library-tree-menu {
+    padding: 6px;
+    gap: 5px;
+  }
+
+  .header-library-tree-title {
+    font-size: 9px;
+  }
+
+  .header-library-group summary {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .header-library-group-items a {
+    padding: 5px 7px;
+  }
+
+  .header-library-item-label {
+    font-size: 11px;
+  }
+
   .site-header--guest .forum-logo-header .forum-logo-face-wrapper {
     width: 48px;
     height: 48px;
@@ -1046,7 +1216,7 @@ a {
   }
 
   .header-left {
-    max-width: min(42vw, 150px);
+    max-width: min(46vw, 170px);
   }
 
   .header-brand .forum-logo-header {
@@ -1055,19 +1225,22 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(14px, 5.6vw, 18px);
-    line-height: 0.96;
-    white-space: nowrap;
-    text-wrap: nowrap;
-    width: fit-content;
+    line-height: 0.9;
+    white-space: normal;
+    text-wrap: balance;
+    width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .header-brand-text {
-    max-width: fit-content;
-    width: fit-content;
+    max-width: 100%;
+    width: auto;
     overflow: hidden;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 
   .header-center {
@@ -1115,7 +1288,7 @@ a {
   }
 
   .header-left {
-    max-width: min(34vw, 112px);
+    max-width: min(42vw, 140px);
   }
 
   .header-brand {
@@ -1124,18 +1297,21 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(12px, 4.8vw, 15px);
-    white-space: nowrap;
-    text-wrap: nowrap;
-    width: fit-content;
+    white-space: normal;
+    text-wrap: balance;
+    width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .header-brand-text {
-    max-width: fit-content;
-    width: fit-content;
+    max-width: 100%;
+    width: auto;
     overflow: hidden;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 
   .header-nav-pill {
@@ -2139,9 +2315,9 @@ header.header--easter-egg > .header-easter-egg-overlay {
 }
 
 main {
-  margin-top: 18px;
+  margin-top: 9px;
   display: grid;
-  gap: 20px;
+  gap: 10px;
   overflow-y: visible;
   overflow-x: hidden;
   flex: 1; /* Allow main to fill remaining height in flex parent */
@@ -2152,7 +2328,7 @@ main {
   background: var(--card);
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 8px;
   box-shadow: var(--shadow);
   position: relative;
   isolation: isolate;
@@ -2191,7 +2367,7 @@ main {
 .section-title {
   font-family: "Unbounded", "Space Grotesk", sans-serif;
   font-size: clamp(20px, 3vw, 26px);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   letter-spacing: 0.02em;
   line-height: 1.08;
   text-shadow: 0 0 14px rgba(52, 225, 255, 0.22);
@@ -2300,7 +2476,7 @@ main {
 
 .stack {
   display: grid;
-  gap: 20px;
+  gap: 10px;
   min-width: 0;
   max-width: 100%;
 }
@@ -2314,7 +2490,7 @@ main {
 .split {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  gap: 10px;
 }
 
 .account-columns {
@@ -6980,7 +7156,7 @@ header::before {
   }
 
   .card {
-    padding: 18px;
+    padding: 9px;
   }
 
   .formatting-toolbar {
@@ -7107,7 +7283,7 @@ header::before {
   }
 
   header.header--detail + main {
-    margin-top: 18px;
+    margin-top: 9px;
   }
 
   .brand {
@@ -7206,7 +7382,7 @@ header::before {
   }
 
   .card {
-    padding: 16px;
+    padding: 8px;
   }
 
   .list-item {
@@ -7434,7 +7610,7 @@ header::before {
   }
 
   .card {
-    padding: 24px;
+    padding: 12px;
   }
 
   .list-item {
