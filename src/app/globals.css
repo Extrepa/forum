@@ -859,7 +859,7 @@ a {
   }
 
   .header-left {
-    max-width: min(56vw, 240px);
+    max-width: min(52vw, 210px);
   }
 
   .header-nav {
@@ -867,16 +867,16 @@ a {
   }
 
   .forum-logo-header .forum-logo-face-wrapper {
-    width: 52px;
-    height: 52px;
+    width: 46px;
+    height: 46px;
   }
 
   .forum-logo-header {
-    min-width: 52px;
+    min-width: 46px;
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(18px, 7.2vw, 24px);
+    font-size: clamp(16px, 6.8vw, 22px);
     white-space: normal;
     line-height: 1.0;
     max-height: none;
@@ -889,7 +889,7 @@ a {
   }
 
   .header-brand-text {
-    max-width: min(34vw, 168px);
+    max-width: min(30vw, 142px);
     overflow: visible;
     min-width: 0;
   }
@@ -898,9 +898,10 @@ a {
     min-height: 32px !important;
     width: auto !important;
     min-width: auto !important;
-    padding: 4px 10px !important;
+    padding: 4px 8px !important;
     justify-content: center;
     border-radius: 6px;
+    font-size: 10px;
   }
 
   .nav-pill-home {
@@ -910,7 +911,7 @@ a {
   .nav-pill-feed, .nav-pill-library {
     width: auto !important;
     min-width: auto !important;
-    padding: 6px 10px !important;
+    padding: 4px 8px !important;
   }
 
   .nav-pill-feed .header-nav-label,
@@ -946,8 +947,8 @@ a {
 
   .header-icon-button,
   .header-avatar-button {
-    height: 32px;
-    min-width: 32px;
+    height: 30px;
+    min-width: 30px;
   }
 
   .header-avatar-image {
@@ -1010,6 +1011,73 @@ a {
 
   .site-header--guest .header-right {
     justify-self: end;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left {
+    max-width: min(50vw, 180px);
+  }
+
+  .forum-logo-header .forum-logo-face-wrapper {
+    width: 42px;
+    height: 42px;
+  }
+
+  .forum-logo-header {
+    min-width: 42px;
+  }
+
+  .header-brand .forum-title.forum-title--header {
+    font-size: clamp(15px, 6vw, 20px);
+    line-height: 0.96;
+  }
+
+  .header-brand-text {
+    max-width: min(28vw, 116px);
+  }
+
+  .header-right {
+    gap: 3px;
+  }
+
+  .header-icon-button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-icon-button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .header-left {
+    max-width: min(48vw, 154px);
+  }
+
+  .forum-logo-header .forum-logo-face-wrapper {
+    width: 38px;
+    height: 38px;
+  }
+
+  .forum-logo-header {
+    min-width: 38px;
+  }
+
+  .header-brand .forum-title.forum-title--header {
+    font-size: clamp(14px, 5.6vw, 18px);
+  }
+
+  .header-brand-text {
+    max-width: 98px;
+  }
+
+  .header-nav-pill {
+    padding: 4px 7px !important;
+    font-size: 9.5px;
+    letter-spacing: 0.04em;
   }
 }
 
