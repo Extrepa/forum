@@ -180,8 +180,9 @@ a {
 .header-left {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
+  flex: 0 2 auto; /* Shrink more aggressively than center */
   min-width: 0;
+  max-width: fit-content;
 }
 
 .header-brand {
@@ -696,7 +697,7 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(26px, 8vw, 38px);
+    font-size: clamp(22px, 5vw, 32px);
   }
 
   .site-header--guest .site-header__inner {
