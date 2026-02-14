@@ -23,3 +23,35 @@
 - Created `05-Logs/Development/edit-modal-refactoring.md` for Codex/other agents to follow the pattern.
 - Serializability fixes are crucial for Next.js 15 to avoid BigInt errors when passing data to client components.
 - The `PostActionMenu` now manages the modal visibility state internally, reducing the need for manual `style={{ display: 'none' }}` toggling via ID.
+
+## Header Verification Pass (same day)
+- Confirmed signed-in header keeps three zones stable:
+  - left brand
+  - centered `Home` / `Feed` / `Library`
+  - right-side actions (`Search`, notifications bell, kebab)
+- Confirmed library popout width is now content-driven in `SiteHeader`:
+  - width is estimated from the longest visible library label
+  - panel is clamped to viewport edge padding
+- Confirmed search trigger exists again and toggles modal state:
+  - Added explicit search icon button in header right actions
+  - Opening search closes other menus (`Library`, notifications, kebab)
+- Confirmed search icon size is reduced compared with bell/kebab in shared + mobile/signed-in rules.
+
+### Verification commands
+- `npm run lint` (pass)
+
+### Follow-up visual check
+- Validate in-browser at narrow widths that:
+  - library panel does not over-expand
+  - search icon remains visually smaller and aligned with bell/kebab
+  - center nav stays centered as header width changes
+
+## Runtime Error Fix
+- Issue reported in production bundle:
+  - `ReferenceError: Cannot access 'Ls' before initialization`
+- Root cause:
+  - `libraryLinks` / `filteredLibraryLinks` were referenced by a `useEffect` dependency array before those `const` values were initialized in component order.
+- Fix:
+  - Moved both memoized values above the dependent `useEffect` in `src/components/SiteHeader.js`.
+- Verification:
+  - `npm run lint` (pass)

@@ -172,6 +172,25 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     }
   }, []);
 
+  const libraryLinks = useMemo(() => ([
+    { href: '/announcements', label: strings.tabs.announcements },
+    { href: '/events', label: strings.tabs.events },
+    { href: '/devlog', label: 'Development' },
+    { href: '/lobby', label: 'General' },
+    { href: '/music', label: strings.tabs.music },
+    { href: '/projects', label: strings.tabs.projects },
+    { href: '/shitposts', label: strings.tabs.shitposts },
+    { href: '/art-nostalgia', label: 'Art & Nostalgia' },
+    { href: '/bugs-rant', label: 'Bugs & Rants' },
+    { href: '/lore-memories', label: 'Lore & Memories' },
+  ]), [strings]);
+
+  const filteredLibraryLinks = useMemo(() => {
+    const normalized = libraryFilterValue.trim().toLowerCase();
+    if (!normalized) return libraryLinks;
+    return libraryLinks.filter((item) => item.label.toLowerCase().includes(normalized));
+  }, [libraryLinks, libraryFilterValue]);
+
   useEffect(() => {
     if (!libraryOpen || typeof window === 'undefined' || !libraryAnchorRef.current) return undefined;
 
@@ -235,25 +254,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     if (notifyUnreadCount > 0) return `Notifications (${notifyUnreadCount})`;
     return 'Notifications';
   }, [notifyUnreadCount]);
-
-  const libraryLinks = useMemo(() => ([
-    { href: '/announcements', label: strings.tabs.announcements },
-    { href: '/events', label: strings.tabs.events },
-    { href: '/devlog', label: 'Development' },
-    { href: '/lobby', label: 'General' },
-    { href: '/music', label: strings.tabs.music },
-    { href: '/projects', label: strings.tabs.projects },
-    { href: '/shitposts', label: strings.tabs.shitposts },
-    { href: '/art-nostalgia', label: 'Art & Nostalgia' },
-    { href: '/bugs-rant', label: 'Bugs & Rants' },
-    { href: '/lore-memories', label: 'Lore & Memories' },
-  ]), [strings]);
-
-  const filteredLibraryLinks = useMemo(() => {
-    const normalized = libraryFilterValue.trim().toLowerCase();
-    if (!normalized) return libraryLinks;
-    return libraryLinks.filter((item) => item.label.toLowerCase().includes(normalized));
-  }, [libraryLinks, libraryFilterValue]);
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
