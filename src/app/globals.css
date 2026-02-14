@@ -1077,26 +1077,42 @@ a {
 }
 
 @media (max-width: 380px) {
-  .nav-pill-home {
-    display: none !important;
-  }
-
   .header-left {
-    max-width: min(40vw, 132px);
+    max-width: min(34vw, 112px);
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(13px, 5.2vw, 16px);
+    font-size: clamp(12px, 4.8vw, 15px);
   }
 
   .header-brand-text {
-    max-width: min(38vw, 118px);
+    max-width: min(32vw, 98px);
   }
 
   .header-nav-pill {
-    padding: 3px 5px !important;
+    min-height: 26px !important;
+    padding: 2px 5px !important;
     font-size: 8.5px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
+  }
+
+  .header-nav {
+    gap: 3px;
+  }
+
+  .header-right {
+    gap: 1px;
+  }
+
+  .header-icon-button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .header-icon-button svg {
+    width: 13px;
+    height: 13px;
   }
 }
 
