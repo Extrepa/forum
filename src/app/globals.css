@@ -7607,6 +7607,55 @@ header::before {
   margin-bottom: 0;
 }
 
+.page-crumb-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.page-crumb-mini__part {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.page-crumb-mini__sep {
+  opacity: 0.75;
+  font-size: 14px;
+}
+
+.page-crumb-mini__link,
+.page-crumb-mini__current {
+  display: inline-block;
+  min-width: 0;
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.page-crumb-mini__link {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.page-crumb-mini__link:hover {
+  color: var(--ink);
+  text-shadow: 0 0 10px rgba(52, 225, 255, 0.35);
+}
+
+.page-crumb-mini__current {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .page-top-row-right {
   display: inline-flex;
   gap: 10px;
@@ -7664,6 +7713,15 @@ header::before {
     gap: 8px;
   }
 
+  .page-crumb-mini {
+    font-size: 12px;
+  }
+
+  .page-crumb-mini__link,
+  .page-crumb-mini__current {
+    max-width: 16ch;
+  }
+
   .page-top-row-right {
     width: auto;
     justify-content: flex-end;
@@ -7709,7 +7767,10 @@ header::before {
     padding: 4px 10px;
     font-size: 12px;
     line-height: 1.1;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+    max-width: 11ch;
   }
 
   .section-intro__actions form {
