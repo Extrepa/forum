@@ -151,11 +151,12 @@ a {
 }
 
 .site-header__inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 8px;
   position: relative;
+  min-height: 56px;
 }
 
 .site-header--guest .site-header__inner {
@@ -179,7 +180,8 @@ a {
 .header-left {
   display: flex;
   align-items: center;
-  justify-self: start;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .header-brand {
@@ -199,14 +201,17 @@ a {
 }
 
 .header-brand .forum-title.forum-title--header {
-  font-size: clamp(30px, 5vw, 50px);
-  line-height: 0.92;
-  letter-spacing: 0.03em;
-  text-shadow: 0 0 14px rgba(52, 225, 255, 0.5);
-  animation: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: clamp(18px, 7.2vw, 28px);
+  letter-spacing: 0.02em;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.0;
+  max-height: none;
+  overflow: visible;
+  text-overflow: clip;
+  text-wrap: balance;
+  text-align: left;
+  max-width: min-content;
 }
 
 .header-brand .forum-description.forum-description--header {
@@ -233,10 +238,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  justify-self: center;
   gap: 12px;
   min-width: 0;
   overflow: hidden;
+  flex: 1 1 auto;
 }
 
 .header-nav {
@@ -353,8 +358,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  justify-self: end;
   gap: 6px;
+  flex: 0 0 auto;
 }
 
 .header-guest-actions {
@@ -648,8 +653,7 @@ a {
 
 @media (max-width: 1000px) {
   .site-header__inner {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
+    /* Flexbox is inherited, but we might want to ensure gaps */
     gap: 8px;
   }
 
@@ -735,7 +739,7 @@ a {
   }
 
   .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    /* Flexbox inherited */
     align-items: center;
     gap: 4px;
     min-height: 56px;
@@ -747,7 +751,7 @@ a {
     right: auto;
     z-index: auto;
     gap: 4px;
-    justify-self: end;
+    flex: 0 0 auto;
   }
 
   .header-brand {
@@ -772,9 +776,10 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(18px, 7.2vw, 28px);
+    font-size: clamp(16px, 6vw, 24px); /* Slightly reduced for small screens */
     letter-spacing: 0.02em;
     white-space: normal;
+    word-break: break-word;
     line-height: 1.0;
     max-height: none;
     overflow: visible;

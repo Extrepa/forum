@@ -447,9 +447,8 @@ export default function NotificationsMenu({
                 label = `${actor} mentioned you in a ${displayType}`;
               }
               
-              const baseBackground = isUnread ? 'rgba(52, 225, 255, 0.08)' : 'rgba(4, 16, 23, 0.5)';
-              const hoverBackground = isUnread ? 'rgba(52, 225, 255, 0.15)' : 'rgba(4, 16, 23, 0.8)';
-              const separatorColor = 'rgba(255, 255, 255, 0.08)';
+              const baseBackground = isUnread ? 'var(--bg-accent)' : 'var(--card)';
+              const hoverBackground = isUnread ? 'var(--errl-surface)' : 'var(--bg-accent)';
               
               return (
                 <a
@@ -467,10 +466,10 @@ export default function NotificationsMenu({
                     display: 'block',
                     padding: '0 12px',
                     borderRadius: 0,
-                    border: 'none',
-                    borderBottom: isLastItem ? 'none' : `1px solid ${separatorColor}`,
-                    background: baseBackground,
-                    transition: 'background 0.2s ease',
+                  border: 'none',
+                  borderBottom: isLastItem ? 'none' : '1px solid var(--border)',
+                  background: baseBackground,
+                  transition: 'background 0.2s ease',
                     overflowWrap: 'break-word',
                     wordWrap: 'break-word',
                     cursor: href === '#' ? 'default' : 'pointer',
@@ -566,7 +565,7 @@ export default function NotificationsMenu({
             borderRadius: '999px',
             border: 'none',
             background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
+            color: 'var(--ink)',
             fontWeight: 600,
             boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
           }}
@@ -583,17 +582,28 @@ export default function NotificationsMenu({
               fontSize: '11px',
               padding: '6px 10px',
               background: 'transparent',
-              border: '1px solid rgba(52, 225, 255, 0.3)',
+              border: '1px solid var(--border)',
               borderRadius: '999px',
               color: 'var(--muted)',
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.color = 'var(--ink)';
+              e.currentTarget.style.boxShadow = '0 0 8px var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.color = 'var(--muted)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             Messages
           </button>
         <button 
-          type="button" 
+          type="button"
           onClick={onClose}
           style={{
             fontSize: '11px',
@@ -603,7 +613,7 @@ export default function NotificationsMenu({
             borderRadius: '999px',
             border: 'none',
             background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: '#001018',
+            color: 'var(--ink)',
             fontWeight: 600,
             boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
           }}
