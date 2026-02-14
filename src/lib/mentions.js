@@ -9,8 +9,8 @@ import { sendOutboundNotification } from './outboundNotifications';
 export function extractMentions(text) {
   if (!text) return [];
   // Match @username preceded by start of line or whitespace.
-  // Usernames are 3-20 chars: a-z, 0-9, or underscores.
-  const regex = /(?:^|\s)@([a-z0-9_]{3,20})\b/gi;
+  // Usernames are 1-20 chars, no spaces.
+  const regex = /(?:^|\s)@([^\s@]{1,20})/g;
   const usernames = [];
   let match;
   while ((match = regex.exec(text)) !== null) {

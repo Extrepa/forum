@@ -23,9 +23,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
 
   // signup
   const [signupEmail, setSignupEmail] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
+  const [signupFirstName, setSignupFirstName] = useState('');
+  const [signupLastName, setSignupLastName] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupNotifyEmail, setSignupNotifyEmail] = useState(true);
+  const [signupNotifyEmail, setSignupNotifyEmail] = useState(false);
   const [signupNotifySms, setSignupNotifySms] = useState(false);
 
   // login (email or username)
@@ -329,14 +332,31 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
       setStatus({ type: 'error', message: pwError });
       return;
     }
+    if (!String(signupFirstName || '').trim() || !String(signupLastName || '').trim()) {
+      setStatus({ type: 'error', message: 'Enter a first and last name.' });
+      return;
+    }
+    if (signupNotifyEmail && !String(signupEmail || '').trim()) {
+      setStatus({ type: 'error', message: 'Enter an email to enable email notifications.' });
+      return;
+    }
+    if (signupNotifySms && !String(signupPhone || '').trim()) {
+      setStatus({ type: 'error', message: 'Enter a phone number to enable SMS notifications.' });
+      return;
+    }
     setStatus({ type: 'loading', message: 'Creating account...' });
 
     try {
+      const emailForSignup = signupNotifyEmail ? signupEmail : '';
+      const phoneForSignup = signupNotifySms ? signupPhone : '';
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: signupEmail,
+          email: emailForSignup,
+          phone: phoneForSignup,
+          firstName: signupFirstName,
+          lastName: signupLastName,
           username: signupUsername,
           password: trimmedPassword,
           notifyEmailEnabled: signupNotifyEmail,
@@ -351,9 +371,12 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
 
       setStatus({ type: 'success', message: 'Account created.' });
       setSignupEmail('');
+      setSignupPhone('');
+      setSignupFirstName('');
+      setSignupLastName('');
       setSignupUsername('');
       setSignupPassword('');
-      setSignupNotifyEmail(true);
+      setSignupNotifyEmail(false);
       setSignupNotifySms(false);
       const user = await refreshMe();
       // Navigate to preferred landing page (or home if not set)
@@ -1056,50 +1079,37 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
             <>
               <h3 className="section-title" style={{ marginBottom: '16px' }}>Create account</h3>
               <p className="muted" style={{ marginBottom: '20px' }}>
-                Create an account with email, username, and password to post from any device.
+                Create an account with a username and password. Add email or phone only if you want notifications.
               </p>
               <form onSubmit={submitSignup}>
                 <label>
-                  <div className="muted">Email</div>
-                  <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
-                    <input
-                      name="email"
-                      value={signupEmail}
-                      onChange={(event) => setSignupEmail(event.target.value)}
-                      onFocus={() => setSignupEmailFocused(true)}
-                      onBlur={() => setSignupEmailFocused(false)}
-                      placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
-                      autoComplete="email"
-                      required
-                      style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
-                    />
-                    {!signupEmail && signupEmailActive && (
-                      <div
-                        className="rotating-placeholder-overlay"
-                        style={{
-                          position: 'absolute',
-                          left: '12px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          pointerEvents: 'none',
-                          color: 'var(--muted)',
-                          fontSize: '16px',
-                          zIndex: 0,
-                          opacity: signupEmailPlaceholder.opacity * 0.4,
-                          transition: 'opacity 0.6s ease-in-out',
-                          maxWidth: 'calc(100% - 24px)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {signupEmailPlaceholder.placeholder}
-                      </div>
-                    )}
-                  </div>
+                  <div className="muted">First name</div>
+                  <input
+                    name="firstName"
+                    value={signupFirstName}
+                    onChange={(event) => setSignupFirstName(event.target.value)}
+                    placeholder="First name"
+                    autoComplete="given-name"
+                    required
+                    className="signup-input"
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                  />
                 </label>
                 <label>
-                  <div className="muted">Username (lowercase, 3 to 20 chars)</div>
+                  <div className="muted">Last name</div>
+                  <input
+                    name="lastName"
+                    value={signupLastName}
+                    onChange={(event) => setSignupLastName(event.target.value)}
+                    placeholder="Last name"
+                    autoComplete="family-name"
+                    required
+                    className="signup-input"
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                  />
+                </label>
+                <label>
+                  <div className="muted">Pick a username up to 20 characters (letters, numbers, symbols — no spaces)</div>
                   <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
                     <input
                       name="username"
@@ -1110,6 +1120,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                       placeholder={signupUsername ? '' : (signupUsernameActive ? signupUsernamePlaceholder.placeholder : 'errlmember')}
                       autoComplete="username"
                       required
+                      className="signup-input"
                       style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                     />
                     {!signupUsername && signupUsernameActive && (
@@ -1146,6 +1157,7 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     onChange={(event) => setSignupPassword(event.target.value)}
                     placeholder="Password"
                     required
+                    className="signup-input"
                     style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </label>
@@ -1159,6 +1171,48 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     />
                     <span className="muted" style={{ fontSize: '14px' }}>Email notifications for replies and comments</span>
                   </label>
+                  {signupNotifyEmail ? (
+                    <label style={{ marginTop: '8px', display: 'block' }}>
+                      <div className="muted">Email</div>
+                      <div style={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
+                        <input
+                          name="email"
+                          value={signupEmail}
+                          onChange={(event) => setSignupEmail(event.target.value)}
+                          onFocus={() => setSignupEmailFocused(true)}
+                          onBlur={() => setSignupEmailFocused(false)}
+                          placeholder={signupEmail ? '' : (signupEmailActive ? signupEmailPlaceholder.placeholder : 'you@example.com')}
+                          autoComplete="email"
+                          required
+                          className="signup-input"
+                          style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                        />
+                        {!signupEmail && signupEmailActive && (
+                          <div
+                            className="rotating-placeholder-overlay"
+                            style={{
+                              position: 'absolute',
+                              left: '12px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              pointerEvents: 'none',
+                              color: 'var(--muted)',
+                              fontSize: '16px',
+                              zIndex: 0,
+                              opacity: signupEmailPlaceholder.opacity * 0.4,
+                              transition: 'opacity 0.6s ease-in-out',
+                              maxWidth: 'calc(100% - 24px)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {signupEmailPlaceholder.placeholder}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  ) : null}
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="checkbox"
@@ -1167,6 +1221,21 @@ export default function ClaimUsernameForm({ noCardWrapper = false }) {
                     />
                     <span className="muted" style={{ fontSize: '14px' }}>SMS notifications (requires phone number)</span>
                   </label>
+                  {signupNotifySms ? (
+                    <label style={{ marginTop: '8px', display: 'block' }}>
+                      <div className="muted">Phone number</div>
+                      <input
+                        name="phone"
+                        value={signupPhone}
+                        onChange={(event) => setSignupPhone(event.target.value)}
+                        placeholder="+15551234567"
+                        autoComplete="tel"
+                        required
+                        className="signup-input"
+                        style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
+                      />
+                    </label>
+                  ) : null}
                 </div>
                 <button type="submit" disabled={status.type === 'loading'} style={{ width: '100%' }}>
                   Create account

@@ -4,6 +4,7 @@ import { createToken } from '../../../../lib/tokens';
 import { setSessionCookie } from '../../../../lib/session';
 import { validateUsername } from '../../../../lib/username';
 import { hashPassword, normalizeEmail } from '../../../../lib/passwords';
+import { normalizePhone } from '../../../../lib/phones';
 
 export async function POST(request) {
   const db = await getDb();
@@ -20,9 +21,31 @@ export async function POST(request) {
     return NextResponse.json({ error: validation.message }, { status: 400 });
   }
 
-  const email = normalizeEmail(payload.email);
-  if (!email || !email.includes('@')) {
+  const firstName = String(payload.firstName || '').trim();
+  const lastName = String(payload.lastName || '').trim();
+  if (!firstName || !lastName) {
+    return NextResponse.json({ error: 'Please provide a first and last name.' }, { status: 400 });
+  }
+
+  const emailRaw = String(payload.email || '').trim();
+  const email = emailRaw ? normalizeEmail(emailRaw) : null;
+  if (payload.notifyEmailEnabled && !email) {
+    return NextResponse.json({ error: 'Please provide an email to enable email notifications.' }, { status: 400 });
+  }
+  if (email && !email.includes('@')) {
     return NextResponse.json({ error: 'Please provide a valid email.' }, { status: 400 });
+  }
+
+  const phoneRaw = String(payload.phone || '').trim();
+  const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
+  if (payload.notifySmsEnabled && !phone) {
+    return NextResponse.json({ error: 'Please provide a phone number to enable SMS notifications.' }, { status: 400 });
+  }
+  if (phoneRaw && !phone) {
+    return NextResponse.json(
+      { error: 'Please provide a valid phone number (include country code if outside the US).' },
+      { status: 400 }
+    );
   }
 
   const password = String(payload.password || '').trim();
@@ -51,15 +74,19 @@ export async function POST(request) {
       await db
         .prepare(
           `INSERT INTO users
-            (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, notify_email_enabled, notify_sms_enabled, default_landing_page, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            (id, username, username_norm, first_name, last_name, email, email_norm, phone, phone_norm, password_hash, password_set_at, must_change_password, session_token, role, notify_email_enabled, notify_sms_enabled, default_landing_page, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           userId,
+          validation.display,
           validation.normalized,
-          validation.normalized,
+          firstName,
+          lastName,
           email,
           email,
+          phone,
+          phone,
           passwordHash,
           now,
           0,
@@ -72,17 +99,17 @@ export async function POST(request) {
         )
         .run();
     } catch (e) {
-      // Fallback if notification columns don't exist yet
+      // Fallback if phone columns don't exist yet (but notification columns do)
       try {
         await db
           .prepare(
             `INSERT INTO users
-              (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, default_landing_page, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+              (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, notify_email_enabled, notify_sms_enabled, default_landing_page, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           )
           .bind(
             userId,
-            validation.normalized,
+            validation.display,
             validation.normalized,
             email,
             email,
@@ -91,32 +118,59 @@ export async function POST(request) {
             0,
             token,
             'user',
+            notifyEmailEnabled,
+            notifySmsEnabled,
             'feed',
             now
           )
           .run();
       } catch (e2) {
-        // Fallback if default_landing_page column doesn't exist yet
-        await db
-          .prepare(
-            `INSERT INTO users
-              (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-          )
-          .bind(
-            userId,
-            validation.normalized,
-            validation.normalized,
-            email,
-            email,
-            passwordHash,
-            now,
-            0,
-            token,
-            'user',
-            now
-          )
-          .run();
+        // Fallback if notification/default_landing_page columns don't exist yet
+        try {
+          await db
+            .prepare(
+              `INSERT INTO users
+                (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, default_landing_page, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            )
+            .bind(
+              userId,
+              validation.display,
+              validation.normalized,
+              email,
+              email,
+              passwordHash,
+              now,
+              0,
+              token,
+              'user',
+              'feed',
+              now
+            )
+            .run();
+        } catch (e3) {
+          // Fallback if default_landing_page column doesn't exist yet
+          await db
+            .prepare(
+              `INSERT INTO users
+                (id, username, username_norm, email, email_norm, password_hash, password_set_at, must_change_password, session_token, role, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            )
+            .bind(
+              userId,
+              validation.display,
+              validation.normalized,
+              email,
+              email,
+              passwordHash,
+              now,
+              0,
+              token,
+              'user',
+              now
+            )
+            .run();
+        }
       }
     }
   } catch (error) {
@@ -181,7 +235,7 @@ export async function POST(request) {
 
   const response = NextResponse.json({
     ok: true,
-    username: validation.normalized,
+    username: validation.display,
     email
   });
   setSessionCookie(response, token);

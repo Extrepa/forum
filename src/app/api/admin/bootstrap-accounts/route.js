@@ -23,7 +23,7 @@ async function upsertUserWithTempPassword(db, username, { role, passwordHash, no
       )
       .bind(role, passwordHash, now, existing.id)
       .run();
-    return { username: validation.normalized, id: existing.id, created: false };
+    return { username: validation.display || validation.normalized, id: existing.id, created: false };
   }
 
   const userId = crypto.randomUUID();
@@ -35,7 +35,7 @@ async function upsertUserWithTempPassword(db, username, { role, passwordHash, no
     )
     .bind(
       userId,
-      validation.normalized,
+      validation.display || validation.normalized,
       validation.normalized,
       role,
       passwordHash,
@@ -46,7 +46,7 @@ async function upsertUserWithTempPassword(db, username, { role, passwordHash, no
     )
     .run();
 
-  return { username: validation.normalized, id: userId, created: true };
+  return { username: validation.display || validation.normalized, id: userId, created: true };
 }
 
 export async function POST(request) {
@@ -92,4 +92,3 @@ export async function POST(request) {
     );
   }
 }
-

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
-import { validateUsername, normalizeUsername } from '../../../../lib/username';
+import { validateUsername } from '../../../../lib/username';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -20,6 +20,7 @@ export async function POST(request) {
 
   const db = await getDb();
   const normalized = validation.normalized;
+  const display = validation.display || newUsername;
 
   // Check if username is already taken (by a different user)
   const existing = await db
@@ -35,10 +36,10 @@ export async function POST(request) {
   try {
     await db
       .prepare('UPDATE users SET username = ?, username_norm = ? WHERE id = ?')
-      .bind(newUsername, normalized, user.id)
+      .bind(display, normalized, user.id)
       .run();
 
-    return NextResponse.json({ success: true, username: newUsername });
+    return NextResponse.json({ success: true, username: display });
   } catch (e) {
     return NextResponse.json({ error: 'Failed to update username' }, { status: 500 });
   }

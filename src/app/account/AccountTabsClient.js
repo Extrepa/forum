@@ -296,7 +296,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     e?.preventDefault?.();
     const trimmed = (newUsername || '').trim();
     if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) {
-      setUsernameStatus({ type: 'error', message: 'Username must be 3–20 characters (lowercase letters, numbers, underscores).' });
+      setUsernameStatus({ type: 'error', message: 'Pick a username up to 20 characters (letters, numbers, symbols — no spaces).' });
       return;
     }
     setNewUsername(trimmed);

@@ -1,17 +1,18 @@
-const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+const USERNAME_PATTERN = /^[^\s]{1,20}$/;
 
 export function normalizeUsername(input) {
   return String(input || '').trim().toLowerCase();
 }
 
 export function validateUsername(input) {
-  const normalized = normalizeUsername(input);
-  if (!USERNAME_PATTERN.test(normalized)) {
+  const trimmed = String(input || '').trim();
+  const normalized = normalizeUsername(trimmed);
+  if (!USERNAME_PATTERN.test(trimmed)) {
     return {
       ok: false,
       normalized,
-      message: 'Use 3 to 20 lowercase letters, numbers, or underscores.'
+      message: 'Pick a username up to 20 characters (letters, numbers, symbols — no spaces).'
     };
   }
-  return { ok: true, normalized };
+  return { ok: true, normalized, display: trimmed };
 }
