@@ -25,34 +25,20 @@ export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', pan
   };
 
   const compactStyle = {
-    fontSize: '12px',
-    padding: '4px 8px',
-    minWidth: '56px',
-    maxWidth: '80px',
-    minHeight: '44px',
+    fontSize: '13px',
+    padding: '7px 12px',
+    minWidth: '92px',
+    minHeight: '40px',
     lineHeight: 1.2,
     display: 'inline-flex',
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    overflow: 'hidden',
+    whiteSpace: 'nowrap',
   };
-
-  const parts = (buttonLabel || 'Edit Post').split(/\s+/);
-  const twoLine = parts.length >= 2;
 
   return (
     <button type="button" className="button" onClick={handleButtonClick} style={compactStyle}>
-      {twoLine ? (
-        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-          <span>{parts[0]}</span>
-          <span>{parts.slice(1).join(' ')}</span>
-        </span>
-      ) : (
-        buttonLabel
-      )}
+      {buttonLabel}
     </button>
   );
 }

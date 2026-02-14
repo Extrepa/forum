@@ -7614,7 +7614,7 @@ header::before {
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -7632,13 +7632,19 @@ header::before {
 
 .page-crumb-mini__link,
 .page-crumb-mini__current {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   min-width: 0;
-  max-width: 24ch;
+  max-width: 20ch;
+  min-height: 32px;
+  padding: 0 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.2;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 225, 255, 0.18);
+  background: rgba(3, 16, 30, 0.45);
 }
 
 .page-crumb-mini__link {
@@ -7719,7 +7725,9 @@ header::before {
 
   .page-crumb-mini__link,
   .page-crumb-mini__current {
-    max-width: 16ch;
+    max-width: 14ch;
+    min-height: 30px;
+    padding: 0 8px;
   }
 
   .page-top-row-right {
@@ -7767,15 +7775,31 @@ header::before {
     padding: 4px 10px;
     font-size: 12px;
     line-height: 1.1;
-    white-space: normal;
+    white-space: nowrap;
     text-align: center;
-    text-wrap: balance;
-    max-width: 11ch;
+    max-width: none;
   }
 
   .section-intro__actions form {
     margin: 0;
     flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .section-intro__actions {
+    gap: 5px;
+  }
+
+  .section-intro__actions button,
+  .section-intro__actions form button {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 11px;
+    line-height: 1.1;
+    white-space: normal;
+    text-wrap: balance;
+    max-width: 10ch;
   }
 }
 
