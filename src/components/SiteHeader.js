@@ -234,22 +234,16 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <nav className="header-nav" aria-label="Primary">
               <Link
                 href="/?home=1"
-                className={`action-button header-nav-pill nav-pill-home ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
+                className={`header-nav-pill nav-pill-home ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
                 aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
                 title="Home"
                 aria-label="Home"
               >
-                <span className="header-nav-icon" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 10.5 12 3l9 7.5" />
-                    <path d="M5 9.5V21h14V9.5" />
-                  </svg>
-                </span>
                 <span className="header-nav-label">Home</span>
               </Link>
               <Link
                 href="/feed"
-                className={`action-button header-nav-pill nav-pill-feed ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
+                className={`header-nav-pill nav-pill-feed ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
                 aria-current={isActivePath(pathname, '/feed') ? 'page' : undefined}
                 title="Feed"
                 aria-label="Feed"
@@ -259,7 +253,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               <div className="header-library">
                 <button
                   type="button"
-                  className={`action-button header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
+                  className={`header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
                   onClick={(event) => {
                     if (navDisabled) return;
                     libraryAnchorRef.current = event.currentTarget;
@@ -273,14 +267,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   title="Library"
                   aria-label="Library"
                 >
-                  <span className="header-nav-icon" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="7" height="7" />
-                      <rect x="14" y="3" width="7" height="7" />
-                      <rect x="14" y="14" width="7" height="7" />
-                      <rect x="3" y="14" width="7" height="7" />
-                    </svg>
-                  </span>
                   <span className="header-nav-label">Library</span>
                   <span aria-hidden="true" className="nav-pill-caret">▾</span>
                 </button>
@@ -372,18 +358,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             </div>
           ) : (
             <div className="header-guest-actions">
-              <button type="button" className="action-button header-nav-pill header-guest-pill" aria-disabled="true" title="Home">
-                <span className="header-nav-icon" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 10.5 12 3l9 7.5" />
-                    <path d="M5 9.5V21h14V9.5" />
-                  </svg>
-                </span>
+              <button type="button" className="header-nav-pill header-guest-pill" aria-disabled="true" title="Home">
                 <span className="header-nav-label">Home</span>
               </button>
               <button
                 type="button"
-                className={`action-button header-nav-pill header-guest-pill header-guest-feed ${guestFeedArmed ? 'nav-link-egg-armed' : ''} ${guestFeedDragging ? 'nav-link-egg-hidden' : ''}`}
+                className={`header-nav-pill header-guest-pill header-guest-feed ${guestFeedArmed ? 'nav-link-egg-armed' : ''} ${guestFeedDragging ? 'nav-link-egg-hidden' : ''}`}
                 aria-disabled="true"
                 title="Feed"
                 onDoubleClick={() => {

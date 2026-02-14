@@ -246,11 +246,21 @@ a {
 }
 
 .header-nav-pill {
-  padding: 5px 11px;
-  min-height: 34px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  min-height: 32px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-nav-icon {
@@ -264,10 +274,21 @@ a {
   display: inline;
 }
 
+.header-nav-pill:hover {
+  color: var(--errl-accent);
+  text-shadow: 0 0 8px rgba(52, 225, 255, 0.6);
+  transform: none;
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+
 .header-nav-pill.is-active {
-  border-color: rgba(52, 225, 255, 0.45);
-  background: rgba(52, 225, 255, 0.14);
-  box-shadow: 0 0 14px rgba(52, 225, 255, 0.35);
+  color: var(--errl-accent);
+  text-shadow: 0 0 12px rgba(52, 225, 255, 0.8);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 .nav-pill-button {
@@ -390,7 +411,7 @@ a {
 }
 
 .header-guest-pill {
-  min-width: 68px;
+  min-width: auto;
   justify-content: center;
 }
 
@@ -862,31 +883,31 @@ a {
 
   .header-nav-pill {
     min-height: 32px !important;
-    width: 32px !important;
-    min-width: 32px !important;
-    padding: 0 !important;
+    width: auto !important;
+    min-width: auto !important;
+    padding: 6px 10px !important;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: 6px;
   }
 
   .nav-pill-home {
-    display: none !important;
+    display: inline-flex !important;
   }
 
   .nav-pill-feed, .nav-pill-library {
     width: auto !important;
     min-width: auto !important;
-    padding: 0 10px !important;
+    padding: 6px 10px !important;
   }
 
   .nav-pill-feed .header-nav-label,
   .nav-pill-library .header-nav-label {
     display: inline;
-    margin-left: 6px;
+    margin-left: 0;
   }
 
   .nav-pill-feed {
-    padding: 0 12px;
+    padding: 6px 10px;
   }
 
   .nav-pill-feed .header-nav-label {
@@ -902,12 +923,12 @@ a {
   }
 
   .header-nav-icon {
-    display: inline-flex;
+    display: none;
   }
 
   .header-nav-label,
   .nav-pill-caret {
-    display: none;
+    display: inline;
   }
 
   .header-icon-button,
@@ -929,8 +950,13 @@ a {
   }
 
   .header-library-menu {
-    width: min(96vw, 360px) !important;
-    max-height: calc(100vh - 16px) !important;
+    width: auto !important;
+    min-width: 200px !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 120px) !important;
+    left: 8px !important;
+    right: 8px !important;
+    margin: 0 auto !important;
   }
 
   .site-header--guest .forum-logo-header .forum-logo-face-wrapper {
@@ -954,9 +980,9 @@ a {
   }
 
   .header-guest-pill {
-    min-width: 68px !important;
+    min-width: auto !important;
     width: auto !important;
-    padding: 0 10px !important;
+    padding: 6px 10px !important;
     min-height: 32px !important;
   }
 
@@ -1825,10 +1851,12 @@ nav a.nav-link-egg-armed {
 }
 
 .header-guest-feed.nav-link-egg-armed {
-  border-color: rgba(255, 52, 245, 0.7);
+  border: 1px solid rgba(255, 52, 245, 0.7);
+  background: rgba(2, 7, 10, 0.4);
   box-shadow: 0 0 18px rgba(255, 52, 245, 0.4), 0 0 10px rgba(52, 225, 255, 0.35);
   cursor: grab;
   touch-action: none;
+  border-radius: 999px;
 }
 
 nav a.nav-link-egg-armed:active {

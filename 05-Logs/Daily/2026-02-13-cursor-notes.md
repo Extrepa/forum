@@ -21,8 +21,11 @@
         *   Ensure Guest Header buttons ("Home" and "Feed") are right-aligned using `justify-self: end`.
         *   Hide the unnecessary icons for guest buttons on mobile (`.header-nav-icon`), displaying only text.
     *   **Icons & Styling:**
-        *   Replaced "Feed" hamburger icon with a distinct activity/list icon.
-        *   Replaced "Library" book icon with a grid/collection icon.
+        *   **Converted to Text Links:** Changed "Home", "Feed", and "Library" buttons in the header to be text-only links (removed pill background, border, and icons) for a cleaner, simpler aesthetic.
+        *   **Glow Effects:** Added a `text-shadow` glow effect on hover for these new text links to maintain interactivity cues.
+        *   **Mobile Overflow Fix:** Updated `header-library-menu` CSS on mobile to be centered and width-constrained (`max-width: calc(100vw - 16px)`), preventing overflow issues.
+        *   **Guest Easter Egg:** Restored visual cue for the draggable Guest Feed Easter Egg by adding a border and background only when the "egg" is armed.
+        *   **Always Visible Nav:** Removed `display: none` for the "Home" button on mobile, ensuring Home, Feed, and Library are always accessible.
         *   Standardized button heights to `32px` on mobile for consistency.
         *   Wrapped the Site Logo in a `Link` to `/` to satisfy "click the avatar to go home" request (assuming "avatar" meant mascot logo).
 
