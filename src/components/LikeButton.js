@@ -34,21 +34,7 @@ export default function LikeButton({ postType, postId, initialLiked = false, ini
       type="button"
       onClick={handleLike}
       disabled={loading}
-      className="like-button"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: isCompact ? '2px' : '4px',
-        padding: isCompact ? '2px 6px' : '3px 8px',
-        border: '1px solid rgba(52, 225, 255, 0.3)',
-        borderRadius: '999px',
-        background: liked ? 'rgba(52, 225, 255, 0.15)' : 'rgba(2, 7, 10, 0.4)',
-        color: liked ? 'var(--errl-accent)' : 'var(--muted)',
-        fontSize: isCompact ? '11px' : '12px',
-        cursor: loading ? 'wait' : 'pointer',
-        transition: 'all 0.2s ease',
-        lineHeight: '1.2'
-      }}
+      className={`like-button ${isCompact ? 'like-button--sm' : ''} ${liked ? 'is-liked' : ''}`.trim()}
       title={liked ? 'Unlike' : 'Like'}
     >
       <svg

@@ -39,7 +39,7 @@ export default function PostHeader({
         gap: '12px'
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className="section-title" style={{ marginBottom: '8px', wordBreak: 'break-word' }}>{title}</h2>
+          <h2 className="section-title post-detail-title" style={{ marginBottom: '8px', wordBreak: 'break-word' }}>{title}</h2>
           <div className="list-meta" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
             <Username 
               name={author} 

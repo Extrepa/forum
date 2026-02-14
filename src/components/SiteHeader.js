@@ -24,6 +24,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const navDisabled = !isSignedIn;
 
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryFilterOpen, setLibraryFilterOpen] = useState(false);
+  const [libraryFilterValue, setLibraryFilterValue] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [kebabOpen, setKebabOpen] = useState(false);
@@ -79,6 +81,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   useEffect(() => {
     setLibraryOpen(false);
+    setLibraryFilterOpen(false);
+    setLibraryFilterValue('');
     setSearchOpen(false);
     setKebabOpen(false);
     setNotifyOpen(false);
@@ -200,6 +204,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     };
   }, [libraryOpen]);
 
+  useEffect(() => {
+    if (!libraryOpen) return undefined;
+    const rafId = window.requestAnimationFrame(() => {
+      const activeItem = libraryMenuRef.current?.querySelector('a.active');
+      if (activeItem) {
+        activeItem.scrollIntoView({ block: 'center', behavior: 'auto' });
+      }
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [libraryOpen, pathname]);
+
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     if (navDisabled) return;
@@ -215,36 +230,24 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return 'Notifications';
   }, [notifyUnreadCount]);
 
-  const librarySections = useMemo(() => ([
-    {
-      id: 'updates',
-      label: 'Updates',
-      items: [
-        { href: '/announcements', label: strings.tabs.announcements, meta: 'Timeline + platform news' },
-        { href: '/events', label: strings.tabs.events, meta: 'Events and meetups' },
-        { href: '/devlog', label: 'Development', meta: 'Build notes and updates' },
-      ],
-    },
-    {
-      id: 'community',
-      label: 'Community',
-      items: [
-        { href: '/lobby', label: 'General', meta: 'Threaded discussion hub' },
-        { href: '/music', label: strings.tabs.music, meta: 'Tracks and embeds' },
-        { href: '/projects', label: strings.tabs.projects, meta: 'Projects and update logs' },
-        { href: '/shitposts', label: strings.tabs.shitposts, meta: 'Casual / off-topic' },
-      ],
-    },
-    {
-      id: 'archive',
-      label: 'Archive',
-      items: [
-        { href: '/art-nostalgia', label: 'Art & Nostalgia', meta: 'Visuals and throwbacks' },
-        { href: '/bugs-rant', label: 'Bugs & Rants', meta: 'Issues and vent posts' },
-        { href: '/lore-memories', label: 'Lore & Memories', meta: 'Stories and moments' },
-      ],
-    },
+  const libraryLinks = useMemo(() => ([
+    { href: '/announcements', label: strings.tabs.announcements },
+    { href: '/events', label: strings.tabs.events },
+    { href: '/devlog', label: 'Development' },
+    { href: '/lobby', label: 'General' },
+    { href: '/music', label: strings.tabs.music },
+    { href: '/projects', label: strings.tabs.projects },
+    { href: '/shitposts', label: strings.tabs.shitposts },
+    { href: '/art-nostalgia', label: 'Art & Nostalgia' },
+    { href: '/bugs-rant', label: 'Bugs & Rants' },
+    { href: '/lore-memories', label: 'Lore & Memories' },
   ]), [strings]);
+
+  const filteredLibraryLinks = useMemo(() => {
+    const normalized = libraryFilterValue.trim().toLowerCase();
+    if (!normalized) return libraryLinks;
+    return libraryLinks.filter((item) => item.label.toLowerCase().includes(normalized));
+  }, [libraryLinks, libraryFilterValue]);
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
@@ -306,6 +309,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     libraryAnchorRef.current = event.currentTarget;
                     setNotifyOpen(false);
                     setKebabOpen(false);
+                    setLibraryFilterOpen(false);
+                    setLibraryFilterValue('');
                     setLibraryOpen((current) => !current);
                   }}
                   aria-expanded={libraryOpen ? 'true' : 'false'}
@@ -318,20 +323,17 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <span aria-hidden="true" className="nav-pill-caret">▾</span>
                 </button>
                 {libraryOpen ? (
-                  <div className="header-library-menu header-library-tree-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
-                    <div className="header-library-tree-head">
-                      <span className="header-library-tree-title">Library</span>
+                  <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
+                    <div className="header-library-head">
+                      <span className="header-library-title">Library</span>
                       <button
                         type="button"
-                        className="header-library-tree-search"
-                        aria-label="Search"
-                        title="Search"
+                        className={`header-library-search-toggle ${libraryFilterOpen ? 'is-active' : ''}`}
+                        aria-label={libraryFilterOpen ? 'Hide library filter' : 'Filter library'}
+                        title={libraryFilterOpen ? 'Hide filter' : 'Filter'}
                         onClick={() => {
-                          if (navDisabled) return;
-                          setLibraryOpen(false);
-                          setNotifyOpen(false);
-                          setKebabOpen(false);
-                          setSearchOpen(true);
+                          setLibraryFilterOpen((current) => !current);
+                          if (libraryFilterOpen) setLibraryFilterValue('');
                         }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -340,30 +342,35 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                         </svg>
                       </button>
                     </div>
-                    <div className="header-library-tree">
-                      {librarySections.map((section) => (
-                        <details key={section.id} className="header-library-group" open>
-                          <summary>{section.label}</summary>
-                          <div className="header-library-group-items">
-                            {section.items.map((item) => (
-                              <a
-                                key={item.href}
-                                href={item.href}
-                                className={isActivePath(pathname, item.href) ? 'active' : ''}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  if (navDisabled) return;
-                                  router.push(item.href);
-                                  setLibraryOpen(false);
-                                }}
-                              >
-                                <span className="header-library-item-label">{item.label}</span>
-                                <span className="header-library-item-meta">{item.meta}</span>
-                              </a>
-                            ))}
-                          </div>
-                        </details>
+                    {libraryFilterOpen ? (
+                      <input
+                        type="search"
+                        value={libraryFilterValue}
+                        onChange={(event) => setLibraryFilterValue(event.target.value)}
+                        placeholder="Filter sections..."
+                        className="header-library-filter"
+                        autoFocus
+                      />
+                    ) : null}
+                    <div className="header-library-list">
+                      {filteredLibraryLinks.map((item) => (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          className={isActivePath(pathname, item.href) ? 'active' : ''}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (navDisabled) return;
+                            router.push(item.href);
+                            setLibraryOpen(false);
+                          }}
+                        >
+                          <span className="header-library-item-label">{item.label}</span>
+                        </a>
                       ))}
+                      {!filteredLibraryLinks.length ? (
+                        <p className="header-library-empty">No matches found.</p>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
