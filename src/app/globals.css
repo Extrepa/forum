@@ -6759,7 +6759,8 @@ header::before,
 .list-item::before,
 .tabs-pill::before,
 .profile-card::before,
-.account-edit-card::before {
+.account-edit-card::before,
+.post-action-menu__popover::before {
   --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
@@ -6813,7 +6814,8 @@ header::after,
 .list-item::after,
 .tabs-pill::after,
 .profile-card::after,
-.account-edit-card::after {
+.account-edit-card::after,
+.post-action-menu__popover::after {
   --neon-default-glow-1: rgba(52, 225, 255, 0.18);
   --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";
@@ -7818,14 +7820,16 @@ header::before {
   align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(4, 10, 20, 0.95);
+  border: 1px solid rgba(22, 58, 74, 0.6);
+  background: var(--card);
+  backdrop-filter: blur(12px);
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
   z-index: 90;
   white-space: nowrap;
   min-width: 180px;
   max-width: calc(100vw - 32px);
   overflow: visible;
+  isolation: isolate;
 }
 
 @media (min-width: 900px) {
