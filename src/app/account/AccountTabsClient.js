@@ -753,10 +753,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
   const [editProfileSubTab, setEditProfileSubTab] = useState(profileSubTab || 'activity');
   useEffect(() => {
-    if (profileSubTab && profileSubTab !== editProfileSubTab) {
+    if (profileSubTab) {
       setEditProfileSubTab(profileSubTab);
     }
-  }, [profileSubTab, editProfileSubTab]);
+  }, [profileSubTab]);
   const renderTabLabel = (tab) => {
     if (tab.id === 'username') {
       return (

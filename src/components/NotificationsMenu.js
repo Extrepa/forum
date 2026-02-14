@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AvatarImage from './AvatarImage';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
+import { getUsernameColorIndex } from '../lib/usernameColor';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -96,7 +97,6 @@ export default function NotificationsMenu({
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
-  const [signingOut, setSigningOut] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const popoverRef = useRef(null);
@@ -119,6 +119,11 @@ export default function NotificationsMenu({
   const hasUnread = unreadCount > 0;
   const showingClearButton = hasItems && !hasUnread;
   const primaryButtonDisabled = showingClearButton ? !onClearAll : !hasUnread;
+  const resolvedUsername = user?.username || currentUsername || 'User';
+  const usernameColorIndex = useMemo(
+    () => getUsernameColorIndex(resolvedUsername, { preferredColorIndex: user?.preferred_username_color_index ?? null }),
+    [resolvedUsername, user?.preferred_username_color_index]
+  );
 
   // Fetch current user's username and color preference
   useEffect(() => {
@@ -236,22 +241,6 @@ export default function NotificationsMenu({
     }
   };
 
-  const handleSignOut = async () => {
-    if (signingOut) return;
-    setSigningOut(true);
-    if (onClose) {
-      onClose();
-    }
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (error) {
-      // ignore errors but keep trying to redirect
-    }
-    if (typeof window !== 'undefined') {
-      window.location.href = 'https://forum.errl.wtf';
-    }
-  };
-
   if (!open) return null;
 
   return (
@@ -295,9 +284,34 @@ export default function NotificationsMenu({
               <AvatarImage src="/icons/default-avatar.svg" alt="User" size={32} />
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ink)' }}>{user?.username || currentUsername || 'User'}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: '4px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                onClose?.();
+                router.push(`/profile/${encodeURIComponent(resolvedUsername)}`);
+              }}
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: `var(--username-${usernameColorIndex})`,
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                margin: 0,
+                textAlign: 'left',
+                cursor: 'pointer',
+                width: 'fit-content',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+              title={`View ${resolvedUsername}'s profile`}
+            >
+              {resolvedUsername}
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                <strong style={{ fontSize: '11px', letterSpacing: '0.02em', color: 'var(--muted)', fontWeight: 500 }}>{title}</strong>
                <button
                 type="button"
@@ -346,33 +360,34 @@ export default function NotificationsMenu({
                   />
                 </svg>
               </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (showingClearButton) {
+                    handleClearAll();
+                  } else {
+                    onMarkAllRead?.();
+                  }
+                }}
+                disabled={primaryButtonDisabled}
+                style={{
+                  fontSize: '10px',
+                  padding: '4px 8px',
+                  opacity: primaryButtonDisabled ? 0.5 : 1,
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
+                  borderRadius: '999px',
+                  border: '1px solid var(--border)',
+                  background: 'transparent',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  cursor: primaryButtonDisabled ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {showingClearButton ? 'Clear' : 'Mark all read'}
+              </button>
             </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-          <span
-            role="button"
-            tabIndex={signingOut ? -1 : 0}
-            onClick={signingOut ? undefined : handleSignOut}
-            onKeyDown={(event) => {
-              if (signingOut) return;
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                handleSignOut();
-              }
-            }}
-            style={{
-              fontSize: '11px',
-              background: 'transparent',
-              color: signingOut ? 'rgba(255, 255, 255, 0.5)' : 'var(--muted)',
-              cursor: signingOut ? 'not-allowed' : 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            {signingOut ? 'Signing out...' : 'Sign out'}
-          </span>
         </div>
       </div>
 
@@ -544,34 +559,8 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      {/* Footer with mark all read, clear, and close */}
+      {/* Footer with messages + close */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
-        <button 
-          type="button" 
-          onClick={() => {
-            if (showingClearButton) {
-              handleClearAll();
-            } else {
-              onMarkAllRead?.();
-            }
-          }}
-          disabled={primaryButtonDisabled}
-          style={{
-            fontSize: '11px',
-            padding: '6px 10px',
-            opacity: primaryButtonDisabled ? 0.5 : 1,
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: 'var(--ink)',
-            fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
-          }}
-        >
-          {showingClearButton ? 'Clear' : 'Mark all as read'}
-        </button>
         <button
             type="button"
             onClick={() => {

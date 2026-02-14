@@ -984,10 +984,11 @@ a {
     width: auto !important;
     min-width: 200px !important;
     max-width: calc(100vw - 16px) !important;
-    max-height: calc(100vh - 120px) !important;
+    max-height: min(260px, calc(100vh - 120px)) !important;
     left: 8px !important;
     right: 8px !important;
     margin: 0 auto !important;
+    overflow-y: auto !important;
   }
 
   .site-header--guest .forum-logo-header .forum-logo-face-wrapper {

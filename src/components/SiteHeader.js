@@ -34,6 +34,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [notifyUnreadCount, setNotifyUnreadCount] = useState(0);
   const [notifyItems, setNotifyItems] = useState([]);
   const [notifyStatus, setNotifyStatus] = useState('idle');
+  const [signingOut, setSigningOut] = useState(false);
   const [guestFeedArmed, setGuestFeedArmed] = useState(false);
   const [guestFeedDragging, setGuestFeedDragging] = useState(false);
   const [guestFeedGhost, setGuestFeedGhost] = useState(null);
@@ -215,6 +216,22 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return 'Notifications';
   }, [notifyUnreadCount]);
 
+  const handleSignOut = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    setLibraryOpen(false);
+    setNotifyOpen(false);
+    setKebabOpen(false);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (_) {
+      // Keep redirect flow even if logout request fails.
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = 'https://forum.errl.wtf';
+    }
+  }, [signingOut]);
+
   return (
     <>
       <header className={`site-header ${isSignedIn ? '' : 'site-header--guest'} ${headerEasterOpen ? 'header--easter-egg' : ''}`.trim()}>
@@ -390,11 +407,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             </button>
             {kebabOpen ? (
               <div className="header-menu" ref={kebabMenuRef} role="menu">
-                <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
-                <button type="button" onClick={() => router.push(`/profile/${user?.username || user?.id}`)}>View profile</button>
-                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
+                <button type="button" onClick={() => router.push('/account?tab=account')}>Account</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile')}>Edit Profile</button>
+                <button type="button" onClick={() => router.push(`/profile/${user?.username || user?.id}`)}>View Profile</button>
+                <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Edit Avatar</button>
                 {isAdmin ? <button type="button" onClick={() => router.push('/admin')}>Admin</button> : null}
+                <button type="button" onClick={handleSignOut} disabled={signingOut}>
+                  {signingOut ? 'Signing out...' : 'Sign out'}
+                </button>
               </div>
             ) : null}
             </div>
