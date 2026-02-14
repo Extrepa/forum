@@ -220,13 +220,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       <header className={`site-header ${isSignedIn ? '' : 'site-header--guest'} ${headerEasterOpen ? 'header--easter-egg' : ''}`.trim()}>
         <div className="site-header__inner">
         <div className="header-left">
-          <div className="header-brand" ref={brandRef}>
+          <Link href="/" className="header-brand" ref={brandRef} aria-label="Errl Forum Home">
             <ForumLogo variant="header" as="span" showText={false} interactive={false} />
             <div className="header-brand-text">
               <h1 className="forum-title forum-title--header">Errl Forum</h1>
               <span className="forum-description forum-description--header">{subtitle}</span>
             </div>
-          </div>
+          </Link>
         </div>
 
         {isSignedIn ? (
@@ -256,9 +256,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               >
                 <span className="header-nav-icon" aria-hidden="true">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 5h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 19h16" />
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                 </span>
                 <span className="header-nav-label">Feed</span>
@@ -282,9 +281,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 >
                   <span className="header-nav-icon" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20"></path>
-                      <path d="M6.5 7H20v10H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 7Z"></path>
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
                     </svg>
                   </span>
                   <span className="header-nav-label">Library</span>

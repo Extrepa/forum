@@ -16,8 +16,11 @@
     *   **Guest Header:** Updated `src/app/globals.css` to:
         *   Ensure Guest Header buttons ("Home" and "Feed") are right-aligned using `justify-self: end`.
         *   Hide the unnecessary icons for guest buttons on mobile (`.header-nav-icon`), displaying only text.
-        *   Verified the "Home" button is cosmetic-only for guests.
-        *   Verified the "Feed" button supports the Easter egg (double-click + drag) but prevents navigation.
+    *   **Icons & Styling:**
+        *   Replaced "Feed" hamburger icon with a distinct activity/list icon.
+        *   Replaced "Library" book icon with a grid/collection icon.
+        *   Standardized button heights to `32px` on mobile for consistency.
+        *   Wrapped the Site Logo in a `Link` to `/` to satisfy "click the avatar to go home" request (assuming "avatar" meant mascot logo).
 
 *   **Differentiated User Experience:**
     *   The "Explore Sections" grid is fully accessible to signed-in users.
