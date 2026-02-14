@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function CreatePostModal({
   isOpen,
@@ -11,6 +12,12 @@ export default function CreatePostModal({
   maxWidth,
   maxHeight
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -22,12 +29,12 @@ export default function CreatePostModal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const resolvedMaxWidth = maxWidth || (variant === 'wide' ? '900px' : '600px');
   const resolvedMaxHeight = maxHeight || '90vh';
 
-  return (
+  const modal = (
     <div
       className="modal-overlay"
       onClick={onClose}
@@ -41,7 +48,7 @@ export default function CreatePostModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
+        zIndex: 12000,
         padding: '20px',
       }}
     >
@@ -87,4 +94,6 @@ export default function CreatePostModal({
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

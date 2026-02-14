@@ -82,3 +82,62 @@
   - Search now shrinks earlier (intermediate squeeze range) and collapses to icon sooner (`<=1360px`).
 - Tiny-viewport popover hardening:
   - Notifications popover mobile max-height is now computed from trigger `top` + viewport height, so it stays on-screen and scrollable on short devices.
+
+## Forum header/layout refactor log (same-day continuation)
+- Header responsiveness + spacing:
+  - Reworked small-viewport header balance for brand/nav/action controls so controls stay visible and aligned.
+  - Tuned left/right inset behavior and compact spacing to reduce uneven edge padding on narrow devices.
+  - Added tighter tiny-breakpoint behavior so overflow pressure is handled by size reduction first.
+
+- Section page top area unification:
+  - Removed breadcrumb usage on section landing pages and moved to a unified section-intro pattern (title + description + actions in one card).
+  - Migrated section clients to shared intro structure so all section headers match visually and responsively.
+  - Moved section action controls (`Show hidden`, `New ...`) into the same intro card instead of a separate row above.
+
+- Section action button responsiveness:
+  - Added mobile button scaling rules so actions shrink before layout breaks.
+  - Allowed two-line wrap behavior only at the smallest breakpoint to keep medium widths clean and stable.
+  - Prevented full-width button expansion where it caused inconsistent card height.
+
+- Signed-in menus + account controls:
+  - Notifications and three-dot menus were restructured for better mobile fit:
+    - Sign out moved from notifications to the three-dot menu.
+    - Notifications header row consolidated (title + refresh/actions in one line).
+    - Username row aligned with avatar and linked to profile.
+  - Three-dot menu labels were standardized to requested wording:
+    - Account
+    - Edit Profile
+    - View Profile
+    - Edit Avatar
+    - Admin (conditional)
+    - Sign out
+
+- Library and small-screen navigation behavior:
+  - Added Home to library list and constrained small-screen list length with scroll for the rest.
+  - Preserved right alignment for guest `Home` + `Feed` header controls across viewport sizes.
+
+- Post-page context row (breadcrumb replacement):
+  - Reintroduced a compact context row for post pages to support edit controls without the old full breadcrumb strip.
+  - Simplified context path to just `Section > Post` (last two trail items), with truncation on smaller widths.
+  - Styled context row as a compact variant aligned with section-intro visual language.
+
+- Modal layering + editing UX:
+  - Fixed new-post modal stacking issue by rendering modal via portal to `document.body`.
+  - Raised overlay z-index so modal and editor UI reliably sit above header and page content.
+  - Kept body scroll lock while modal is open.
+
+- Size/density reduction pass:
+  - Reduced oversized type/padding in key shared styles:
+    - Header brand title clamp lowered.
+    - Section title/description sizing tightened.
+    - Card padding reduced to trim unnecessary vertical growth.
+  - Adjusted compact control sizing to prevent visual spikes between sections.
+
+- Profile/account tab navigation fix:
+  - Fixed profile subtab persistence behavior so navigating into Edit Avatar no longer traps users in that subtab.
+
+- Easter egg viewport safety:
+  - Updated header easter-egg overlay/control constraints to keep controls visible and non-overflowing on small devices.
+
+- Verification:
+  - Lint was run repeatedly during this sequence after major batches and passed each time (`npm run lint`).
