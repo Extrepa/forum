@@ -152,7 +152,7 @@ a {
 
 .site-header__inner {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(320px, 560px) minmax(240px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   position: relative;
@@ -179,6 +179,7 @@ a {
 .header-left {
   display: flex;
   align-items: center;
+  justify-self: start;
 }
 
 .header-brand {
@@ -232,6 +233,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-self: center;
   gap: 12px;
   min-width: 0;
   overflow: hidden;
@@ -346,60 +348,12 @@ a {
   box-shadow: 0 0 12px rgba(52, 225, 255, 0.3);
 }
 
-.header-search-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(52, 225, 255, 0.25);
-  background: rgba(2, 7, 10, 0.5);
-  min-width: 200px;
-  max-width: 260px;
-  width: 100%;
-  box-shadow: 0 0 12px rgba(52, 225, 255, 0.12);
-  flex: 1 1 0;
-}
-
-.header-search-icon {
-  color: rgba(52, 225, 255, 0.7);
-}
-
-.header-search-inline-input {
-  flex: 1;
-  min-width: 80px;
-  border: none;
-  background: transparent;
-  color: var(--ink);
-  font-size: 12px;
-  font-family: inherit;
-}
-
-.header-search-inline-input:focus {
-  outline: none;
-}
-
-.header-search-submit {
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9));
-  color: #001018;
-  font-size: 11px;
-  font-weight: 600;
-  box-shadow: 0 0 10px rgba(52, 225, 255, 0.35);
-  cursor: pointer;
-}
-
-.header-search-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .header-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  justify-self: end;
   gap: 6px;
 }
 
@@ -698,7 +652,7 @@ a {
 }
 
 .header-icon-button--search {
-  display: none;
+  display: inline-flex;
 }
 
 .header-icon-button--library {
@@ -709,29 +663,8 @@ a {
   .header-center {
     gap: 8px;
   }
-
-  .header-search-inline {
-    min-width: 140px;
-    max-width: 190px;
-    gap: 6px;
-    padding: 4px 6px;
-  }
-
-  .header-search-submit {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
 }
 
-@media (max-width: 1360px) {
-  .header-search-inline {
-    display: none;
-  }
-
-  .header-icon-button--search {
-    display: inline-flex;
-  }
-}
 
 @media (max-width: 1000px) {
   .site-header__inner {
@@ -743,6 +676,7 @@ a {
   .header-center {
     display: flex;
     justify-content: flex-start;
+    justify-self: stretch;
   }
 
   .header-nav {
@@ -758,14 +692,6 @@ a {
     min-height: 32px;
     font-size: 11px;
     padding: 4px 10px;
-  }
-
-  .header-search-inline {
-    display: none;
-  }
-
-  .header-icon-button--search {
-    display: inline-flex;
   }
 
   .header-icon-button--library {
@@ -794,7 +720,7 @@ a {
 }
 
 @media (min-width: 1201px) {
-  .header-icon-button {
+  .header-icon-button:not(.header-icon-button--search) {
     width: auto;
     min-width: 36px;
     padding: 0 10px;
@@ -811,7 +737,8 @@ a {
   }
 
   .header-icon-button--alerts .header-icon-text,
-  .header-icon-button--messages .header-icon-text {
+  .header-icon-button--messages .header-icon-text,
+  .header-icon-button--search .header-icon-text {
     display: none;
   }
 }
@@ -840,6 +767,7 @@ a {
     right: auto;
     z-index: auto;
     gap: 4px;
+    justify-self: end;
   }
 
   .header-brand {
