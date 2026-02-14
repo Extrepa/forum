@@ -655,8 +655,8 @@ a {
 
   .header-center {
     display: flex;
-    justify-content: flex-start;
-    justify-self: stretch;
+    justify-content: center;
+    min-width: 0;
   }
 
   .header-nav {
@@ -735,9 +735,9 @@ a {
   }
 
   .site-header__inner {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     min-height: 56px;
   }
 
@@ -781,6 +781,7 @@ a {
     text-overflow: clip;
     text-wrap: balance;
     text-align: left;
+    max-width: min-content;
   }
 
   .header-brand-text {

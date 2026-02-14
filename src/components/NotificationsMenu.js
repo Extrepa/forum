@@ -286,7 +286,7 @@ export default function NotificationsMenu({
       aria-label={title}
     >
       {/* User Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.1)' }}>
             {user?.avatar_key ? (
@@ -297,25 +297,56 @@ export default function NotificationsMenu({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ink)' }}>{user?.username || currentUsername || 'User'}</span>
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                router.push('/messages');
-              }}
-              style={{
-                fontSize: '11px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--muted)',
-                textAlign: 'left',
-                padding: 0,
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
-            >
-              Messages
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+               <strong style={{ fontSize: '11px', letterSpacing: '0.02em', color: 'var(--muted)', fontWeight: 500 }}>{title}</strong>
+               <button
+                type="button"
+                onClick={async () => {
+                  if (status === 'loading' || refreshing) return;
+                  setRefreshing(true);
+                  try {
+                    await onRefresh?.();
+                  } finally {
+                    setRefreshing(false);
+                  }
+                }}
+                disabled={status === 'loading' || refreshing}
+                title="Refresh"
+                style={{
+                  width: 14,
+                  height: 14,
+                  padding: 0,
+                  margin: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
+                  opacity: status === 'loading' || refreshing ? 0.5 : 0.8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--muted)',
+                }}
+              >
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    animation: status === 'loading' || refreshing ? 'notifications-refresh-spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  <path
+                    d="M13.5 2.5L12.5 5.5L9.5 4.5M2.5 13.5L3.5 10.5L6.5 11.5M11.5 2.5C10.3 1.8 8.9 1.5 7.5 1.5C4.2 1.5 1.5 4.2 1.5 7.5C1.5 10.8 4.2 13.5 7.5 13.5C10.8 13.5 13.5 10.8 13.5 7.5C13.5 6.1 13.2 4.7 12.5 3.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
@@ -343,74 +374,6 @@ export default function NotificationsMenu({
             {signingOut ? 'Signing out...' : 'Sign out'}
           </span>
         </div>
-      </div>
-
-      {/* Title and refresh button row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <strong style={{ fontSize: '14px', letterSpacing: '0.02em' }}>{title}</strong>
-        <button
-          type="button"
-          onClick={async () => {
-            if (status === 'loading' || refreshing) return;
-            setRefreshing(true);
-            try {
-              await onRefresh?.();
-            } finally {
-              setRefreshing(false);
-            }
-          }}
-          disabled={status === 'loading' || refreshing}
-          title="Refresh"
-          style={{
-            width: 12,
-            height: 12,
-            minWidth: 12,
-            minHeight: 12,
-            padding: 0,
-            margin: 0,
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 4,
-            cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
-            opacity: status === 'loading' || refreshing ? 0.5 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--muted)',
-            boxShadow: 'none',
-            transition: 'color 0.2s ease, box-shadow 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            if (status !== 'loading' && !refreshing) {
-              e.currentTarget.style.color = 'var(--text)';
-              e.currentTarget.style.boxShadow = '0 0 8px rgba(52, 225, 255, 0.35)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--muted)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{
-              animation: status === 'loading' || refreshing ? 'notifications-refresh-spin 1s linear infinite' : 'none',
-              transition: status === 'loading' || refreshing ? 'none' : 'transform 0.2s ease'
-            }}
-          >
-            <path
-              d="M13.5 2.5L12.5 5.5L9.5 4.5M2.5 13.5L3.5 10.5L6.5 11.5M11.5 2.5C10.3 1.8 8.9 1.5 7.5 1.5C4.2 1.5 1.5 4.2 1.5 7.5C1.5 10.8 4.2 13.5 7.5 13.5C10.8 13.5 13.5 10.8 13.5 7.5C13.5 6.1 13.2 4.7 12.5 3.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
       </div>
 
       {/* Notifications list - scrollable */}
@@ -610,6 +573,25 @@ export default function NotificationsMenu({
         >
           {showingClearButton ? 'Clear' : 'Mark all as read'}
         </button>
+        <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/messages');
+            }}
+            style={{
+              fontSize: '11px',
+              padding: '6px 10px',
+              background: 'transparent',
+              border: '1px solid rgba(52, 225, 255, 0.3)',
+              borderRadius: '999px',
+              color: 'var(--muted)',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Messages
+          </button>
         <button 
           type="button" 
           onClick={onClose}

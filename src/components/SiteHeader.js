@@ -392,6 +392,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               <div className="header-menu" ref={kebabMenuRef} role="menu">
                 <button type="button" onClick={() => router.push('/account?tab=account')}>Account settings</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile')}>Profile settings</button>
+                <button type="button" onClick={() => router.push(`/profile/${user?.username || user?.id}`)}>View profile</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile&subtab=avatar')}>Avatar</button>
                 {isAdmin ? <button type="button" onClick={() => router.push('/admin')}>Admin</button> : null}
               </div>
