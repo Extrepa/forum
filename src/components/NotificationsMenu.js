@@ -126,16 +126,16 @@ export default function NotificationsMenu({
           right: 0,
           left: 'auto',
           top: 'calc(100% + 8px)',
-          width: 'min(340px, 94vw)',
-          maxWidth: 'min(340px, 94vw)',
-          minWidth: 'min(260px, 94vw)',
+          width: 'min(292px, 92vw)',
+          maxWidth: 'min(292px, 92vw)',
+          minWidth: 'min(232px, 92vw)',
           margin: 0,
         });
         return;
       }
 
       const triggerRect = trigger.getBoundingClientRect();
-      const popoverWidth = 340;
+      const popoverWidth = 292;
       const viewportWidth = window.innerWidth;
       const margin = 12;
       const maxPopoverWidth = viewportWidth - margin * 2;
@@ -221,17 +221,17 @@ export default function NotificationsMenu({
       `}</style>
     <div
       ref={popoverRef}
-      className="card neon-outline-card header-popover notifications-popover notifications-popover-errl"
+      className="neon-outline-card header-popover notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 340,
-        maxWidth: 'min(340px, 94vw)',
-        minWidth: 260,
+        width: 292,
+        maxWidth: 'min(292px, 92vw)',
+        minWidth: 232,
         zIndex: 1100,
-        padding: '12px',
+        padding: '10px',
         maxHeight: 'min(86vh, 720px)',
         height: 'auto',
         display: 'flex',
@@ -242,8 +242,8 @@ export default function NotificationsMenu({
       role="menu"
       aria-label="Messages and notifications"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-        <h3 style={{ margin: 0, fontSize: '18px', lineHeight: 1.1 }}>Notifications</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <h3 style={{ margin: 0, fontSize: '14px', lineHeight: 1.1 }}>Notifications</h3>
         <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
           <button
             type="button"
@@ -259,8 +259,8 @@ export default function NotificationsMenu({
             disabled={status === 'loading' || refreshing}
             title="Refresh"
             style={{
-              width: 20,
-              height: 20,
+              width: 16,
+              height: 16,
               padding: 0,
               background: 'transparent',
               border: 'none',
@@ -273,8 +273,8 @@ export default function NotificationsMenu({
             }}
           >
             <svg
-              width="14"
-              height="14"
+              width="11"
+              height="11"
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -294,8 +294,8 @@ export default function NotificationsMenu({
             onClick={() => onMarkAllRead?.()}
             disabled={!hasUnread}
             style={{
-              fontSize: '11px',
-              padding: '5px 8px',
+              fontSize: '10px',
+              padding: '4px 7px',
               borderRadius: 999,
               border: '1px solid rgba(52, 225, 255, 0.35)',
               background: 'rgba(2, 7, 10, 0.45)',
@@ -309,7 +309,7 @@ export default function NotificationsMenu({
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         <button type="button" className="header-notify-tab is-active">
           Notifications {unreadCount > 0 ? `(${unreadCount})` : ''}
         </button>
@@ -325,9 +325,9 @@ export default function NotificationsMenu({
         </button>
       </div>
 
-      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '220px', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '160px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
-          <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet.</div>
+          <div className="muted" style={{ padding: '12px 10px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.4', fontSize: '12px' }}>No notifications yet.</div>
         ) : (
           <div className="list" style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.24)', overflow: 'hidden', background: 'rgba(2, 5, 10, 0.72)' }}>
             {items.map((n, index) => {
@@ -412,7 +412,7 @@ export default function NotificationsMenu({
                   style={{
                     textDecoration: 'none',
                     display: 'block',
-                    padding: '0 12px',
+                    padding: '0 10px',
                     borderRadius: 0,
                   border: 'none',
                   borderBottom: isLastItem ? 'none' : '1px solid rgba(52, 225, 255, 0.2)',
@@ -434,11 +434,11 @@ export default function NotificationsMenu({
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <div style={{ padding: '12px 0' }}>
+                  <div style={{ padding: '8px 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
-                      <span style={{ flex: 1, fontSize: '18px', lineHeight: '1.25', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
+                      <span style={{ flex: 1, fontSize: '12px', lineHeight: '1.35', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                        <span style={{ whiteSpace: 'nowrap', fontSize: '14px', color: 'var(--muted)', fontWeight: 500, background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
+                        <span style={{ whiteSpace: 'nowrap', fontSize: '11px', color: 'var(--muted)', fontWeight: 500, background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
                           {formatTimeAgo(n.created_at)}
                         </span>
                         <button
@@ -492,14 +492,14 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'nowrap', minWidth: 0 }}>
         <button
             type="button"
             onClick={handleClearAll}
             disabled={!hasItems}
             style={{
-              fontSize: '13px',
-              padding: '8px 14px',
+              fontSize: '11px',
+              padding: '6px 11px',
               background: 'transparent',
               border: '1px solid var(--border)',
               borderRadius: '999px',
@@ -526,8 +526,8 @@ export default function NotificationsMenu({
           type="button"
           onClick={onClose}
           style={{
-            fontSize: '13px',
-            padding: '8px 14px',
+            fontSize: '11px',
+            padding: '6px 11px',
             flexShrink: 0,
             whiteSpace: 'nowrap',
             borderRadius: '999px',

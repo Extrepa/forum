@@ -315,7 +315,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <span aria-hidden="true" className="nav-pill-caret">▾</span>
                 </button>
                 {libraryOpen ? (
-                  <div className="card neon-outline-card header-popover header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
+                  <div className="neon-outline-card header-popover header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
                     <div className="header-library-head">
                       <span className="header-library-title">Library</span>
                       <button
@@ -449,7 +449,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               </svg>
             </button>
             {kebabOpen ? (
-              <div className="card neon-outline-card header-popover header-menu" ref={kebabMenuRef} role="menu">
+              <div className="neon-outline-card header-popover header-menu" ref={kebabMenuRef} role="menu">
                 <button type="button" onClick={() => router.push('/account?tab=account')}>Account</button>
                 <button type="button" onClick={() => router.push('/account?tab=profile')}>Edit Profile</button>
                 <button type="button" onClick={() => router.push(`/profile/${user?.username || user?.id}`)}>View Profile</button>
