@@ -144,7 +144,8 @@ a {
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: var(--radius);
   background: rgba(2, 7, 10, 0.82);
-  padding: 8px 12px;
+  padding-block: 8px;
+  padding-inline: clamp(8px, 1.8vw, 12px);
   box-shadow: var(--shadow);
   isolation: isolate;
   backdrop-filter: blur(12px);
@@ -154,7 +155,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 5px;
   position: relative;
   min-height: 56px;
 }
@@ -237,7 +238,7 @@ a {
 .header-center {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   min-width: 0;
   overflow: hidden;
@@ -833,7 +834,8 @@ a {
 
 @media (max-width: 640px) {
   .site-header {
-    padding: 8px 8px;
+    padding-block: 8px;
+    padding-inline: clamp(8px, 2vw, 10px);
   }
 
   .site-header__inner {
