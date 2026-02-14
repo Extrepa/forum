@@ -335,8 +335,9 @@ a {
 
 .header-library-menu {
   position: fixed;
-  min-width: 240px;
-  max-width: min(360px, 90vw);
+  width: max-content;
+  min-width: 0;
+  max-width: min(320px, 90vw);
   padding: 8px;
   border-radius: 16px;
   border: 1px solid rgba(52, 225, 255, 0.34);
@@ -455,6 +456,7 @@ a {
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .header-library-empty {
@@ -767,6 +769,20 @@ a {
 
 .header-icon-button--search {
   display: inline-flex;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+}
+
+.header-icon-button--search svg {
+  width: 15px;
+  height: 15px;
+}
+
+.header-icon-button--search.is-active {
+  border-color: rgba(255, 52, 245, 0.65);
+  box-shadow: 0 0 14px rgba(255, 52, 245, 0.35);
+  color: var(--errl-accent-3);
 }
 
 .header-icon-button--library {
@@ -1095,11 +1111,22 @@ a {
   }
 
   .header-library-menu {
-    width: min(340px, calc(100vw - 12px)) !important;
+    width: min(290px, calc(100vw - 12px)) !important;
     min-width: 0 !important;
-    max-width: calc(100vw - 12px) !important;
+    max-width: min(290px, calc(100vw - 12px)) !important;
     max-height: min(70vh, calc(100vh - 96px)) !important;
     margin: 0 !important;
+  }
+
+  .header-icon-button--search {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+  }
+
+  .header-icon-button--search svg {
+    width: 13px;
+    height: 13px;
   }
 
   .header-library-item-label {
@@ -8811,7 +8838,7 @@ header::before {
 
 .site-header:not(.site-header--guest) .site-header__inner {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   column-gap: 10px;
   row-gap: 0 !important;
@@ -8820,6 +8847,7 @@ header::before {
 
 .site-header:not(.site-header--guest) .header-left {
   grid-column: 1;
+  justify-self: start;
   min-width: 0;
   max-width: none;
 }
@@ -8884,7 +8912,7 @@ header::before {
   }
 
   .site-header:not(.site-header--guest) .header-left {
-    max-width: min(52vw, 280px);
+    max-width: min(46vw, 280px);
   }
 
   .site-header:not(.site-header--guest) .header-brand-text {
@@ -8917,7 +8945,7 @@ header::before {
   }
 
   .site-header:not(.site-header--guest) .header-left {
-    max-width: min(54vw, 210px);
+    max-width: min(44vw, 200px);
   }
 
   .site-header:not(.site-header--guest) .header-center {
@@ -8938,6 +8966,17 @@ header::before {
     width: 27px;
     height: 27px;
     min-width: 27px;
+  }
+
+  .site-header:not(.site-header--guest) .header-icon-button--search {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .site-header:not(.site-header--guest) .header-icon-button--search svg {
+    width: 12px;
+    height: 12px;
   }
 
   .site-header:not(.site-header--guest) .header-brand-text {
@@ -8975,7 +9014,7 @@ header::before {
   }
 
   .site-header:not(.site-header--guest) .header-left {
-    max-width: min(52vw, 170px);
+    max-width: min(40vw, 160px);
   }
 
   .site-header:not(.site-header--guest) .header-brand-text {
@@ -8998,12 +9037,12 @@ header::before {
 
 @media (max-width: 380px) {
   .site-header:not(.site-header--guest) .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     column-gap: 7px;
   }
 
   .site-header:not(.site-header--guest) .header-left {
-    max-width: min(58vw, 190px);
+    max-width: min(36vw, 140px);
   }
 
   .site-header:not(.site-header--guest) .header-brand .forum-logo-header {

@@ -178,7 +178,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
       const edgePadding = window.innerWidth <= 640 ? 8 : 12;
-      const menuWidth = Math.min(360, window.innerWidth - (edgePadding * 2));
+      const widthSource = filteredLibraryLinks.length ? filteredLibraryLinks : libraryLinks;
+      const widestLabelLength = widthSource.reduce((max, item) => Math.max(max, item.label.length), 0);
+      const estimatedMenuWidth = (widestLabelLength * 8) + (libraryFilterOpen ? 112 : 86);
+      const menuWidth = Math.min(
+        Math.max(208, estimatedMenuWidth),
+        window.innerWidth - (edgePadding * 2)
+      );
       let left = rect.left + (rect.width / 2) - (menuWidth / 2);
       if (left + menuWidth > window.innerWidth - edgePadding) {
         left = window.innerWidth - menuWidth - edgePadding;
@@ -202,7 +208,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [libraryOpen]);
+  }, [libraryFilterOpen, libraryLinks, filteredLibraryLinks, libraryOpen]);
 
   useEffect(() => {
     if (!libraryOpen) return undefined;
@@ -380,6 +386,28 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         ) : null}
 
         <div className="header-right">
+          {isSignedIn ? (
+            <button
+              type="button"
+              className={`header-icon-button header-icon-button--search ${searchOpen ? 'is-active' : ''}`}
+              onClick={() => {
+                setLibraryOpen(false);
+                setNotifyOpen(false);
+                setKebabOpen(false);
+                setSearchOpen((current) => !current);
+              }}
+              aria-label="Search"
+              title="Search"
+            >
+              <span className="header-icon-glyph" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.8-3.8" />
+                </svg>
+              </span>
+            </button>
+          ) : null}
+
           {isSignedIn ? (
             <div className="header-avatar" ref={avatarRef}>
               <button
