@@ -12,10 +12,12 @@
     *   **Mobile Header Optimization:**
         *   Hidden "Home" button on mobile for logged-in users to reduce clutter.
         *   Ensured "Feed" and "Library" buttons display full text labels on mobile, improving clarity and resolving the "multi-open button" confusion.
-        *   Fixed "Errl Forum" title wrapping on small screens for both logged-in and guest users by adjusting `white-space`, `overflow`, and removing height constraints in CSS (`.forum-title--header`).
-    *   **Guest Header:** Updated `src/app/globals.css` to ensure Guest Header buttons ("Home" and "Feed") display text correctly on mobile devices.
-    *   Verified the "Home" button is cosmetic-only for guests.
-    *   Verified the "Feed" button supports the Easter egg (double-click + drag) but prevents navigation.
+        *   Fixed "Errl Forum" title wrapping on small screens by adding `width: min-content`, adjusting `white-space` to `normal`, and tightening `line-height` in CSS (`.forum-title--header`).
+    *   **Guest Header:** Updated `src/app/globals.css` to:
+        *   Ensure Guest Header buttons ("Home" and "Feed") are right-aligned using `justify-self: end`.
+        *   Hide the unnecessary icons for guest buttons on mobile (`.header-nav-icon`), displaying only text.
+        *   Verified the "Home" button is cosmetic-only for guests.
+        *   Verified the "Feed" button supports the Easter egg (double-click + drag) but prevents navigation.
 
 *   **Differentiated User Experience:**
     *   The "Explore Sections" grid is fully accessible to signed-in users.

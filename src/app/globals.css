@@ -846,10 +846,12 @@ a {
     font-size: clamp(18px, 7.2vw, 28px);
     letter-spacing: 0.02em;
     white-space: normal;
-    line-height: 1.1;
+    line-height: 0.95;
     max-height: none;
     overflow: visible;
     text-wrap: balance;
+    width: min-content;
+    text-align: left;
   }
 
   .header-nav-pill {
@@ -939,7 +941,15 @@ a {
 
   .header-guest-pill .header-nav-label {
     display: inline;
-    margin-left: 6px;
+    margin-left: 0;
+  }
+
+  .header-guest-pill .header-nav-icon {
+    display: none;
+  }
+
+  .site-header--guest .header-right {
+    justify-self: end;
   }
 }
 
