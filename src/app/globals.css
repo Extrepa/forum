@@ -340,9 +340,7 @@ a {
   max-width: min(320px, 90vw);
   padding: 8px;
   border-radius: 16px;
-  border: 1px solid rgba(52, 225, 255, 0.34);
-  outline: 1px solid rgba(255, 52, 245, 0.26);
-  outline-offset: -1px;
+  border: 1px solid rgba(22, 58, 74, 0.6);
   background: rgba(4, 10, 20, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
   display: grid;
@@ -677,7 +675,7 @@ a {
   min-width: 200px;
   padding: 10px;
   border-radius: 14px;
-  border: 1px solid rgba(52, 225, 255, 0.25);
+  border: 1px solid rgba(22, 58, 74, 0.6);
   background: rgba(4, 10, 20, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
   display: grid;
@@ -701,6 +699,36 @@ a {
 .header-menu button:hover {
   border-color: rgba(52, 225, 255, 0.3);
   background: rgba(52, 225, 255, 0.12);
+}
+
+.header-popover {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(22, 58, 74, 0.6) !important;
+  background: rgba(4, 10, 20, 0.96);
+}
+
+.header-notify-tab {
+  border: 1px solid rgba(52, 225, 255, 0.26);
+  background: rgba(2, 7, 10, 0.45);
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-notify-tab:hover {
+  border-color: rgba(255, 52, 245, 0.45);
+  color: var(--ink);
+}
+
+.header-notify-tab.is-active {
+  border-color: rgba(52, 225, 255, 0.45);
+  color: var(--ink);
+  box-shadow: 0 0 10px rgba(52, 225, 255, 0.2);
 }
 
 .header-search-modal {
@@ -4093,71 +4121,12 @@ button.ghost:hover,
   overflow: auto;
 }
 
-/* Enhanced Errl theme styling for notifications popover */
+/* Notifications panel should match other forum card outlines/popovers */
 .notifications-popover-errl {
   position: relative;
-  isolation: isolate;
-  overflow: visible; /* Allow border to extend outside */
-}
-
-/* Make background darker and more opaque */
-.notifications-popover-errl.card {
-  background: rgba(7, 27, 37, 0.98) !important;
-  backdrop-filter: blur(16px);
-  z-index: 1;
-}
-
-/* Ensure inner content is above border and has proper padding */
-.notifications-popover-errl > * {
-  position: relative;
-  z-index: 1;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-/* Override card::before to ensure rainbow border shows properly with higher specificity */
-.notifications-popover-errl.card::before {
-  content: "" !important;
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  bottom: -2px;
-  left: -2px;
-  border-radius: calc(var(--radius) + 1px);
-  padding: 1px;
-  background: linear-gradient(
-    120deg,
-    rgba(52, 225, 255, 1),
-    rgba(255, 52, 245, 1),
-    rgba(245, 255, 183, 1),
-    rgba(0, 245, 160, 1),
-    rgba(52, 225, 255, 1)
-  ) !important;
-  background-size: 300% 300%;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 1 !important;
-  animation: neonChase 7.2s linear infinite !important;
-  will-change: background-position;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Enhanced glow effect - override card::after */
-.notifications-popover-errl.card::after {
-  content: "" !important;
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    0 0 32px rgba(52, 225, 255, 0.35),
-    0 0 40px rgba(255, 52, 245, 0.25),
-    0 0 48px rgba(245, 255, 183, 0.18) !important;
-  opacity: 1 !important;
-  pointer-events: none;
-  z-index: 0;
+  overflow: hidden;
+  background: rgba(7, 27, 37, 0.96) !important;
+  backdrop-filter: blur(14px);
 }
 
 /* Username popover should stay compact across viewports */
@@ -8624,117 +8593,26 @@ header::before {
     padding-bottom: 20px !important;
   }
 
-  /* Notifications popover - keep original size, just ensure it doesn't overflow */
   .notifications-popover,
   .notifications-popover-errl.notifications-popover {
-    /* Allow content-driven sizing without overflow */
-    width: min(300px, 92vw) !important;
-    max-width: min(300px, 92vw) !important;
-    min-width: min(240px, 92vw) !important;
-    /* Keep right alignment to logo */
+    width: min(340px, 94vw) !important;
+    max-width: min(340px, 94vw) !important;
+    min-width: min(260px, 94vw) !important;
     right: 0 !important;
     left: auto !important;
     box-sizing: border-box !important;
     margin: 0 !important;
   }
-  
-  /* Ensure the parent container allows proper positioning */
+
   .notifications-logo-trigger {
     position: relative !important;
     overflow: visible !important;
     z-index: 1;
   }
-  
-  @media (max-width: 640px) {
-    .notifications-popover,
-    .notifications-popover-errl.notifications-popover {
-      position: absolute !important;
-      right: 0 !important;
-      left: auto !important;
-      width: min(300px, 92vw) !important;
-      max-width: min(300px, 92vw) !important;
-      min-width: min(240px, 92vw) !important;
-      z-index: 9999 !important;
-      margin: 0 !important;
-      max-height: calc(100vh - 32px) !important;
-      height: auto !important;
-    }
-  }
-  
-  /* Prevent content from being compressed - ensure proper text wrapping */
-  .notifications-popover > div,
-  .notifications-popover-errl.notifications-popover > div {
-    min-width: 0 !important;
-  }
-  
-  /* Ensure buttons don't get squished */
-  .notifications-popover button,
-  .notifications-popover-errl.notifications-popover button {
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-  
-  /* Ensure header buttons container doesn't wrap too aggressively */
-  .notifications-popover > div:first-child,
-  .notifications-popover-errl.notifications-popover > div:first-child {
-    gap: 8px !important;
-  }
-  
-  /* Ensure content inside notifications popover doesn't overflow */
-  .notifications-popover *,
-  .notifications-popover-errl.notifications-popover * {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-  
-  /* Ensure buttons in notifications popover fit but don't stretch */
-  .notifications-popover button,
-  .notifications-popover-errl.notifications-popover button {
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    max-width: none !important;
-  }
-  
-  /* Ensure footer container doesn't overflow */
-  .notifications-popover > div:last-child,
-  .notifications-popover-errl.notifications-popover > div:last-child {
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-    min-width: 0 !important;
-  }
-  
-  /* Footer left button group */
-  .notifications-popover > div:last-child > div:first-child,
-  .notifications-popover-errl.notifications-popover > div:last-child > div:first-child {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    display: flex !important;
-    gap: 6px !important;
-    flex-wrap: wrap !important;
-  }
-  
-  /* Footer buttons - keep them small, don't stretch */
-  .notifications-popover > div:last-child button,
-  .notifications-popover-errl.notifications-popover > div:last-child button {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    font-size: 11px !important;
-    padding: 5px 8px !important;
-    white-space: nowrap !important;
-  }
-  
-  /* Close button should stay small on the right */
-  .notifications-popover > div:last-child > button:last-child,
-  .notifications-popover-errl.notifications-popover > div:last-child > button:last-child {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    margin-left: auto !important;
+
+  .notifications-popover * {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
 }

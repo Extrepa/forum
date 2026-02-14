@@ -1,10 +1,8 @@
 'use client';
 
-import { useMemo, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import AvatarImage from './AvatarImage';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
-import { getUsernameColorIndex } from '../lib/usernameColor';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -86,7 +84,6 @@ export default function NotificationsMenu({
   unreadCount,
   items,
   status,
-  user,
   onRefresh,
   onMarkRead,
   onMarkAllRead,
@@ -95,7 +92,6 @@ export default function NotificationsMenu({
   anchorRef = null,
 }) {
   const router = useRouter();
-  const [currentUsername, setCurrentUsername] = useState(null);
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [refreshing, setRefreshing] = useState(false);
@@ -111,35 +107,7 @@ export default function NotificationsMenu({
     }
   };
   
-  const title = useMemo(() => {
-    if (unreadCount > 0) return `Notifications (${unreadCount})`;
-    return 'Notifications';
-  }, [unreadCount]);
-
   const hasUnread = unreadCount > 0;
-  const showingClearButton = hasItems && !hasUnread;
-  const primaryButtonDisabled = showingClearButton ? !onClearAll : !hasUnread;
-  const resolvedUsername = user?.username || currentUsername || 'User';
-  const usernameColorIndex = useMemo(
-    () => getUsernameColorIndex(resolvedUsername, { preferredColorIndex: user?.preferred_username_color_index ?? null }),
-    [resolvedUsername, user?.preferred_username_color_index]
-  );
-
-  // Fetch current user's username and color preference
-  useEffect(() => {
-    if (open) {
-      fetch('/api/auth/me')
-        .then(res => res.json())
-        .then(data => {
-          if (data?.user?.username) {
-            setCurrentUsername(data.user.username);
-          }
-        })
-        .catch(() => {
-          // Ignore errors
-        });
-    }
-  }, [open]);
 
   // Calculate popover position on mobile to align with logo and prevent overflow
   useEffect(() => {
@@ -158,16 +126,16 @@ export default function NotificationsMenu({
           right: 0,
           left: 'auto',
           top: 'calc(100% + 8px)',
-          width: 'min(300px, 92vw)',
-          maxWidth: 'min(300px, 92vw)',
-          minWidth: 'min(240px, 92vw)',
+          width: 'min(340px, 94vw)',
+          maxWidth: 'min(340px, 94vw)',
+          minWidth: 'min(260px, 94vw)',
           margin: 0,
         });
         return;
       }
 
       const triggerRect = trigger.getBoundingClientRect();
-      const popoverWidth = 380;
+      const popoverWidth = 340;
       const viewportWidth = window.innerWidth;
       const margin = 12;
       const maxPopoverWidth = viewportWidth - margin * 2;
@@ -253,17 +221,17 @@ export default function NotificationsMenu({
       `}</style>
     <div
       ref={popoverRef}
-      className="card notifications-popover notifications-popover-errl"
+      className="card neon-outline-card header-popover notifications-popover notifications-popover-errl"
       style={{
         position: 'absolute',
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
         top: 'calc(100% + 8px)',
-        width: 300,
-        maxWidth: 'min(300px, 92vw)',
-        minWidth: 240,
+        width: 340,
+        maxWidth: 'min(340px, 94vw)',
+        minWidth: 260,
         zIndex: 1100,
-        padding: '14px',
+        padding: '12px',
         maxHeight: 'min(86vh, 720px)',
         height: 'auto',
         display: 'flex',
@@ -272,131 +240,96 @@ export default function NotificationsMenu({
         ...popoverStyle
       }}
       role="menu"
-      aria-label={title}
+      aria-label="Messages and notifications"
     >
-      {/* User Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.1)' }}>
-            {user?.avatar_key ? (
-              <AvatarImage avatarKey={user.avatar_key} alt={user.username || 'User'} size={32} />
-            ) : (
-              <AvatarImage src="/icons/default-avatar.svg" alt="User" size={32} />
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: '4px' }}>
-            <button
-              type="button"
-              onClick={() => {
-                onClose?.();
-                router.push(`/profile/${encodeURIComponent(resolvedUsername)}`);
-              }}
-              style={{
-                fontSize: '13px',
-                fontWeight: 700,
-                color: `var(--username-${usernameColorIndex})`,
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                margin: 0,
-                textAlign: 'left',
-                cursor: 'pointer',
-                width: 'fit-content',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              title={`View ${resolvedUsername}'s profile`}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <h3 style={{ margin: 0, fontSize: '18px', lineHeight: 1.1 }}>Notifications</h3>
+        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={async () => {
+              if (status === 'loading' || refreshing) return;
+              setRefreshing(true);
+              try {
+                await onRefresh?.();
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            disabled={status === 'loading' || refreshing}
+            title="Refresh"
+            style={{
+              width: 20,
+              height: 20,
+              padding: 0,
+              background: 'transparent',
+              border: 'none',
+              cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
+              opacity: status === 'loading' || refreshing ? 0.5 : 0.9,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--muted)',
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ animation: status === 'loading' || refreshing ? 'notifications-refresh-spin 1s linear infinite' : 'none' }}
             >
-              {resolvedUsername}
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-               <strong style={{ fontSize: '11px', letterSpacing: '0.02em', color: 'var(--muted)', fontWeight: 500 }}>{title}</strong>
-               <button
-                type="button"
-                onClick={async () => {
-                  if (status === 'loading' || refreshing) return;
-                  setRefreshing(true);
-                  try {
-                    await onRefresh?.();
-                  } finally {
-                    setRefreshing(false);
-                  }
-                }}
-                disabled={status === 'loading' || refreshing}
-                title="Refresh"
-                style={{
-                  width: 14,
-                  height: 14,
-                  padding: 0,
-                  margin: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
-                  opacity: status === 'loading' || refreshing ? 0.5 : 0.8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--muted)',
-                }}
-              >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style={{
-                    animation: status === 'loading' || refreshing ? 'notifications-refresh-spin 1s linear infinite' : 'none',
-                  }}
-                >
-                  <path
-                    d="M13.5 2.5L12.5 5.5L9.5 4.5M2.5 13.5L3.5 10.5L6.5 11.5M11.5 2.5C10.3 1.8 8.9 1.5 7.5 1.5C4.2 1.5 1.5 4.2 1.5 7.5C1.5 10.8 4.2 13.5 7.5 13.5C10.8 13.5 13.5 10.8 13.5 7.5C13.5 6.1 13.2 4.7 12.5 3.5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  if (showingClearButton) {
-                    handleClearAll();
-                  } else {
-                    onMarkAllRead?.();
-                  }
-                }}
-                disabled={primaryButtonDisabled}
-                style={{
-                  fontSize: '10px',
-                  padding: '4px 8px',
-                  opacity: primaryButtonDisabled ? 0.5 : 1,
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                  borderRadius: '999px',
-                  border: '1px solid var(--border)',
-                  background: 'transparent',
-                  color: 'var(--muted)',
-                  fontWeight: 600,
-                  cursor: primaryButtonDisabled ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {showingClearButton ? 'Clear' : 'Mark all read'}
-              </button>
-            </div>
-          </div>
+              <path
+                d="M13.5 2.5L12.5 5.5L9.5 4.5M2.5 13.5L3.5 10.5L6.5 11.5M11.5 2.5C10.3 1.8 8.9 1.5 7.5 1.5C4.2 1.5 1.5 4.2 1.5 7.5C1.5 10.8 4.2 13.5 7.5 13.5C10.8 13.5 13.5 10.8 13.5 7.5C13.5 6.1 13.2 4.7 12.5 3.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => onMarkAllRead?.()}
+            disabled={!hasUnread}
+            style={{
+              fontSize: '11px',
+              padding: '5px 8px',
+              borderRadius: 999,
+              border: '1px solid rgba(52, 225, 255, 0.35)',
+              background: 'rgba(2, 7, 10, 0.45)',
+              color: 'var(--muted)',
+              opacity: hasUnread ? 1 : 0.45,
+              cursor: hasUnread ? 'pointer' : 'not-allowed',
+            }}
+          >
+            Mark read
+          </button>
         </div>
       </div>
 
-      {/* Notifications list - scrollable */}
-      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '120px', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+        <button type="button" className="header-notify-tab is-active">
+          Notifications {unreadCount > 0 ? `(${unreadCount})` : ''}
+        </button>
+        <button
+          type="button"
+          className="header-notify-tab"
+          onClick={() => {
+            onClose?.();
+            router.push('/messages');
+          }}
+        >
+          Messages
+        </button>
+      </div>
+
+      <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '220px', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
         {!hasItems ? (
           <div className="muted" style={{ padding: '16px 12px', textAlign: 'center', overflowWrap: 'break-word', wordWrap: 'break-word', lineHeight: '1.5', fontSize: '14px' }}>No notifications yet.</div>
         ) : (
-          <div className="list" style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)', overflow: 'hidden', background: 'rgba(2, 5, 10, 0.6)' }}>
+          <div className="list" style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: '12px', border: '1px solid rgba(52, 225, 255, 0.24)', overflow: 'hidden', background: 'rgba(2, 5, 10, 0.72)' }}>
             {items.map((n, index) => {
               const isUnread = !n.read_at;
               const isLastItem = index === items.length - 1;
@@ -476,13 +409,13 @@ export default function NotificationsMenu({
                     await onMarkRead(n.id);
                     window.location.href = href;
                   }}
-                  style={{ 
+                  style={{
                     textDecoration: 'none',
                     display: 'block',
                     padding: '0 12px',
                     borderRadius: 0,
                   border: 'none',
-                  borderBottom: isLastItem ? 'none' : '1px solid var(--border)',
+                  borderBottom: isLastItem ? 'none' : '1px solid rgba(52, 225, 255, 0.2)',
                   background: baseBackground,
                   transition: 'background 0.2s ease',
                     overflowWrap: 'break-word',
@@ -503,9 +436,9 @@ export default function NotificationsMenu({
                 >
                   <div style={{ padding: '12px 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', position: 'relative' }}>
-                      <span style={{ flex: 1, fontSize: '14px', lineHeight: '1.4', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
+                      <span style={{ flex: 1, fontSize: '18px', lineHeight: '1.25', overflowWrap: 'break-word', wordWrap: 'break-word', minWidth: 0 }}>{label}</span>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                        <span style={{ whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--muted)', fontWeight: 'normal', background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
+                        <span style={{ whiteSpace: 'nowrap', fontSize: '14px', color: 'var(--muted)', fontWeight: 500, background: 'transparent', border: 'none', padding: 0, margin: 0, borderRadius: 0, boxShadow: 'none', pointerEvents: 'none' }} suppressHydrationWarning>
                           {formatTimeAgo(n.created_at)}
                         </span>
                         <button
@@ -559,23 +492,21 @@ export default function NotificationsMenu({
         )}
       </div>
 
-      {/* Footer with messages + close */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
         <button
             type="button"
-            onClick={() => {
-              onClose();
-              router.push('/messages');
-            }}
+            onClick={handleClearAll}
+            disabled={!hasItems}
             style={{
-              fontSize: '11px',
-              padding: '6px 10px',
+              fontSize: '13px',
+              padding: '8px 14px',
               background: 'transparent',
               border: '1px solid var(--border)',
               borderRadius: '999px',
               color: 'var(--muted)',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: hasItems ? 'pointer' : 'not-allowed',
+              opacity: hasItems ? 1 : 0.45,
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
@@ -589,14 +520,14 @@ export default function NotificationsMenu({
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            Messages
+            Clear
           </button>
         <button 
           type="button"
           onClick={onClose}
           style={{
-            fontSize: '11px',
-            padding: '6px 10px',
+            fontSize: '13px',
+            padding: '8px 14px',
             flexShrink: 0,
             whiteSpace: 'nowrap',
             borderRadius: '999px',
