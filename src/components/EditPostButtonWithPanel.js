@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', onOpen }) {
   const compactStyle = {
     fontSize: '13px',
@@ -16,7 +14,7 @@ export default function EditPostButtonWithPanel({ buttonLabel = 'Edit Post', onO
   };
 
   return (
-    <button type="button" className="button" onClick={onOpen} style={compactStyle}>
+    <button type="button" className="button post-action-menu__trigger" onClick={onOpen} style={compactStyle}>
       {buttonLabel}
     </button>
   );

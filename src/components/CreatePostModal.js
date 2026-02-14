@@ -8,6 +8,7 @@ export default function CreatePostModal({
   onClose,
   children,
   title,
+  className = '',
   variant = 'default', // default | wide
   maxWidth,
   maxHeight
@@ -53,7 +54,7 @@ export default function CreatePostModal({
       }}
     >
       <div
-        className="modal-content"
+        className={`modal-content ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--card)',

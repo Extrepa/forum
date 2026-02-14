@@ -13,6 +13,7 @@ export default function EditPostModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
+      className="edit-post-modal"
       variant="wide"
     >
       {children}
