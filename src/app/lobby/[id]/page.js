@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
+import EditPostModal from '../../../components/EditPostModal';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
@@ -744,7 +745,17 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-thread-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Thread</h3>
+                  {editNotice ? <div className="notice">{editNotice}</div> : null}
+                  <EditThreadForm 
+                    threadId={safeThreadId}
+                    initialTitle={safeThreadTitle}
+                    initialBody={safeThreadBody}
+                  />
+                </section>
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={safeThreadId} 
@@ -842,20 +853,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-thread-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Thread</h3>
-            {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <EditThreadForm 
-              threadId={safeThreadId}
-              initialTitle={safeThreadTitle}
-              initialBody={safeThreadBody}
-            />
-          </section>
-        </div>
-      ) : null}
 
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>

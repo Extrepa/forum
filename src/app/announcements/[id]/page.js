@@ -226,7 +226,24 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-announcement-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Announcement</h3>
+                  {editNotice ? <div className="notice">{editNotice}</div> : null}
+                  <PostForm
+                    action={`/api/timeline/${update.id}`}
+                    titleLabel="Title"
+                    bodyLabel="Update"
+                    buttonLabel="Update Announcement"
+                    titleRequired={false}
+                    showImage={true}
+                    initialData={{
+                      title: String(update.title || ''),
+                      body: String(update.body || '')
+                    }}
+                  />
+                </section>
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={update.id} 
@@ -326,27 +343,6 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-announcement-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Announcement</h3>
-            {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <PostForm
-              action={`/api/timeline/${update.id}`}
-              titleLabel="Title"
-              bodyLabel="Update"
-              buttonLabel="Update Announcement"
-              titleRequired={false}
-              showImage={true}
-              initialData={{
-                title: String(update.title || ''),
-                body: String(update.body || '')
-              }}
-            />
-          </section>
-        </div>
-      ) : null}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>

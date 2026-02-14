@@ -7760,7 +7760,7 @@ header::before {
 
   .section-intro {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
+    align-items: center; /* Changed from start to center for vertical alignment */
     gap: 10px;
   }
 

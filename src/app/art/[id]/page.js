@@ -205,7 +205,25 @@ export default async function ArtDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-post-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Post</h3>
+                  {editNotice ? <div className="notice">{editNotice}</div> : null}
+                  <PostEditForm
+                    action={`/api/posts/${id}`}
+                    initialData={{
+                      title: String(post.title || ''),
+                      body: String(post.body || ''),
+                      is_private: post.is_private ? 1 : 0,
+                      image_key: post.image_key ? String(post.image_key) : null
+                    }}
+                    titleLabel="Title"
+                    bodyLabel="Body"
+                    buttonLabel="Update Post"
+                    showImage={true}
+                  />
+                </section>
+              }
               rightChildren={canDelete ? <DeletePostButton postId={post.id} postType="post" /> : null}
             >
               {isAdmin ? <HidePostButton postId={post.id} postType="post" initialHidden={isHidden} /> : null}
@@ -303,28 +321,6 @@ export default async function ArtDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-post-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Post</h3>
-            {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <PostEditForm
-              action={`/api/posts/${id}`}
-              initialData={{
-                title: String(post.title || ''),
-                body: String(post.body || ''),
-                is_private: post.is_private ? 1 : 0,
-                image_key: post.image_key ? String(post.image_key) : null
-              }}
-              titleLabel="Title"
-              bodyLabel="Body"
-              buttonLabel="Update Post"
-              showImage={true}
-            />
-          </section>
-        </div>
-      ) : null}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>

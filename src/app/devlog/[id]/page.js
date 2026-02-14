@@ -384,7 +384,29 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-devlog-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Post</h3>
+                  {notice ? <div className="notice">{notice}</div> : null}
+                  <DevLogForm 
+                    logId={id} 
+                    initialData={{
+                      id: String(log.id || ''),
+                      title: String(log.title || ''),
+                      body: String(log.body || ''),
+                      image_key: log.image_key ? String(log.image_key) : null,
+                      github_url: log.github_url ? String(log.github_url) : null,
+                      demo_url: log.demo_url ? String(log.demo_url) : null,
+                      links: log.links ? String(log.links) : null,
+                      views: Number(log.views || 0),
+                      like_count: Number(log.like_count || 0),
+                      author_color_preference: log.author_color_preference !== null && log.author_color_preference !== undefined 
+                        ? Number(log.author_color_preference) 
+                        : null
+                    }} 
+                  />
+                </section>
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={id} 
@@ -503,32 +525,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-devlog-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Post</h3>
-            {notice ? <div className="notice">{notice}</div> : null}
-            <DevLogForm 
-              logId={id} 
-              initialData={{
-                id: String(log.id || ''),
-                title: String(log.title || ''),
-                body: String(log.body || ''),
-                image_key: log.image_key ? String(log.image_key) : null,
-                github_url: log.github_url ? String(log.github_url) : null,
-                demo_url: log.demo_url ? String(log.demo_url) : null,
-                links: log.links ? String(log.links) : null,
-                views: Number(log.views || 0),
-                like_count: Number(log.like_count || 0),
-                author_color_preference: log.author_color_preference !== null && log.author_color_preference !== undefined 
-                  ? Number(log.author_color_preference) 
-                  : null
-              }} 
-            />
-          </section>
-        </div>
-      ) : null}
 
       <section className="card">
         <h3 className="section-title">Replies</h3>

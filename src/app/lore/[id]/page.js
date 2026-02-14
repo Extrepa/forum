@@ -18,6 +18,7 @@ import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import CollapsibleCommentForm from '../../../components/CollapsibleCommentForm';
 import { redirect } from 'next/navigation';
+import EditPostModal from '../../../components/EditPostModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -202,11 +203,29 @@ export default async function LoreDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-post-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Post</h3>
+                  {editNotice ? <div className="notice">{editNotice}</div> : null}
+                  <PostEditForm
+                    action={`/api/posts/${id}`}
+                    initialData={{
+                      title: String(post.title || ''),
+                      body: String(post.body || ''),
+                      is_private: post.is_private ? 1 : 0,
+                      image_key: post.image_key ? String(post.image_key) : null
+                    }}
+                    titleLabel="Title"
+                    bodyLabel="Body"
+                    showImage={true}
+                  />
+                </section>
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={id} 
                   postType="post"
+                  iconOnly={true}
                 />
               ) : null}
             >
@@ -215,29 +234,25 @@ export default async function LoreDetailPage({ params, searchParams }) {
               {canToggleLock ? (
                 <form action={`/api/posts/${id}/lock`} method="post" style={{ margin: 0 }}>
                   <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
-                  <button
-                    type="submit"
-                    className="button"
-                    style={{
-                      fontSize: '12px',
-                      padding: '6px 10px',
-                      minWidth: '90px',
-                      minHeight: '44px',
-                      display: 'inline-flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: 1.2,
-                      whiteSpace: 'normal',
-                      wordBreak: 'break-word',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                    </span>
-                  </button>
+                    <button
+                      type="submit"
+                      className={`button button--icon-only ${isLocked ? 'is-active' : ''}`}
+                      title={isLocked ? 'Unlock comments' : 'Lock comments'}
+                      aria-label={isLocked ? 'Unlock comments' : 'Lock comments'}
+                    >
+                      {isLocked ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                        </svg>
+                      )}
+                      <span className="sr-only">{isLocked ? 'Unlock comments' : 'Lock comments'}</span>
+                    </button>
                 </form>
               ) : null}
             </PostActionMenu>
@@ -294,28 +309,6 @@ export default async function LoreDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-post-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Post</h3>
-            {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <PostEditForm
-              action={`/api/posts/${id}`}
-              initialData={{
-                title: String(post.title || ''),
-                body: String(post.body || ''),
-                is_private: post.is_private ? 1 : 0,
-                image_key: post.image_key ? String(post.image_key) : null
-              }}
-              titleLabel="Title"
-              bodyLabel="Body"
-              buttonLabel="Update Post"
-              showImage={true}
-            />
-          </section>
-        </div>
-      ) : null}
 
       <section className="card">
         <h3 className="section-title">Comments</h3>

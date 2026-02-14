@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import EditPostButtonWithPanel from './EditPostButtonWithPanel';
+import EditPostModal from './EditPostModal';
 
 export default function PostActionMenu({
   buttonLabel = 'Edit Post',
-  panelId,
+  editModal,
   children,
   rightChildren = null
 }) {
   const hasExtras = Boolean(children) || Boolean(rightChildren);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const containerRef = useRef(null);
   const closeTimer = useRef(null);
 
@@ -99,7 +101,10 @@ export default function PostActionMenu({
       onFocus={handlePointerEnter}
       onBlur={handleBlur}
     >
-      <EditPostButtonWithPanel buttonLabel={buttonLabel} panelId={panelId} />
+      <EditPostButtonWithPanel 
+        buttonLabel={buttonLabel} 
+        onOpen={() => setIsEditModalOpen(true)} 
+      />
       {showMenu && (
         <div
           className="post-action-menu__popover"
@@ -113,6 +118,14 @@ export default function PostActionMenu({
             <div className="post-action-menu__right">{rightChildren}</div>
           ) : null}
         </div>
+      )}
+      {editModal && (
+        <EditPostModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        >
+          {editModal}
+        </EditPostModal>
       )}
     </div>
   );

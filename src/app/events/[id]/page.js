@@ -9,6 +9,7 @@ import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
+import EditPostModal from '../../../components/EditPostModal';
 import PostForm from '../../../components/PostForm';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
@@ -343,7 +344,22 @@ export default async function EventDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-event-panel"
+              editModal={
+                <PostForm
+                  action={`/api/events/${id}`}
+                  titleLabel="Event title"
+                  bodyLabel="Details (optional)"
+                  buttonLabel="Update Event"
+                  showDate
+                  bodyRequired={false}
+                  showImage={true}
+                  initialData={{
+                    title: event.title,
+                    details: event.details,
+                    starts_at: event.starts_at
+                  }}
+                />
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={id} 
@@ -469,29 +485,6 @@ export default async function EventDetailPage({ params, searchParams }) {
           </div>
         )}
       </section>
-
-      {canEdit ? (
-        <div id="edit-event-panel" style={{ display: 'none' }}>
-          <section className="card">
-            <h3 className="section-title">Edit Event</h3>
-            {editNotice ? <div className="notice">{editNotice}</div> : null}
-            <PostForm
-              action={`/api/events/${id}`}
-              titleLabel="Event title"
-              bodyLabel="Details (optional)"
-              buttonLabel="Update Event"
-              showDate
-              bodyRequired={false}
-              showImage={true}
-              initialData={{
-                title: event.title,
-                details: event.details,
-                starts_at: event.starts_at
-              }}
-            />
-          </section>
-        </div>
-      ) : null}
 
       <EventCommentsSection
         eventId={id}

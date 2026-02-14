@@ -1,5 +1,7 @@
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
+import EditPostModal from '../../../components/EditPostModal';
+import PostEditForm from '../../../components/PostEditForm';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { safeEmbedFromUrl } from '../../../lib/embeds';
@@ -322,11 +324,44 @@ export default async function MusicDetailPage({ params, searchParams }) {
           (isAdmin || canEdit) ? (
             <PostActionMenu
               buttonLabel="Edit Post"
-              panelId="edit-music-panel"
+              editModal={
+                <section className="card">
+                  <h3 className="section-title">Edit Post</h3>
+                  {resolvedSearchParams?.error === 'claim'
+                    ? <div className="notice">Log in to post.</div>
+                    : resolvedSearchParams?.error === 'unauthorized'
+                    ? <div className="notice">Only the post author can edit this.</div>
+                    : resolvedSearchParams?.error === 'upload'
+                    ? <div className="notice">Image upload is not allowed for this username.</div>
+                    : resolvedSearchParams?.error === 'too_large'
+                    ? <div className="notice">Image is too large (max 5MB).</div>
+                    : resolvedSearchParams?.error === 'invalid_type'
+                    ? <div className="notice">Only image files are allowed.</div>
+                    : resolvedSearchParams?.error === 'missing'
+                    ? <div className="notice">Title and body are required.</div>
+                    : null}
+                  <PostEditForm
+                    action={`/api/music/${id}`}
+                    initialData={{
+                      title: String(post.title || ''),
+                      body: String(post.body || ''),
+                      url: String(post.url || ''),
+                      type: String(post.type || ''),
+                      tags: String(post.tags || ''),
+                      image_key: post.image_key ? String(post.image_key) : null,
+                      embed_style: String(post.embed_style || 'auto')
+                    }}
+                    titleLabel="Title"
+                    bodyLabel="Body"
+                    showImage={true}
+                  />
+                </section>
+              }
               rightChildren={canDelete ? (
                 <DeletePostButton 
                   postId={id} 
                   postType="music"
+                  iconOnly={true}
                 />
               ) : null}
             >
@@ -337,26 +372,22 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   <input type="hidden" name="locked" value={isLocked ? '0' : '1'} />
                   <button
                     type="submit"
-                    className="button"
-                    style={{
-                      fontSize: '12px',
-                      padding: '6px 10px',
-                      minWidth: '90px',
-                      minHeight: '44px',
-                      display: 'inline-flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: 1.2,
-                      whiteSpace: 'normal',
-                      wordBreak: 'break-word',
-                      boxSizing: 'border-box',
-                    }}
+                    className={`button button--icon-only ${isLocked ? 'is-active' : ''}`}
+                    title={isLocked ? 'Unlock comments' : 'Lock comments'}
+                    aria-label={isLocked ? 'Unlock comments' : 'Lock comments'}
                   >
-                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-                      <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-                      <span style={{ whiteSpace: 'nowrap' }}>comments</span>
-                    </span>
+                    {isLocked ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                      </svg>
+                    )}
+                    <span className="sr-only">{isLocked ? 'Unlock comments' : 'Lock comments'}</span>
                   </button>
                 </form>
               ) : null}
