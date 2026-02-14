@@ -7614,7 +7614,7 @@ header::before {
 .page-top-row-context {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 4px;
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
@@ -7631,14 +7631,19 @@ header::before {
 
 .page-top-row-context__section {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.045em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .page-top-row-context__section:hover {
   color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .page-top-row-context__sep {
@@ -7720,7 +7725,7 @@ header::before {
 
   .page-top-row-context__current {
     font-size: 13px;
-    max-width: 22ch;
+    /* max-width removed to prevent unnecessary truncation */
   }
 
   .page-top-row-right {
