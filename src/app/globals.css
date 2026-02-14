@@ -6760,7 +6760,8 @@ header::before,
 .tabs-pill::before,
 .profile-card::before,
 .account-edit-card::before,
-.post-action-menu__popover::before {
+.post-action-menu__popover::before,
+.modal-content::before {
   --neon-default-gradient: linear-gradient(
     120deg,
     rgba(52, 225, 255, 0.9),
@@ -6815,7 +6816,8 @@ header::after,
 .tabs-pill::after,
 .profile-card::after,
 .account-edit-card::after,
-.post-action-menu__popover::after {
+.post-action-menu__popover::after,
+.modal-content::after {
   --neon-default-glow-1: rgba(52, 225, 255, 0.18);
   --neon-default-glow-2: rgba(255, 52, 245, 0.12);
   content: "";

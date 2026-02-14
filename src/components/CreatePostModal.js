@@ -57,7 +57,6 @@ export default function CreatePostModal({
         onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--card)',
-          border: '1px solid rgba(22, 58, 74, 0.6)',
           borderRadius: 'var(--radius)',
           padding: '24px',
           maxWidth: resolvedMaxWidth,
@@ -66,6 +65,9 @@ export default function CreatePostModal({
           overflow: 'auto',
           boxShadow: 'var(--shadow)',
           boxSizing: 'border-box',
+          position: 'relative',
+          isolation: 'isolate',
+          backdropFilter: 'blur(12px)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
