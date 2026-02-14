@@ -337,7 +337,7 @@ a {
   position: fixed;
   width: max-content;
   min-width: 0;
-  max-width: min(248px, 88vw);
+  max-width: min(244px, 88vw);
   padding: 7px;
   border-radius: 14px;
   border: 1px solid rgba(22, 58, 74, 0.6);
@@ -368,8 +368,16 @@ a {
 }
 
 .header-library-search-toggle {
-  width: 20px;
-  height: 20px;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  line-height: 1;
+  flex: 0 0 20px;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.34);
   background: rgba(6, 18, 28, 0.86);
@@ -678,6 +686,8 @@ a {
   padding: 8px;
   border-radius: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
+  outline: 1px solid rgba(255, 52, 245, 0.24);
+  outline-offset: -1px;
   background: rgba(4, 10, 20, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
   display: grid;
@@ -1136,9 +1146,9 @@ a {
   }
 
   .header-library-menu {
-    width: min(248px, calc(100vw - 12px)) !important;
+    width: min(244px, calc(100vw - 12px)) !important;
     min-width: 0 !important;
-    max-width: min(248px, calc(100vw - 12px)) !important;
+    max-width: min(244px, calc(100vw - 12px)) !important;
     max-height: min(70vh, calc(100vh - 96px)) !important;
     margin: 0 !important;
   }
@@ -4129,6 +4139,8 @@ button.ghost:hover,
 .notifications-popover-errl {
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(22, 58, 74, 0.6);
   background: rgba(7, 27, 37, 0.96) !important;
   backdrop-filter: blur(14px);
 }

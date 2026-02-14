@@ -182,13 +182,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
       const edgePadding = window.innerWidth <= 640 ? 8 : 12;
-      const widthSource = libraryLinks;
-      const widestLabelLength = widthSource.reduce((max, item) => Math.max(max, item.label.length), 0);
-      const estimatedMenuWidth = (widestLabelLength * 8) + (libraryFilterOpen ? 112 : 86);
-      const menuWidth = Math.min(
-        Math.max(186, estimatedMenuWidth),
-        Math.min(248, window.innerWidth - (edgePadding * 2))
-      );
+      const preferredWidth = libraryFilterOpen ? 244 : 224;
+      const menuWidth = Math.max(186, Math.min(preferredWidth, window.innerWidth - (edgePadding * 2)));
       let left = rect.left + (rect.width / 2) - (menuWidth / 2);
       if (left + menuWidth > window.innerWidth - edgePadding) {
         left = window.innerWidth - menuWidth - edgePadding;
