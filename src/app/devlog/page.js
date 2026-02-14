@@ -3,7 +3,6 @@ import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser } from '../../lib/admin';
 import { getSessionUser } from '../../lib/auth';
-import Breadcrumbs from '../../components/Breadcrumbs';
 import PageTopRow from '../../components/PageTopRow';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';

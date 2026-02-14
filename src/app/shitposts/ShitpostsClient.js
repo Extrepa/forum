@@ -27,9 +27,11 @@ export default function ShitpostsClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
-          <h2 className="section-title" style={{ margin: 0 }}>{strings.cards.shitposts.title}</h2>
-          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{strings.cards.shitposts.description}</p>
+        <div className="section-intro">
+          <div className="section-intro__meta">
+            <h2 className="section-title section-intro__title">{strings.cards.shitposts.title}</h2>
+            <p className="section-intro__desc">{strings.cards.shitposts.description}</p>
+          </div>
         </div>
       </section>
 

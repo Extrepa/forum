@@ -16,7 +16,6 @@ import {
   contentTypeViewPath
 } from '../../lib/contentTypes';
 import AdminConsole from '../../components/AdminConsole';
-import Breadcrumbs from '../../components/Breadcrumbs';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -585,12 +584,6 @@ export default async function AdminPage() {
 
   return (
     <div className="admin-page stack">
-      <Breadcrumbs
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/admin', label: 'Admin' }
-        ]}
-      />
       <AdminConsole stats={stats} posts={posts} actions={actions} users={users} reports={reports} media={media} user={user} />
     </div>
   );

@@ -1,6 +1,5 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
-import Breadcrumbs from '../../components/Breadcrumbs';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
@@ -509,12 +508,12 @@ export default async function FeedPage() {
 
   return (
     <div className="stack">
-      <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/feed', label: 'Feed' }]} style={{ marginBottom: 0 }} />
-
       <section className="card">
-        <div className="feed-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
-          <h2 className="section-title" style={{ margin: 0 }}>Feed</h2>
-          <p className="muted feed-header-desc" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: 0 }}>Recent activity across the portal.</p>
+        <div className="feed-header-row section-intro">
+          <div className="section-intro__meta">
+            <h2 className="section-title section-intro__title">Feed</h2>
+            <p className="feed-header-desc section-intro__desc">Recent activity across the portal.</p>
+          </div>
         </div>
       </section>
 

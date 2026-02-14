@@ -7,7 +7,6 @@ import { formatDateTime, formatDate } from '../../../lib/dates';
 import ProfileMoodSongBlock from '../../../components/ProfileMoodSongBlock';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex } from '../../../lib/usernameColor';
-import Breadcrumbs from '../../../components/Breadcrumbs';
 import { contentTypeLabel, contentTypeViewPath, postTypeLabel, postTypePath } from '../../../lib/contentTypes';
 import ProfileAvatarHero from '../../../components/ProfileAvatarHero';
 import ProfileTabsClient from '../../../components/ProfileTabsClient';
@@ -23,7 +22,6 @@ export default async function ProfilePage({ params }) {
   if (!rawUsername) {
     return (
       <div className="stack">
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/profile', label: 'Profile' }]} />
         <section className="card">
           <h2 className="section-title">User not found</h2>
           <p className="muted">No username in the URL.</p>
@@ -73,7 +71,6 @@ export default async function ProfilePage({ params }) {
   if (!profileUser) {
     return (
       <div className="stack">
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/profile', label: 'Profile' }]} />
         <section className="card">
           <h2 className="section-title">User not found</h2>
           <p className="muted">This user doesn&apos;t exist in the goo.</p>
@@ -413,16 +410,17 @@ export default async function ProfilePage({ params }) {
 
   return (
     <div className="stack">
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', minWidth: 0 }}>
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: `/profile/${encodeURIComponent(profileUser.username)}`, label: profileUser.username }]} />
-        {isOwnProfile && (
-          <Link
-            href="/account?tab=profile"
-            className="profile-edit-profile-link action-button"
-          >
-            Edit profile
-          </Link>
-        )}
+      <div className="page-top-row page-top-row--solo">
+        <div className="page-top-row-right">
+          {isOwnProfile && (
+            <Link
+              href="/account?tab=profile"
+              className="profile-edit-profile-link action-button"
+            >
+              Edit profile
+            </Link>
+          )}
+        </div>
       </div>
       <section className="card profile-card neon-outline-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}

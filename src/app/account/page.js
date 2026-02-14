@@ -1,4 +1,3 @@
-import Breadcrumbs from '../../components/Breadcrumbs';
 import Link from 'next/link';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
@@ -23,8 +22,7 @@ export default async function AccountPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <div className="page-top-row">
-        <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/account', label: 'Account' }]} />
+      <div className="page-top-row page-top-row--solo">
         <div className="page-top-row-right">
           {user?.username && (
             <Link href={`/profile/${encodeURIComponent(user.username)}`} className="action-button">

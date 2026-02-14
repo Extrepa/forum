@@ -1,4 +1,3 @@
-import Breadcrumbs from '../../../components/Breadcrumbs';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser } from '../../../lib/admin';
 
@@ -19,14 +18,6 @@ export default async function BackupsPage() {
 
   return (
     <div className="stack">
-      <Breadcrumbs
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/admin', label: 'Admin' },
-          { href: '/admin/backups', label: 'Backups' }
-        ]}
-      />
-
       <section className="card">
         <h2 className="section-title">Backups</h2>
         <p className="muted">

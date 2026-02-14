@@ -11,9 +11,11 @@ export default function BugsClient({ posts, notice }) {
   return (
     <div className="stack">
       <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
-          <h2 className="section-title" style={{ margin: 0 }}>{title}</h2>
-          <p className="muted" style={{ margin: 0, textAlign: 'right', flex: '1 1 auto', minWidth: '200px' }}>{description}</p>
+        <div className="section-intro">
+          <div className="section-intro__meta">
+            <h2 className="section-title section-intro__title">{title}</h2>
+            <p className="section-intro__desc">{description}</p>
+          </div>
         </div>
       </section>
 

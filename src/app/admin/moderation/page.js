@@ -1,4 +1,3 @@
-import Breadcrumbs from '../../../components/Breadcrumbs';
 import { getSessionUser } from '../../../lib/auth';
 import { getDb } from '../../../lib/db';
 import { isImageUploadsEnabled } from '../../../lib/settings';
@@ -25,14 +24,6 @@ export default async function ModerationPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <Breadcrumbs
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/admin', label: 'Admin' },
-          { href: '/admin/moderation', label: 'Moderation' }
-        ]}
-      />
-
       <section className="card">
         <h2 className="section-title">Moderation</h2>
         <p className="muted">Move content between sections and manage global moderation settings.</p>

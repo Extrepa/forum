@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import SearchClient from './SearchClient';
 import SearchResults from './SearchResults';
-import Breadcrumbs from '../../components/Breadcrumbs';
 import { getSessionUser } from '../../lib/auth';
 import { redirect } from 'next/navigation';
 
@@ -16,12 +15,6 @@ export default async function SearchPage({ searchParams }) {
 
   return (
     <>
-      <Breadcrumbs
-        items={[
-          { href: '/', label: 'Home' },
-          { href: '/search', label: 'Search' },
-        ]}
-      />
       <Suspense fallback={<SearchClient query="" results={[]} />}>
         <SearchResults query={query} />
       </Suspense>
