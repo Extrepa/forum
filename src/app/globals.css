@@ -1029,6 +1029,14 @@ a {
 }
 
 @media (max-width: 480px) {
+  .site {
+    padding-inline: 10px;
+  }
+
+  .site-header {
+    padding-inline: 10px;
+  }
+
   .header-left {
     max-width: min(42vw, 150px);
   }
@@ -1078,11 +1086,11 @@ a {
 
 @media (max-width: 380px) {
   .site {
-    padding-inline: 6px;
+    padding-inline: 10px;
   }
 
   .site-header {
-    padding-inline: 6px;
+    padding-inline: 10px;
     padding-block: 7px;
   }
 
