@@ -471,6 +471,7 @@ a {
 }
 
 .header-avatar-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -504,6 +505,25 @@ a {
 .header-avatar-caret {
   font-size: 10px;
   opacity: 0.7;
+}
+
+.header-avatar-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff34f5;
+  color: #001018;
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(255, 52, 245, 0.6);
+  line-height: 1;
 }
 
 .header-menu {
@@ -625,10 +645,45 @@ a {
 
 @media (max-width: 1000px) {
   .site-header__inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "left right"
+      "center center";
+    row-gap: 8px;
+    align-items: start;
   }
 
   .header-center {
+    grid-area: center;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .header-left {
+    grid-area: left;
+  }
+
+  .header-right {
+    grid-area: right;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .header-nav {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+  }
+
+  .header-nav-pill {
+    min-height: 32px;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .header-search-inline {
     display: none;
   }
 
@@ -637,7 +692,15 @@ a {
   }
 
   .header-icon-button--library {
-    display: inline-flex;
+    display: none;
+  }
+
+  .header-compact-hide {
+    display: none !important;
+  }
+
+  .header-avatar-caret {
+    display: none;
   }
 
   .forum-description--header {
@@ -684,15 +747,19 @@ a {
   }
 
   .site-header__inner {
-    grid-template-columns: 1fr;
-    min-height: 62px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "left right"
+      "center center";
+    min-height: 0;
+    row-gap: 8px;
   }
 
   .header-right {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    z-index: 6;
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: auto;
     gap: 4px;
   }
 
@@ -730,6 +797,12 @@ a {
     right: 0;
     left: auto;
     width: min(92vw, 320px);
+    max-height: min(74vh, 520px);
+  }
+
+  .header-library-menu {
+    width: min(96vw, 360px) !important;
+    max-height: calc(100vh - 16px) !important;
   }
 }
 

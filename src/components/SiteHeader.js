@@ -50,6 +50,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageItems, setMessageItems] = useState([]);
   const [messageStatus, setMessageStatus] = useState('idle');
+  const [isCompactHeader, setIsCompactHeader] = useState(false);
 
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
@@ -61,6 +62,19 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const notificationRef = useRef(null);
   const messageRef = useRef(null);
   const messageMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const media = window.matchMedia('(max-width: 1000px)');
+    const updateCompact = () => setIsCompactHeader(media.matches);
+    updateCompact();
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateCompact);
+      return () => media.removeEventListener('change', updateCompact);
+    }
+    media.addListener(updateCompact);
+    return () => media.removeListener(updateCompact);
+  }, []);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -136,13 +150,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       }
 
       if (notifyOpen) {
-        const inTrigger = notificationRef.current?.contains(target);
+        const inTrigger = notificationRef.current?.contains(target) || (isCompactHeader && avatarRef.current?.contains(target));
         const inMenu = document.querySelector('.notifications-popover');
         if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
       }
 
       if (messageOpen) {
-        const inTrigger = messageRef.current?.contains(target);
+        const inTrigger = messageRef.current?.contains(target) || (isCompactHeader && avatarRef.current?.contains(target));
         const inMenu = messageMenuRef.current?.contains(target);
         if (!inTrigger && !inMenu) setMessageOpen(false);
       }
@@ -155,7 +169,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [libraryOpen, avatarOpen, kebabOpen, notifyOpen, messageOpen, searchOpen]);
+  }, [libraryOpen, avatarOpen, kebabOpen, notifyOpen, messageOpen, searchOpen, isCompactHeader]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -176,17 +190,21 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
-      const menuWidth = Math.min(360, window.innerWidth - 24);
+      const edgePadding = window.innerWidth <= 640 ? 8 : 12;
+      const menuWidth = Math.min(360, window.innerWidth - (edgePadding * 2));
       let left = rect.left + (rect.width / 2) - (menuWidth / 2);
-      if (left + menuWidth > window.innerWidth - 12) {
-        left = window.innerWidth - menuWidth - 12;
+      if (left + menuWidth > window.innerWidth - edgePadding) {
+        left = window.innerWidth - menuWidth - edgePadding;
       }
-      if (left < 12) left = 12;
+      if (left < edgePadding) left = edgePadding;
+      const top = rect.bottom + 6;
+      const maxHeight = Math.max(220, window.innerHeight - top - edgePadding);
       setLibraryStyle({
         position: 'fixed',
-        top: rect.bottom + 6,
+        top,
         left,
         width: menuWidth,
+        maxHeight,
       });
     };
 
@@ -224,6 +242,45 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     if (notifyUnreadCount > 0) return `Notifications (${notifyUnreadCount})`;
     return 'Notifications';
   }, [notifyUnreadCount]);
+
+  const messageMenu = (
+    <div className="header-menu header-message-menu" ref={messageMenuRef} role="menu">
+      <div className="header-message-menu-title">Messages</div>
+      {messageStatus === 'loading' ? <div className="header-message-empty">Loading…</div> : null}
+      {messageStatus !== 'loading' && messageItems.length === 0 ? (
+        <div className="header-message-empty">No recent messages yet.</div>
+      ) : null}
+      {messageItems.slice(0, 5).map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className="header-message-item"
+          onClick={() => {
+            if (item.profileHref) {
+              router.push(item.profileHref);
+            } else {
+              router.push('/messages');
+            }
+            setMessageOpen(false);
+          }}
+        >
+          <span className="header-message-main">
+            <strong>{item.author_username}</strong> {item.preview}
+          </span>
+          <span className="header-message-time">{formatTimeAgo(item.created_at)}</span>
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={() => {
+          router.push('/messages');
+          setMessageOpen(false);
+        }}
+      >
+        Open inbox
+      </button>
+    </div>
+  );
 
   return (
     <>
@@ -335,7 +392,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
           <button
             type="button"
-            className="header-icon-button header-icon-button--library"
+            className="header-icon-button header-icon-button--library header-compact-hide"
             onClick={(event) => {
               if (navDisabled) return;
               libraryAnchorRef.current = event.currentTarget;
@@ -362,7 +419,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
           <div className="notifications-logo-trigger" ref={notificationRef}>
             <button
               type="button"
-              className="header-icon-button header-icon-button--alerts"
+              className="header-icon-button header-icon-button--alerts header-compact-hide"
               onClick={async () => {
                 if (navDisabled) return;
                 const next = !notifyOpen;
@@ -444,10 +501,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 }
               }}
               anchor="right"
+              anchorRef={isCompactHeader ? avatarRef : notificationRef}
             />
           </div>
 
-          <div className="header-messages" ref={messageRef}>
+          <div className="header-messages header-compact-hide" ref={messageRef}>
             <button
               type="button"
               className="header-icon-button header-icon-button--messages"
@@ -471,44 +529,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 </svg>
               </span>
             </button>
-            {messageOpen ? (
-              <div className="header-menu header-message-menu" ref={messageMenuRef} role="menu">
-                <div className="header-message-menu-title">Messages</div>
-                {messageStatus === 'loading' ? <div className="header-message-empty">Loading…</div> : null}
-                {messageStatus !== 'loading' && messageItems.length === 0 ? (
-                  <div className="header-message-empty">No recent messages yet.</div>
-                ) : null}
-                {messageItems.slice(0, 5).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="header-message-item"
-                    onClick={() => {
-                      if (item.profileHref) {
-                        router.push(item.profileHref);
-                      } else {
-                        router.push('/messages');
-                      }
-                      setMessageOpen(false);
-                    }}
-                  >
-                    <span className="header-message-main">
-                      <strong>{item.author_username}</strong> {item.preview}
-                    </span>
-                    <span className="header-message-time">{formatTimeAgo(item.created_at)}</span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    router.push('/messages');
-                    setMessageOpen(false);
-                  }}
-                >
-                  Open inbox
-                </button>
-              </div>
-            ) : null}
+            {!isCompactHeader && messageOpen ? messageMenu : null}
           </div>
 
           <div className="header-avatar" ref={avatarRef}>
@@ -533,13 +554,49 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
               )}
               <span className="header-avatar-caret" aria-hidden="true">▾</span>
+              {isCompactHeader && notifyUnreadCount > 0 ? (
+                <span className="header-avatar-badge" aria-hidden="true">
+                  {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
+                </span>
+              ) : null}
             </button>
             {avatarOpen ? (
               <div className="header-menu" ref={avatarMenuRef} role="menu">
+                {isCompactHeader ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setLibraryOpen(false);
+                        setAvatarOpen(false);
+                        setKebabOpen(false);
+                        setMessageOpen(false);
+                        setNotifyOpen(true);
+                        await refreshNotifications();
+                      }}
+                    >
+                      Notifications{notifyUnreadCount > 0 ? ` (${notifyUnreadCount > 99 ? '99+' : notifyUnreadCount})` : ''}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setLibraryOpen(false);
+                        setAvatarOpen(false);
+                        setKebabOpen(false);
+                        setNotifyOpen(false);
+                        setMessageOpen(true);
+                        await refreshMessages();
+                      }}
+                    >
+                      Messages
+                    </button>
+                  </>
+                ) : null}
                 <button type="button" onClick={() => router.push(user?.username ? `/profile/${user.username}` : '/account?tab=profile')}>View profile</button>
                 <button type="button" onClick={handleSignOut}>Sign out</button>
               </div>
             ) : null}
+            {isCompactHeader && messageOpen ? messageMenu : null}
           </div>
 
           <div className="header-kebab" ref={kebabRef}>

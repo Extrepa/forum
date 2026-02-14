@@ -89,6 +89,7 @@ export default function NotificationsMenu({
   onMarkAllRead,
   onClearAll,
   anchor = 'right',
+  anchorRef = null,
 }) {
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState(null);
@@ -97,7 +98,6 @@ export default function NotificationsMenu({
   const [popoverStyle, setPopoverStyle] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const popoverRef = useRef(null);
-  const triggerRef = useRef(null);
   const hasItems = items && items.length > 0;
   const handleClearAll = async () => {
     if (!hasItems) return;
@@ -144,7 +144,7 @@ export default function NotificationsMenu({
         return;
       }
 
-      const trigger = document.querySelector('.notifications-logo-trigger');
+      const trigger = anchorRef?.current || document.querySelector('.notifications-logo-trigger');
       if (!trigger) {
         setPopoverStyle({
           position: 'absolute',
@@ -208,7 +208,7 @@ export default function NotificationsMenu({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [open]);
+  }, [open, anchorRef]);
 
   const handleDeleteNotification = async (notificationId) => {
     setDeletingNotificationId(notificationId);
