@@ -7,13 +7,17 @@
     *   Guests now only see the `ClaimUsernameForm` (Sign-in/Sign-up). The "Explore Sections" grid is neither fetched nor rendered.
     *   Verified `src/app/feed/page.js` redirects guests to the home page, enforcing the "sign-in required" rule.
 
-*   **Header & Layout Polish:**
-    *   Updated `src/app/globals.css` to ensure Guest Header buttons ("Home" and "Feed") display text correctly on mobile devices (`header-guest-pill` styling).
+*   **Header & Layout Polish (Mobile & Guest):**
+    *   **Removed Welcome Message:** Deleted "Good to see you..." section from Home Page for a cleaner look.
+    *   **Mobile Header Optimization:**
+        *   Hidden "Home" button on mobile for logged-in users to reduce clutter.
+        *   Ensured "Feed" and "Library" buttons display full text labels on mobile, improving clarity and resolving the "multi-open button" confusion.
+        *   Fixed "Errl Forum" title wrapping on small screens by adjusting `white-space`, `overflow`, and removing height constraints in CSS.
+    *   **Guest Header:** Updated `src/app/globals.css` to ensure Guest Header buttons ("Home" and "Feed") display text correctly on mobile devices.
     *   Verified the "Home" button is cosmetic-only for guests.
     *   Verified the "Feed" button supports the Easter egg (double-click + drag) but prevents navigation.
 
 *   **Differentiated User Experience:**
-    *   Logged-in users receive a personalized "Good to see you" greeting.
     *   The "Explore Sections" grid is fully accessible to signed-in users.
 
 *   **Verification:**

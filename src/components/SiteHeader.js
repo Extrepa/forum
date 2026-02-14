@@ -234,7 +234,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <nav className="header-nav" aria-label="Primary">
               <Link
                 href="/?home=1"
-                className={`action-button header-nav-pill ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
+                className={`action-button header-nav-pill nav-pill-home ${isActivePath(pathname, '/') ? 'is-active' : ''}`}
                 aria-current={isActivePath(pathname, '/') ? 'page' : undefined}
                 title="Home"
                 aria-label="Home"
@@ -249,7 +249,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               </Link>
               <Link
                 href="/feed"
-                className={`action-button header-nav-pill ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
+                className={`action-button header-nav-pill nav-pill-feed ${isActivePath(pathname, '/feed') ? 'is-active' : ''}`}
                 aria-current={isActivePath(pathname, '/feed') ? 'page' : undefined}
                 title="Feed"
                 aria-label="Feed"
@@ -266,7 +266,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               <div className="header-library">
                 <button
                   type="button"
-                  className={`action-button header-nav-pill nav-pill-button ${libraryOpen ? 'is-active' : ''}`}
+                  className={`action-button header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
                   onClick={(event) => {
                     if (navDisabled) return;
                     libraryAnchorRef.current = event.currentTarget;

@@ -889,12 +889,6 @@ export default async function HomePage({ searchParams }) {
 
       {hasUsername && (
         <section className="card">
-          <div style={{ marginBottom: '24px' }}>
-            <h3 className="section-title" style={{ borderBottom: 'none', marginBottom: '4px', fontSize: '18px' }}>
-              Good to see you, <Username name={user.username} colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })} />
-            </h3>
-            <p className="muted" style={{ fontSize: '14px' }}>Welcome back to the portal.</p>
-          </div>
           <h3 className="section-title" style={{ marginBottom: '16px' }}>
             Explore Sections
           </h3>

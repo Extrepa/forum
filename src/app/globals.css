@@ -846,9 +846,9 @@ a {
     font-size: clamp(18px, 7.2vw, 28px);
     letter-spacing: 0.02em;
     white-space: normal;
-    line-height: 0.88;
-    max-height: 52px;
-    overflow: hidden;
+    line-height: 1.1;
+    max-height: none;
+    overflow: visible;
     text-wrap: balance;
   }
 
@@ -859,6 +859,26 @@ a {
     padding: 0;
     justify-content: center;
     border-radius: 999px;
+  }
+
+  .nav-pill-home {
+    display: none;
+  }
+
+  .nav-pill-feed, .nav-pill-library {
+    width: auto;
+    min-width: auto;
+    padding: 0 10px;
+  }
+
+  .nav-pill-feed .header-nav-label,
+  .nav-pill-library .header-nav-label {
+    display: inline;
+    margin-left: 6px;
+  }
+
+  .nav-pill-library .nav-pill-caret {
+    display: inline;
   }
 
   .header-nav-icon {
