@@ -127,9 +127,9 @@ a {
 }
 
 .site {
-  max-width: min(var(--max-width), 92vw);
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: clamp(16px, 2.8vw, 32px) clamp(8px, 2.2vw, 20px) 48px;
   height: 100%; /* Ensure site container fills height */
   width: 100%;
 }
@@ -180,9 +180,8 @@ a {
 .header-left {
   display: flex;
   align-items: center;
-  flex: 0 2 auto; /* Shrink more aggressively than center */
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: fit-content;
 }
 
 .header-brand {
@@ -731,7 +730,61 @@ a {
 
 @media (min-width: 1600px) {
   .site {
-    max-width: min(1560px, 94vw);
+    max-width: 1560px;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-header__inner {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 8px;
+    min-height: unset;
+  }
+
+  .header-left {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .header-right {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  .header-center {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .header-nav {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .header-brand {
+    gap: 8px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .header-brand-text {
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .header-brand .forum-title.forum-title--header {
+    font-size: clamp(18px, 5.6vw, 26px);
+    white-space: normal;
+    line-height: 0.95;
+    text-wrap: balance;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
   }
 }
 
@@ -748,10 +801,10 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(20px, 7vw, 24px);
+    font-size: clamp(18px, 7.2vw, 24px);
     white-space: normal;
     text-wrap: balance;
-    max-width: min-content;
+    max-width: 100%;
     line-height: 1.0;
   }
 
@@ -786,19 +839,21 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(20px, 7vw, 24px);
+    font-size: clamp(18px, 7.2vw, 24px);
     white-space: normal;
     line-height: 1.0;
     max-height: none;
     overflow: visible;
     text-align: left;
-    width: min-content;
+    width: auto;
     word-break: normal;
+    text-overflow: clip;
+    max-width: 100%;
   }
 
   .header-brand-text {
     overflow: visible;
-    min-width: auto;
+    min-width: 0;
   }
 
   .header-nav-pill {
