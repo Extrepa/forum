@@ -314,7 +314,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <div className="header-avatar" ref={avatarRef}>
               <button
                 type="button"
-                className="header-avatar-button"
+                className="header-icon-button header-icon-button--notifications"
                 onClick={async () => {
                   const next = !notifyOpen;
                   setLibraryOpen(false);
@@ -325,13 +325,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 aria-label={notificationLabel}
                 title={notificationLabel}
               >
-                {user?.avatar_key ? (
-                  <AvatarImage avatarKey={user.avatar_key} alt="" size={30} className="header-avatar-image" />
-                ) : (
-                  <AvatarImage src="/icons/default-avatar.svg" alt="" size={30} className="header-avatar-image" />
-                )}
+                <span className="header-icon-glyph" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                  </svg>
+                </span>
                 {notifyUnreadCount > 0 ? (
-                  <span className="header-avatar-badge" aria-hidden="true">
+                  <span className="header-icon-badge" aria-hidden="true">
                     {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
                   </span>
                 ) : null}
@@ -405,6 +406,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               unreadCount={notifyUnreadCount}
               items={notifyItems}
               status={notifyStatus}
+              user={user}
               onRefresh={refreshNotifications}
               onMarkRead={async (id) => {
                 try {

@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import AvatarImage from './AvatarImage';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
@@ -84,6 +85,7 @@ export default function NotificationsMenu({
   unreadCount,
   items,
   status,
+  user,
   onRefresh,
   onMarkRead,
   onMarkAllRead,
@@ -283,67 +285,64 @@ export default function NotificationsMenu({
       role="menu"
       aria-label={title}
     >
-      {/* Header controls */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        <span
-          role="button"
-          tabIndex={signingOut ? -1 : 0}
-          onClick={signingOut ? undefined : handleSignOut}
-          onKeyDown={(event) => {
-            if (signingOut) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              handleSignOut();
-            }
-          }}
-          style={{
-            fontSize: '11px',
-            background: 'transparent',
-            color: signingOut ? 'rgba(255, 255, 255, 0.5)' : 'var(--muted)',
-            fontWeight: 600,
-            cursor: signingOut ? 'not-allowed' : 'pointer',
-            letterSpacing: '0.04em',
-            lineHeight: 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textDecoration: 'underline'
-          }}
-          onMouseEnter={(e) => {
-            if (!signingOut) {
-              e.currentTarget.style.color = 'var(--text)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!signingOut) {
-              e.currentTarget.style.color = 'var(--muted)';
-            }
-          }}
-          aria-disabled={signingOut}
-        >
-          {signingOut ? 'Signing out…' : 'Sign out'}
-        </span>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            router.push('/messages');
-          }}
-          style={{
-            fontSize: '12px',
-            padding: '4px 0',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--muted)',
-            textDecoration: 'underline',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          Open messages
-        </button>
+      {/* User Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.1)' }}>
+            {user?.avatar_key ? (
+              <AvatarImage avatarKey={user.avatar_key} alt={user.username || 'User'} size={32} />
+            ) : (
+              <AvatarImage src="/icons/default-avatar.svg" alt="User" size={32} />
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ink)' }}>{user?.username || currentUsername || 'User'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                router.push('/messages');
+              }}
+              style={{
+                fontSize: '11px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--muted)',
+                textAlign: 'left',
+                padding: 0,
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              Messages
+            </button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          <span
+            role="button"
+            tabIndex={signingOut ? -1 : 0}
+            onClick={signingOut ? undefined : handleSignOut}
+            onKeyDown={(event) => {
+              if (signingOut) return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleSignOut();
+              }
+            }}
+            style={{
+              fontSize: '11px',
+              background: 'transparent',
+              color: signingOut ? 'rgba(255, 255, 255, 0.5)' : 'var(--muted)',
+              cursor: signingOut ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              textDecoration: 'none'
+            }}
+          >
+            {signingOut ? 'Signing out...' : 'Sign out'}
+          </span>
+        </div>
       </div>
 
       {/* Title and refresh button row */}
