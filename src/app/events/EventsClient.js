@@ -26,7 +26,6 @@ export default function EventsClient({ events, notice , headerActions}) {
       </section>
 
       <section className="card">
-        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {events.length === 0 ? (

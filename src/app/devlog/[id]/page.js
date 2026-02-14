@@ -22,15 +22,6 @@ import DeleteCommentButton from '../../../components/DeleteCommentButton';
 
 export const dynamic = 'force-dynamic';
 
-function quoteMarkdown({ author, body }) {
-  const safeAuthor = String(author || 'Someone').trim() || 'Someone';
-  const text = String(body || '').trim();
-  if (!text) return `> @${safeAuthor} said:\n>\n\n`;
-  const lines = text.split('\n').slice(0, 8);
-  const quoted = lines.map((l) => `> ${l}`).join('\n');
-  return `> @${safeAuthor} said:\n${quoted}\n\n`;
-}
-
 function destUrlFor(type, id) {
   switch (type) {
     case 'forum_thread':
@@ -357,7 +348,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         return c ? { id: c.id, author_name: c.author_name, body: c.body } : null;
       })()
     : null;
-  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
 
   // Build preferences map and assign unique colors to all usernames on this page
   const allUsernames = [log.author_name, ...safeComments.map((c) => c.author_name)].filter(Boolean);
@@ -555,35 +545,31 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     id={`reply-${c.id}`}
                     style={{ position: 'relative' }}
                   >
-                    <div className="comment-action-row">
-                      <LikeButton postType="dev_log_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                      <DeleteCommentButton
-                        inline
-                        commentId={c.id}
-                        parentId={id}
-                        type="devlog"
-                        authorUserId={c.author_user_id}
-                        currentUserId={user?.id}
-                        isAdmin={!!isAdmin}
-                      />
-                    </div>
-                    <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
-                    <div
-                      className="list-meta"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
-                    >
-                      <span>
+                    <div className="reply-top-row">
+                      <span className="reply-meta-inline">
                         <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                         {' · '}
                         <span suppressHydrationWarning>{c.formattedDate || ''}</span>
                       </span>
-                      <ReplyButton
-                        replyId={c.id}
-                        replyAuthor={c.author_name}
-                        replyBody={c.body}
-                        replyHref={replyLink}
-                      />
+                      <div className="reply-actions-inline">
+                        <ReplyButton
+                          replyId={c.id}
+                          replyAuthor={c.author_name}
+                          replyHref={replyLink}
+                        />
+                        <LikeButton postType="dev_log_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                        <DeleteCommentButton
+                          inline
+                          commentId={c.id}
+                          parentId={id}
+                          type="devlog"
+                          authorUserId={c.author_user_id}
+                          currentUserId={user?.id}
+                          isAdmin={!!isAdmin}
+                        />
+                      </div>
                     </div>
+                    <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || '' }} />
                   </div>
                 );
               };
@@ -616,7 +602,6 @@ export default async function DevLogDetailPage({ params, searchParams }) {
               labelText="What would you like to say?"
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}
-              replyPrefill={replyPrefill}
             />
           </div>
         ) : (

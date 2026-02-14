@@ -12,7 +12,7 @@ import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostForm from '../../../components/PostForm';
@@ -355,34 +355,34 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
               const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
+              const replyLink = `/announcements/${update.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               return (
                 <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="comment-action-row">
-                    <LikeButton postType="timeline_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                    <DeleteCommentButton
-                      inline
-                      commentId={c.id}
-                      parentId={update.id}
-                      type="timeline"
-                      authorUserId={c.author_user_id}
-                      currentUserId={user?.id}
-                      isAdmin={!!isAdmin}
-                    />
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                  <div className="list-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                    <span>
+                  <div className="reply-top-row">
+                    <span className="reply-meta-inline">
                     <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                     {' · '}
                     <span suppressHydrationWarning>{formattedDate}</span>
                     </span>
+                    <div className="reply-actions-inline">
+                      <ReplyButton
+                        replyId={c.id}
+                        replyAuthor={c.author_name}
+                        replyHref={replyLink}
+                      />
+                      <LikeButton postType="timeline_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                      <DeleteCommentButton
+                        inline
+                        commentId={c.id}
+                        parentId={update.id}
+                        type="timeline"
+                        authorUserId={c.author_user_id}
+                        currentUserId={user?.id}
+                        isAdmin={!!isAdmin}
+                      />
+                    </div>
                   </div>
-                  <CommentActions
-                    commentId={c.id}
-                    commentAuthor={c.author_name}
-                    commentBody={c.body}
-                    replyHref={`/announcements/${update.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
-                  />
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                 </div>
               );
             })

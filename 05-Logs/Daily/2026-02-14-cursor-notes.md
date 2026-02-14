@@ -55,3 +55,13 @@
   - Moved both memoized values above the dependent `useEffect` in `src/components/SiteHeader.js`.
 - Verification:
   - `npm run lint` (pass)
+
+## Header Search Placement Correction
+- Removed header-right search icon from `SiteHeader`; only bell + kebab remain on the right.
+- Repurposed the Library popout corner control as forum search:
+  - click icon to reveal search input inside Library panel
+  - submit routes to `/search?q=...`
+  - closes Library/search panel after submit
+- Removed section-filter behavior from Library list (list remains full; corner control is now forum search).
+- Reworked corner control styling so it renders as a small visible search icon instead of a dark blob.
+- Removed `Date.now()` usage from `SiteHeader` notification optimistic updates to avoid hydration warning in that component.

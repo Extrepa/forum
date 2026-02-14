@@ -25,7 +25,6 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
       </section>
 
       <section className="card">
-        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {updates.length === 0 ? (

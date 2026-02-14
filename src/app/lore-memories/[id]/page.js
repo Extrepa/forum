@@ -323,24 +323,8 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
               const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
                 <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="comment-action-row">
-                    <LikeButton postType="post_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                    <DeleteCommentButton
-                      inline
-                      commentId={c.id}
-                      parentId={id}
-                      type="post"
-                      authorUserId={c.author_user_id}
-                      currentUserId={user?.id}
-                      isAdmin={!!isAdmin}
-                    />
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                  <div
-                    className="list-meta"
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
-                  >
-                    <span>
+                  <div className="reply-top-row">
+                    <span className="reply-meta-inline">
                       <Username 
                         name={c.author_name} 
                         colorIndex={colorIndex}
@@ -349,13 +333,25 @@ export default async function LoreMemoriesDetailPage({ params, searchParams }) {
                       {' · '}
                       <span suppressHydrationWarning>{formattedDate}</span>
                     </span>
-                    <ReplyButton
-                      replyId={c.id}
-                      replyAuthor={c.author_name}
-                      replyBody={c.body}
-                      replyHref={replyLink}
-                    />
+                    <div className="reply-actions-inline">
+                      <ReplyButton
+                        replyId={c.id}
+                        replyAuthor={c.author_name}
+                        replyHref={replyLink}
+                      />
+                      <LikeButton postType="post_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                      <DeleteCommentButton
+                        inline
+                        commentId={c.id}
+                        parentId={id}
+                        type="post"
+                        authorUserId={c.author_user_id}
+                        currentUserId={user?.id}
+                        isAdmin={!!isAdmin}
+                      />
+                    </div>
                   </div>
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
                 </div>
               );
             })

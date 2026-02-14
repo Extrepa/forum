@@ -25,9 +25,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [libraryFilterOpen, setLibraryFilterOpen] = useState(false);
-  const [libraryFilterValue, setLibraryFilterValue] = useState('');
-  const [searchValue, setSearchValue] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [librarySearchValue, setLibrarySearchValue] = useState('');
   const [kebabOpen, setKebabOpen] = useState(false);
   const [libraryStyle, setLibraryStyle] = useState({});
 
@@ -43,7 +41,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
-  const searchModalRef = useRef(null);
   const avatarRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
@@ -82,8 +79,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   useEffect(() => {
     setLibraryOpen(false);
     setLibraryFilterOpen(false);
-    setLibraryFilterValue('');
-    setSearchOpen(false);
+    setLibrarySearchValue('');
     setKebabOpen(false);
     setNotifyOpen(false);
     setHeaderEasterOpen(false);
@@ -114,15 +110,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
       }
 
-      if (searchOpen) {
-        const inModal = searchModalRef.current?.contains(target);
-        if (!inModal) setSearchOpen(false);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [libraryOpen, kebabOpen, notifyOpen, searchOpen]);
+  }, [libraryOpen, kebabOpen, notifyOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -130,7 +122,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       setLibraryOpen(false);
       setKebabOpen(false);
       setNotifyOpen(false);
-      setSearchOpen(false);
       setGuestFeedArmed(false);
       setGuestFeedDragging(false);
       setGuestFeedGhost(null);
@@ -185,19 +176,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     { href: '/lore-memories', label: 'Lore & Memories' },
   ]), [strings]);
 
-  const filteredLibraryLinks = useMemo(() => {
-    const normalized = libraryFilterValue.trim().toLowerCase();
-    if (!normalized) return libraryLinks;
-    return libraryLinks.filter((item) => item.label.toLowerCase().includes(normalized));
-  }, [libraryLinks, libraryFilterValue]);
-
   useEffect(() => {
     if (!libraryOpen || typeof window === 'undefined' || !libraryAnchorRef.current) return undefined;
 
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
       const edgePadding = window.innerWidth <= 640 ? 8 : 12;
-      const widthSource = filteredLibraryLinks.length ? filteredLibraryLinks : libraryLinks;
+      const widthSource = libraryLinks;
       const widestLabelLength = widthSource.reduce((max, item) => Math.max(max, item.label.length), 0);
       const estimatedMenuWidth = (widestLabelLength * 8) + (libraryFilterOpen ? 112 : 86);
       const menuWidth = Math.min(
@@ -227,7 +212,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [libraryFilterOpen, libraryLinks, filteredLibraryLinks, libraryOpen]);
+  }, [libraryFilterOpen, libraryLinks, libraryOpen]);
 
   useEffect(() => {
     if (!libraryOpen) return undefined;
@@ -240,14 +225,15 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return () => window.cancelAnimationFrame(rafId);
   }, [libraryOpen, pathname]);
 
-  const handleSearchSubmit = (event) => {
+  const handleForumSearchSubmit = (event) => {
     event.preventDefault();
     if (navDisabled) return;
-    const trimmed = searchValue.trim();
+    const trimmed = librarySearchValue.trim();
     if (!trimmed) return;
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-    setSearchValue('');
-    setSearchOpen(false);
+    setLibrarySearchValue('');
+    setLibraryFilterOpen(false);
+    setLibraryOpen(false);
   };
 
   const notificationLabel = useMemo(() => {
@@ -316,7 +302,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     setNotifyOpen(false);
                     setKebabOpen(false);
                     setLibraryFilterOpen(false);
-                    setLibraryFilterValue('');
+                    setLibrarySearchValue('');
                     setLibraryOpen((current) => !current);
                   }}
                   aria-expanded={libraryOpen ? 'true' : 'false'}
@@ -335,11 +321,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                       <button
                         type="button"
                         className={`header-library-search-toggle ${libraryFilterOpen ? 'is-active' : ''}`}
-                        aria-label={libraryFilterOpen ? 'Hide library filter' : 'Filter library'}
-                        title={libraryFilterOpen ? 'Hide filter' : 'Filter'}
+                        aria-label={libraryFilterOpen ? 'Hide forum search' : 'Search forum'}
+                        title={libraryFilterOpen ? 'Hide search' : 'Search forum'}
                         onClick={() => {
                           setLibraryFilterOpen((current) => !current);
-                          if (libraryFilterOpen) setLibraryFilterValue('');
+                          if (libraryFilterOpen) setLibrarySearchValue('');
                         }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -349,17 +335,19 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                       </button>
                     </div>
                     {libraryFilterOpen ? (
-                      <input
-                        type="search"
-                        value={libraryFilterValue}
-                        onChange={(event) => setLibraryFilterValue(event.target.value)}
-                        placeholder="Filter sections..."
-                        className="header-library-filter"
-                        autoFocus
-                      />
+                      <form onSubmit={handleForumSearchSubmit} className="header-library-search-form">
+                        <input
+                          type="search"
+                          value={librarySearchValue}
+                          onChange={(event) => setLibrarySearchValue(event.target.value)}
+                          placeholder="Search across the forum..."
+                          className="header-library-filter"
+                          autoFocus
+                        />
+                      </form>
                     ) : null}
                     <div className="header-library-list">
-                      {filteredLibraryLinks.map((item) => (
+                      {libraryLinks.map((item) => (
                         <a
                           key={item.href}
                           href={item.href}
@@ -374,9 +362,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                           <span className="header-library-item-label">{item.label}</span>
                         </a>
                       ))}
-                      {!filteredLibraryLinks.length ? (
-                        <p className="header-library-empty">No matches found.</p>
-                      ) : null}
                     </div>
                   </div>
                 ) : null}
@@ -386,28 +371,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         ) : null}
 
         <div className="header-right">
-          {isSignedIn ? (
-            <button
-              type="button"
-              className={`header-icon-button header-icon-button--search ${searchOpen ? 'is-active' : ''}`}
-              onClick={() => {
-                setLibraryOpen(false);
-                setNotifyOpen(false);
-                setKebabOpen(false);
-                setSearchOpen((current) => !current);
-              }}
-              aria-label="Search"
-              title="Search"
-            >
-              <span className="header-icon-glyph" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.8-3.8" />
-                </svg>
-              </span>
-            </button>
-          ) : null}
-
           {isSignedIn ? (
             <div className="header-avatar" ref={avatarRef}>
               <button
@@ -520,7 +483,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   const payload = await res.json();
                   if (res.ok) {
                     setNotifyUnreadCount(Number(payload.unreadCount || 0));
-                    setNotifyItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: Date.now() } : n)));
+                    setNotifyItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: true } : n)));
                   }
                 } catch (e) {
                   // ignore
@@ -536,7 +499,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   const payload = await res.json();
                   if (res.ok) {
                     setNotifyUnreadCount(Number(payload.unreadCount || 0));
-                    setNotifyItems((prev) => prev.map((n) => ({ ...n, read_at: Date.now() })));
+                    setNotifyItems((prev) => prev.map((n) => ({ ...n, read_at: true })));
                   }
                 } catch (e) {
                   // ignore
@@ -579,27 +542,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         </div>
       ) : null}
       </header>
-
-      {isSignedIn && searchOpen ? (
-        <div className="header-search-modal">
-          <div className="header-search-modal-inner" ref={searchModalRef}>
-            <div className="header-search-modal-title">Search</div>
-            <form onSubmit={handleSearchSubmit} className="header-search-modal-form">
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder={strings.search.placeholder}
-                autoFocus
-              />
-              <button type="submit" disabled={!searchValue.trim()}>Search</button>
-            </form>
-            <button type="button" className="header-search-modal-close" onClick={() => setSearchOpen(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      ) : null}
 
       <HeaderSetupBanner />
       {guestFeedDragging && guestFeedGhost ? (

@@ -99,7 +99,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
     
     return (
       <section className="card">
-        <h3 className="section-title">{title}</h3>
+        {title ? <h3 className="section-title">{title}</h3> : null}
         {items.length === 0 ? (
           <p className="muted">No threads yet.</p>
         ) : (
@@ -129,7 +129,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
 
       {announcements.length > 0 && renderSection('Announcements', announcements, false)}
       {stickies.length > 0 && renderSection('Pinned Threads', stickies, false)}
-      {renderSection('Latest Threads', threads, true)}
+      {renderSection(null, threads, true)}
     </div>
   );
 }

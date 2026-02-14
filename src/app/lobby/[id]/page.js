@@ -596,15 +596,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       ? 'Title and body are required.'
       : null;
   
-  function quoteMarkdown({ author, body }) {
-    const safeAuthor = String(author || 'Someone').trim() || 'Someone';
-    const text = String(body || '').trim();
-    if (!text) return `> @${safeAuthor} said:\n>\n\n`;
-    const lines = text.split('\n').slice(0, 8);
-    const quoted = lines.map((l) => `> ${l}`).join('\n');
-    return `> @${safeAuthor} said:\n${quoted}\n\n`;
-  }
-
   // #region agent log
   log('lobby/[id]/page.js:390', 'Before render', {threadId:id,hasThread:!!thread,replyCount:replies?.length}, 'E');
   // #endregion
@@ -638,7 +629,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
   
   // Find and serialize replyingTo from safeReplies
   const replyingTo = replyToId ? safeReplies.find((r) => r && r.id && r.id === replyToId) : null;
-  const replyPrefill = replyingTo ? quoteMarkdown({ author: replyingTo.author_name, body: replyingTo.body }) : '';
   
   // Pre-render markdown to avoid issues
   let threadBodyHtml = '';
@@ -687,35 +677,31 @@ export default async function LobbyThreadPage({ params, searchParams }) {
           id={`reply-${r.id}`}
           style={{ position: 'relative' }}
         >
-          <div className="comment-action-row">
-            <LikeButton postType="forum_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
-            <DeleteCommentButton
-              inline
-              commentId={r.id}
-              parentId={safeThreadId}
-              type="forum"
-              authorUserId={r.author_user_id}
-              currentUserId={viewer?.id}
-              isAdmin={!!isAdmin}
-            />
-          </div>
-          <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
-          <div
-            className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '12px', marginTop: '8px' }}
-          >
-            <span>
+          <div className="reply-top-row">
+            <span className="reply-meta-inline">
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
               <span suppressHydrationWarning>{formattedDate}</span>
             </span>
-            <ReplyButton
-              replyId={r.id}
-              replyAuthor={r.author_name}
-              replyBody={r.body}
-              replyHref={replyLink}
-            />
+            <div className="reply-actions-inline">
+              <ReplyButton
+                replyId={r.id}
+                replyAuthor={r.author_name}
+                replyHref={replyLink}
+              />
+              <LikeButton postType="forum_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
+              <DeleteCommentButton
+                inline
+                commentId={r.id}
+                parentId={safeThreadId}
+                type="forum"
+                authorUserId={r.author_user_id}
+                currentUserId={viewer?.id}
+                isAdmin={!!isAdmin}
+              />
+            </div>
           </div>
+          <div className="post-body" dangerouslySetInnerHTML={{ __html: replyBodyHtml }} />
         </div>
       );
     };
@@ -906,7 +892,6 @@ export default async function LobbyThreadPage({ params, searchParams }) {
               labelText="What would you like to say?"
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}
-              replyPrefill={replyPrefill}
             />
           </div>
         )}

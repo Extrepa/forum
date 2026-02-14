@@ -28,16 +28,13 @@ export default function ProjectRepliesSection({
     }
   }, [commentNotice]);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [replyPrefill, setReplyPrefill] = useState('');
   
   // Listen for dynamic reply changes from ReplyButton clicks
   useEffect(() => {
     const handleReplyToChanged = (event) => {
-      const { replyId, replyAuthor, replyBody } = event.detail;
+      const { replyId, replyAuthor } = event.detail;
       
-      setReplyingTo({ id: replyId, author_name: replyAuthor, body: replyBody });
-      const quoteText = `> @${replyAuthor} said:\n${replyBody.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
-      setReplyPrefill(quoteText);
+      setReplyingTo({ id: replyId, author_name: replyAuthor, body: '' });
     };
     
     window.addEventListener('replyToChanged', handleReplyToChanged);
@@ -56,8 +53,6 @@ export default function ProjectRepliesSection({
         const reply = replies.find(r => r.id === replyToId);
         if (reply) {
           setReplyingTo({ id: reply.id, author_name: reply.author_name, body: reply.body });
-          const quoteText = `> @${reply.author_name} said:\n${reply.body.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
-          setReplyPrefill(quoteText);
         }
       }
     }
@@ -92,17 +87,29 @@ export default function ProjectRepliesSection({
           id={`reply-${r.id}`}
           style={{ position: 'relative' }}
         >
-          <div className="comment-action-row">
-            <LikeButton postType="project_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
-            <DeleteCommentButton
-              inline
-              commentId={r.id}
-              parentId={projectId}
-              type="project"
-              authorUserId={r.author_user_id}
-              currentUserId={user?.id}
-              isAdmin={!!isAdmin}
-            />
+          <div className="reply-top-row">
+            <span className="reply-meta-inline">
+              <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
+              {' · '}
+              {r.created_at ? <span suppressHydrationWarning>{formatDateTime(r.created_at)}</span> : ''}
+            </span>
+            <div className="reply-actions-inline">
+              <ReplyButton
+                replyId={r.id}
+                replyAuthor={r.author_name}
+                replyHref={replyLink}
+              />
+              <LikeButton postType="project_reply" postId={r.id} initialLiked={!!r.liked} initialCount={r.like_count || 0} size="sm" />
+              <DeleteCommentButton
+                inline
+                commentId={r.id}
+                parentId={projectId}
+                type="project"
+                authorUserId={r.author_user_id}
+                currentUserId={user?.id}
+                isAdmin={!!isAdmin}
+              />
+            </div>
           </div>
           <div className="post-body" dangerouslySetInnerHTML={{ __html: r.body_html || r.body }} />
           {r.image_key && (
@@ -117,22 +124,6 @@ export default function ProjectRepliesSection({
               />
             </div>
           )}
-          <div
-            className="list-meta"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: '8px', fontSize: '12px' }}
-          >
-            <span>
-              <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
-              {' · '}
-              {r.created_at ? <span suppressHydrationWarning>{formatDateTime(r.created_at)}</span> : ''}
-            </span>
-            <ReplyButton
-              replyId={r.id}
-              replyAuthor={r.author_name}
-              replyBody={r.body}
-              replyHref={replyLink}
-            />
-          </div>
         </div>
       );
     };
@@ -182,7 +173,6 @@ export default function ProjectRepliesSection({
               labelText="What would you like to say?"
               hiddenFields={{ reply_to_id: replyToId || '' }}
               replyingTo={replyingTo}
-              replyPrefill={replyPrefill}
               allowImageUploads={allowImageUploads}
             />
           </div>

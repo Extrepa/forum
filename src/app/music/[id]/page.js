@@ -18,7 +18,7 @@ import LikeButton from '../../../components/LikeButton';
 import CommentFormWrapper from '../../../components/CommentFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import CommentActions from '../../../components/CommentActions';
+import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import { formatDateTime } from '../../../lib/dates';
 
@@ -512,37 +512,34 @@ export default async function MusicDetailPage({ params, searchParams }) {
             safeComments.map((comment) => {
               const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
+              const replyLink = `/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`;
               return (
                 <div key={comment.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="comment-action-row">
-                    <LikeButton postType="music_comment" postId={comment.id} initialLiked={!!comment.liked} initialCount={comment.like_count || 0} size="sm" />
-                    <DeleteCommentButton
-                      inline
-                      commentId={comment.id}
-                      parentId={id}
-                      type="music"
-                      authorUserId={comment.author_user_id}
-                      currentUserId={user?.id}
-                      isAdmin={!!isAdmin}
-                    />
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
-                  <div
-                    className="list-meta"
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
-                  >
-                    <span>
+                  <div className="reply-top-row">
+                    <span className="reply-meta-inline">
                       <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                       {' · '}
                       <span suppressHydrationWarning>{comment.formattedDate || ''}</span>
                     </span>
+                    <div className="reply-actions-inline">
+                      <ReplyButton
+                        replyId={comment.id}
+                        replyAuthor={comment.author_name}
+                        replyHref={replyLink}
+                      />
+                      <LikeButton postType="music_comment" postId={comment.id} initialLiked={!!comment.liked} initialCount={comment.like_count || 0} size="sm" />
+                      <DeleteCommentButton
+                        inline
+                        commentId={comment.id}
+                        parentId={id}
+                        type="music"
+                        authorUserId={comment.author_user_id}
+                        currentUserId={user?.id}
+                        isAdmin={!!isAdmin}
+                      />
+                    </div>
                   </div>
-                  <CommentActions
-                    commentId={comment.id}
-                    commentAuthor={comment.author_name}
-                    commentBody={comment.body}
-                    replyHref={`/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`}
-                  />
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
                 </div>
               );
             })

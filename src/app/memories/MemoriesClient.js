@@ -92,7 +92,6 @@ export default function MemoriesClient({ posts, notice , headerActions}) {
       </section>
 
       <section className="card">
-        <h3 className="section-title">Latest</h3>
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {posts.length === 0 ? (

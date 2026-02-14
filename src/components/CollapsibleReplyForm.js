@@ -32,23 +32,20 @@ export default function CollapsibleReplyForm({
   // Listen for dynamic reply changes from ReplyButton clicks
   useEffect(() => {
     const handleReplyToChanged = (event) => {
-      const { replyId, replyAuthor, replyBody } = event.detail;
+      const { replyId, replyAuthor } = event.detail;
       
       // Update the replyingTo state
-      setCurrentReplyingTo({ id: replyId, author_name: replyAuthor, body: replyBody });
-      
-      // Generate prefill text
-      const quoteText = `> @${replyAuthor} said:\n${replyBody.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
-      setCurrentPrefill(quoteText);
+      setCurrentReplyingTo({ id: replyId, author_name: replyAuthor, body: '' });
+      setCurrentPrefill('');
       
       // Update hidden field
       if (hiddenReplyToRef.current) {
         hiddenReplyToRef.current.value = replyId;
       }
       
-      // Update textarea
+      // Clear textarea; threaded replies should not auto-quote parent content.
       if (textareaRef.current) {
-        textareaRef.current.value = quoteText;
+        textareaRef.current.value = '';
       }
       
       // Show form if it's hidden

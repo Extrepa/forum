@@ -23,24 +23,21 @@ export default function EventCommentsSection({
   const [attendees, setAttendees] = useState(initialAttendees);
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [replyPrefill, setReplyPrefill] = useState('');
   const textareaRef = useRef(null);
   const hiddenReplyToRef = useRef(null);
   
   // Listen for dynamic reply changes from ReplyButton clicks
   useEffect(() => {
     const handleReplyToChanged = (event) => {
-      const { replyId, replyAuthor, replyBody } = event.detail;
+      const { replyId, replyAuthor } = event.detail;
       
-      setReplyingTo({ id: replyId, author_name: replyAuthor, body: replyBody });
-      const quoteText = `> @${replyAuthor} said:\n${replyBody.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
-      setReplyPrefill(quoteText);
+      setReplyingTo({ id: replyId, author_name: replyAuthor, body: '' });
       
       if (hiddenReplyToRef.current) {
         hiddenReplyToRef.current.value = replyId;
       }
       if (textareaRef.current) {
-        textareaRef.current.value = quoteText;
+        textareaRef.current.value = '';
       }
       setShowCommentBox(true);
     };
@@ -61,8 +58,6 @@ export default function EventCommentsSection({
         const comment = comments.find(c => c.id === replyToId);
         if (comment) {
           setReplyingTo({ id: comment.id, author_name: comment.author_name, body: comment.body });
-          const quoteText = `> @${comment.author_name} said:\n${comment.body.split('\n').slice(0, 8).map(l => `> ${l}`).join('\n')}\n\n`;
-          setReplyPrefill(quoteText);
           setShowCommentBox(true);
         }
       }
@@ -100,7 +95,6 @@ export default function EventCommentsSection({
   const handleCancelComment = () => {
     setShowCommentBox(false);
     setReplyingTo(null);
-    setReplyPrefill('');
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.delete('replyTo');
@@ -153,37 +147,34 @@ export default function EventCommentsSection({
           comments.map((c) => {
             const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
             const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
+            const replyLink = `/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
             return (
               <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                <div className="comment-action-row">
-                  <LikeButton postType="event_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                  <DeleteCommentButton
-                    inline
-                    commentId={c.id}
-                    parentId={eventId}
-                    type="event"
-                    authorUserId={c.author_user_id}
-                    currentUserId={user?.id}
-                    isAdmin={!!isAdmin}
-                  />
-                </div>
-                <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
-                <div
-                  className="list-meta"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}
-                >
-                  <span>
+                <div className="reply-top-row">
+                  <span className="reply-meta-inline">
                     <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                     {' · '}
                     <span suppressHydrationWarning>{formatDateTime(c.created_at)}</span>
                   </span>
-                  <ReplyButton
-                    replyId={c.id}
-                    replyAuthor={c.author_name}
-                    replyBody={c.body}
-                    replyHref={`/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`}
-                  />
+                  <div className="reply-actions-inline">
+                    <ReplyButton
+                      replyId={c.id}
+                      replyAuthor={c.author_name}
+                      replyHref={replyLink}
+                    />
+                    <LikeButton postType="event_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                    <DeleteCommentButton
+                      inline
+                      commentId={c.id}
+                      parentId={eventId}
+                      type="event"
+                      authorUserId={c.author_user_id}
+                      currentUserId={user?.id}
+                      isAdmin={!!isAdmin}
+                    />
+                  </div>
                 </div>
+                <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
               </div>
             );
           })
@@ -213,7 +204,6 @@ export default function EventCommentsSection({
                 name="body"
                 placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
                 required
-                defaultValue={replyPrefill}
               />
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
