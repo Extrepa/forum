@@ -748,35 +748,31 @@ a {
 
 @media (max-width: 900px) {
   .site-header__inner {
-    flex-wrap: wrap;
     align-items: center;
-    row-gap: 8px;
-    min-height: unset;
+    gap: 6px;
   }
 
   .header-left {
-    order: 1;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: min(52vw, 320px);
   }
 
   .header-right {
-    order: 2;
     flex: 0 0 auto;
   }
 
   .header-center {
-    order: 3;
-    flex: 1 1 100%;
-    width: 100%;
-    justify-content: flex-start;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
   }
 
   .header-nav {
     display: inline-flex;
-    width: 100%;
+    width: auto;
     max-width: 100%;
-    justify-content: flex-start !important;
+    justify-content: flex-start;
     flex-wrap: nowrap !important;
     overflow-x: auto;
     overflow-y: hidden;
@@ -801,12 +797,15 @@ a {
 
   .header-brand {
     gap: 8px;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     overflow: visible;
   }
 
   .header-brand-text {
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: min(32vw, 200px);
     overflow: visible;
   }
 
@@ -856,6 +855,11 @@ a {
 
   .header-center {
     min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .header-left {
+    max-width: min(56vw, 240px);
   }
 
   .header-nav {
@@ -885,6 +889,7 @@ a {
   }
 
   .header-brand-text {
+    max-width: min(34vw, 168px);
     overflow: visible;
     min-width: 0;
   }
