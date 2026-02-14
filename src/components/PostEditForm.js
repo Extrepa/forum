@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -22,6 +23,7 @@ export default function PostEditForm({
   buttonLabel = 'Update Post',
   showImage = false,
   allowImageUploads = true,
+  allowMarkdownUpload = true,
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
@@ -54,6 +56,13 @@ export default function PostEditForm({
         ) : (
           <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
         )
+      ) : null}
+
+      {allowMarkdownUpload ? (
+        <MarkdownUploader
+          targetRef={bodyRef}
+          helper="Upload a Markdown file to auto-fill the body."
+        />
       ) : null}
 
       <label className="text-field">

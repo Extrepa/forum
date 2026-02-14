@@ -123,7 +123,7 @@ export default async function RantPage({ searchParams }) {
                 bodyLabel="Rant"
                 bodyPlaceholder="Let it out..."
                 buttonLabel="Post rant"
-                showImage={false}
+                showImage={true}
                 titleRequired={false}
                 bodyRequired={true}
               />

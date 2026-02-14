@@ -119,7 +119,7 @@ export default async function LorePage({ searchParams }) {
                 bodyLabel="Lore"
                 bodyPlaceholder="Write the lore..."
                 buttonLabel="Post"
-                showImage={false}
+                showImage={true}
                 titleRequired={false}
                 bodyRequired={true}
                 showPrivateToggle={true}

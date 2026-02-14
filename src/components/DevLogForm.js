@@ -120,7 +120,7 @@ export default function DevLogForm({ logId, initialData, allowImageUploads = tru
       />
       <label className="text-field">
         <div className="muted">Body</div>
-        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+        <label className="form-inline-toggle">
           <span className="muted">Quick update (optional)</span>
           <input
             type="checkbox"

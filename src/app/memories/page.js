@@ -119,7 +119,7 @@ export default async function MemoriesPage({ searchParams }) {
                 bodyLabel="Memory"
                 bodyPlaceholder="Share the history..."
                 buttonLabel="Post"
-                showImage={false}
+                showImage={true}
                 titleRequired={false}
                 bodyRequired={true}
                 showPrivateToggle={true}

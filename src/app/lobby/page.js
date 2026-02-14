@@ -368,7 +368,7 @@ export default async function LobbyPage({ searchParams }) {
                 titleLabel="Post title"
                 bodyLabel="Share your thoughts"
                 buttonLabel="Post"
-                showImage={false}
+                showImage={true}
               />
             </NewPostModalButton>
           </>

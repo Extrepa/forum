@@ -123,7 +123,7 @@ export default async function NostalgiaPage({ searchParams }) {
                 bodyLabel="Post"
                 bodyPlaceholder="What are you remembering?"
                 buttonLabel="Post"
-                showImage={false}
+                showImage={true}
                 titleRequired={false}
                 bodyRequired={true}
               />

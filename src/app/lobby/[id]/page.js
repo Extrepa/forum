@@ -584,6 +584,14 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       ? 'Log in to post.'
       : errorParam === 'unauthorized'
       ? 'Only the thread author can edit this.'
+      : errorParam === 'upload'
+      ? 'Image upload is not allowed for this username.'
+      : errorParam === 'too_large'
+      ? 'Image is too large (max 5MB).'
+      : errorParam === 'invalid_type'
+      ? 'Only image files are allowed.'
+      : errorParam === 'image_uploads_disabled'
+      ? 'Image uploads are currently disabled by the admin.'
       : errorParam === 'missing'
       ? 'Title and body are required.'
       : null;
@@ -753,6 +761,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
                     threadId={safeThreadId}
                     initialTitle={safeThreadTitle}
                     initialBody={safeThreadBody}
+                    initialHasImage={!!safeThreadImageKey}
                   />
                 </section>
               }

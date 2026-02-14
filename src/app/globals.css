@@ -894,21 +894,24 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(16px, 6.8vw, 22px);
-    white-space: normal;
+    white-space: nowrap;
     line-height: 1.0;
     max-height: none;
-    overflow: visible;
+    overflow: hidden;
     text-align: left;
-    width: auto;
+    width: fit-content;
     word-break: normal;
-    text-overflow: clip;
+    text-overflow: ellipsis;
     max-width: 100%;
+    text-wrap: nowrap;
   }
 
   .header-brand-text {
-    max-width: min(30vw, 142px);
-    overflow: visible;
+    max-width: fit-content;
+    width: fit-content;
+    overflow: hidden;
     min-width: 0;
+    flex: 0 0 auto;
   }
 
   .header-nav-pill {
@@ -1053,10 +1056,18 @@ a {
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(14px, 5.6vw, 18px);
     line-height: 0.96;
+    white-space: nowrap;
+    text-wrap: nowrap;
+    width: fit-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-brand-text {
-    max-width: min(40vw, 138px);
+    max-width: fit-content;
+    width: fit-content;
+    overflow: hidden;
+    flex: 0 0 auto;
   }
 
   .header-center {
@@ -1113,10 +1124,18 @@ a {
 
   .header-brand .forum-title.forum-title--header {
     font-size: clamp(12px, 4.8vw, 15px);
+    white-space: nowrap;
+    text-wrap: nowrap;
+    width: fit-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-brand-text {
-    max-width: min(32vw, 98px);
+    max-width: fit-content;
+    width: fit-content;
+    overflow: hidden;
+    flex: 0 0 auto;
   }
 
   .header-nav-pill {
@@ -3057,7 +3076,8 @@ input[type="file"] {
   border-radius: var(--radius);
   padding: 24px;
   width: 100%;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-shadow: var(--shadow);
   box-sizing: border-box;
 }
@@ -7912,6 +7932,9 @@ header::before {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .edit-post-modal > .card::before,
@@ -7922,6 +7945,43 @@ header::before {
 
 .edit-post-modal > .card > .section-title:first-child {
   display: none;
+}
+
+.edit-post-modal form,
+.edit-post-modal label,
+.edit-post-modal .text-field,
+.edit-post-modal input,
+.edit-post-modal textarea,
+.edit-post-modal select {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.edit-post-modal .formatting-toolbar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.form-inline-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  max-width: 100%;
+}
+
+.form-inline-toggle > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .form-inline-toggle {
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 
 .breadcrumb-item {
