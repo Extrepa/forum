@@ -247,6 +247,18 @@ a {
   gap: 8px;
   flex-wrap: nowrap;
   min-width: 0;
+  flex: 0 1 auto;
+  overflow: visible;
+}
+
+.header-nav > a,
+.header-nav > .header-library {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.header-nav .header-nav-pill {
+  flex: 0 0 auto;
 }
 
 .header-nav-pill {
@@ -761,9 +773,30 @@ a {
   }
 
   .header-nav {
+    display: inline-flex;
     width: 100%;
     max-width: 100%;
-    justify-content: flex-start;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .header-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-nav > a,
+  .header-nav > .header-library {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+
+  .header-nav .header-nav-pill {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
   }
 
   .header-brand {
