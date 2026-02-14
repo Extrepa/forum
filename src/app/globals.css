@@ -182,14 +182,15 @@ a {
   min-width: 0;
 }
 
-.forum-title--header {
-  font-size: 22px;
-  letter-spacing: 1.2px;
+.header-brand .forum-title.forum-title--header {
+  font-size: clamp(34px, 6.2vw, 52px);
+  line-height: 0.94;
+  letter-spacing: 0.03em;
   text-shadow: 0 0 14px rgba(52, 225, 255, 0.5);
   animation: none;
 }
 
-.forum-description--header {
+.header-brand .forum-description.forum-description--header {
   font-size: 12px;
   color: var(--accent-2);
   text-shadow: 0 0 8px rgba(255, 52, 245, 0.35);
@@ -350,22 +351,34 @@ a {
   position: relative;
   width: 36px;
   height: 36px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   border: 1px solid rgba(52, 225, 255, 0.2);
   background: rgba(2, 7, 10, 0.45);
-  color: var(--ink);
+  color: rgba(52, 225, 255, 0.92);
   box-shadow: 0 0 10px rgba(52, 225, 255, 0.15);
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.header-icon-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .header-icon-button svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
+}
+
+.header-icon-text {
+  display: none;
 }
 
 .header-icon-button svg[fill="currentColor"] {
@@ -581,8 +594,26 @@ a {
     display: none;
   }
 
-  .forum-title--header {
-    font-size: 18px;
+  .header-brand .forum-title.forum-title--header {
+    font-size: clamp(24px, 8.2vw, 42px);
+  }
+}
+
+@media (min-width: 1201px) {
+  .header-icon-button {
+    width: auto;
+    min-width: 36px;
+    padding: 0 10px;
+    gap: 7px;
+  }
+
+  .header-icon-text {
+    display: inline;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(236, 249, 255, 0.92);
   }
 }
 
@@ -606,8 +637,8 @@ a {
   }
 
   .header-menu {
-    right: auto;
-    left: 0;
+    right: 0;
+    left: auto;
     width: min(92vw, 320px);
   }
 }

@@ -13,7 +13,7 @@ export async function getSessionUserWithRole() {
   const db = await getDb();
   try {
     const user = await db
-      .prepare('SELECT id, username, role, ui_lore_enabled, ui_color_mode, ui_border_color, ui_invert_colors, is_deleted FROM users WHERE session_token = ?')
+      .prepare('SELECT id, username, role, ui_lore_enabled, ui_color_mode, ui_border_color, ui_invert_colors, avatar_key, is_deleted FROM users WHERE session_token = ?')
       .bind(token)
       .first();
     if (user) {
@@ -25,7 +25,7 @@ export async function getSessionUserWithRole() {
     try {
       const adminUser = await db
         .prepare(
-          'SELECT users.id, users.username, users.role, users.ui_lore_enabled, users.ui_color_mode, users.ui_border_color, users.ui_invert_colors, users.is_deleted FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?'
+          'SELECT users.id, users.username, users.role, users.ui_lore_enabled, users.ui_color_mode, users.ui_border_color, users.ui_invert_colors, users.avatar_key, users.is_deleted FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?'
         )
         .bind(token)
         .first();
@@ -37,7 +37,7 @@ export async function getSessionUserWithRole() {
       return null;
     }
   } catch (e) {
-    const user = await db.prepare('SELECT id, username, role FROM users WHERE session_token = ?').bind(token).first();
+    const user = await db.prepare('SELECT id, username, role, avatar_key FROM users WHERE session_token = ?').bind(token).first();
     if (user) {
       user.ui_lore_enabled = 0;
       user.ui_color_mode = 0;
@@ -47,7 +47,7 @@ export async function getSessionUserWithRole() {
     }
     try {
       const adminUser = await db
-        .prepare('SELECT users.id, users.username, users.role FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?')
+        .prepare('SELECT users.id, users.username, users.role, users.avatar_key FROM admin_sessions JOIN users ON users.id = admin_sessions.user_id WHERE admin_sessions.token = ?')
         .bind(token)
         .first();
       if (adminUser) {

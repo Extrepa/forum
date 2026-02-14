@@ -278,10 +278,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             title="Search"
             disabled={navDisabled}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
+            <span className="header-icon-glyph" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </span>
+            <span className="header-icon-text">Search</span>
           </button>
 
           <button
@@ -296,11 +299,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             title="Library"
             disabled={navDisabled}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20"></path>
-              <path d="M6.5 7H20v10H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 7Z"></path>
-            </svg>
+            <span className="header-icon-glyph" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20"></path>
+                <path d="M6.5 7H20v10H6.5A2.5 2.5 0 0 0 4 19.5V4.5A2.5 2.5 0 0 1 6.5 7Z"></path>
+              </svg>
+            </span>
+            <span className="header-icon-text">Library</span>
           </button>
 
           <div className="notifications-logo-trigger" ref={notificationRef}>
@@ -317,10 +323,13 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               title={notificationLabel}
               disabled={navDisabled}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
+              <span className="header-icon-glyph" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </span>
+              <span className="header-icon-text">Alerts</span>
               {notifyUnreadCount > 0 ? (
                 <span className="header-icon-badge">
                   {notifyUnreadCount > 99 ? '99+' : notifyUnreadCount}
@@ -396,9 +405,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             title="Messages"
             disabled={navDisabled}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            <span className="header-icon-glyph" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </span>
+            <span className="header-icon-text">Messages</span>
           </button>
 
           <div className="header-avatar" ref={avatarRef}>
