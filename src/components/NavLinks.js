@@ -6,6 +6,7 @@ import { getForumStrings } from '../lib/forum-texts';
 
 function getPrimaryLinks(strings) {
   return [
+    { href: '/?home=1', label: 'Home' },
     { href: '/feed', label: 'Feed' },
     { href: '/announcements', label: strings.tabs.announcements },
     { href: '/events', label: strings.tabs.events },

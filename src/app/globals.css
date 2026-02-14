@@ -169,6 +169,9 @@ a {
 
 .site-header--guest .header-right {
   gap: 4px;
+  margin-left: auto;
+  justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
 .header-left,
@@ -377,6 +380,8 @@ a {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .header-guest-pill {
@@ -712,7 +717,13 @@ a {
   }
 
   .site-header--guest .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .site-header--guest .header-right {
+    margin-left: auto;
+    justify-content: flex-end;
   }
 }
 
@@ -1010,13 +1021,14 @@ a {
   }
 
   .site-header--guest .header-right {
-    justify-self: end;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 }
 
 @media (max-width: 480px) {
   .header-left {
-    max-width: min(56vw, 220px);
+    max-width: min(42vw, 150px);
   }
 
   .header-brand .forum-logo-header {
@@ -1024,45 +1036,64 @@ a {
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(15px, 6.2vw, 20px);
+    font-size: clamp(14px, 5.6vw, 18px);
     line-height: 0.96;
   }
 
   .header-brand-text {
-    max-width: min(50vw, 200px);
+    max-width: min(40vw, 138px);
+  }
+
+  .header-center {
+    justify-content: flex-start;
+  }
+
+  .header-nav {
+    gap: 4px;
   }
 
   .header-right {
-    gap: 3px;
+    gap: 2px;
   }
 
   .header-icon-button {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   .header-icon-button svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .header-nav-pill {
+    min-height: 28px !important;
+    padding: 3px 6px !important;
+    font-size: 9px;
+    letter-spacing: 0.035em;
   }
 }
 
 @media (max-width: 380px) {
+  .nav-pill-home {
+    display: none !important;
+  }
+
   .header-left {
-    max-width: min(54vw, 186px);
+    max-width: min(40vw, 132px);
   }
 
   .header-brand .forum-title.forum-title--header {
-    font-size: clamp(14px, 5.6vw, 18px);
+    font-size: clamp(13px, 5.2vw, 16px);
   }
 
   .header-brand-text {
-    max-width: min(48vw, 172px);
+    max-width: min(38vw, 118px);
   }
 
   .header-nav-pill {
-    padding: 4px 7px !important;
-    font-size: 9.5px;
+    padding: 3px 5px !important;
+    font-size: 8.5px;
     letter-spacing: 0.04em;
   }
 }
