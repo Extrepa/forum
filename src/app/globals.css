@@ -5649,12 +5649,13 @@ span:has(.username) + .status-badge {
 }
 
 .post-detail-title {
-  font-size: clamp(24px, 4vw, 40px);
-  line-height: 1.02;
+  font-size: clamp(18px, 2.2vw, 28px);
+  line-height: 1.06;
 }
 
 .thread-replies .section-title {
-  font-size: clamp(20px, 2.9vw, 30px);
+  font-size: clamp(16px, 1.8vw, 24px);
+  line-height: 1.08;
 }
 
 .thread-replies > button,
@@ -8745,79 +8746,78 @@ header::before {
 }
 
 /* Header + breadcrumb corrective pass for compact viewports */
-.site-header:not(.site-header--guest) .site-header__inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-}
-
-.site-header:not(.site-header--guest) .header-center {
-  justify-self: center;
-  justify-content: center;
-}
-
-.site-header:not(.site-header--guest) .header-right {
-  justify-self: end;
-  justify-content: flex-end;
-}
-
-@media (max-width: 900px) {
-  .header-left {
-    max-width: min(47vw, 260px);
-  }
-
-  .header-brand {
-    overflow: hidden;
-  }
-
-  .header-brand .forum-title.forum-title--header {
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    word-break: break-word;
-    overflow: hidden;
-  }
-}
-
 @media (max-width: 640px) {
   .site-header:not(.site-header--guest) .site-header__inner {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    column-gap: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 6px;
   }
 
-  .header-left {
-    max-width: min(46vw, 170px);
+  .site-header:not(.site-header--guest) .header-left {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: min(52vw, 210px);
   }
 
-  .header-center {
-    min-width: max-content;
-  }
-
-  .header-right {
+  .site-header:not(.site-header--guest) .header-right {
+    order: 2;
+    margin-left: auto;
+    flex: 0 0 auto;
     gap: 3px;
+    justify-content: flex-end;
+  }
+
+  .site-header:not(.site-header--guest) .header-center {
+    order: 3;
+    flex: 0 0 100%;
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .site-header:not(.site-header--guest) .header-nav {
+    width: max-content;
+    max-width: 100%;
+    justify-content: center;
+    gap: 8px;
   }
 
   .header-brand-text {
-    max-width: 100%;
+    max-width: 110px;
+    min-width: 0;
   }
 
-  .header-brand .forum-title.forum-title--header {
-    line-height: 0.94;
+  .site-header:not(.site-header--guest) .header-brand .forum-title.forum-title--header {
+    font-size: clamp(15px, 5.8vw, 20px);
+    line-height: 0.92;
+    white-space: normal;
+    width: auto;
+    max-width: 100%;
     text-wrap: pretty;
+    word-break: normal;
+    overflow: hidden;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .page-top-row {
-    flex-wrap: wrap;
-    row-gap: 6px;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
 
   .page-top-row--context {
     padding: 5px 9px;
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   .page-top-row-context {
-    width: 100%;
+    width: auto;
     min-width: 0;
   }
 
@@ -8828,9 +8828,13 @@ header::before {
 
   .page-top-row-context__current {
     font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .page-top-row-right {
+    flex: 0 0 auto;
     margin-left: auto;
   }
 
@@ -8855,5 +8859,29 @@ header::before {
     min-height: 22px !important;
     padding: 1px 5px !important;
     font-size: 10px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header:not(.site-header--guest) .header-left {
+    max-width: min(54vw, 196px);
+  }
+
+  .site-header:not(.site-header--guest) .header-brand-text {
+    max-width: 96px;
+  }
+
+  .site-header:not(.site-header--guest) .header-brand .forum-title.forum-title--header {
+    width: auto;
+    font-size: clamp(14px, 5.2vw, 17px);
+  }
+
+  .site-header:not(.site-header--guest) .header-nav {
+    gap: 6px;
+  }
+
+  .site-header:not(.site-header--guest) .header-nav-pill {
+    padding: 3px 7px !important;
+    font-size: 9px;
   }
 }
