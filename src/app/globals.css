@@ -180,7 +180,7 @@ a {
 .header-left {
   display: flex;
   align-items: center;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -201,17 +201,14 @@ a {
 }
 
 .header-brand .forum-title.forum-title--header {
-  font-size: clamp(18px, 7.2vw, 28px);
-  letter-spacing: 0.02em;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.0;
-  max-height: none;
-  overflow: visible;
-  text-overflow: clip;
-  text-wrap: balance;
-  text-align: left;
-  max-width: min-content;
+  font-size: clamp(20px, 7vw, 50px);
+  line-height: 0.92;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 14px rgba(52, 225, 255, 0.5);
+  animation: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-brand .forum-description.forum-description--header {
@@ -653,7 +650,7 @@ a {
 
 @media (max-width: 1000px) {
   .site-header__inner {
-    /* Flexbox is inherited, but we might want to ensure gaps */
+    /* Flexbox is inherited */
     gap: 8px;
   }
 
@@ -743,6 +740,14 @@ a {
     align-items: center;
     gap: 4px;
     min-height: 56px;
+  }
+
+  .header-brand .forum-title.forum-title--header {
+    font-size: clamp(20px, 7vw, 24px);
+    white-space: normal;
+    text-wrap: balance;
+    max-width: min-content;
+    line-height: 1.0;
   }
 
   .header-right {
