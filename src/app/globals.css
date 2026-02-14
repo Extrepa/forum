@@ -1037,6 +1037,18 @@ a {
     padding-inline: 10px;
   }
 
+  .site-header__inner {
+    padding-inline: 2px;
+  }
+
+  .header-left {
+    padding-left: 2px;
+  }
+
+  .header-right {
+    padding-right: 2px;
+  }
+
   .header-left {
     max-width: min(42vw, 150px);
   }
@@ -1096,10 +1108,12 @@ a {
 
   .site-header__inner {
     gap: 4px;
+    padding-inline: 2px;
   }
 
   .header-left {
     max-width: min(34vw, 112px);
+    padding-left: 2px;
   }
 
   .header-brand {
@@ -1127,6 +1141,7 @@ a {
 
   .header-right {
     gap: 2px;
+    padding-right: 2px;
   }
 
   .header-icon-button {
