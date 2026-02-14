@@ -1077,8 +1077,25 @@ a {
 }
 
 @media (max-width: 380px) {
+  .site {
+    padding-inline: 6px;
+  }
+
+  .site-header {
+    padding-inline: 6px;
+    padding-block: 7px;
+  }
+
+  .site-header__inner {
+    gap: 4px;
+  }
+
   .header-left {
     max-width: min(34vw, 112px);
+  }
+
+  .header-brand {
+    gap: 4px;
   }
 
   .header-brand .forum-title.forum-title--header {
@@ -1097,11 +1114,11 @@ a {
   }
 
   .header-nav {
-    gap: 3px;
+    gap: 2px;
   }
 
   .header-right {
-    gap: 1px;
+    gap: 2px;
   }
 
   .header-icon-button {
