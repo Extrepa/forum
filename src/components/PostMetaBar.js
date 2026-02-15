@@ -33,7 +33,8 @@ export default function PostMetaBar({
   className = '',
   titleHref,
   showTitleLink = true,
-  hideDateOnDesktop = false
+  hideDateOnDesktop = false,
+  authorDateInline = false
 }) {
   const formatCount = (count) => {
     if (count === 0) return null;
@@ -77,6 +78,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
+              {authorDateInline && createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
           )}
           {/* Condensed desktop: by author at time next to title (left side) */}
@@ -99,7 +101,7 @@ export default function PostMetaBar({
         )}
         {/* Condensed mobile: author+date and stats on same row so stats don't wrap to own line */}
         {isCondensed && (
-          <div className="post-meta-condensed-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', minWidth: 0 }}>
+          <div className="post-meta-condensed-meta-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0, flex: '1 1 auto' }}>
             <span className="post-meta-condensed-author-mobile muted" style={{ fontSize: '14px', flex: '1 1 auto', minWidth: 0 }}>
               by <Username 
                 name={author} 
@@ -128,7 +130,7 @@ export default function PostMetaBar({
         rowGap: '4px',
         minWidth: 0
       }}>
-        {createdAt && replies > 0 && (
+        {createdAt && replies > 0 && !authorDateInline && (
           <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
             {formatDateTime(createdAt)}
           </span>

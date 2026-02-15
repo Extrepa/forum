@@ -584,6 +584,7 @@ export default async function FeedPage() {
                     titleHref={item.href}
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
+                    authorDateInline={item.type === 'Event'}
                   />
                   {item.type === 'Event' ? (
                     <>
@@ -602,13 +603,6 @@ export default async function FeedPage() {
                         gap: '8px',
                         rowGap: '4px'
                       }}>
-                        {item.createdAt && (
-                          <div>
-                            <span className="muted event-post-time-desktop" style={{ fontSize: '12px' }} suppressHydrationWarning>
-                              {formatDateTime(item.createdAt)}
-                            </span>
-                          </div>
-                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                           <svg
                             width="14"

@@ -94,6 +94,7 @@ export default function EventsClient({ events, notice , headerActions}) {
                       lastActivity={undefined}
                       titleHref={`/events/${row.id}`}
                       showTitleLink={false}
+                      authorDateInline={condensed}
                     />
                     {!condensed && row.details ? (
                       <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />

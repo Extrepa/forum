@@ -4613,7 +4613,7 @@ button.ghost:hover,
 }
 
 .list.list--tight {
-  gap: 6px;
+  gap: 4px;
 }
 
 /* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
@@ -4684,8 +4684,8 @@ button.ghost:hover,
   }
   .post-meta-stats-mobile,
   .post-meta-stats-condensed-row1 {
-    white-space: normal;
-    overflow-wrap: break-word;
+    white-space: nowrap;
+    overflow-wrap: normal;
   }
   .post-meta-row2 {
     min-width: 0;
@@ -4702,7 +4702,7 @@ button.ghost:hover,
   }
 
   .event-info-row {
-    justify-content: center !important;
+    justify-content: flex-start !important;
   }
 }
 
@@ -5725,7 +5725,7 @@ a.profile-activity-item:hover {
 .list-item {
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: 14px;
-  padding: 6px 14px 10px;
+  padding: 6px 12px 8px;
   background: rgba(4, 16, 23, 0.7);
   position: relative;
   isolation: isolate;
@@ -5744,7 +5744,7 @@ a.list-item:hover {
 }
 
 .list-item h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 18px;
 }
 
@@ -7992,7 +7992,7 @@ header::before {
   }
 
   .list-item {
-    padding: 12px 14px;
+    padding: 8px 12px;
   }
 
   .list-item h3 {
@@ -8257,7 +8257,7 @@ header::before {
   }
 
   .list-item {
-    padding: 16px 20px;
+    padding: 10px 14px;
   }
 }
 
@@ -9277,7 +9277,7 @@ header::before {
   }
 
   /* Card containing auth form should use full width on mobile */
-  .card:not(.avatar-customizer-panel) {
+  .card:not(.avatar-customizer-panel):not(.user-popover) {
     width: 100% !important;
     max-width: 100% !important;
   }
