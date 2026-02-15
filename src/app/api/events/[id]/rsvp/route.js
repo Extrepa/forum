@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { getEventDayCompletionTimestamp } from '../../../../../lib/dates';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -31,8 +32,9 @@ export async function POST(request, { params }) {
   }
 
   const eventEndAt = Number(event.ends_at || event.starts_at || 0);
+  const completionAt = getEventDayCompletionTimestamp(eventEndAt);
   const attendanceReopened = Number(event.attendance_reopened || 0) === 1;
-  const isClosedByTime = eventEndAt > 0 && Date.now() >= eventEndAt && !attendanceReopened;
+  const isClosedByTime = completionAt > 0 && Date.now() > completionAt && !attendanceReopened;
   if (isClosedByTime) {
     return NextResponse.json({ error: 'RSVP is closed for this event.', attendance_closed: true }, { status: 400 });
   }

@@ -202,6 +202,19 @@
 - Detailed log:
   - `05-Logs/Daily/2026-02-15-library-notification-popover-positioning.md`
 
+## UI Follow-up Revision: Simplify Library + Notification Menus to Normal Anchored Dropdowns
+- Feedback:
+  - Prior implementation still felt too complex and did not match expected simple dropdown behavior.
+- Revision:
+  - Removed extra positioning math and switched Library + Notifications to normal anchored absolute menus under their own header controls (same model as three-dot menu).
+  - Kept click behavior for both menus.
+  - Kept desktop hover-open for Library.
+  - Updated close-on-outside logic to rely on direct container refs.
+  - Removed leftover `transform: none` override that canceled Library centering.
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+
 ## Feature Follow-up: Events Ordering + End Time + RSVP Close + Invites
 - Implemented events behavior update request:
   - pinned-first then newest-created order for event lists,
@@ -216,3 +229,60 @@
   - `src/app/api/events/[id]/attendance/route.js`
 - Full implementation + verification notes:
   - `05-Logs/Daily/2026-02-15-events-ordering-endtime-rsvp-invites.md`
+
+## UI Follow-up: Homepage Explore Sections Mobile Density + Flow Correction
+- Request:
+  - Make homepage section discovery denser on mobile while preserving full section context and clear navigation paths.
+- Initial implementation:
+  - Added mobile compact accordion with single-open behavior.
+  - Introduced `HomeSectionsList` wrapper and compact mode in `HomeSectionCard`.
+- Issue observed in visual QA:
+  - Compact styling looked wrong at wider viewport widths.
+  - Collapsed rows showed oversized pill-like controls.
+- Root causes confirmed:
+  - Breakpoint mismatch (`HomeSectionsList` used `<= 760px`, compact CSS tuned at `<= 640px`).
+  - Collapsed toggle inherited global mobile `main button` rules.
+- Corrections applied:
+  - Set compact mode breakpoint to `<= 640px` in `src/components/HomeSectionsList.js`.
+  - Reset toggle styles with `all: unset` and explicit local styles in `src/app/globals.css`.
+  - Removed always-visible collapsed `Open` button.
+  - Updated compact flow in `src/components/HomeSectionCard.js`:
+    - collapsed: title + post count + status dot/activity hint,
+    - expanded: description + latest activity detail + links for `Open latest activity` and `Open section`.
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+- Detailed log:
+  - `05-Logs/Daily/2026-02-15-homepage-mobile-sections-accordion.md`
+
+## Events Follow-up: End-of-Day Completion + Engagement Card Separation
+- Applied follow-up adjustments to event lifecycle + layout:
+  - Event completion now triggers after the end of the event day (forum timezone), not at exact event-time cutoff.
+  - Invite permissions reconfirmed in both UI/API as author-or-admin only.
+  - RSVP/invitations moved out of replies into a dedicated engagement card.
+  - Replies card reorganized so comment input/actions appear before the posts list.
+  - Removed duplicate "Event happened" wording in event detail display.
+- New/updated files include:
+  - `src/lib/dates.js`
+  - `src/components/EventEngagementSection.js`
+  - `src/components/EventCommentsSection.js`
+  - `src/app/events/[id]/page.js`
+  - `src/app/events/EventsClient.js`
+  - `src/app/feed/page.js`
+  - `src/app/api/events/[id]/rsvp/route.js`
+  - `src/app/api/events/[id]/comments/route.js`
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+- Detailed note:
+  - `05-Logs/Daily/2026-02-15-events-ordering-endtime-rsvp-invites.md` (follow-up section appended)
+
+## UI Follow-up: Edit Profile Tab Switcher Placement
+- Request:
+  - Move the Edit Profile tab switcher above the active panel content.
+- Change applied:
+  - Updated `src/app/account/AccountTabsClient.js` to render `ErrlTabSwitcher` before `.account-edit-tab-content--above` inside the edit profile card.
+  - Removed the previous bottom-rendered switcher instance from the end of the card content.
+- Verification:
+  - Structural check: single `ErrlTabSwitcher` instance remains and it is above `.account-edit-tab-content--above`.
+  - `npm run lint` (pass)

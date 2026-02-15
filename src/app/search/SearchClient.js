@@ -25,6 +25,7 @@ export default function SearchClient({ query: initialQuery, results }) {
       event: 'Event',
       music: 'Music',
       project: 'Project',
+      devlog: 'Dev Log',
       reply: 'Reply',
       user: 'User',
       art: 'Art',

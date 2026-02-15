@@ -11,9 +11,10 @@ import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
 import PostForm from '../../../components/PostForm';
 import { assignUniqueColorsForPage } from '../../../lib/usernameColor';
-import { formatEventDateLarge, formatEventTime, formatRelativeEventDate } from '../../../lib/dates';
+import { formatEventDateLarge, formatEventTime, formatRelativeEventDate, getEventDayCompletionTimestamp } from '../../../lib/dates';
 import LikeButton from '../../../components/LikeButton';
 import EventCommentsSection from '../../../components/EventCommentsSection';
+import EventEngagementSection from '../../../components/EventEngagementSection';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 
@@ -356,7 +357,8 @@ export default async function EventDetailPage({ params, searchParams }) {
   const isPinned = event.is_pinned ? Boolean(event.is_pinned) : false;
   const isDeleted = event.is_deleted ? Boolean(event.is_deleted) : false;
   const eventEndAt = Number(event.ends_at || event.starts_at || 0);
-  const eventHasPassed = eventEndAt > 0 && Date.now() >= eventEndAt;
+  const completionAt = getEventDayCompletionTimestamp(eventEndAt);
+  const eventHasPassed = completionAt > 0 && Date.now() > completionAt;
   const canRSVP = !eventHasPassed || attendanceReopened;
 
   if (isDeleted) {
@@ -536,9 +538,11 @@ export default async function EventDetailPage({ params, searchParams }) {
               </span>
             ) : null}
           </span>
-          <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal' }}>
-            ({eventHasPassed ? 'Event happened' : formatRelativeEventDate(event.starts_at)})
-          </span>
+          {!eventHasPassed ? (
+            <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal' }}>
+              ({formatRelativeEventDate(event.starts_at)})
+            </span>
+          ) : null}
         </div>
         {event.image_key ? (
           <Image
@@ -571,20 +575,25 @@ export default async function EventDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      <EventCommentsSection
+      <EventEngagementSection
         eventId={id}
+        user={user}
         initialAttending={userAttending}
         initialAttendees={attendees}
+        canRSVP={canRSVP}
+        eventHasPassed={eventHasPassed}
+        canInvite={canInvite}
+        invitableUsers={invitableUsers}
+      />
+
+      <EventCommentsSection
+        eventId={id}
         comments={commentsWithHtml}
         user={user}
         isAdmin={isAdmin}
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
         isLocked={event.is_locked}
-        canRSVP={canRSVP}
-        eventHasPassed={eventHasPassed}
-        canInvite={canInvite}
-        invitableUsers={invitableUsers}
       />
     </div>
   );

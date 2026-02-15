@@ -60,26 +60,48 @@ export default function HomeSectionCard({
             aria-expanded={isExpanded}
             aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${title}`}
           >
-            <span className="home-section-card__title">{title}</span>
-            <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
+            <span className="home-section-card__title-wrap">
+              <span className="home-section-card__title">{title}</span>
+              <span className={`home-section-card__status${recentActivity ? ' is-active' : ''}`} suppressHydrationWarning>
+                <span className="home-section-card__status-dot" aria-hidden="true" />
+                {recentActivity ? `Recent activity ${recentActivity.timeAgo || 'just now'}` : 'Quiet right now'}
+              </span>
+            </span>
+            <span className="home-section-card__count-wrap">
+              <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
+              <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+            </span>
           </button>
-          <Link href={href} className="home-section-card__open-link">
-            Open
-          </Link>
         </div>
-
-        <p className="list-meta home-section-card__description">{description}</p>
 
         {isExpanded && (
           <div className="home-section-card__details">
+            <p className="list-meta home-section-card__description">{description}</p>
             {recentActivity ? (
-              <div className="section-stats" suppressHydrationWarning>
-                <Link href={recentActivity.href} style={{ color: 'inherit', textDecoration: 'none' }}>
-                  Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
-                </Link>
-              </div>
+              <>
+                <div className="section-stats" suppressHydrationWarning>
+                  <Link href={recentActivity.href} style={{ color: 'inherit', textDecoration: 'none' }}>
+                    Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
+                  </Link>
+                </div>
+                <div className="home-section-card__actions">
+                  <Link href={recentActivity.href} className="home-section-card__detail-link">
+                    Open latest activity
+                  </Link>
+                  <Link href={href} className="home-section-card__detail-link is-subtle">
+                    Open section
+                  </Link>
+                </div>
+              </>
             ) : (
-              <p className="section-card-empty-cta">The goo is quiet here — head in and post something.</p>
+              <>
+                <p className="section-card-empty-cta">The goo is quiet here — head in and post something.</p>
+                <div className="home-section-card__actions">
+                  <Link href={href} className="home-section-card__detail-link is-subtle">
+                    Open section
+                  </Link>
+                </div>
+              </>
             )}
           </div>
         )}

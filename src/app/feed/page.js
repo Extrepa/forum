@@ -3,7 +3,7 @@ import { getSessionUser } from '../../lib/auth';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
-import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTime } from '../../lib/dates';
+import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTime, getEventDayCompletionTimestamp } from '../../lib/dates';
 import Username from '../../components/Username';
 
 export const dynamic = 'force-dynamic';
@@ -584,7 +584,8 @@ export default async function FeedPage() {
                     <>
                       {(() => {
                         const eventEndAt = item.endsAt || item.startsAt;
-                        const hasPassed = eventEndAt <= Date.now();
+                        const completionAt = getEventDayCompletionTimestamp(eventEndAt);
+                        const hasPassed = completionAt > 0 && Date.now() > completionAt;
                         return (
                           <>
                       {/* Second Row: Post time on left, Event Information on right */}

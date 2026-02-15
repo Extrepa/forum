@@ -13,16 +13,15 @@
 ## Files Changed
 - `src/components/HomeSectionsList.js` (new)
   - New client wrapper for the homepage sections list.
-  - Detects mobile viewport (`<= 760px`) and controls expanded card state.
+  - Detects mobile viewport (`<= 640px`) and controls expanded card state.
   - Ensures only one section is expanded at a time.
 
 - `src/components/HomeSectionCard.js`
   - Added optional props: `compactMode`, `isExpanded`, `onToggle`.
-  - Added compact rendering mode:
-    - Header row with section title + count.
-    - `Open` link to section root.
-    - Collapsed one-line description.
-    - Expanded detail panel containing full existing latest activity content, or empty-state CTA.
+  - Added compact rendering mode with revised interaction flow:
+    - Collapsed row: section title + post count + lightweight recent-activity status indicator.
+    - Expanded panel: description + latest activity detail + explicit links for latest item and section root.
+    - Removed always-visible collapsed `Open` button.
   - Preserved existing desktop card behavior for non-compact mode.
 
 - `src/app/page.js`
@@ -34,15 +33,17 @@
     - `.home-section-card__*` structure styles
     - compact mobile density tuning
     - expanded panel divider and animation
+    - collapsed status-dot + activity label treatment
+    - expanded action-link treatments
   - Added `@keyframes homeSectionExpand` for subtle expand motion.
 
 ## Behavior Details
 - Mobile compact mode:
   - Rows are denser and easier to scan.
-  - Descriptions are shown as a single truncated line in collapsed state.
+  - Collapsed state shows title, count, and activity signal only.
   - Tapping title row toggles expansion.
   - Only one row stays expanded at a time.
-  - `Open` always navigates directly to the section list page.
+  - Expanded state reveals description + latest activity + section navigation links.
 - Desktop mode:
   - Existing card styling and interactions remain as before.
 
@@ -53,6 +54,19 @@
   - `npm run build` -> pass
 - Re-checked component usage:
   - `HomeSectionCard` is now only used by `HomeSectionsList`.
+- Ran post-feedback correction checks:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass
+
+## Troubleshooting Timeline
+- Initial compact pass produced poor visual results at wider viewports.
+- Two causes were confirmed:
+  - Breakpoint mismatch (`HomeSectionsList` JavaScript used `<= 760px` while compact CSS was tuned at `<= 640px`).
+  - Collapsed toggle inherited global `main button` styling, causing oversized pill-like controls.
+- Corrections applied:
+  - Standardized compact activation to `<= 640px`.
+  - Reset toggle control styling with `all: unset` and explicit local styles.
+  - Removed collapsed `Open` button and switched to status-driven collapsed rows with richer expanded actions.
 
 ## Double-Check Notes / Risks
 - Current mobile detection is client-side (`window.innerWidth`) after hydration. On very first paint, mobile may briefly render desktop layout before switching to compact mode.

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
-import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming, formatDateTime } from '../../lib/dates';
+import { formatEventDate, formatEventTime, formatRelativeEventDate, isEventUpcoming, formatDateTime, getEventDayCompletionTimestamp } from '../../lib/dates';
 import PostMetaBar from '../../components/PostMetaBar';
 
 export default function EventsClient({ events, notice , headerActions}) {
@@ -70,7 +70,8 @@ export default function EventsClient({ events, notice , headerActions}) {
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>
                   : row.title;
                 const eventEndAt = row.ends_at || row.starts_at;
-                const hasPassed = eventEndAt <= Date.now();
+                const completionAt = getEventDayCompletionTimestamp(eventEndAt);
+                const hasPassed = completionAt > 0 && Date.now() > completionAt;
                 const attendeeLabel = hasPassed ? 'attended' : 'attending';
                 const attendeeTitle = row.attendee_names?.length ? row.attendee_names.join(', ') : '';
 

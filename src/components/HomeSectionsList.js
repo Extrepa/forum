@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import HomeSectionCard from './HomeSectionCard';
 
-const MOBILE_BREAKPOINT = 760;
+const MOBILE_BREAKPOINT = 640;
 
 export default function HomeSectionsList({ sections, usernameColorMap }) {
   const [isMobile, setIsMobile] = useState(false);

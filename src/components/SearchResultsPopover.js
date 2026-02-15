@@ -33,6 +33,7 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
       event: 'Event',
       music: 'Music',
       project: 'Project',
+      devlog: 'Dev Log',
       reply: 'Reply',
       user: 'User',
       art: 'Art',

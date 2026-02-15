@@ -16,6 +16,7 @@ export default async function SearchResults({ query }) {
   const db = await getDb();
   const searchTerm = `%${query}%`;
   const normalizedTerm = `%${String(query).toLowerCase()}%`;
+  const signedInPostVisibility = isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')";
 
   // Search forum threads
   let threads = [];
@@ -276,6 +277,52 @@ export default async function SearchResults({ query }) {
     projects = out?.results || [];
   }
 
+  // Search dev logs
+  let devLogs = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+                dev_logs.created_at, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
+         FROM dev_logs
+         JOIN users ON users.id = dev_logs.author_user_id
+         WHERE (dev_logs.is_hidden = 0 OR dev_logs.is_hidden IS NULL)
+           AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+           AND (
+             dev_logs.title LIKE ?
+             OR dev_logs.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
+         ORDER BY dev_logs.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
+      .all();
+    devLogs = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.image_key,
+                dev_logs.created_at, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
+         FROM dev_logs
+         JOIN users ON users.id = dev_logs.author_user_id
+         WHERE (
+             dev_logs.title LIKE ?
+             OR dev_logs.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
+         ORDER BY dev_logs.created_at DESC
+         LIMIT 20`
+      )
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
+      .all();
+    devLogs = out?.results || [];
+  }
+
   // Search forum replies
   let replies = [];
   try {
@@ -327,6 +374,179 @@ export default async function SearchResults({ query }) {
       .all();
     replies = out?.results || [];
   }
+
+  // Search additional comments/replies across the forum
+  const safeSearchAll = async (sql, ...binds) => {
+    try {
+      const out = await db.prepare(sql).bind(...binds).all();
+      return out?.results || [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const [
+    devLogComments,
+    timelineComments,
+    eventComments,
+    musicComments,
+    projectReplies,
+    projectComments,
+    postComments,
+  ] = await Promise.all([
+    safeSearchAll(
+      `SELECT dev_log_comments.id, dev_log_comments.body, dev_log_comments.created_at,
+              dev_log_comments.log_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              dev_logs.title AS thread_title, 'devlog' AS parent_type
+       FROM dev_log_comments
+       JOIN users ON users.id = dev_log_comments.author_user_id
+       JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+       WHERE (
+           dev_log_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
+         AND (dev_logs.is_hidden = 0 OR dev_logs.is_hidden IS NULL)
+         AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+       ORDER BY dev_log_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
+              timeline_comments.update_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              timeline_updates.title AS thread_title, 'announcement' AS parent_type
+       FROM timeline_comments
+       JOIN users ON users.id = timeline_comments.author_user_id
+       JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+       WHERE (
+           timeline_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)
+         AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
+         AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
+       ORDER BY timeline_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+              event_comments.event_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              events.title AS thread_title, 'event' AS parent_type
+       FROM event_comments
+       JOIN users ON users.id = event_comments.author_user_id
+       JOIN events ON events.id = event_comments.event_id
+       WHERE (
+           event_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
+         AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
+         AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+       ORDER BY event_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+              music_comments.post_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              music_posts.title AS thread_title, 'music' AS parent_type
+       FROM music_comments
+       JOIN users ON users.id = music_comments.author_user_id
+       JOIN music_posts ON music_posts.id = music_comments.post_id
+       WHERE (
+           music_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
+         AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
+         AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+       ORDER BY music_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT project_replies.id, project_replies.body, project_replies.created_at,
+              project_replies.project_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              projects.title AS thread_title, 'project' AS parent_type
+       FROM project_replies
+       JOIN users ON users.id = project_replies.author_user_id
+       JOIN projects ON projects.id = project_replies.project_id
+       WHERE (
+           project_replies.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
+         AND (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
+         AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+       ORDER BY project_replies.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT project_comments.id, project_comments.body, project_comments.created_at,
+              project_comments.project_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              projects.title AS thread_title, 'project' AS parent_type
+       FROM project_comments
+       JOIN users ON users.id = project_comments.author_user_id
+       JOIN projects ON projects.id = project_comments.project_id
+       WHERE (
+           project_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (project_comments.is_deleted = 0 OR project_comments.is_deleted IS NULL)
+         AND (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
+         AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+       ORDER BY project_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+    safeSearchAll(
+      `SELECT post_comments.id, post_comments.body, post_comments.created_at,
+              post_comments.post_id AS parent_id, users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference,
+              posts.title AS thread_title, posts.type AS post_type, 'post' AS parent_type
+       FROM post_comments
+       JOIN users ON users.id = post_comments.author_user_id
+       JOIN posts ON posts.id = post_comments.post_id
+       WHERE (
+           post_comments.body LIKE ?
+           OR users.username LIKE ?
+           OR users.username_norm LIKE ?
+         )
+         AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+         AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
+         AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         AND (${signedInPostVisibility})
+       ORDER BY post_comments.created_at DESC
+       LIMIT 20`,
+      searchTerm, searchTerm, normalizedTerm
+    ),
+  ]);
+
+  replies = [
+    ...replies,
+    ...devLogComments,
+    ...timelineComments,
+    ...eventComments,
+    ...musicComments,
+    ...projectReplies,
+    ...projectComments,
+    ...postComments,
+  ];
 
   // Search shared posts (art/bugs/rant/nostalgia/lore/memories)
   let posts = [];
@@ -426,12 +646,33 @@ export default async function SearchResults({ query }) {
     url: `/projects/${p.id}`
   }));
 
-  const processedReplies = replies.map(r => ({
-    ...r,
-    bodyHtml: renderMarkdown(r.body),
-    type: 'reply',
-    url: `/lobby/${r.thread_id}`
+  const processedDevLogs = devLogs.map((d) => ({
+    ...d,
+    bodyHtml: d.body ? renderMarkdown(d.body) : null,
+    type: 'devlog',
+    url: `/devlog/${d.id}`,
   }));
+
+  const processedReplies = replies.map((r) => {
+    const parentId = r.thread_id || r.parent_id;
+    let url = `/lobby/${parentId}`;
+    if (r.parent_type === 'devlog') url = `/devlog/${parentId}`;
+    else if (r.parent_type === 'announcement') url = `/announcements/${parentId}`;
+    else if (r.parent_type === 'event') url = `/events/${parentId}`;
+    else if (r.parent_type === 'music') url = `/music/${parentId}`;
+    else if (r.parent_type === 'project') url = `/projects/${parentId}`;
+    else if (r.parent_type === 'post') {
+      if (r.post_type === 'lore' || r.post_type === 'memories') url = `/lore-memories/${parentId}`;
+      else if (r.post_type === 'about') url = '/about';
+      else url = `/${r.post_type}/${parentId}`;
+    }
+    return {
+      ...r,
+      bodyHtml: renderMarkdown(r.body),
+      type: 'reply',
+      url
+    };
+  });
 
   const labelForShared = (t) => {
     const labels = {
@@ -497,6 +738,7 @@ export default async function SearchResults({ query }) {
     ...processedEvents,
     ...processedMusic,
     ...processedProjects,
+    ...processedDevLogs,
     ...processedReplies,
     ...processedPosts,
     ...processedUsers

@@ -218,3 +218,87 @@ export function parseLocalDateTimeToUTC(localDateTimeString) {
   // Return UTC timestamp (milliseconds since epoch)
   return localDate.getTime();
 }
+
+function partsToNumberMap(parts) {
+  return parts.reduce((acc, part) => {
+    if (part.type !== 'literal') {
+      acc[part.type] = Number(part.value);
+    }
+    return acc;
+  }, {});
+}
+
+function getTimeZoneOffsetMs(timestamp, timeZone) {
+  const date = new Date(timestamp);
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const parts = partsToNumberMap(dtf.formatToParts(date));
+  const asUtc = Date.UTC(
+    parts.year,
+    (parts.month || 1) - 1,
+    parts.day || 1,
+    parts.hour || 0,
+    parts.minute || 0,
+    parts.second || 0,
+    0
+  );
+  return asUtc - date.getTime();
+}
+
+function zonedDateTimeToUtcMs({ year, month, day, hour = 0, minute = 0, second = 0, millisecond = 0 }, timeZone) {
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second, millisecond);
+  const offset1 = getTimeZoneOffsetMs(utcGuess, timeZone);
+  const corrected = utcGuess - offset1;
+  const offset2 = getTimeZoneOffsetMs(corrected, timeZone);
+  if (offset2 !== offset1) {
+    return utcGuess - offset2;
+  }
+  return corrected;
+}
+
+/**
+ * Returns the UTC timestamp for the end of the calendar day of an event in the forum timezone.
+ * This keeps events "open" through 11:59:59 PM local forum time.
+ */
+export function getEventDayCompletionTimestamp(timestamp, timeZone = 'America/Los_Angeles') {
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || ts <= 0) {
+    return 0;
+  }
+  const date = new Date(ts);
+  if (Number.isNaN(date.getTime())) {
+    return 0;
+  }
+
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = partsToNumberMap(dtf.formatToParts(date));
+  if (!parts.year || !parts.month || !parts.day) {
+    return 0;
+  }
+
+  return zonedDateTimeToUtcMs(
+    {
+      year: parts.year,
+      month: parts.month,
+      day: parts.day,
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999,
+    },
+    timeZone
+  );
+}

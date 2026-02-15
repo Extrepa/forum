@@ -51,3 +51,22 @@
   - `src/components/SiteHeader.js`
   - `src/components/NotificationsMenu.js`
 - Existing unrelated logic in `NotificationsMenu` (admin/broadcast labeling paths) was left untouched.
+
+## Follow-up Simplification Pass (User Feedback)
+- Feedback:
+  - Current behavior still felt over-engineered and not aligned with expected "normal dropdown under the trigger" behavior.
+  - Reference behavior confirmed from three-dot menu.
+- Simplification applied:
+  - Removed custom viewport position math for Library and Notifications.
+  - Reworked both as straightforward anchored popouts in header containers:
+    - Library: absolute menu under `.header-library`
+    - Notifications: absolute menu under `.header-avatar`
+  - Kept click-to-toggle behavior.
+  - Kept desktop hover-open for Library (open on enter, close on leave).
+  - Updated outside-click checks to use container refs directly (no global popover query dependency).
+- CSS correction found during recheck:
+  - Base `.header-library-menu` still had a leftover `transform: none`, which canceled center alignment.
+  - Removed that override so centered dropdown anchor works as intended on desktop.
+- Verification after simplification:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass

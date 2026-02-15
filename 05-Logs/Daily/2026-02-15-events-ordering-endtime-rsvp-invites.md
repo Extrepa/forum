@@ -121,3 +121,49 @@
   - pass event time and verify RSVP close + comments open,
   - send invites (individual, role, all),
   - confirm `event_invite` appears in Messages/notifications and links to event.
+
+## Follow-up: End-of-Day Completion + Engagement Layout Reorganization
+
+### Objective
+- Loosen completion timing so events stay open through the end of the event day (forum timezone), even when a specific time is set.
+- Confirm invite permissions remain restricted to event author/admin only.
+- Reorganize event detail layout so RSVP/invites are outside replies.
+- Remove duplicate completion wording in event detail view.
+
+### Changes applied
+- Added shared end-of-day completion helper:
+  - `src/lib/dates.js`
+  - new `getEventDayCompletionTimestamp(timestamp, 'America/Los_Angeles')`
+- Updated completion checks to use end-of-day cutoff (strictly after day-end):
+  - `src/app/api/events/[id]/rsvp/route.js`
+  - `src/app/api/events/[id]/comments/route.js`
+  - `src/app/events/[id]/page.js`
+  - `src/app/events/EventsClient.js`
+  - `src/app/feed/page.js`
+- Confirmed and retained invite permission enforcement in both layers:
+  - UI gate in `src/app/events/[id]/page.js`
+  - API gate in `src/app/api/events/[id]/invites/route.js`
+- Reorganized event detail into separate cards:
+  - New engagement card (Attending + Invitations):
+    - `src/components/EventEngagementSection.js`
+  - Replies card now focused on comments only:
+    - `src/components/EventCommentsSection.js`
+  - Event detail order now:
+    1. Event post card
+    2. Engagement card (RSVP + Invitations)
+    3. Replies card
+- Reordered replies internals:
+  - `Replies` header
+  - comment field/actions
+  - `Posts` list
+- Removed duplicate completion wording on event detail:
+  - keep single status line (`Event happened`), remove duplicate parenthetical copy in date row.
+
+### Verification rerun
+- Permission checks:
+  - invite route still returns 403 for non-author/non-admin.
+- Text duplication audit:
+  - single `Event happened` instance in event detail page.
+- Build checks:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass

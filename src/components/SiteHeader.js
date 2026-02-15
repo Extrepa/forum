@@ -9,7 +9,6 @@ import AvatarImage from './AvatarImage';
 import NotificationsMenu from './NotificationsMenu';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
-import { getAnchoredPopoverLayout } from '../lib/anchoredPopover';
 
 function isActivePath(pathname, href) {
   if (!pathname) return false;
@@ -28,7 +27,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [libraryFilterOpen, setLibraryFilterOpen] = useState(false);
   const [librarySearchValue, setLibrarySearchValue] = useState('');
   const [kebabOpen, setKebabOpen] = useState(false);
-  const [libraryStyle, setLibraryStyle] = useState({});
 
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyUnreadCount, setNotifyUnreadCount] = useState(0);
@@ -40,24 +38,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const [guestFeedGhost, setGuestFeedGhost] = useState(null);
   const [headerEasterOpen, setHeaderEasterOpen] = useState(false);
 
-  const libraryAnchorRef = useRef(null);
+  const libraryRef = useRef(null);
   const libraryMenuRef = useRef(null);
   const avatarRef = useRef(null);
-  const notifyAnchorRef = useRef(null);
-  const libraryButtonRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
   const brandRef = useRef(null);
   const guestFeedArmTimerRef = useRef(null);
-  const libraryHoverCloseTimerRef = useRef(null);
   const [hoverEnabled, setHoverEnabled] = useState(false);
-
-  const clearLibraryHoverCloseTimer = useCallback(() => {
-    if (libraryHoverCloseTimerRef.current) {
-      clearTimeout(libraryHoverCloseTimerRef.current);
-      libraryHoverCloseTimerRef.current = null;
-    }
-  }, []);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -105,9 +93,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       const target = event.target;
 
       if (libraryOpen) {
-        const inTrigger = libraryAnchorRef.current?.contains(target);
-        const inMenu = libraryMenuRef.current?.contains(target);
-        if (!inTrigger && !inMenu) setLibraryOpen(false);
+        const inLibrary = libraryRef.current?.contains(target);
+        if (!inLibrary) setLibraryOpen(false);
       }
 
       if (kebabOpen) {
@@ -117,9 +104,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       }
 
       if (notifyOpen) {
-        const inTrigger = notifyAnchorRef.current?.contains(target);
-        const inMenu = document.querySelector('.notifications-popover');
-        if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
+        const inTrigger = avatarRef.current?.contains(target);
+        if (!inTrigger) setNotifyOpen(false);
       }
 
     };
@@ -173,8 +159,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     if (guestFeedArmTimerRef.current) {
       clearTimeout(guestFeedArmTimerRef.current);
     }
-    clearLibraryHoverCloseTimer();
-  }, [clearLibraryHoverCloseTimer]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -184,30 +169,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     mediaQuery.addEventListener('change', update);
     return () => mediaQuery.removeEventListener('change', update);
   }, []);
-
-  const openLibraryMenu = useCallback((anchorElement) => {
-    if (navDisabled) return;
-    clearLibraryHoverCloseTimer();
-    if (anchorElement) {
-      libraryAnchorRef.current = anchorElement;
-    } else if (libraryButtonRef.current) {
-      libraryAnchorRef.current = libraryButtonRef.current;
-    }
-    setNotifyOpen(false);
-    setKebabOpen(false);
-    setLibraryOpen(true);
-  }, [clearLibraryHoverCloseTimer, navDisabled]);
-
-  const queueLibraryHoverClose = useCallback(() => {
-    if (!hoverEnabled) return;
-    clearLibraryHoverCloseTimer();
-    libraryHoverCloseTimerRef.current = setTimeout(() => {
-      setLibraryOpen(false);
-      setLibraryFilterOpen(false);
-      setLibrarySearchValue('');
-      libraryHoverCloseTimerRef.current = null;
-    }, 140);
-  }, [clearLibraryHoverCloseTimer, hoverEnabled]);
 
   const libraryLinks = useMemo(() => ([
     { href: '/announcements', label: strings.tabs.announcements },
@@ -221,46 +182,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     { href: '/bugs-rant', label: 'Bugs & Rants' },
     { href: '/lore-memories', label: 'Lore & Memories' },
   ]), [strings]);
-
-  useEffect(() => {
-    if (!libraryOpen || typeof window === 'undefined' || !libraryAnchorRef.current) return undefined;
-
-    const updatePosition = () => {
-      const anchorRect = libraryAnchorRef.current.getBoundingClientRect();
-      const edgePadding = window.innerWidth <= 640 ? 10 : 16;
-      const minMenuWidth = window.innerWidth <= 640 ? 160 : 174;
-      const idealMenuWidth = libraryFilterOpen ? 224 : 206;
-      const panelHeight = libraryMenuRef.current?.offsetHeight || 0;
-      const { left, top, width, maxHeight } = getAnchoredPopoverLayout({
-        anchorRect,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        desiredWidth: idealMenuWidth,
-        minWidth: minMenuWidth,
-        edgePadding,
-        gap: 6,
-        minHeight: 180,
-        maxHeight: 380,
-        panelHeight,
-        align: 'center',
-      });
-      setLibraryStyle({
-        position: 'fixed',
-        top,
-        left,
-        width,
-        maxHeight,
-      });
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [libraryFilterOpen, libraryLinks, libraryOpen]);
 
   useEffect(() => {
     if (!libraryOpen) return undefined;
@@ -340,26 +261,33 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               >
                 <span className="header-nav-label">Feed</span>
               </Link>
-              <div className="header-library">
+              <div
+                className="header-library"
+                ref={libraryRef}
+                onMouseEnter={() => {
+                  if (!hoverEnabled || navDisabled) return;
+                  setNotifyOpen(false);
+                  setKebabOpen(false);
+                  setLibraryOpen(true);
+                }}
+                onMouseLeave={() => {
+                  if (!hoverEnabled) return;
+                  setLibraryOpen(false);
+                  setLibraryFilterOpen(false);
+                  setLibrarySearchValue('');
+                }}
+              >
                 <button
                   type="button"
                   className={`header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
-                  ref={libraryButtonRef}
-                  onClick={(event) => {
+                  onClick={() => {
                     if (navDisabled) return;
-                    clearLibraryHoverCloseTimer();
-                    libraryAnchorRef.current = event.currentTarget;
                     setNotifyOpen(false);
                     setKebabOpen(false);
                     setLibraryFilterOpen(false);
                     setLibrarySearchValue('');
                     setLibraryOpen((current) => !current);
                   }}
-                  onMouseEnter={(event) => {
-                    if (!hoverEnabled) return;
-                    openLibraryMenu(event.currentTarget);
-                  }}
-                  onMouseLeave={queueLibraryHoverClose}
                   aria-expanded={libraryOpen ? 'true' : 'false'}
                   aria-haspopup="true"
                   disabled={navDisabled}
@@ -374,9 +302,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     className="header-library-menu"
                     ref={libraryMenuRef}
                     role="menu"
-                    style={libraryStyle}
-                    onMouseEnter={clearLibraryHoverCloseTimer}
-                    onMouseLeave={queueLibraryHoverClose}
                   >
                     <div className="header-library-head">
                       <span className="header-library-title">Library</span>
@@ -437,7 +362,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <div className="header-avatar" ref={avatarRef}>
               <button
                 type="button"
-                ref={notifyAnchorRef}
                 className="header-icon-button header-icon-button--notifications header-icon-button--messages"
                 onClick={async () => {
                   const next = !notifyOpen;
@@ -460,6 +384,60 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   </span>
                 ) : null}
               </button>
+              <NotificationsMenu
+                open={notifyOpen}
+                unreadCount={notifyUnreadCount}
+                items={notifyItems}
+                status={notifyStatus}
+                user={user}
+                onRefresh={refreshNotifications}
+                onMarkRead={async (id) => {
+                  try {
+                    const res = await fetch('/api/notifications/read', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id })
+                    });
+                    const payload = await res.json();
+                    if (res.ok) {
+                      setNotifyUnreadCount(Number(payload.unreadCount || 0));
+                      setNotifyItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: true } : n)));
+                    }
+                  } catch (e) {
+                    // ignore
+                  }
+                }}
+                onMarkAllRead={async () => {
+                  try {
+                    const res = await fetch('/api/notifications/read', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ all: true })
+                    });
+                    const payload = await res.json();
+                    if (res.ok) {
+                      setNotifyUnreadCount(Number(payload.unreadCount || 0));
+                      setNotifyItems((prev) => prev.map((n) => ({ ...n, read_at: true })));
+                    }
+                  } catch (e) {
+                    // ignore
+                  }
+                }}
+                onClearAll={async () => {
+                  try {
+                    const res = await fetch('/api/notifications/clear', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (res.ok) {
+                      setNotifyUnreadCount(0);
+                      setNotifyItems([]);
+                    }
+                  } catch (e) {
+                    // ignore
+                  }
+                }}
+              />
             </div>
           ) : (
             <div className="header-guest-actions">
@@ -526,64 +504,6 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             </div>
           ) : null}
 
-          {isSignedIn ? (
-            <NotificationsMenu
-              open={notifyOpen}
-              onClose={() => setNotifyOpen(false)}
-              unreadCount={notifyUnreadCount}
-              items={notifyItems}
-              status={notifyStatus}
-              user={user}
-              onRefresh={refreshNotifications}
-              onMarkRead={async (id) => {
-                try {
-                  const res = await fetch('/api/notifications/read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id })
-                  });
-                  const payload = await res.json();
-                  if (res.ok) {
-                    setNotifyUnreadCount(Number(payload.unreadCount || 0));
-                    setNotifyItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: true } : n)));
-                  }
-                } catch (e) {
-                  // ignore
-                }
-              }}
-              onMarkAllRead={async () => {
-                try {
-                  const res = await fetch('/api/notifications/read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ all: true })
-                  });
-                  const payload = await res.json();
-                  if (res.ok) {
-                    setNotifyUnreadCount(Number(payload.unreadCount || 0));
-                    setNotifyItems((prev) => prev.map((n) => ({ ...n, read_at: true })));
-                  }
-                } catch (e) {
-                  // ignore
-                }
-              }}
-              onClearAll={async () => {
-                try {
-                  const res = await fetch('/api/notifications/clear', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                  });
-                  if (res.ok) {
-                    setNotifyUnreadCount(0);
-                    setNotifyItems([]);
-                  }
-                } catch (e) {
-                  // ignore
-                }
-              }}
-              anchorRef={notifyAnchorRef}
-            />
-          ) : null}
         </div>
       </div>
       {headerEasterOpen ? (

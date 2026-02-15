@@ -27,3 +27,20 @@
 
 ## Notes
 - Manual device verification is still recommended on an actual mobile viewport for final UX signoff (`/search?q=extrepa`), since this pass validates code and static checks only.
+
+## Follow-up: why results still looked capped
+- Root cause identified after live retest: search still omitted multiple reply/comment tables, so username activity was undercounted even after author matching was added.
+- Added search coverage for:
+  - `dev_log_comments`
+  - `timeline_comments`
+  - `event_comments`
+  - `music_comments`
+  - `project_replies`
+  - `project_comments` (if table exists in environment)
+  - `post_comments` (respecting signed-in/private visibility rules)
+- Added `dev_logs` top-level posts to search too.
+- All added in both search execution paths:
+  - `/Users/extrepa/Projects/errl-portal-forum-docs/src/app/search/SearchResults.js`
+  - `/Users/extrepa/Projects/errl-portal-forum-docs/src/app/api/search/route.js`
+- Reply/comment results now map to correct URLs per parent content type (`/devlog/:id`, `/events/:id`, `/music/:id`, `/projects/:id`, `/announcements/:id`, `/lore-memories/:id`, etc.).
+- Validation: `npm run lint` pass after the follow-up patch.

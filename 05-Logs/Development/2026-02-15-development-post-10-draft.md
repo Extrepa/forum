@@ -83,8 +83,12 @@ Hey everyone. This update focuses on search reliability and mobile usability, ba
 
 ### Homepage sections are now compact + expandable on mobile
 - The Explore Sections list now defaults to a denser mobile layout so users can scan far more sections before scrolling.
-- Each section row still keeps title, post count, and description context in collapsed form.
-- Full details are still available with a tap-to-expand panel (single-open accordion behavior), including latest activity or empty-state CTA.
+- Collapsed rows now emphasize section name + post count + a lightweight activity signal.
+- Expanded rows reveal full description plus latest activity details.
+- Expanded rows provide two direct paths:
+  - open the latest activity item,
+  - open the section itself.
+- Accordion behavior remains single-open for tighter vertical control.
 - Desktop behavior remains unchanged.
 
 ### Modal pop-outs are now consistent across create/edit/settings/admin/profile
@@ -146,18 +150,19 @@ Hey everyone. This update focuses on search reliability and mobile usability, ba
   - Added/tuned `.admin-tabs-switcher` + `.admin-tab` styles for compact mobile tab density using the shared pill switcher.
 - `/Users/extrepa/Projects/errl-portal-forum-docs/src/components/HomeSectionsList.js`
   - New mobile-aware client wrapper for homepage sections.
-  - Detects phone viewport and manages single-open accordion state.
+  - Detects phone viewport (`<= 640px`) and manages single-open accordion state.
 - `/Users/extrepa/Projects/errl-portal-forum-docs/src/components/HomeSectionCard.js`
   - Added compact mobile rendering mode with:
-    - dense row layout
-    - `Open` section shortcut
-    - inline expandable details panel
+    - collapsed status signal (`recent activity` vs `quiet`) with post count
+    - inline expandable details panel with description + latest activity detail
+    - expanded action links for `Open latest activity` and `Open section`
   - Preserved existing desktop card behavior.
 - `/Users/extrepa/Projects/errl-portal-forum-docs/src/app/page.js`
   - Swapped direct section-card mapping to `HomeSectionsList` for mobile compact/expand behavior.
 - `/Users/extrepa/Projects/errl-portal-forum-docs/src/app/globals.css`
   - Added scoped `home-section-card` styles and mobile density rules.
   - Added subtle expand animation for detail reveal.
+  - Added follow-up fixes for toggle style reset and compact breakpoint alignment.
 - `/Users/extrepa/Projects/errl-portal-forum-docs/src/components/CreatePostModal.js`
   - Added shared close-guard flow for backdrop/close button/`Escape`.
   - Added form snapshot dirty detection with configurable confirm-on-unsaved behavior.

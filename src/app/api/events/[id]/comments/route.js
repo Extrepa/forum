@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { getEventDayCompletionTimestamp } from '../../../../../lib/dates';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -148,7 +149,8 @@ export async function POST(request, { params }) {
   }
 
   // Handle RSVP if checkbox was checked
-  const attendanceClosedByTime = eventEndsAt > 0 && Date.now() >= eventEndsAt && attendanceReopened !== 1;
+  const completionAt = getEventDayCompletionTimestamp(eventEndsAt);
+  const attendanceClosedByTime = completionAt > 0 && Date.now() > completionAt && attendanceReopened !== 1;
   if (attending && !attendanceClosedByTime) {
     try {
       // Check if already RSVP'd

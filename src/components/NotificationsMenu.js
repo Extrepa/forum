@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
-import { getAnchoredPopoverLayout } from '../lib/anchoredPopover';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -94,7 +93,6 @@ const adminPostTypeLabel = (targetType, postCategory) => {
 
 export default function NotificationsMenu({
   open,
-  onClose,
   unreadCount,
   items,
   status,
@@ -102,13 +100,10 @@ export default function NotificationsMenu({
   onMarkRead,
   onMarkAllRead,
   onClearAll,
-  anchorRef = null,
 }) {
   const router = useRouter();
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
-  const [popoverStyle, setPopoverStyle] = useState({});
   const [refreshing, setRefreshing] = useState(false);
-  const popoverRef = useRef(null);
   const hasItems = items && items.length > 0;
   const handleClearAll = async () => {
     if (!hasItems) return;
@@ -121,67 +116,6 @@ export default function NotificationsMenu({
   };
   
   const hasUnread = unreadCount > 0;
-
-  // Anchor the panel to the trigger on all viewports so it sits directly under the icon.
-  useEffect(() => {
-    if (!open || typeof window === 'undefined') return;
-    
-    const updatePosition = () => {
-      const trigger = anchorRef?.current || document.querySelector('.notifications-logo-trigger');
-      if (!trigger) {
-        setPopoverStyle({
-          position: 'fixed',
-          left: 12,
-          top: 72,
-          width: 'min(292px, 92vw)',
-          maxWidth: 'min(292px, 92vw)',
-          minWidth: 'min(232px, 92vw)',
-          margin: 0,
-        });
-        return;
-      }
-
-      const triggerRect = trigger.getBoundingClientRect();
-      const popoverWidth = 284;
-      const margin = window.innerWidth <= 640 ? 8 : 12;
-      const panelHeight = popoverRef.current?.offsetHeight || 0;
-      const { left, top, width, maxHeight } = getAnchoredPopoverLayout({
-        anchorRect: triggerRect,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        desiredWidth: popoverWidth,
-        minWidth: 232,
-        edgePadding: margin,
-        gap: 6,
-        minHeight: 220,
-        maxHeight: 720,
-        panelHeight,
-        align: 'end',
-      });
-
-      setPopoverStyle({
-        position: 'fixed',
-        top: `${top}px`,
-        left: `${left}px`,
-        width: `${width}px`,
-        maxWidth: `${width}px`,
-        minWidth: `${width}px`,
-        height: 'auto',
-        maxHeight: `${maxHeight}px`,
-      });
-    };
-    
-    // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(updatePosition, 0);
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [open, anchorRef]);
 
   const handleDeleteNotification = async (notificationId) => {
     setDeletingNotificationId(notificationId);
@@ -217,12 +151,11 @@ export default function NotificationsMenu({
         }
       `}</style>
     <div
-      ref={popoverRef}
       className="neon-outline-card notifications-popover notifications-popover-errl"
       style={{
-        position: 'fixed',
-        left: 12,
-        top: 72,
+        position: 'absolute',
+        right: 0,
+        top: 'calc(100% + 6px)',
         width: 284,
         maxWidth: 'min(284px, 92vw)',
         minWidth: 232,
@@ -233,7 +166,6 @@ export default function NotificationsMenu({
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
-        ...popoverStyle
       }}
       role="menu"
       aria-label="Messages and notifications"
