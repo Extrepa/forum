@@ -566,6 +566,28 @@ async function loadMediaStats(db) {
   };
 }
 
+async function loadRecentClickEvents(db, limit = 120) {
+  const rows = await safeAll(
+    db,
+    `SELECT id, user_id, username, path, href, tag_name, target_label, created_at
+     FROM click_events
+     ORDER BY created_at DESC
+     LIMIT ?`,
+    [limit]
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    userId: row.user_id || null,
+    username: row.username || null,
+    path: row.path || '',
+    href: row.href || null,
+    tagName: row.tag_name || null,
+    label: row.target_label || null,
+    createdAt: row.created_at || 0
+  }));
+}
+
 export default async function AdminPage() {
   const user = await getSessionUser();
   if (!user || !isAdminUser(user)) {
@@ -573,18 +595,28 @@ export default async function AdminPage() {
   }
 
   const db = await getDb();
-  const [stats, posts, actions, users, reports, media] = await Promise.all([
+  const [stats, posts, actions, users, reports, media, clickEvents] = await Promise.all([
     gatherStats(db),
     loadRecentContent(db),
     getRecentAdminActions(db, 8),
     loadRecentUsers(db),
     loadOpenReports(db),
-    loadMediaStats(db)
+    loadMediaStats(db),
+    loadRecentClickEvents(db)
   ]);
 
   return (
     <div className="admin-page stack">
-      <AdminConsole stats={stats} posts={posts} actions={actions} users={users} reports={reports} media={media} user={user} />
+      <AdminConsole
+        stats={stats}
+        posts={posts}
+        actions={actions}
+        users={users}
+        reports={reports}
+        media={media}
+        clickEvents={clickEvents}
+        user={user}
+      />
     </div>
   );
 }

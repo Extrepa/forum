@@ -9,6 +9,7 @@ import Username from '../components/Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { getDb } from '../lib/db';
 import ActiveTimeTracker from '../components/ActiveTimeTracker';
+import ClickTracker from '../components/ClickTracker';
 
 export const metadata = {
   title: 'Errl Forum',
@@ -74,6 +75,7 @@ export default async function RootLayout({ children }) {
           <div className="site">
             <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} user={user} />
             <ActiveTimeTracker enabled={isSignedIn} />
+            <ClickTracker />
             <main>{children}</main>
             <footer>
               <div className="footer-grid">

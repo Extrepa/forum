@@ -135,3 +135,32 @@
     - Added fallback delete update with `is_deleted = 1` when audit columns are unavailable.
 - Verification:
   - `npm run lint` passed.
+
+## Feature: Global Click Tracking Into Admin System Log
+- Request:
+  - Track click activity around the forum and surface it in Admin Console `System Log`.
+- Implementation added:
+  - New migration:
+    - `migrations/0064_add_click_events.sql`
+    - Creates `click_events` table + indexes.
+  - New telemetry API:
+    - `src/app/api/telemetry/click/route.js`
+    - Accepts click payloads and stores them in D1.
+    - Gracefully no-ops on malformed payloads/failures.
+  - New global client tracker:
+    - `src/components/ClickTracker.js`
+    - Captures click events on interactive elements (`a`, `button`, `summary`, role button, submit/button inputs).
+    - Sends telemetry using `navigator.sendBeacon` with `fetch(..., keepalive)` fallback.
+  - Layout integration:
+    - `src/app/layout.js` now mounts `<ClickTracker />` globally so tracking runs across forum pages.
+  - Admin ingestion:
+    - `src/app/admin/page.js` now loads recent `click_events`.
+    - `src/components/AdminConsole.js` now merges click events into `System Log` entries.
+- Commands run:
+  - `npm run lint` (pass)
+  - `npx wrangler d1 migrations apply errl_forum_db --remote` (applied `0064_add_click_events.sql`)
+  - `npx wrangler deploy --env=""` (production deploy)
+- Live deployment:
+  - Worker: `errl-portal-forum`
+  - Version: `fc33e087-de9c-4f35-8fb7-a0c8c2f17239`
+  - Route: `forum.errl.wtf`

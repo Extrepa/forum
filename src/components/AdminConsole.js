@@ -74,7 +74,7 @@ function formatActionLabel(value) {
   return String(value || '').replace(/_/g, ' ').trim();
 }
 
-function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [], reports = [] }) {
+function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [], reports = [], clicks = [] }) {
   const bootTime = Date.now();
   const entries = [
     {
@@ -133,6 +133,20 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
     });
   });
 
+  clicks.forEach((click) => {
+    const actor = click.username || (click.userId ? 'user' : 'guest');
+    const target = click.label || click.tagName || 'element';
+    const location = click.path || '/';
+    const destination = click.href ? ` -> ${click.href}` : '';
+    entries.push({
+      id: `click-${click.id || Math.random().toString(16).slice(2, 8)}`,
+      createdAt: Number(click.createdAt || 0) || bootTime,
+      level: 'info',
+      source: 'click',
+      message: `${actor} clicked ${target} on ${location}${destination}.`
+    });
+  });
+
   return entries
     .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
     .slice(0, 120);
@@ -168,7 +182,7 @@ function currentMoveDestination(post) {
   return post.type || '';
 }
 
-export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null }) {
+export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null, clickEvents = [] }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [postList, setPostList] = useState(posts);
   const [userList, setUserList] = useState(users);
@@ -190,7 +204,14 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [moveMusicTags, setMoveMusicTags] = useState('');
   const [moveProjectStatus, setMoveProjectStatus] = useState('active');
   const [moveBusy, setMoveBusy] = useState(false);
-  const [systemLogEntries, setSystemLogEntries] = useState(() => buildSystemLogEntries({ stats, actions, posts, users, reports }));
+  const [systemLogEntries, setSystemLogEntries] = useState(() => buildSystemLogEntries({
+    stats,
+    actions,
+    posts,
+    users,
+    reports,
+    clicks: clickEvents
+  }));
   const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
