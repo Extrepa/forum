@@ -1,10 +1,16 @@
 name = "errl-portal-forum-docs"
 compatibility_date = "2024-05-13"
+main = ".open-next/worker.js"
 
-[site]
-bucket = ".open-next/assets"
-
-[vars.production]
+[vars]
 IMAGE_UPLOAD_ALLOWLIST = "*"
+
+[compatibility_flags]
+nodejs_compat = true
+global_fetch_strictly_public = true
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
 
 [env.preview]
