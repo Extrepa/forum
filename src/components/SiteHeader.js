@@ -188,8 +188,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       
       let left;
       if (window.innerWidth <= 640) {
-        // Center on mobile
-        left = (window.innerWidth - menuWidth) / 2;
+        // Center on mobile with adjusted padding
+        left = edgePadding;
+        menuWidth = window.innerWidth - (edgePadding * 2);
       } else {
         // Align with anchor on desktop
         left = libraryAnchorRef.current.getBoundingClientRect().left;
