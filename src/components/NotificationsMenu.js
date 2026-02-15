@@ -106,6 +106,18 @@ export default function NotificationsMenu({
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const hasItems = items && items.length > 0;
+  const panelButtonStyle = {
+    fontSize: '11px',
+    padding: '6px 11px',
+    background: 'rgba(2, 7, 10, 0.45)',
+    border: '1px solid rgba(52, 225, 255, 0.28)',
+    borderRadius: '999px',
+    color: 'var(--muted)',
+    fontWeight: 600,
+    cursor: 'pointer',
+    boxShadow: 'none',
+    transition: 'border-color 0.2s ease, color 0.2s ease, background 0.2s ease',
+  };
   const handleClearAll = async () => {
     if (!hasItems) return;
     if (typeof window !== 'undefined') {
@@ -201,6 +213,10 @@ export default function NotificationsMenu({
               alignItems: 'center',
               justifyContent: 'center',
               color: 'var(--muted)',
+              borderRadius: 999,
+              border: '1px solid rgba(52, 225, 255, 0.22)',
+              background: 'rgba(2, 7, 10, 0.25)',
+              boxShadow: 'none',
             }}
           >
             <svg
@@ -228,11 +244,12 @@ export default function NotificationsMenu({
               fontSize: '10px',
               padding: '4px 7px',
               borderRadius: 999,
-              border: '1px solid rgba(52, 225, 255, 0.35)',
-              background: 'rgba(2, 7, 10, 0.45)',
+              border: '1px solid rgba(52, 225, 255, 0.28)',
+              background: 'rgba(2, 7, 10, 0.35)',
               color: 'var(--muted)',
               opacity: hasUnread ? 1 : 0.45,
               cursor: hasUnread ? 'pointer' : 'not-allowed',
+              boxShadow: 'none',
             }}
           >
             Mark read
@@ -325,35 +342,45 @@ export default function NotificationsMenu({
               const baseBackground = isUnread ? 'var(--bg-accent)' : 'var(--card)';
               const hoverBackground = isUnread ? 'var(--errl-surface)' : 'var(--bg-accent)';
               
+              const canNavigate = href !== '#';
+
               return (
-                <a
+                <div
                   key={n.id}
-                  href={href}
                   onClick={async (e) => {
-                    e.preventDefault(); // Always prevent default, even for '#'
-                    if (href === '#') return;
-                    onClose();
-                    await onMarkRead(n.id);
-                    window.location.href = href;
+                    e.preventDefault();
+                    if (!canNavigate) return;
+                    onClose?.();
+                    await onMarkRead?.(n.id);
+                    router.push(href);
                   }}
+                  onKeyDown={async (e) => {
+                    if (!canNavigate) return;
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    onClose?.();
+                    await onMarkRead?.(n.id);
+                    router.push(href);
+                  }}
+                  role={canNavigate ? 'button' : undefined}
+                  tabIndex={canNavigate ? 0 : -1}
                   style={{
-                    textDecoration: 'none',
                     display: 'block',
                     padding: '0 10px',
                     borderRadius: 0,
-                  border: 'none',
-                  borderBottom: isLastItem ? 'none' : '1px solid rgba(52, 225, 255, 0.2)',
-                  background: baseBackground,
-                  transition: 'background 0.2s ease',
+                    border: 'none',
+                    borderBottom: isLastItem ? 'none' : '1px solid rgba(52, 225, 255, 0.2)',
+                    background: baseBackground,
+                    transition: 'background 0.2s ease',
                     overflowWrap: 'break-word',
                     wordWrap: 'break-word',
-                    cursor: href === '#' ? 'default' : 'pointer',
+                    cursor: canNavigate ? 'pointer' : 'default',
                     boxShadow: 'none'
                   }}
                   onMouseEnter={(e) => {
-                    if (href !== '#') {
+                    if (canNavigate) {
                       e.currentTarget.style.background = hoverBackground;
-                      e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 225, 255, 0.2)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -412,7 +439,7 @@ export default function NotificationsMenu({
                       </div>
                     </div>
                   </div>
-                </a>
+                </div>
               );
             })}
           </div>
@@ -428,25 +455,17 @@ export default function NotificationsMenu({
               router.push('/messages');
             }}
             style={{
-              fontSize: '11px',
-              padding: '6px 11px',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: '999px',
-              color: 'var(--muted)',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              ...panelButtonStyle,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.borderColor = 'rgba(255, 52, 245, 0.55)';
               e.currentTarget.style.color = 'var(--ink)';
-              e.currentTarget.style.boxShadow = '0 0 8px var(--accent)';
+              e.currentTarget.style.background = 'rgba(13, 51, 68, 0.45)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.28)';
               e.currentTarget.style.color = 'var(--muted)';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.background = 'rgba(2, 7, 10, 0.45)';
             }}
           >
             Messages
@@ -456,26 +475,19 @@ export default function NotificationsMenu({
             onClick={handleClearAll}
             disabled={!hasItems}
             style={{
-              fontSize: '11px',
-              padding: '6px 11px',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: '999px',
-              color: 'var(--muted)',
-              fontWeight: 600,
+              ...panelButtonStyle,
               cursor: hasItems ? 'pointer' : 'not-allowed',
               opacity: hasItems ? 1 : 0.45,
-              transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.borderColor = 'rgba(255, 52, 245, 0.55)';
               e.currentTarget.style.color = 'var(--ink)';
-              e.currentTarget.style.boxShadow = '0 0 8px var(--accent)';
+              e.currentTarget.style.background = 'rgba(13, 51, 68, 0.45)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.28)';
               e.currentTarget.style.color = 'var(--muted)';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.background = 'rgba(2, 7, 10, 0.45)';
             }}
           >
             Clear
@@ -483,18 +495,21 @@ export default function NotificationsMenu({
         </div>
         <button 
           type="button"
-          onClick={onClose}
+          onClick={() => onClose?.()}
           style={{
-            fontSize: '11px',
-            padding: '6px 11px',
+            ...panelButtonStyle,
             flexShrink: 0,
             whiteSpace: 'nowrap',
-            borderRadius: '999px',
-            border: 'none',
-            background: 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-            color: 'var(--ink)',
-            fontWeight: 600,
-            boxShadow: '0 0 10px rgba(52, 225, 255, 0.35)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(255, 52, 245, 0.55)';
+            e.currentTarget.style.color = 'var(--ink)';
+            e.currentTarget.style.background = 'rgba(13, 51, 68, 0.45)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(52, 225, 255, 0.28)';
+            e.currentTarget.style.color = 'var(--muted)';
+            e.currentTarget.style.background = 'rgba(2, 7, 10, 0.45)';
           }}
         >
           Close

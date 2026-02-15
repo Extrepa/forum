@@ -344,6 +344,8 @@ a {
   padding: 6px;
   border-radius: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
+  outline: 1px solid rgba(255, 52, 245, 0.24);
+  outline-offset: -1px;
   background: rgba(4, 10, 20, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
   display: grid;
@@ -4278,6 +4280,12 @@ button.ghost:hover,
   border: 1px solid rgba(22, 58, 74, 0.6);
   background: rgba(7, 27, 37, 0.96) !important;
   backdrop-filter: blur(14px);
+  --neon-outline-glow-1: rgba(52, 225, 255, 0.08);
+  --neon-outline-glow-2: rgba(255, 52, 245, 0.05);
+}
+
+.notifications-popover-errl.neon-outline-card::after {
+  opacity: 0.42;
 }
 
 /* Username popover should stay compact across viewports */
@@ -5834,6 +5842,11 @@ span:has(.username) + .status-badge {
   gap: 8px;
 }
 
+.home-section-card__details-head.is-empty {
+  justify-content: flex-end;
+  margin-bottom: 2px;
+}
+
 .home-section-card__status-text {
   font-size: 12px;
   font-weight: 700;
@@ -5846,7 +5859,17 @@ span:has(.username) + .status-badge {
   font-size: 11px;
   text-decoration: none;
   color: var(--errl-accent-2);
-  border-bottom: 1px solid rgba(52, 225, 255, 0.35);
+  border-bottom: none;
+}
+
+.home-section-card__section-link:hover,
+.home-section-card__section-link:focus-visible {
+  text-decoration: none;
+}
+
+.home-section-card:hover::after,
+.home-section-card:focus-within::after {
+  box-shadow: 0 0 24px rgba(52, 225, 255, 0.22);
 }
 
 .home-section-card__recent-list {
@@ -5867,6 +5890,10 @@ span:has(.username) + .status-badge {
   line-height: 1.35;
   text-decoration: none;
   color: var(--muted);
+}
+
+.home-section-card__details .section-card-empty-cta {
+  margin-top: 6px;
 }
 
 /* Homepage Stats: 3 cards on desktop */

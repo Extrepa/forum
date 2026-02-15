@@ -412,3 +412,15 @@
   - `npm run build` (pass)
 - Detailed note:
   - `05-Logs/Daily/2026-02-15-admin-console-header-mobile-chart-polish.md`
+
+## UI Follow-up: Library Dropdown Border Match
+- Request:
+  - Ensure the Library drop list uses the same border style as other header dropdowns.
+- Change applied:
+  - `src/app/globals.css`
+    - Added matching outline layer to `.header-library-menu`:
+      - `outline: 1px solid rgba(255, 52, 245, 0.24);`
+      - `outline-offset: -1px;`
+- Double-check:
+  - Confirmed `.header-library-menu` and `.header-menu` now share the same border + outline treatment.
+  - `npm run lint` (pass)

@@ -85,13 +85,10 @@ export default function HomeSectionCard({
 
         {isExpanded && (
           <div className="home-section-card__details">
-            <p className="home-section-card__full-description">{description}</p>
-            <div className="home-section-card__details-head">
+            <div className={`home-section-card__details-head${recentItems.length === 0 ? ' is-empty' : ''}`}>
               {recentItems.length > 0 ? (
                 <span className="home-section-card__status-text">Latest drip:</span>
-              ) : (
-                <span />
-              )}
+              ) : null}
               <Link href={href} className="home-section-card__section-link">
                 Open section
               </Link>

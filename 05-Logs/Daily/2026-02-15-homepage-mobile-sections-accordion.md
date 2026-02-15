@@ -140,3 +140,37 @@
   - Spot-check grep:
     - Confirmed no remaining "image-only" wording in homepage section card copy sources.
     - Confirmed new `is-recent` status-dot class and full-description rendering hooks are present.
+
+## Follow-up (Expanded Duplicate Copy + Empty-State + Link/Hover Polish)
+- User-requested adjustments:
+  - Remove duplicate description text when a mobile section card is expanded.
+  - Reduce excess whitespace when expanded card has no recent posts.
+  - Remove underline treatment from `Open section`.
+  - Remove pink glow on section-card hover for homepage cards.
+
+- Implementation details:
+  - `src/components/HomeSectionCard.js`
+    - Removed expanded-only duplicate description paragraph (`home-section-card__full-description`) from compact expanded mode.
+    - Removed empty placeholder element in expanded header.
+    - Added conditional class `home-section-card__details-head is-empty` when there are no recent items.
+  - `src/app/globals.css`
+    - Added `.home-section-card__details-head.is-empty` to align the header to the right and tighten spacing.
+    - Updated `.home-section-card__section-link` to remove underline-like border and keep no underline on hover/focus.
+    - Added `.home-section-card__details .section-card-empty-cta` margin reduction for tighter empty expanded cards.
+    - Added homepage-specific hover/focus glow override:
+      - `.home-section-card:hover::after`
+      - `.home-section-card:focus-within::after`
+      - Uses cyan-only glow to remove pink hover glow from homepage section cards.
+
+- Verification performed (this follow-up pass):
+  - `npm run lint` -> pass
+  - `npm run build` -> pass
+  - Diff and selector checks confirmed:
+    - No expanded duplicate description rendering in compact expanded mode.
+    - Empty-state expanded header uses `is-empty` class behavior.
+    - `Open section` underline removed.
+    - Hover glow override present for homepage section cards only.
+
+- Scope note:
+  - This follow-up intentionally documents only the homepage section-card changes from this thread.
+  - Other parallel edits in separate conversation threads were not modified here.

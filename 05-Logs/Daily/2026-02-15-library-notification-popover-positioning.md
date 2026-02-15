@@ -128,3 +128,16 @@
     - Outside click, `Escape`, route changes, and menu item selection now close and unpin menu state.
 - Verification:
   - `npm run lint` -> pass
+
+## Follow-up Polish: Library Dropdown Border Consistency
+- Request:
+  - Match the Library dropdown border treatment to the other header dropdown menus.
+- Change applied:
+  - `src/app/globals.css`
+    - Updated `.header-library-menu` to include the same outer outline layer used by `.header-menu`:
+      - `outline: 1px solid rgba(255, 52, 245, 0.24);`
+      - `outline-offset: -1px;`
+- Re-check performed:
+  - Verified `.header-library-menu` now has both base border and outline.
+  - Verified `.header-menu` still uses the same outline values.
+  - `npm run lint` -> pass
