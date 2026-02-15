@@ -8159,13 +8159,34 @@ header::before {
   min-width: 0;
 }
 
+.create-post-modal > .card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .edit-post-modal > .card::before,
 .edit-post-modal > .card::after {
   content: none;
   display: none;
 }
 
+.create-post-modal > .card::before,
+.create-post-modal > .card::after {
+  content: none;
+  display: none;
+}
+
 .edit-post-modal > .card > .section-title:first-child {
+  display: none;
+}
+
+.create-post-modal > .card > .section-title:first-child {
   display: none;
 }
 
@@ -8179,7 +8200,22 @@ header::before {
   min-width: 0;
 }
 
+.create-post-modal form,
+.create-post-modal label,
+.create-post-modal .text-field,
+.create-post-modal input,
+.create-post-modal textarea,
+.create-post-modal select {
+  max-width: 100%;
+  min-width: 0;
+}
+
 .edit-post-modal .formatting-toolbar {
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.create-post-modal .formatting-toolbar {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }

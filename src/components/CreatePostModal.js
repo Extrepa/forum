@@ -14,7 +14,12 @@ export default function CreatePostModal({
   maxHeight
 }) {
   const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
+  const [viewport, setViewport] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { width: 0, height: 0 };
+    }
+    return { width: window.innerWidth, height: window.innerHeight };
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -32,22 +37,29 @@ export default function CreatePostModal({
   }, [isOpen]);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 640);
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-    return undefined;
+    if (typeof window === 'undefined') return undefined;
+    const handleResize = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (!isOpen || !mounted) return null;
 
+  const isMobile = viewport.width > 0 && viewport.width <= 640;
+  const isShortViewport = viewport.height > 0 && viewport.height <= 560;
   const resolvedMaxWidth = maxWidth || (variant === 'wide' ? '900px' : '600px');
   const resolvedMaxHeight = maxHeight || '90vh';
-  const overlayPadding = isMobile ? '12px' : '20px';
+  const overlayPaddingX = isMobile ? 12 : 20;
+  const overlayPaddingY = isShortViewport ? 10 : overlayPaddingX;
   const overlayAlign = isMobile ? 'flex-start' : 'center';
-  const contentMaxWidth = isMobile ? 'min(calc(100% - 40px), 420px)' : resolvedMaxWidth;
-  const contentMaxHeight = isMobile ? 'min(85vh, calc(100vh - 44px))' : resolvedMaxHeight;
+  const contentMaxWidth = isMobile
+    ? 'min(calc(100vw - 24px), 420px)'
+    : `min(${resolvedMaxWidth}, calc(100vw - 40px))`;
+  const contentMaxHeight = isMobile
+    ? `min(85vh, calc(100dvh - ${overlayPaddingY * 2}px))`
+    : `min(${resolvedMaxHeight}, calc(100dvh - ${overlayPaddingY * 2}px))`;
 
   const modal = (
     <div
@@ -64,7 +76,7 @@ export default function CreatePostModal({
         alignItems: overlayAlign,
         justifyContent: 'center',
         zIndex: 12000,
-        padding: overlayPadding,
+        padding: `${overlayPaddingY}px ${overlayPaddingX}px`,
         overflowY: 'auto',
       }}
     >

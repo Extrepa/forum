@@ -8,6 +8,7 @@ export default function NewPostModalButton({
   title = 'New Post',
   disabled = false,
   variant = 'default',
+  className = 'create-post-modal',
   maxWidth,
   maxHeight,
   children
@@ -23,6 +24,7 @@ export default function NewPostModalButton({
         isOpen={open}
         onClose={() => setOpen(false)}
         title={title}
+        className={className}
         variant={variant}
         maxWidth={maxWidth}
         maxHeight={maxHeight}
@@ -32,4 +34,3 @@ export default function NewPostModalButton({
     </>
   );
 }
-
