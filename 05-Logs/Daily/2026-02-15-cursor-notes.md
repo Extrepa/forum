@@ -98,3 +98,40 @@
   - Increased overlay z-index to `12000` to sit above existing header/panel layers.
 - Verification:
   - `npm run lint` passed after the modal patch.
+
+## Follow-up Fix: Modal Size + Event Delete API
+- Issue reported after portal fix:
+  - Delete confirmation modal rendered too tall.
+  - Confirm delete did not remove event posts.
+- Root causes:
+  - `.card` global style enforces `height: 100%`, which made modal content inherit oversized height.
+  - `POST /api/events/[id]/delete` attempted `UPDATE events ... updated_at = ?`, but some deployed schemas do not include `events.updated_at`, causing 409 `notready`.
+- Fixes applied:
+  - `src/components/DeleteConfirmModal.js`
+    - Forced modal panel sizing to content:
+      - `height: auto`
+      - `minHeight: 0`
+      - `maxHeight: min(85vh, 420px)`
+      - `overflow: auto`
+  - `src/app/api/events/[id]/delete/route.js`
+    - Kept primary update with `updated_at`.
+    - Added fallback update that sets only `is_deleted = 1` if `updated_at` column is unavailable.
+- Verification:
+  - `npm run lint` passed.
+
+## Follow-up Fix: Admin Console Delete Failures
+- Issue reported:
+  - Admin Console still reported "Delete failed".
+- Additional root causes found:
+  - `music_posts` delete route also attempted `updated_at` on schemas where that column may not exist.
+  - `forum` delete route referenced `params.id` directly instead of awaiting Next.js 15 `params`.
+  - Admin generic delete endpoint (`/api/admin/posts/[id]` DELETE) required `edited_at` and `updated_by_user_id`, which may not exist on older schemas.
+- Fixes applied:
+  - `src/app/api/music/[id]/delete/route.js`
+    - Added fallback update to `is_deleted = 1` if `updated_at` update fails.
+  - `src/app/api/forum/[id]/delete/route.js`
+    - Updated to `const { id } = await params;` and used resolved `id` everywhere.
+  - `src/app/api/admin/posts/[id]/route.js`
+    - Added fallback delete update with `is_deleted = 1` when audit columns are unavailable.
+- Verification:
+  - `npm run lint` passed.

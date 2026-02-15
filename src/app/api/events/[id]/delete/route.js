@@ -34,7 +34,16 @@ export async function POST(request, { params }) {
       .bind(Date.now(), id)
       .run();
   } catch (e) {
-    return NextResponse.json({ error: 'notready' }, { status: 409 });
+    // Some deployed schemas do not have events.updated_at yet.
+    // Fall back to soft-delete only so delete remains functional.
+    try {
+      await db
+        .prepare('UPDATE events SET is_deleted = 1 WHERE id = ?')
+        .bind(id)
+        .run();
+    } catch (fallbackError) {
+      return NextResponse.json({ error: 'notready' }, { status: 409 });
+    }
   }
 
   if (isAdmin) {

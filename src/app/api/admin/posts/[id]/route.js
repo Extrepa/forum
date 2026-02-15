@@ -139,10 +139,18 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    await db
-      .prepare(`UPDATE ${table} SET is_deleted = 1, edited_at = ?, updated_by_user_id = ? WHERE id = ?`)
-      .bind(Date.now(), user.id, id)
-      .run();
+    try {
+      await db
+        .prepare(`UPDATE ${table} SET is_deleted = 1, edited_at = ?, updated_by_user_id = ? WHERE id = ?`)
+        .bind(Date.now(), user.id, id)
+        .run();
+    } catch (e) {
+      // Older schemas may not have edited_at/updated_by_user_id yet.
+      await db
+        .prepare(`UPDATE ${table} SET is_deleted = 1 WHERE id = ?`)
+        .bind(id)
+        .run();
+    }
 
     return NextResponse.json({ ok: true, id, type });
   } catch (e) {

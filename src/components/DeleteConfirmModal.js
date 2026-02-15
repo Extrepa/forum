@@ -49,7 +49,11 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
         style={{
           maxWidth: '500px',
           width: '100%',
-          padding: '24px'
+          padding: '24px',
+          height: 'auto',
+          minHeight: 0,
+          maxHeight: 'min(85vh, 420px)',
+          overflow: 'auto'
         }}
         onClick={(e) => e.stopPropagation()}
       >

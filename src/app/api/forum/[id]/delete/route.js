@@ -5,6 +5,7 @@ import { isAdminUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
 
   if (!user) {
@@ -16,7 +17,7 @@ export async function POST(request, { params }) {
   // Get thread to check ownership
   const thread = await db
     .prepare('SELECT author_user_id FROM forum_threads WHERE id = ?')
-    .bind(params.id)
+    .bind(id)
     .first();
 
   if (!thread) {
@@ -33,14 +34,14 @@ export async function POST(request, { params }) {
   // Soft delete thread
   await db
     .prepare('UPDATE forum_threads SET is_deleted = 1, updated_at = ? WHERE id = ?')
-    .bind(Date.now(), params.id)
+    .bind(Date.now(), id)
     .run();
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,
       actionType: 'delete_post',
       targetType: 'forum_thread',
-      targetId: params.id
+      targetId: id
     });
   }
 
