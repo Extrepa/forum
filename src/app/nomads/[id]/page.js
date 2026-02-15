@@ -58,7 +58,11 @@ export default async function NomadsDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.id = ? AND posts.type = 'nomads'`
+         WHERE posts.id = ?
+           AND (
+             posts.section_scope = 'nomads'
+             OR (posts.type = 'nomads' AND (posts.section_scope = 'default' OR posts.section_scope IS NULL))
+           )`
       )
       .bind(id)
       .first();

@@ -60,7 +60,7 @@ export async function POST(request, { params }) {
   let existing = null;
   try {
     existing = await db
-      .prepare("SELECT id, type, author_user_id, image_key, COALESCE(visibility_scope, 'members') AS visibility_scope, COALESCE(nomad_post_kind, 'post') AS nomad_post_kind FROM posts WHERE id = ?")
+      .prepare("SELECT id, type, author_user_id, image_key, COALESCE(visibility_scope, 'members') AS visibility_scope, COALESCE(section_scope, 'default') AS section_scope FROM posts WHERE id = ?")
       .bind(id)
       .first();
   } catch (e) {
@@ -81,9 +81,6 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  const sectionPath = postTypeCollectionPath(type) || postTypePath(type);
-  redirectUrl.pathname = `${sectionPath}/${existing.id}`;
-
   const isOwner = existing.author_user_id === user.id;
   if (!isOwner && !isAdminUser(user)) {
     redirectUrl.searchParams.set('error', 'unauthorized');
@@ -95,18 +92,25 @@ export async function POST(request, { params }) {
   const body = String(formData.get('body') || '').trim();
   const isPrivate = String(formData.get('is_private') || '').trim() === '1' ? 1 : 0;
   const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
-  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+  const userCanUseNomadScope = isDripNomadUser(user);
+  if (requestedNomadVisibility && !userCanUseNomadScope) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  const visibilityScope = normalizeVisibilityScope(type === 'nomads' || requestedNomadVisibility ? 'nomads' : existing.visibility_scope, {
-    allowNomads: isDripNomadUser(user),
+  const sectionScope = (type === 'nomads' || requestedNomadVisibility || existing.section_scope === 'nomads') ? 'nomads' : 'default';
+  if (sectionScope === 'nomads' && !userCanUseNomadScope) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(sectionScope === 'nomads' ? 'nomads' : 'members', {
+    allowNomads: userCanUseNomadScope,
   });
-  if (type === 'nomads' && !isDripNomadUser(user)) {
+  const sectionPath = sectionScope === 'nomads' ? '/nomads' : (postTypeCollectionPath(type) || postTypePath(type));
+  redirectUrl.pathname = `${sectionPath}/${existing.id}`;
+  if (type === 'nomads' && !userCanUseNomadScope) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  const nomadPostKind = String(formData.get('nomad_post_kind') || '').trim().toLowerCase() || existing.nomad_post_kind || 'post';
 
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
@@ -144,8 +148,8 @@ export async function POST(request, { params }) {
 
   try {
     await db
-      .prepare('UPDATE posts SET title = ?, body = ?, image_key = ?, is_private = ?, visibility_scope = ?, nomad_post_kind = ?, updated_at = ? WHERE id = ?')
-      .bind(finalTitle, body || null, imageKey, isPrivate, visibilityScope, nomadPostKind, Date.now(), id)
+      .prepare('UPDATE posts SET title = ?, body = ?, image_key = ?, is_private = ?, visibility_scope = ?, section_scope = ?, updated_at = ? WHERE id = ?')
+      .bind(finalTitle, body || null, imageKey, isPrivate, visibilityScope, sectionScope, Date.now(), id)
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');

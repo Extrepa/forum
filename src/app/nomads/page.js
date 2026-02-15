@@ -39,8 +39,10 @@ export default async function NomadsPage({ searchParams }) {
                 COALESCE(posts.is_pinned, 0) AS is_pinned
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.type = 'nomads'
-           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+         WHERE (
+              posts.section_scope = 'nomads'
+              OR (posts.type = 'nomads' AND (posts.section_scope = 'default' OR posts.section_scope IS NULL))
+           )
            AND (posts.visibility_scope = 'nomads' OR posts.visibility_scope IS NULL)
            ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
@@ -114,7 +116,7 @@ export default async function NomadsPage({ searchParams }) {
     <>
       <LoreClient
         sectionTitle="Nomads"
-        sectionDescription="Private posts for Drip Nomads and admins."
+        sectionDescription="private posts for the Nomads and anything we don't want to share with the public"
         hrefBase="/nomads"
         emptyLabel="No nomad posts yet."
         headerActions={
@@ -124,6 +126,8 @@ export default async function NomadsPage({ searchParams }) {
               <GenericPostForm
                 action="/api/posts"
                 type="nomads"
+                allowedTypes={['nomads', 'art', 'nostalgia', 'bugs', 'rant', 'lore', 'memories', 'about']}
+                hiddenFields={{ section_scope: 'nomads', force_nomad_visibility: '1' }}
                 titleLabel="Title (optional)"
                 titlePlaceholder="Optional title"
                 bodyLabel="Nomad Post"
@@ -133,7 +137,6 @@ export default async function NomadsPage({ searchParams }) {
                 titleRequired={false}
                 bodyRequired={true}
                 showPrivateToggle={false}
-                showNomadPostKind={true}
               />
             </NewPostModalButton>
           </>

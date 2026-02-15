@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
   const db = await getDb();
 
   try {
-    const post = await db.prepare("SELECT type, is_private, COALESCE(visibility_scope, 'members') AS visibility_scope FROM posts WHERE id = ?").bind(id).first();
+    const post = await db.prepare("SELECT type, is_private, COALESCE(visibility_scope, 'members') AS visibility_scope, COALESCE(section_scope, 'default') AS section_scope FROM posts WHERE id = ?").bind(id).first();
     if (!post) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
@@ -63,7 +63,7 @@ export async function POST(request, { params }) {
   let post = null;
   try {
     post = await db
-      .prepare("SELECT type, is_private, is_locked, COALESCE(visibility_scope, 'members') AS visibility_scope FROM posts WHERE id = ?")
+      .prepare("SELECT type, is_private, is_locked, COALESCE(visibility_scope, 'members') AS visibility_scope, COALESCE(section_scope, 'default') AS section_scope FROM posts WHERE id = ?")
       .bind(id)
       .first();
   } catch (e) {
@@ -82,13 +82,13 @@ export async function POST(request, { params }) {
 
   // Check if post is locked (rollout-safe)
   if (post.is_locked) {
-    redirectUrl.pathname = `/${post.type === 'about' ? 'about' : post.type}/${id}`;
+    redirectUrl.pathname = post.section_scope === 'nomads' ? `/nomads/${id}` : `/${post.type === 'about' ? 'about' : post.type}/${id}`;
     redirectUrl.searchParams.set('error', 'locked');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
   // Redirect back to the correct section detail page.
-  redirectUrl.pathname = `/${post.type === 'about' ? 'about' : post.type}/${id}`;
+  redirectUrl.pathname = post.section_scope === 'nomads' ? `/nomads/${id}` : `/${post.type === 'about' ? 'about' : post.type}/${id}`;
 
   // Member-only/private posts are visible to signed-in users, so no extra check here.
   // Lore/Memories section read-visibility is enforced in the page layer.

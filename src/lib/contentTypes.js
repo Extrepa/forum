@@ -83,7 +83,7 @@ export const CONTENT_TYPES = {
   post: {
     label: 'Post',
     table: 'posts',
-    viewPath: (row) => `${postTypePath(row.type)}/${row.id}`,
+    viewPath: (row) => `${row?.section_scope === 'nomads' ? '/nomads' : postTypePath(row.type)}/${row.id}`,
     editApi: (row) => `/api/posts/${row.id}`,
     hideApi: (row) => `/api/posts/${row.id}/hide`,
     lockApi: (row) => `/api/posts/${row.id}/lock`,

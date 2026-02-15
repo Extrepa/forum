@@ -32,3 +32,29 @@ This entry supplements these earlier logs from the same implementation cycle:
 
 ## Remaining note
 - Repository has no `test` script in `package.json`, so no automated unit/integration test suite was runnable via `npm test`.
+
+## 2026-02-15 follow-up verification (Nomads scope changes)
+- Re-verified after implementing Nomads scope/type posting refinements:
+  - `npm run lint` -> passed
+  - `npm run build` -> passed
+- Confirmed build output still includes:
+  - `/nomads`
+  - `/nomads/[id]`
+- Spot-check complete for:
+  - Nomads description copy update on Nomads page and home card.
+  - Nomads composer type options replacing legacy Nomad kind selector.
+  - `Nomads-only` checkbox path now assigning Nomad section scope.
+  - Nomads feed/detail queries and comment/edit redirects honoring `section_scope = 'nomads'`.
+
+## 2026-02-15 second re-check (user-requested double-check)
+- Ran verification again after final patches:
+  - `npm run lint` -> passed
+  - `npm run build` -> passed
+- Focused grep audit confirmed:
+  - No remaining `showNomadPostKind` references in app usage.
+  - No remaining `nomad_post_kind` app logic dependencies.
+  - `section_scope`/`visibility_scope` checks present in Nomads page/detail, posts create/edit/comment APIs, and content-type view-path resolution.
+  - Role display + role assignment entries include `Driplet` and `Drip Nomad`.
+- Build output still includes Nomads routes:
+  - `/nomads`
+  - `/nomads/[id]`

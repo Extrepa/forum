@@ -124,8 +124,10 @@ export default async function HomePage({ searchParams }) {
         db,
         `SELECT COUNT(*) as count
          FROM posts
-         WHERE posts.type = 'nomads'
-           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+         WHERE (
+              posts.section_scope = 'nomads'
+              OR (posts.type = 'nomads' AND (posts.section_scope = 'default' OR posts.section_scope IS NULL))
+           )
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)`,
         [],
         `SELECT COUNT(*) as count
@@ -141,8 +143,10 @@ export default async function HomePage({ searchParams }) {
                 users.preferred_username_color_index AS author_color_preference
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.type = 'nomads'
-           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+         WHERE (
+              posts.section_scope = 'nomads'
+              OR (posts.type = 'nomads' AND (posts.section_scope = 'default' OR posts.section_scope IS NULL))
+           )
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
          ORDER BY posts.created_at DESC
          LIMIT 1`,
@@ -1617,7 +1621,7 @@ export default async function HomePage({ searchParams }) {
   if (hasUsername && sectionData?.nomads) {
     sections.push({
       title: 'Nomads',
-      description: 'Private section for Drip Nomads and admins.',
+      description: "private posts for the Nomads and anything we don't want to share with the public",
       count: sectionData.nomads.count || 0,
       recentActivities: [],
       recentActivity: sectionData.nomads.recent || null,

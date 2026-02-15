@@ -72,18 +72,27 @@ export async function POST(request) {
   const body = String(formData.get('body') || '').trim();
   const isPrivate = String(formData.get('is_private') || '').trim() === '1' ? 1 : 0;
   const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
-  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+  const requestedSectionScope = String(formData.get('section_scope') || '').trim().toLowerCase();
+  const forceNomadVisibility = String(formData.get('force_nomad_visibility') || '').trim() === '1';
+  const userCanUseNomadScope = isDripNomadUser(user);
+  if ((requestedNomadVisibility || forceNomadVisibility) && !userCanUseNomadScope) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  const visibilityScope = normalizeVisibilityScope(type === 'nomads' || requestedNomadVisibility ? 'nomads' : 'members', {
-    allowNomads: isDripNomadUser(user),
+  const sectionScope = (requestedSectionScope === 'nomads' || type === 'nomads' || requestedNomadVisibility || forceNomadVisibility)
+    ? 'nomads'
+    : 'default';
+  if (sectionScope === 'nomads' && !userCanUseNomadScope) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(sectionScope === 'nomads' ? 'nomads' : 'members', {
+    allowNomads: userCanUseNomadScope,
   });
-  if (type === 'nomads' && !isDripNomadUser(user)) {
+  if (type === 'nomads' && !userCanUseNomadScope) {
     redirectUrl.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(redirectUrl, 303);
   }
-  const nomadPostKind = String(formData.get('nomad_post_kind') || '').trim().toLowerCase() || 'post';
 
   if (!isValidPostType(type)) {
     redirectUrl.searchParams.set('error', 'invalid_type');
@@ -91,7 +100,7 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  redirectUrl.pathname = postTypeCollectionPath(type);
+  redirectUrl.pathname = sectionScope === 'nomads' ? '/nomads' : postTypeCollectionPath(type);
 
   // Lore/Memories can have empty title; others default.
   const finalTitle = title || (type === 'bugs' ? 'Bug report' : type === 'art' ? 'Untitled' : 'Untitled');
@@ -137,8 +146,8 @@ export async function POST(request) {
   try {
     await db
       .prepare(
-        `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, visibility_scope, nomad_post_kind, section_scope, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, visibility_scope, section_scope, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .bind(
         postId,
@@ -149,8 +158,7 @@ export async function POST(request) {
         imageKey,
         isPrivate,
         visibilityScope,
-        nomadPostKind,
-        type === 'nomads' ? 'nomads' : 'default',
+        sectionScope,
         now
       )
       .run();

@@ -19,6 +19,7 @@ export default function GenericPostForm({
   action,
   type,
   allowedTypes,
+  hiddenFields,
   titleLabel = 'Title',
   titlePlaceholder = 'Title',
   bodyLabel = 'Body',
@@ -33,7 +34,6 @@ export default function GenericPostForm({
   titleRequired = false,
   bodyRequired = true,
   showNomadVisibilityToggle = false,
-  showNomadPostKind = false,
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
@@ -47,12 +47,14 @@ export default function GenericPostForm({
 
   // Type label mapping for display
   const typeLabels = {
+    'nomads': 'General',
     'lore': 'Lore',
-    'memories': 'Memory',
-    'bugs': 'Bug',
+    'memories': 'Memories',
+    'bugs': 'Bugs',
     'rant': 'Rant',
     'art': 'Art',
-    'nostalgia': 'Nostalgia'
+    'nostalgia': 'Nostalgia',
+    'about': 'About'
   };
 
   // Type-specific configurations for dynamic labels and placeholders
@@ -115,6 +117,11 @@ export default function GenericPostForm({
 
   return (
     <form action={action} method="post" encType="multipart/form-data">
+      {hiddenFields
+        ? Object.entries(hiddenFields).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={String(value)} />
+          ))
+        : null}
       {allowedTypes && allowedTypes.length > 1 ? (
         <label>
           <div className="muted">Post type</div>
@@ -154,17 +161,6 @@ export default function GenericPostForm({
             onChange={(event) => setNomadOnly(event.target.checked)}
           />
           <span className="muted">Nomads-only</span>
-        </label>
-      ) : null}
-      {showNomadPostKind ? (
-        <label>
-          <div className="muted">Nomad post type</div>
-          <select name="nomad_post_kind" defaultValue="post">
-            <option value="post">Post</option>
-            <option value="event">Event</option>
-            <option value="update">Update</option>
-            <option value="invite">Invite</option>
-          </select>
         </label>
       ) : null}
 

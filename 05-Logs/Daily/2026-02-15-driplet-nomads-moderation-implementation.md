@@ -111,3 +111,46 @@
 ## Deployment note
 - Apply migration before release:
   - `migrations/0066_drip_nomads_and_visibility.sql`
+
+## 2026-02-15 addendum: Nomads post-scope model refinement
+- Updated Nomads section description copy to:
+  - `private posts for the Nomads and anything we don't want to share with the public`
+- Reworked Nomads new-post flow:
+  - Removed legacy Nomad-only kind selector (`post/update/event/invite`).
+  - Nomads composer now uses section-oriented post types (`nomads`, `art`, `nostalgia`, `bugs`, `rant`, `lore`, `memories`, `about`).
+- Implemented section-scope behavior for Nomads visibility:
+  - Any post created with `Nomads-only` visibility is now persisted with `section_scope = 'nomads'` and `visibility_scope = 'nomads'`.
+  - This makes the post visible in `/nomads` while still visible in its typed section (`/art`, `/bugs`, etc.) to Drip Nomad/Admin users only.
+- Nomads list/detail queries now key off `section_scope = 'nomads'` (with legacy fallback for older `type='nomads'` rows).
+- Comment redirect and edit redirect for Nomad-scoped posts now resolve to `/nomads/[id]`.
+- Home Nomads card count/recent queries now include Nomad-scoped typed posts.
+
+## Consolidated implementation ledger (all work in this thread)
+- Roles and naming:
+  - Base member role display standardized to `Driplet` (capabilities unchanged).
+  - Added `drip_nomad` role (`Drip Nomad`) to role model and admin assignment flow.
+  - Admin remains full-access role.
+- Membership model clarification:
+  - No public posting model added; visibility model is member-authenticated with Nomads scoped privacy where selected.
+- Nomads section:
+  - Added dedicated Nomads section routes and UI integration.
+  - Added Nomads card visibility in home for eligible users.
+  - Updated Nomads description copy per final wording request.
+- Post visibility/scope model:
+  - Added and enforced `visibility_scope` (`members`/`nomads`) and `section_scope` (`default`/`nomads`) behavior.
+  - Any Nomad-scoped post is accessible only to Drip Nomad/Admin users.
+  - Posting from Nomads can use section-style types while retaining Nomad scope.
+  - Posting in other sections with Nomads-only enabled now persists as Nomad-scoped and appears in Nomads + typed section for authorized viewers.
+- Nomads composer/type UX:
+  - Removed old Nomad-specific kind selector (`post/update/event/invite`).
+  - Replaced with section-oriented post types relevant to existing forum sections.
+- Routing and redirect consistency:
+  - Updated detail, edit return, comment return, and content-type view-path resolution so Nomad-scoped posts resolve to `/nomads/[id]`.
+- Moderator permissions:
+  - Expanded moderator scope to delete posts/comments/replies across section delete endpoints (delete moderation behavior).
+- Event invite labels:
+  - Updated invite audience labels to humanized role terms (`Driplets`, `Drip Nomads`).
+- Admin console:
+  - Added role reassignment support for `Drip Nomad` and role label consistency updates.
+- Migration/database:
+  - `migrations/0066_drip_nomads_and_visibility.sql` introduces role/visibility-supporting fields and indexes (`posts/events` scope fields + indexes).
