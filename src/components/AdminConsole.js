@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import AdminStatCard from './AdminStatCard';
 import ErrlTabSwitcher from './ErrlTabSwitcher';
 import CreatePostModal from './CreatePostModal';
@@ -27,6 +27,9 @@ const TRAFFIC_BAR_COLORS = [
   '#90DAFF',
   '#3DB7F4'
 ];
+
+const LIVE_SYSTEM_LOG_LIMIT = 500;
+const SYSTEM_LOG_ARCHIVE_CHUNK_SIZE = 250;
 
 const STATUS_PILLS = {
   pinned: 'PINNED',
@@ -92,8 +95,53 @@ function formatLogClock(timestamp) {
   return date.toLocaleTimeString([], { hour12: false });
 }
 
+function formatLogDateTime(timestamp) {
+  if (!timestamp) return 'unknown';
+  const date = new Date(timestamp);
+  return date.toLocaleString();
+}
+
 function formatActionLabel(value) {
   return String(value || '').replace(/_/g, ' ').trim();
+}
+
+function normalizeActionType(value, fallback = 'event') {
+  const normalized = String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .trim();
+  return normalized || fallback;
+}
+
+function inferClickActionType(click = {}) {
+  const label = String(click.label || '').toLowerCase();
+  if (label.includes('save')) return 'save';
+  if (label.includes('edit') || label.includes('update')) return 'edit';
+  if (label.includes('delete') || label.includes('remove')) return 'delete';
+  if (label.includes('open') || label.includes('view')) return 'open';
+  if (label.includes('create') || label.includes('new')) return 'create';
+  if (click.href && click.href !== click.path) return 'navigate';
+  return 'open';
+}
+
+function buildSystemLogMarkdown(entries = [], title = 'System log export') {
+  const sorted = [...entries].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  const lines = [
+    `# ${title}`,
+    '',
+    `Generated: ${new Date().toLocaleString()}`,
+    `Entries: ${sorted.length}`,
+    ''
+  ];
+  sorted.forEach((entry) => {
+    const level = String(entry.level || 'info').toUpperCase();
+    const actor = entry.actor || 'system';
+    const actionType = formatActionLabel(entry.actionType || 'event') || 'event';
+    lines.push(`- [${formatLogDateTime(entry.createdAt)}] [${level}] [${actor}] [${actionType}] ${entry.message}`);
+  });
+  lines.push('');
+  return lines.join('\n');
 }
 
 function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [], reports = [], clicks = [] }) {
@@ -104,6 +152,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: bootTime,
       level: 'info',
       source: 'system',
+      actor: 'system',
+      actionType: 'open',
       message: 'System initialized. Welcome to Errl UI.'
     },
     {
@@ -111,6 +161,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: bootTime - 1,
       level: 'info',
       source: 'stats',
+      actor: 'system',
+      actionType: 'snapshot',
       message: `Snapshot loaded: ${stats.totalUsers || 0} users, ${stats.active24h || 0} active (24h), ${stats.flaggedItems || 0} flagged.`
     }
   ];
@@ -121,6 +173,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: bootTime - 2,
       level: 'warn',
       source: 'reports',
+      actor: 'system',
+      actionType: 'open',
       message: `${reports.length} open ${reports.length === 1 ? 'report' : 'reports'} in moderation queue.`
     });
   }
@@ -131,6 +185,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: Number(action.created_at || 0) || bootTime,
       level: 'info',
       source: 'audit',
+      actor: action.admin_username || 'admin',
+      actionType: normalizeActionType(action.action_type, 'edit'),
       message: `${action.admin_username || 'Admin'} ${formatActionLabel(action.action_type)} ${formatActionLabel(action.target_type)}${action.target_id ? ` (${action.target_id})` : ''}.`
     });
   });
@@ -141,6 +197,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: Number(post.createdAt || 0) || bootTime,
       level: 'info',
       source: 'content',
+      actor: post.authorName || 'author',
+      actionType: 'create',
       message: `Content published in ${post.sectionLabel || post.type}: ${post.title}.`
     });
   });
@@ -151,6 +209,8 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: Number(member.createdAt || 0) || bootTime,
       level: 'info',
       source: 'users',
+      actor: member.username || 'user',
+      actionType: 'open',
       message: `Account observed: ${member.username} (${roleDisplayLabel(member.role || 'user')}).`
     });
   });
@@ -165,13 +225,21 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: Number(click.createdAt || 0) || bootTime,
       level: 'info',
       source: 'click',
+      actor,
+      actionType: inferClickActionType(click),
       message: `${actor} clicked ${target} on ${location}${destination}.`
     });
   });
 
+  const dedupe = new Set();
   return entries
     .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
-    .slice(0, 120);
+    .filter((entry) => {
+      const key = `${entry.createdAt}|${entry.source}|${entry.message}`;
+      if (dedupe.has(key)) return false;
+      dedupe.add(key);
+      return true;
+    });
 }
 
 function mediaPreviewUrl(imageKey) {
@@ -231,6 +299,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [moveMusicTags, setMoveMusicTags] = useState('');
   const [moveProjectStatus, setMoveProjectStatus] = useState('active');
   const [moveBusy, setMoveBusy] = useState(false);
+  const [globalNotice, setGlobalNotice] = useState(null);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const [logUserFilter, setLogUserFilter] = useState('all');
+  const [logTypeFilter, setLogTypeFilter] = useState('all');
   const [systemLogEntries, setSystemLogEntries] = useState(() => buildSystemLogEntries({
     stats,
     actions,
@@ -239,17 +311,26 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     reports,
     clicks: clickEvents
   }));
-  const imageUploadsEnabled = stats.imageUploadsEnabled !== false;
+  const [systemLogArchives, setSystemLogArchives] = useState([]);
+  const [imageUploadsEnabled, setImageUploadsEnabled] = useState(stats.imageUploadsEnabled !== false);
+  const archiveUrlsRef = useRef([]);
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
   const userKey = (member) => `${member.id}`;
   const shouldOpenMenuUp = (triggerElement) => {
     if (typeof window === 'undefined' || !triggerElement) return false;
     const rect = triggerElement.getBoundingClientRect();
-    const menuHeightEstimate = 260;
+    const menuHeightEstimate = 340;
     const viewportPadding = 16;
     const spaceBelow = window.innerHeight - rect.bottom;
-    return spaceBelow < (menuHeightEstimate + viewportPadding);
+    const wrapper = triggerElement.closest('.admin-posts-table-wrapper');
+    const panel = triggerElement.closest('.admin-posts-panel');
+    const wrapperBottom = wrapper?.getBoundingClientRect?.().bottom ?? Number.POSITIVE_INFINITY;
+    const panelBottom = panel?.getBoundingClientRect?.().bottom ?? Number.POSITIVE_INFINITY;
+    const nearestBoundaryBottom = Math.min(wrapperBottom, panelBottom, window.innerHeight);
+    const boundarySpaceBelow = nearestBoundaryBottom - rect.bottom;
+    const requiredSpace = menuHeightEstimate + viewportPadding;
+    return spaceBelow < requiredSpace || boundarySpaceBelow < requiredSpace;
   };
 
   useEffect(() => {
@@ -264,6 +345,56 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
     }
   }, []);
+
+  useEffect(() => () => {
+    archiveUrlsRef.current.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (_) {
+        // ignore URL revoke failures
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!globalNotice) return undefined;
+    const timeout = window.setTimeout(() => {
+      setGlobalNotice(null);
+    }, 4200);
+    return () => window.clearTimeout(timeout);
+  }, [globalNotice]);
+
+  const allSystemLogEntries = useMemo(() => (
+    [...systemLogEntries, ...systemLogArchives.flatMap((archive) => archive.entries)]
+      .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
+  ), [systemLogArchives, systemLogEntries]);
+
+  const logUserOptions = useMemo(() => {
+    const values = new Set();
+    allSystemLogEntries.forEach((entry) => {
+      if (entry.actor) values.add(entry.actor);
+    });
+    return [...values].sort((a, b) => a.localeCompare(b));
+  }, [allSystemLogEntries]);
+
+  const logTypeOptions = useMemo(() => {
+    const values = new Set();
+    allSystemLogEntries.forEach((entry) => {
+      values.add(normalizeActionType(entry.actionType || entry.source, 'event'));
+    });
+    return [...values].sort((a, b) => a.localeCompare(b));
+  }, [allSystemLogEntries]);
+
+  const filteredSystemLogEntries = useMemo(() => {
+    return allSystemLogEntries.filter((entry) => {
+      const actor = entry.actor || 'system';
+      const actionType = normalizeActionType(entry.actionType || entry.source, 'event');
+      if (logUserFilter !== 'all' && actor !== logUserFilter) return false;
+      if (logTypeFilter !== 'all' && actionType !== logTypeFilter) return false;
+      return true;
+    });
+  }, [allSystemLogEntries, logTypeFilter, logUserFilter]);
+
   const filteredPosts = useMemo(() => {
     const term = filter.toLowerCase().trim();
     const filtered = postList.filter((post) => {
@@ -346,18 +477,65 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     setMoveBusy(false);
   };
 
-  const appendSystemLog = (message, { level = 'info', source = 'system' } = {}) => {
+  const pushNotice = (message, tone = 'info') => {
+    if (!message) return;
+    setGlobalNotice({ message, tone, createdAt: Date.now() });
+  };
+
+  const appendSystemLog = (message, { level = 'info', source = 'system', actor = 'admin', actionType = 'event' } = {}) => {
     const createdAt = Date.now();
-    setSystemLogEntries((prev) => [
-      {
-        id: `live-${createdAt}-${Math.random().toString(16).slice(2, 8)}`,
-        createdAt,
-        level,
-        source,
-        message
-      },
-      ...prev
-    ].slice(0, 120));
+    const nextEntry = {
+      id: `live-${createdAt}-${Math.random().toString(16).slice(2, 8)}`,
+      createdAt,
+      level,
+      source,
+      actor,
+      actionType: normalizeActionType(actionType, 'event'),
+      message
+    };
+    setSystemLogEntries((prev) => {
+      const combined = [nextEntry, ...prev];
+      if (combined.length <= LIVE_SYSTEM_LOG_LIMIT) return combined;
+      const archiveEntries = combined.slice(LIVE_SYSTEM_LOG_LIMIT - SYSTEM_LOG_ARCHIVE_CHUNK_SIZE);
+      const liveEntries = combined.slice(0, LIVE_SYSTEM_LOG_LIMIT - SYSTEM_LOG_ARCHIVE_CHUNK_SIZE);
+      const archiveCreatedAt = Date.now();
+      const archiveName = `system-log-archive-${new Date(archiveCreatedAt).toISOString().replace(/[:]/g, '-')}.md`;
+      const archiveText = buildSystemLogMarkdown(archiveEntries, `System log archive (${formatLogDateTime(archiveCreatedAt)})`);
+      const archiveBlob = new Blob([archiveText], { type: 'text/markdown;charset=utf-8' });
+      const archiveUrl = URL.createObjectURL(archiveBlob);
+      archiveUrlsRef.current.push(archiveUrl);
+      setSystemLogArchives((archives) => [
+        {
+          id: `archive-${archiveCreatedAt}-${Math.random().toString(16).slice(2, 8)}`,
+          createdAt: archiveCreatedAt,
+          entries: archiveEntries,
+          name: archiveName,
+          url: archiveUrl
+        },
+        ...archives
+      ]);
+      return liveEntries;
+    });
+  };
+
+  const handleExportSystemLogMarkdown = ({ includeAll = true } = {}) => {
+    const sourceEntries = includeAll ? allSystemLogEntries : filteredSystemLogEntries;
+    const exportTitle = includeAll ? 'System log export' : 'System log export (filtered)';
+    const markdown = buildSystemLogMarkdown(sourceEntries, exportTitle);
+    const fileName = `system-log-export-${new Date().toISOString().replace(/[:]/g, '-')}.md`;
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    pushNotice(`Exported ${sourceEntries.length} log ${sourceEntries.length === 1 ? 'entry' : 'entries'} to Markdown.`, 'success');
+    appendSystemLog(`Exported ${sourceEntries.length} system log entries to Markdown.`, {
+      source: 'system',
+      actor: 'admin',
+      actionType: 'save'
+    });
   };
 
   const handleJumpToAuditLog = () => {
@@ -369,6 +547,33 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
+    }
+  };
+
+  const handleToggleImageUploads = async () => {
+    if (settingsBusy) return;
+    setSettingsBusy(true);
+    try {
+      const formData = new FormData();
+      formData.append('enabled', imageUploadsEnabled ? '0' : '1');
+      const response = await fetch('/api/admin/settings/image-upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Settings update failed');
+      }
+      const nextEnabled = !imageUploadsEnabled;
+      setImageUploadsEnabled(nextEnabled);
+      const message = nextEnabled ? 'Image uploads enabled.' : 'Image uploads disabled.';
+      pushNotice(message, 'success');
+      appendSystemLog(message, { source: 'settings', actor: 'admin', actionType: 'save' });
+    } catch (error) {
+      console.error(error);
+      pushNotice('Image upload setting failed to save.', 'error');
+      appendSystemLog('Image upload setting failed to save.', { level: 'error', source: 'settings', actor: 'admin', actionType: 'save' });
+    } finally {
+      setSettingsBusy(false);
     }
   };
 
@@ -389,11 +594,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       const payload = await response.json();
       updatePost(post, { isPinned: payload.is_pinned });
       setStatusMessage(payload.is_pinned ? 'Pinned.' : 'Unpinned.');
-      appendSystemLog(`${post.title} ${payload.is_pinned ? 'was pinned' : 'was unpinned'} by admin.`, { source: 'posts' });
+      pushNotice(payload.is_pinned ? `Pinned: ${post.title}` : `Unpinned: ${post.title}`, 'success');
+      appendSystemLog(`${post.title} ${payload.is_pinned ? 'was pinned' : 'was unpinned'} by admin.`, { source: 'posts', actor: 'admin', actionType: 'edit' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Pin toggle failed.');
-      appendSystemLog(`Pin toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
+      pushNotice(`Pin toggle failed for ${post.title}.`, 'error');
+      appendSystemLog(`Pin toggle failed for ${post.title}.`, { level: 'error', source: 'posts', actor: 'admin', actionType: 'edit' });
     } finally {
       setBusyPost(null);
     }
@@ -417,11 +624,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isHidden: !post.isHidden });
       setStatusMessage(!post.isHidden ? 'Hidden.' : 'Visible again.');
-      appendSystemLog(`${post.title} visibility set to ${!post.isHidden ? 'hidden' : 'visible'}.`, { source: 'posts' });
+      pushNotice(!post.isHidden ? `Hidden: ${post.title}` : `Visible: ${post.title}`, 'success');
+      appendSystemLog(`${post.title} visibility set to ${!post.isHidden ? 'hidden' : 'visible'}.`, { source: 'posts', actor: 'admin', actionType: 'edit' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Visibility toggle failed.');
-      appendSystemLog(`Visibility toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
+      pushNotice(`Visibility toggle failed for ${post.title}.`, 'error');
+      appendSystemLog(`Visibility toggle failed for ${post.title}.`, { level: 'error', source: 'posts', actor: 'admin', actionType: 'edit' });
     } finally {
       setBusyPost(null);
     }
@@ -445,11 +654,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isLocked: !post.isLocked });
       setStatusMessage(!post.isLocked ? 'Locked comments.' : 'Unlocked.');
-      appendSystemLog(`${post.title} comment lock ${!post.isLocked ? 'enabled' : 'removed'}.`, { source: 'posts' });
+      pushNotice(!post.isLocked ? `Locked: ${post.title}` : `Unlocked: ${post.title}`, 'success');
+      appendSystemLog(`${post.title} comment lock ${!post.isLocked ? 'enabled' : 'removed'}.`, { source: 'posts', actor: 'admin', actionType: 'edit' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Lock toggle failed.');
-      appendSystemLog(`Lock toggle failed for ${post.title}.`, { level: 'error', source: 'posts' });
+      pushNotice(`Lock toggle failed for ${post.title}.`, 'error');
+      appendSystemLog(`Lock toggle failed for ${post.title}.`, { level: 'error', source: 'posts', actor: 'admin', actionType: 'edit' });
     } finally {
       setBusyPost(null);
     }
@@ -472,10 +683,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       setUserList((prev) => prev.map((userRow) => (
         userRow.id === member.id ? { ...userRow, role: payload.role } : userRow
       )));
-      appendSystemLog(`Role updated: ${member.username} -> ${payload.role}.`, { source: 'users' });
+      pushNotice(`Role saved: ${member.username} -> ${payload.role}`, 'success');
+      appendSystemLog(`Role updated: ${member.username} -> ${payload.role}.`, { source: 'users', actor: 'admin', actionType: 'save' });
     } catch (error) {
       console.error(error);
-      appendSystemLog(`Role update failed for ${member.username}.`, { level: 'error', source: 'users' });
+      pushNotice(`Role update failed for ${member.username}.`, 'error');
+      appendSystemLog(`Role update failed for ${member.username}.`, { level: 'error', source: 'users', actor: 'admin', actionType: 'save' });
     }
   };
 
@@ -498,10 +711,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       if (drawerUser && drawerUser.id === member.id) {
         setDrawerUser({ ...member, isDeleted: true, role: 'user' });
       }
-      appendSystemLog(`Account deleted: ${member.username}.`, { level: 'warn', source: 'users' });
+      pushNotice(`Deleted account: ${member.username}`, 'success');
+      appendSystemLog(`Account deleted: ${member.username}.`, { level: 'warn', source: 'users', actor: 'admin', actionType: 'delete' });
     } catch (error) {
       console.error(error);
-      appendSystemLog(`Account delete failed for ${member.username}.`, { level: 'error', source: 'users' });
+      pushNotice(`Account delete failed for ${member.username}.`, 'error');
+      appendSystemLog(`Account delete failed for ${member.username}.`, { level: 'error', source: 'users', actor: 'admin', actionType: 'delete' });
     }
   };
 
@@ -519,11 +734,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isDeleted: true });
       setStatusMessage('Post deleted.');
-      appendSystemLog(`Post deleted: ${post.title}.`, { level: 'warn', source: 'posts' });
+      pushNotice(`Deleted post: ${post.title}`, 'success');
+      appendSystemLog(`Post deleted: ${post.title}.`, { level: 'warn', source: 'posts', actor: 'admin', actionType: 'delete' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Delete failed.');
-      appendSystemLog(`Post delete failed: ${post.title}.`, { level: 'error', source: 'posts' });
+      pushNotice(`Delete failed: ${post.title}`, 'error');
+      appendSystemLog(`Post delete failed: ${post.title}.`, { level: 'error', source: 'posts', actor: 'admin', actionType: 'delete' });
     } finally {
       setBusyPost(null);
     }
@@ -543,11 +760,13 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       updatePost(post, { isDeleted: false });
       setStatusMessage('Post restored.');
-      appendSystemLog(`Post restored: ${post.title}.`, { source: 'posts' });
+      pushNotice(`Restored post: ${post.title}`, 'success');
+      appendSystemLog(`Post restored: ${post.title}.`, { source: 'posts', actor: 'admin', actionType: 'save' });
     } catch (error) {
       console.error(error);
       setStatusMessage('Restore failed.');
-      appendSystemLog(`Post restore failed: ${post.title}.`, { level: 'error', source: 'posts' });
+      pushNotice(`Restore failed: ${post.title}`, 'error');
+      appendSystemLog(`Post restore failed: ${post.title}.`, { level: 'error', source: 'posts', actor: 'admin', actionType: 'save' });
     } finally {
       setBusyPost(null);
     }
@@ -577,7 +796,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           viewHref: `${POST_SUBTYPE_PATHS[updated.type] || '/posts'}/${movePost.id}`
         });
         setStatusMessage(`Moved to ${label}.`);
-        appendSystemLog(`Post moved: ${movePost.title} -> ${label}.`, { source: 'move' });
+        pushNotice(`Moved ${movePost.title} to ${label}.`, 'success');
+        appendSystemLog(`Post moved: ${movePost.title} -> ${label}.`, { source: 'move', actor: 'admin', actionType: 'save' });
         closeMoveDialog();
         return;
       }
@@ -611,7 +831,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           isShitpost: Boolean(updated?.is_shitpost)
         });
         setStatusMessage(`Moved to ${label}.`);
-        appendSystemLog(`Thread moved: ${movePost.title} -> ${label}.`, { source: 'move' });
+        pushNotice(`Moved ${movePost.title} to ${label}.`, 'success');
+        appendSystemLog(`Thread moved: ${movePost.title} -> ${label}.`, { source: 'move', actor: 'admin', actionType: 'save' });
         closeMoveDialog();
         return;
       }
@@ -673,12 +894,14 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       const destinationLabel = CONTENT_MOVE_DESTINATIONS.find((entry) => entry.value === moveDestination)?.label || 'destination';
       setPostList((prev) => prev.filter((postRow) => postKey(postRow) !== postKey(movePost)));
       setStatusMessage(`Moved to ${destinationLabel}.`);
-      appendSystemLog(`Content moved: ${movePost.title} -> ${destinationLabel}.`, { source: 'move' });
+      pushNotice(`Moved ${movePost.title} to ${destinationLabel}.`, 'success');
+      appendSystemLog(`Content moved: ${movePost.title} -> ${destinationLabel}.`, { source: 'move', actor: 'admin', actionType: 'save' });
       closeMoveDialog();
     } catch (error) {
       console.error(error);
       setStatusMessage(error?.message || 'Move failed.');
-      appendSystemLog(`Move failed for ${movePost?.title || 'content'}.`, { level: 'error', source: 'move' });
+      pushNotice(error?.message || `Move failed for ${movePost?.title || 'content'}.`, 'error');
+      appendSystemLog(`Move failed for ${movePost?.title || 'content'}.`, { level: 'error', source: 'move', actor: 'admin', actionType: 'save' });
       setMoveBusy(false);
     }
   };
@@ -699,15 +922,21 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       setNotificationBroadcastMessage(payload?.message || 'Navigation tip notification sent.');
       appendSystemLog(payload?.message || 'Navigation tip notification broadcast sent to users.', {
-        source: 'system'
+        source: 'system',
+        actor: 'admin',
+        actionType: 'save'
       });
+      pushNotice(payload?.message || 'Navigation tip notification sent.', 'success');
     } catch (error) {
       const message = error?.message || 'Broadcast failed.';
       setNotificationBroadcastMessage(message);
       appendSystemLog(`Navigation tip broadcast failed: ${message}`, {
         level: 'error',
-        source: 'system'
+        source: 'system',
+        actor: 'admin',
+        actionType: 'save'
       });
+      pushNotice(message, 'error');
     } finally {
       setNotificationBroadcastBusy(false);
     }
@@ -728,13 +957,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         throw new Error(payload?.error || 'Broadcast send failed');
       }
       setNotificationBroadcastMessage(payload?.message || 'Broadcast sent.');
-      appendSystemLog(payload?.message || 'Custom broadcast notification sent.', { source: 'system' });
+      appendSystemLog(payload?.message || 'Custom broadcast notification sent.', { source: 'system', actor: 'admin', actionType: 'save' });
       setBroadcastComposerOpen(false);
       setBroadcastMessageDraft('');
+      pushNotice(payload?.message || 'Broadcast sent.', 'success');
     } catch (error) {
       const messageText = error?.message || 'Broadcast send failed.';
       setNotificationBroadcastMessage(messageText);
-      appendSystemLog(`Custom broadcast failed: ${messageText}`, { level: 'error', source: 'system' });
+      appendSystemLog(`Custom broadcast failed: ${messageText}`, { level: 'error', source: 'system', actor: 'admin', actionType: 'save' });
+      pushNotice(messageText, 'error');
     } finally {
       setBroadcastSendBusy(false);
     }
@@ -828,6 +1059,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       />
 
       <div className="admin-tab-panel">
+        {globalNotice ? (
+          <div className={`notice admin-global-notice admin-global-notice--${globalNotice.tone || 'info'}`}>
+            {globalNotice.message}
+          </div>
+        ) : null}
         {activeTab === 'Overview' && (
           <section className="card stack admin-overview">
             <div className="admin-stat-grid">
@@ -835,42 +1071,51 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <AdminStatCard key={stat.label} {...stat} />
               ))}
             </div>
-            <div id="admin-actions" className="admin-overview-panels">
-              <div className="admin-panel">
-                <h3 className="section-title">Recent admin actions</h3>
-                {actions.length === 0 ? (
-                  <p className="muted">No admin activity captured yet.</p>
-                ) : (
-                  <ul className="admin-action-list">
-                    {actions.map((action) => (
-                      <li key={action.id}>
-                        <strong>{action.admin_username}</strong> {action.action_type.replace('_', ' ')} {action.target_type}
-                        {action.target_id ? ` (${action.target_id})` : ''}
-                        <div className="muted" style={{ fontSize: '13px' }}>{formatTime(action.created_at)}</div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+            <div id="admin-actions" className="admin-overview-layout">
+              <div className="admin-overview-feed-column">
+                <div className="admin-overview-feed-scroll">
+                  <div className="admin-panel">
+                    <h3 className="section-title">Recent admin actions</h3>
+                    {actions.length === 0 ? (
+                      <p className="muted">No admin activity captured yet.</p>
+                    ) : (
+                      <ul className="admin-action-list">
+                        {actions.map((action) => (
+                          <li key={action.id}>
+                            <strong>{action.admin_username}</strong> {action.action_type.replace('_', ' ')} {action.target_type}
+                            {action.target_id ? ` (${action.target_id})` : ''}
+                            <div className="muted" style={{ fontSize: '13px' }}>{formatTime(action.created_at)}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="admin-panel">
+                    <h3 className="section-title">Latest threads</h3>
+                    <ul className="admin-action-list">
+                      {postList.slice(0, 6).map((post) => (
+                        <li key={postKey(post)}>
+                          <strong>{post.title}</strong>
+                          <div className="muted" style={{ fontSize: '12px' }}>
+                            {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className="admin-panel">
-                <h3 className="section-title">Latest threads</h3>
-                <ul className="admin-action-list">
-                  {postList.slice(0, 6).map((post) => (
-                    <li key={postKey(post)}>
-                      <strong>{post.title}</strong>
-                      <div className="muted" style={{ fontSize: '12px' }}>
-                        {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="admin-panel admin-panel--system">
+              <div className="admin-panel admin-panel--system admin-panel--system-wide">
                 <div className="admin-panel-header-row">
                   <h3 className="section-title">System log</h3>
-                  <button type="button" className="button mini ghost" onClick={() => setActiveTab('System Log')}>
-                    Open tab
-                  </button>
+                  <div className="admin-system-log-actions">
+                    <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
+                      Export .md
+                    </button>
+                    <button type="button" className="button mini ghost" onClick={() => setActiveTab('System Log')}>
+                      Open tab
+                    </button>
+                  </div>
                 </div>
                 <div className="admin-system-log-window">
                   <div className="admin-system-log-titlebar">
@@ -878,9 +1123,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                     <span className="admin-system-log-dot" aria-hidden="true" />
                   </div>
                   <ul className="admin-system-log-list">
-                    {systemLogEntries.slice(0, 8).map((entry) => (
+                    {filteredSystemLogEntries.slice(0, 14).map((entry) => (
                       <li key={entry.id} className={`admin-system-log-line admin-system-log-line--${entry.level || 'info'}`}>
                         <span className="admin-system-log-time">[{formatLogClock(entry.createdAt)}]</span>
+                        <span className="admin-system-log-meta">{entry.actor || 'system'} · {formatActionLabel(entry.actionType || entry.source)}</span>
                         <span>{entry.message}</span>
                       </li>
                     ))}
@@ -912,8 +1158,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   {trafficSeries.map((point) => {
                     const height = Math.max(16, Math.round((point.value / maxTrafficValue) * 100));
                     return (
-                      <div key={point.label} className="admin-traffic-bar-column" title={`${point.label}: ${point.value}`}>
-                        <span className="admin-traffic-bar" style={{ height: `${height}%`, background: point.color }} />
+                      <div
+                        key={point.label}
+                        className={`admin-traffic-bar-column ${point.value > 0 ? 'admin-traffic-bar-column--active' : ''}`}
+                        title={`${point.label}: ${point.value}`}
+                      >
+                        <span className="admin-traffic-bar-track">
+                          <span className="admin-traffic-bar" style={{ height: `${height}%`, background: point.color }} />
+                        </span>
+                        {point.value > 0 ? <span className="admin-traffic-bar-label">{point.label}</span> : null}
                       </div>
                     );
                   })}
@@ -929,21 +1182,62 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 ))}
               </div>
             </div>
+            <div className="admin-system-log-controls">
+              <label className="admin-system-log-filter">
+                <span className="muted">User</span>
+                <select value={logUserFilter} onChange={(event) => setLogUserFilter(event.target.value)}>
+                  <option value="all">All users</option>
+                  {logUserOptions.map((userName) => (
+                    <option key={userName} value={userName}>{userName}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="admin-system-log-filter">
+                <span className="muted">Action type</span>
+                <select value={logTypeFilter} onChange={(event) => setLogTypeFilter(event.target.value)}>
+                  <option value="all">All actions</option>
+                  {logTypeOptions.map((actionType) => (
+                    <option key={actionType} value={actionType}>{formatActionLabel(actionType)}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="admin-system-log-actions">
+                <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
+                  Export filtered .md
+                </button>
+                <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: true })}>
+                  Export full .md
+                </button>
+              </div>
+            </div>
+            {systemLogArchives.length > 0 ? (
+              <div className="admin-system-log-archives">
+                <p className="muted">Archived log files (auto-created as log grows):</p>
+                <div className="admin-system-log-archive-list">
+                  {systemLogArchives.map((archive) => (
+                    <a key={archive.id} className="button mini ghost" href={archive.url} download={archive.name}>
+                      Download {archive.name} ({archive.entries.length})
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="admin-system-log-window admin-system-log-window--expanded">
               <div className="admin-system-log-titlebar">
                 <span>system.log</span>
                 <span className="admin-system-log-dot" aria-hidden="true" />
               </div>
               <ul className="admin-system-log-list">
-                {systemLogEntries.length === 0 ? (
+                {filteredSystemLogEntries.length === 0 ? (
                   <li className="admin-system-log-line admin-system-log-line--info">
                     <span className="admin-system-log-time">[{formatLogClock(Date.now())}]</span>
                     <span>No system events captured yet.</span>
                   </li>
                 ) : (
-                  systemLogEntries.map((entry) => (
+                  filteredSystemLogEntries.map((entry) => (
                     <li key={entry.id} className={`admin-system-log-line admin-system-log-line--${entry.level || 'info'}`}>
                       <span className="admin-system-log-time">[{formatLogClock(entry.createdAt)}]</span>
+                      <span className="admin-system-log-meta">{entry.actor || 'system'} · {formatActionLabel(entry.actionType || entry.source)}</span>
                       <span>{entry.message}</span>
                     </li>
                   ))
@@ -1404,12 +1698,16 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             <p className="muted">
               Image uploads are currently {imageUploadsEnabled ? 'enabled' : 'disabled'}.
             </p>
-            <form action="/api/admin/settings/image-upload" method="post" className="stack" style={{ gap: '12px' }}>
-              <input type="hidden" name="enabled" value={imageUploadsEnabled ? '0' : '1'} />
-              <button type="submit">
-                {imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads'}
+            <div className="stack" style={{ gap: '12px' }}>
+              <button type="button" onClick={handleToggleImageUploads} disabled={settingsBusy}>
+                {settingsBusy
+                  ? 'Saving...'
+                  : (imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads')}
               </button>
-            </form>
+              <p className="muted" style={{ margin: 0 }}>
+                Changes save immediately and show confirmation in the admin notice bar.
+              </p>
+            </div>
             <div className="stack" style={{ gap: '8px' }}>
               <button
                 type="button"

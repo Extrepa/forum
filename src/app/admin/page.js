@@ -566,14 +566,19 @@ async function loadMediaStats(db) {
   };
 }
 
-async function loadRecentClickEvents(db, limit = 120) {
+async function loadRecentClickEvents(db, limit = null) {
+  const hasLimit = Number.isFinite(limit) && Number(limit) > 0;
   const rows = await safeAll(
     db,
-    `SELECT id, user_id, username, path, href, tag_name, target_label, created_at
-     FROM click_events
-     ORDER BY created_at DESC
-     LIMIT ?`,
-    [limit]
+    hasLimit
+      ? `SELECT id, user_id, username, path, href, tag_name, target_label, created_at
+         FROM click_events
+         ORDER BY created_at DESC
+         LIMIT ?`
+      : `SELECT id, user_id, username, path, href, tag_name, target_label, created_at
+         FROM click_events
+         ORDER BY created_at DESC`,
+    hasLimit ? [Number(limit)] : []
   );
 
   return rows.map((row) => ({
@@ -598,7 +603,7 @@ export default async function AdminPage() {
   const [stats, posts, actions, users, reports, media, clickEvents] = await Promise.all([
     gatherStats(db),
     loadRecentContent(db),
-    getRecentAdminActions(db, 8),
+    getRecentAdminActions(db),
     loadRecentUsers(db),
     loadOpenReports(db),
     loadMediaStats(db),

@@ -1187,30 +1187,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
             {editProfileSubTab === 'username' && (
               <div className="account-edit-panel">
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '2px' }}>
-                  <h2 className="section-title" style={{ margin: 0 }}>Username</h2>
-                  <button
-                    type="button"
-                    onClick={toggleUsernameEditor}
-                    className="account-edit-profile-btn"
-                    style={{
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: isEditingUsername ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-                      color: '#001018',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      padding: '2px 10px',
-                      lineHeight: '1.2',
-                      opacity: 1,
-                      width: 'auto',
-                      minWidth: '110px'
-                    }}
-                  >
-                    {isEditingUsername ? 'Close' : 'Edit username'}
-                  </button>
-                </div>
+                <h2 className="section-title" style={{ margin: 0 }}>Username</h2>
                 <p className="muted" style={{ fontSize: '12px', marginBottom: '4px', marginTop: '0' }}>Update your handle and color.</p>
                 <div
                   style={{
@@ -1254,6 +1231,29 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                       Role badge on profile: {profileShowRole ? 'Shown' : 'Hidden'}
                     </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', alignSelf: 'stretch' }}>
+                    <button
+                      type="button"
+                      onClick={toggleUsernameEditor}
+                      className="account-edit-profile-btn"
+                      style={{
+                        borderRadius: '999px',
+                        border: 'none',
+                        background: isEditingUsername ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                        color: '#001018',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        padding: '2px 10px',
+                        lineHeight: '1.2',
+                        opacity: 1,
+                        width: 'auto',
+                        minWidth: '110px'
+                      }}
+                    >
+                      {isEditingUsername ? 'Close' : 'Edit username'}
+                    </button>
                   </div>
                 </div>
                 {isEditingUsername && (
@@ -1355,31 +1355,9 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             )}
             {editProfileSubTab === 'avatar' && (
               <div className="account-edit-panel">
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                  <div>
-                    <h2 className="section-title" style={{ margin: 0 }}>Avatar</h2>
-                    <span className="muted" style={{ fontSize: '12px' }}>Customize your avatar shown across the forum.</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={toggleAvatarEditor}
-                    className="account-edit-profile-btn"
-                    style={{
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
-                      color: '#001018',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      padding: '2px 10px',
-                      lineHeight: '1.2',
-                      width: 'auto',
-                      minWidth: '110px'
-                    }}
-                  >
-                    {isEditingAvatar ? 'Close' : 'Edit avatar'}
-                  </button>
+                <div style={{ marginBottom: '8px' }}>
+                  <h2 className="section-title" style={{ margin: 0 }}>Avatar</h2>
+                  <span className="muted" style={{ fontSize: '12px' }}>Customize your avatar shown across the forum.</span>
                 </div>
                 <div
                   style={{
@@ -1405,14 +1383,38 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: '13px' }}>Main preview + mini preview</div>
                       <div className="muted" style={{ fontSize: '12px' }}>Open the editor when you need changes.</div>
+                      {isEditingAvatar && (
+                        <div className="muted" style={{ marginTop: '4px', fontSize: '12px' }}>
+                          Performance note: avatar effects are smoothest on medium-sized windows, but editing still works on large screens.
+                        </div>
+                      )}
                     </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', alignSelf: 'stretch' }}>
+                    <button
+                      type="button"
+                      onClick={toggleAvatarEditor}
+                      className="account-edit-profile-btn"
+                      style={{
+                        borderRadius: '999px',
+                        border: 'none',
+                        background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                        color: '#001018',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        padding: '2px 10px',
+                        lineHeight: '1.2',
+                        width: 'auto',
+                        minWidth: '110px'
+                      }}
+                    >
+                      {isEditingAvatar ? 'Close' : 'Edit avatar'}
+                    </button>
                   </div>
                 </div>
                 {isEditingAvatar && (
                   <>
-                    <p className="muted" style={{ margin: '8px 0 4px', fontSize: '12px' }}>
-                      Performance note: avatar effects are smoothest on medium-sized windows, but editing still works on large screens.
-                    </p>
                     <AvatarCustomizer
                       onSave={handleAvatarSave}
                       initialState={avatarInitialState}

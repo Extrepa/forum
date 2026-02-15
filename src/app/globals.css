@@ -3477,11 +3477,24 @@ textarea {
   opacity: 0.7;
 }
 
-.admin-overview-panels {
+.admin-overview-layout {
   margin-top: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr);
   gap: 12px;
+  align-items: stretch;
+}
+
+.admin-overview-feed-column {
+  min-height: 0;
+}
+
+.admin-overview-feed-scroll {
+  display: grid;
+  gap: 12px;
+  max-height: 700px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .admin-panel {
@@ -3495,12 +3508,23 @@ textarea {
   background: radial-gradient(circle at 15% 20%, rgba(29, 83, 100, 0.35), rgba(7, 14, 24, 0.9));
 }
 
+.admin-panel--system-wide .admin-system-log-list {
+  max-height: 640px;
+}
+
 .admin-panel-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.admin-system-log-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .admin-action-list {
@@ -3549,6 +3573,9 @@ textarea {
 
 .admin-posts-table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
+  padding-bottom: 6px;
 }
 
 .admin-posts-table {
@@ -3590,11 +3617,11 @@ textarea {
 
 .admin-actions-menu summary {
   list-style: none;
-  min-width: 86px;
-  min-height: 34px;
-  font-size: 11px;
+  min-width: 98px;
+  min-height: 38px;
+  font-size: 12px;
   line-height: 1;
-  padding: 6px 8px;
+  padding: 8px 10px;
 }
 
 .admin-actions-menu summary::-webkit-details-marker {
@@ -3605,12 +3632,13 @@ textarea {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 20;
-  min-width: 150px;
+  z-index: 1200;
+  min-width: 210px;
+  max-width: min(260px, calc(100vw - 24px));
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px;
+  gap: 8px;
+  padding: 12px;
   border-radius: 14px;
   background: rgba(8, 14, 24, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -3630,11 +3658,11 @@ textarea {
 }
 
 .admin-action-item {
-  min-height: 30px;
-  padding: 5px 8px;
-  font-size: clamp(10px, 1.1vw, 11px);
-  line-height: 1.05;
-  white-space: nowrap;
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.15;
+  white-space: normal;
   text-align: center;
 }
 
@@ -3793,6 +3821,13 @@ textarea {
 
 .admin-traffic-bar-column {
   height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.admin-traffic-bar-track {
+  height: 100%;
   display: flex;
   align-items: flex-end;
 }
@@ -3802,6 +3837,17 @@ textarea {
   min-height: 12px;
   border-radius: 4px 4px 0 0;
   box-shadow: 0 0 14px rgba(64, 214, 255, 0.2);
+}
+
+.admin-traffic-bar-label {
+  display: none;
+  font-size: 10px;
+  line-height: 1.1;
+  color: rgba(187, 229, 255, 0.86);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-traffic-legend {
@@ -3893,6 +3939,7 @@ textarea {
   gap: 12px;
   align-items: flex-start;
   overflow-wrap: anywhere;
+  flex-wrap: wrap;
 }
 
 .admin-system-log-line--warn {
@@ -3908,6 +3955,53 @@ textarea {
   flex: 0 0 auto;
 }
 
+.admin-system-log-meta {
+  color: rgba(126, 201, 245, 0.88);
+  font-size: 0.72em;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.admin-system-log-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.admin-system-log-filter {
+  display: grid;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.admin-system-log-archives {
+  border: 1px solid rgba(90, 120, 185, 0.3);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(7, 12, 22, 0.7);
+}
+
+.admin-system-log-archive-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-global-notice {
+  margin-bottom: 2px;
+}
+
+.admin-global-notice--success {
+  border-color: rgba(112, 255, 166, 0.55);
+  color: rgba(168, 255, 197, 0.98);
+}
+
+.admin-global-notice--error {
+  border-color: rgba(255, 115, 138, 0.55);
+  color: rgba(255, 183, 194, 0.98);
+}
+
 .drawer-header {
   display: flex;
   justify-content: space-between;
@@ -3921,6 +4015,14 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .admin-overview-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-overview-feed-scroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
   .admin-header-bar {
     flex-direction: column;
     align-items: flex-start;
@@ -3989,6 +4091,15 @@ textarea {
   .admin-system-log-line {
     font-size: 14px;
     gap: 8px;
+  }
+  .admin-system-log-meta {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .admin-traffic-bar-column--active .admin-traffic-bar-label {
+    display: block;
   }
 }
 

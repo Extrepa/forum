@@ -14,20 +14,25 @@ export async function logAdminAction({ adminUserId, actionType, targetType, targ
     .run();
 }
 
-export async function getRecentAdminActions(dbInstance, limit = 10) {
+export async function getRecentAdminActions(dbInstance, limit = null) {
   const db = dbInstance || (await getDb());
-  const rows = await db
-    .prepare(
-      `SELECT admin_actions.id, admin_actions.action_type, admin_actions.target_type,
+  const hasLimit = Number.isFinite(limit) && Number(limit) > 0;
+  const query = hasLimit
+    ? `SELECT admin_actions.id, admin_actions.action_type, admin_actions.target_type,
               admin_actions.target_id, admin_actions.metadata, admin_actions.created_at,
               users.username AS admin_username
        FROM admin_actions
        JOIN users ON users.id = admin_actions.admin_user_id
        ORDER BY admin_actions.created_at DESC
        LIMIT ?`
-    )
-    .bind(limit)
-    .all();
+    : `SELECT admin_actions.id, admin_actions.action_type, admin_actions.target_type,
+              admin_actions.target_id, admin_actions.metadata, admin_actions.created_at,
+              users.username AS admin_username
+       FROM admin_actions
+       JOIN users ON users.id = admin_actions.admin_user_id
+       ORDER BY admin_actions.created_at DESC`;
+  const statement = db.prepare(query);
+  const rows = hasLimit ? await statement.bind(Number(limit)).all() : await statement.all();
   const result = [];
   for (const row of rows?.results || []) {
     let parsed = null;

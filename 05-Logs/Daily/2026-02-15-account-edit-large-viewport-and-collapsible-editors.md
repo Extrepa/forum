@@ -59,3 +59,24 @@
   - Username/avatar tab-content wrapper exclusion for whitespace control.
 - Validation rerun:
   - `npm run lint` -> pass.
+
+## Follow-up UI Alignment: In-Card Action Buttons + Avatar Note Placement
+- Request:
+  - Move `Edit avatar`/`Close` into the same preview card as avatar previews, right-aligned and vertically centered.
+  - Move the avatar performance note into the preview section under the mini-preview helper text.
+  - Move `Edit username`/`Close` into the username preview card, right-aligned in the same style.
+- File updated:
+  - `src/app/account/AccountTabsClient.js`
+- Changes implemented:
+  - Username subtab:
+    - Removed top-row action button beside the `Username` heading.
+    - Added the action button to the preview card’s right grid column with centered vertical alignment (`alignSelf: 'stretch'` container + `alignItems: 'center'`).
+  - Avatar subtab:
+    - Removed top-row action button beside the `Avatar` heading.
+    - Added the action button to the preview card’s right grid column with centered vertical alignment.
+    - Moved `Performance note: ...` from below the card into the preview text area, immediately under `Open the editor when you need changes.` while editing is active.
+- Double-check performed:
+  - Reviewed `git diff -- src/app/account/AccountTabsClient.js` to confirm old button locations were removed and new in-card placements are present.
+  - Confirmed performance note now renders inside the preview text block only when `isEditingAvatar` is true.
+  - Ran lint check:
+    - `npm run lint -- src/app/account/AccountTabsClient.js` -> pass.
