@@ -1,5 +1,5 @@
 name = "errl-portal-forum-docs"
-compatibility_date = "2024-05-13"
+compatibility_date = "2024-09-23"
 main = ".open-next/worker.js"
 
 [vars]
