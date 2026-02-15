@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
-import { isAdminUser } from '../../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../../lib/admin';
 import { renderMarkdown } from '../../../lib/markdown';
 import { formatDateTime } from '../../../lib/dates';
 import PageTopRow from '../../../components/PageTopRow';
@@ -30,8 +30,8 @@ export default async function BugDetailPage({ params, searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const canViewNomads = isDripNomad(user);
   const db = await getDb();
-  const isSignedIn = true; // Always true after redirect check
   const isAdmin = isAdminUser(user);
 
   let post = null;
@@ -42,6 +42,7 @@ export default async function BugDetailPage({ params, searchParams }) {
     post = await db
       .prepare(
         `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+                COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
                 posts.created_at, posts.updated_at,
                 COALESCE(posts.views, 0) AS views,
                 COALESCE(posts.is_locked, 0) AS is_locked,
@@ -54,14 +55,11 @@ export default async function BugDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.id = ? AND posts.type = 'bugs'`
+         WHERE posts.id = ? AND posts.type = 'bugs'
+           AND (${canViewNomads ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})`
       )
       .bind(id)
       .first();
-
-    if (post && (!isSignedIn && post.is_private)) {
-      post = null;
-    }
 
     if (post) {
       const out = await db

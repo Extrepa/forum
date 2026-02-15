@@ -1,5 +1,6 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
+import { isDripNomad } from '../../lib/admin';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
@@ -30,6 +31,7 @@ export default async function FeedPage() {
   
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
+  const canViewNomads = isDripNomad(user);
   const limitPerType = 20;
 
   const [announcements, threads, events, music, projects, posts, devlogs] = await Promise.all([
@@ -114,6 +116,7 @@ export default async function FeedPage() {
        WHERE events.moved_to_id IS NULL
          AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
          AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+         AND (${canViewNomads ? "1=1" : "(events.visibility_scope IS NULL OR events.visibility_scope = 'members')"})
        ORDER BY events.created_at DESC
        LIMIT ${limitPerType}`,
       [],
@@ -211,10 +214,10 @@ export default async function FeedPage() {
                   COALESCE((SELECT users.username FROM post_comments JOIN users ON users.id = post_comments.author_user_id WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0 ORDER BY post_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM posts
            JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
+           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories','nomads')
              AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
              AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-             AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+             AND (${canViewNomads ? "1=1" : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
            ORDER BY posts.created_at DESC
            LIMIT ${limitPerType}`,
           [],
@@ -228,8 +231,8 @@ export default async function FeedPage() {
                   COALESCE((SELECT users.username FROM post_comments JOIN users ON users.id = post_comments.author_user_id WHERE post_comments.post_id = posts.id AND post_comments.is_deleted = 0 ORDER BY post_comments.created_at DESC LIMIT 1), users.username) AS last_activity_author
            FROM posts
            JOIN users ON users.id = posts.author_user_id
-           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories')
-             AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+           WHERE posts.type IN ('art','bugs','rant','nostalgia','lore','memories','nomads')
+             AND (${canViewNomads ? "1=1" : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
            ORDER BY posts.created_at DESC
            LIMIT ${limitPerType}`,
           []
@@ -286,6 +289,8 @@ export default async function FeedPage() {
         return 'Lore';
       case 'memories':
         return 'Memories';
+      case 'nomads':
+        return 'Nomads';
       default:
         return type;
     }
@@ -375,7 +380,7 @@ export default async function FeedPage() {
       type: labelForPostType(row.type),
       contentType: 'post',
       contentId: row.id,
-      href: `/${row.type}/${row.id}`,
+      href: row.type === 'nomads' ? `/nomads/${row.id}` : `/${row.type}/${row.id}`,
       createdAt: row.created_at,
       title: row.title || 'Untitled',
       author: row.author_name,

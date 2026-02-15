@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AdminStatCard from './AdminStatCard';
 import ErrlTabSwitcher from './ErrlTabSwitcher';
 import CreatePostModal from './CreatePostModal';
+import { roleDisplayLabel } from '../lib/roles';
 
 const TAB_LIST = ['Overview', 'System Log', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
 const ADMIN_TABS = TAB_LIST.map((tab) => ({ id: tab, label: tab }));
@@ -32,7 +33,8 @@ const CONTENT_MOVE_DESTINATIONS = [
   { value: 'post:bugs', label: 'Bugs' },
   { value: 'post:rant', label: 'Rants' },
   { value: 'post:lore', label: 'Lore' },
-  { value: 'post:memories', label: 'Memories' }
+  { value: 'post:memories', label: 'Memories' },
+  { value: 'post:nomads', label: 'Nomads' }
 ];
 
 const POST_SECTION_DESTINATIONS = [
@@ -42,6 +44,7 @@ const POST_SECTION_DESTINATIONS = [
   { value: 'rant', label: 'Rants' },
   { value: 'lore', label: 'Lore' },
   { value: 'memories', label: 'Memories' },
+  { value: 'nomads', label: 'Nomads' },
   { value: 'about', label: 'About' }
 ];
 
@@ -52,6 +55,7 @@ const POST_SUBTYPE_PATHS = {
   rant: '/rant',
   lore: '/lore',
   memories: '/memories',
+  nomads: '/nomads',
   about: '/about'
 };
 
@@ -133,7 +137,7 @@ function buildSystemLogEntries({ stats = {}, actions = [], posts = [], users = [
       createdAt: Number(member.createdAt || 0) || bootTime,
       level: 'info',
       source: 'users',
-      message: `Account observed: ${member.username} (${member.role || 'user'}).`
+      message: `Account observed: ${member.username} (${roleDisplayLabel(member.role || 'user')}).`
     });
   });
 
@@ -1150,7 +1154,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                         <strong>{member.username}</strong>
                         {member.isDeleted ? <div className="muted" style={{ fontSize: '12px' }}>Deleted</div> : null}
                       </td>
-                      <td>{member.role}</td>
+                      <td>{roleDisplayLabel(member.role)}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.createdAt)}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.lastSeen)}</td>
                       <td>{member.postsCount ?? 0}</td>
@@ -1200,7 +1204,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                                 title="Change user role"
                                 disabled={member.isDeleted}
                               >
-                                <option value="user">User</option>
+                                <option value="user">Driplet</option>
+                                <option value="drip_nomad">Drip Nomad</option>
                                 <option value="mod">Mod</option>
                                 <option value="admin">Admin</option>
                               </select>
@@ -1478,7 +1483,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             </div>
             <div>
               <div className="muted">Role</div>
-              <strong>{drawerUser.role}</strong>
+              <strong>{roleDisplayLabel(drawerUser.role)}</strong>
             </div>
             <div>
               <div className="muted">Joined</div>

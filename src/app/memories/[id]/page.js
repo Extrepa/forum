@@ -2,7 +2,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
 import { formatDateTime } from '../../../lib/dates';
-import { isAdminUser } from '../../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
@@ -30,6 +30,7 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const canViewNomads = isDripNomad(user);
 
   const db = await getDb();
 
@@ -41,6 +42,7 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
     post = await db
       .prepare(
         `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+                COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
                 posts.created_at, posts.updated_at,
               COALESCE(posts.views, 0) AS views,
               COALESCE(posts.is_locked, 0) AS is_locked,
@@ -53,7 +55,8 @@ export default async function MemoriesDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.id = ? AND posts.type = 'memories'`
+         WHERE posts.id = ? AND posts.type = 'memories'
+           AND (${canViewNomads ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})`
       )
       .bind(id)
       .first();

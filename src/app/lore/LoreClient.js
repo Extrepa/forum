@@ -4,9 +4,17 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 
-export default function LoreClient({ posts, notice , headerActions}) {
-  const title = useMemo(() => 'Lore', []);
-  const description = useMemo(() => "Errl's story and history.", []);
+export default function LoreClient({
+  posts,
+  notice,
+  headerActions,
+  sectionTitle = 'Lore',
+  sectionDescription = "Errl's story and history.",
+  hrefBase = '/lore',
+  emptyLabel = 'No lore yet.',
+}) {
+  const title = useMemo(() => sectionTitle, [sectionTitle]);
+  const description = useMemo(() => sectionDescription, [sectionDescription]);
   const latestPostRef = useRef(null);
   const [viewTracked, setViewTracked] = useState(false);
 
@@ -92,7 +100,7 @@ export default function LoreClient({ posts, notice , headerActions}) {
         {notice ? <div className="notice">{notice}</div> : null}
         <div className="list">
           {posts.length === 0 ? (
-            <p className="muted">No lore yet.</p>
+            <p className="muted">{emptyLabel}</p>
           ) : (
             (() => {
               // Build preferences map and assign unique colors
@@ -121,7 +129,7 @@ export default function LoreClient({ posts, notice , headerActions}) {
                 return (
                 <a
                   key={p.id}
-                  href={`/lore/${p.id}`}
+                  href={`${hrefBase}/${p.id}`}
                   className={`list-item ${p.is_unread ? 'thread-unread' : ''}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
                 >
@@ -135,7 +143,7 @@ export default function LoreClient({ posts, notice , headerActions}) {
                     likes={p.like_count || 0}
                     createdAt={p.created_at}
                     lastActivity={p.last_activity_at || p.created_at}
-                    titleHref={`/lore/${p.id}`}
+                    titleHref={`${hrefBase}/${p.id}`}
                     showTitleLink={false}
                   />
                   {p.is_private ? (
@@ -169,4 +177,3 @@ export default function LoreClient({ posts, notice , headerActions}) {
     </div>
   );
 }
-

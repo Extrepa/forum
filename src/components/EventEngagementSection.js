@@ -27,6 +27,13 @@ export default function EventEngagementSection({
 
   const attendeeLabel = eventHasPassed ? 'attended' : 'attending';
   const attendeeTitle = attendees.map((a) => a.username).filter(Boolean).join(', ');
+  const roleLabel = (role) => {
+    if (role === 'user') return 'Driplets';
+    if (role === 'drip_nomad') return 'Drip Nomads';
+    if (role === 'mod') return 'Mods';
+    if (role === 'admin') return 'Admins';
+    return role;
+  };
 
   const availableRoles = useMemo(
     () => Array.from(new Set(invitableUsers.map((u) => u.role).filter(Boolean))).sort(),
@@ -190,7 +197,7 @@ export default function EventEngagementSection({
                           checked={selectedRoles.has(role)}
                           onChange={() => toggleRole(role)}
                         />
-                        <span>{role}</span>
+                        <span>{roleLabel(role)}</span>
                       </label>
                     ))}
                   </div>
@@ -217,7 +224,7 @@ export default function EventEngagementSection({
                         onChange={() => toggleUser(member.id)}
                       />
                       <span>{member.username}</span>
-                      <span className="muted" style={{ fontSize: '12px' }}>({member.role})</span>
+                      <span className="muted" style={{ fontSize: '12px' }}>({roleLabel(member.role)})</span>
                       {Number(member.already_invited || 0) === 1 ? (
                         <span className="muted" style={{ fontSize: '11px' }}>invited</span>
                       ) : null}

@@ -1,7 +1,7 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import { isAdminUser } from '../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../lib/admin';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
@@ -18,6 +18,7 @@ export default async function LoreMemoriesPage({ searchParams }) {
   const isAdmin = isAdminUser(user);
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
+  const canSetNomadVisibility = isDripNomad(user);
 
   const db = await getDb();
   let results = [];
@@ -39,6 +40,7 @@ export default async function LoreMemoriesPage({ searchParams }) {
          WHERE posts.type IN ('lore', 'memories')
            ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+           AND (${canSetNomadVisibility ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
          ORDER BY is_pinned DESC, posts.created_at DESC
          LIMIT 50`
       )
@@ -113,6 +115,7 @@ export default async function LoreMemoriesPage({ searchParams }) {
             <NewPostModalButton label="New Post" title="New Lore or Memory Post" disabled={!canCreate} variant="wide">
               <GenericPostForm
                 action="/api/posts"
+                showNomadVisibilityToggle={canSetNomadVisibility}
                 allowedTypes={['lore', 'memories']}
                 titleLabel="Title (optional)"
                 titlePlaceholder="Optional title"

@@ -8,6 +8,8 @@ import { createMentionNotifications } from '../../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
 import { isValidPostType, postTypeCollectionPath, postTypePath } from '../../../../lib/contentTypes';
 import { logAdminAction } from '../../../../lib/audit';
+import { canViewScope, normalizeVisibilityScope } from '../../../../lib/visibility';
+import { isDripNomadUser } from '../../../../lib/roles';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -16,13 +18,13 @@ function normalizeType(raw) {
 export async function GET(request, { params }) {
   const { id } = await params;
   const user = await getSessionUser();
-  const includePrivate = !!user;
   const db = await getDb();
 
   try {
     const row = await db
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+                COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
                 posts.created_at, posts.updated_at,
                 users.username AS author_name
          FROM posts
@@ -35,10 +37,7 @@ export async function GET(request, { params }) {
     if (!row) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
-    if (!user && (row.type === 'lore' || row.type === 'memories')) {
-      return NextResponse.json({ error: 'notfound' }, { status: 404 });
-    }
-    if (!includePrivate && row.is_private) {
+    if (!canViewScope(user, row.visibility_scope)) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
     return NextResponse.json(row);
@@ -60,7 +59,10 @@ export async function POST(request, { params }) {
   const db = await getDb();
   let existing = null;
   try {
-    existing = await db.prepare('SELECT id, type, author_user_id, image_key FROM posts WHERE id = ?').bind(id).first();
+    existing = await db
+      .prepare("SELECT id, type, author_user_id, image_key, COALESCE(visibility_scope, 'members') AS visibility_scope, COALESCE(nomad_post_kind, 'post') AS nomad_post_kind FROM posts WHERE id = ?")
+      .bind(id)
+      .first();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
@@ -92,6 +94,19 @@ export async function POST(request, { params }) {
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
   const isPrivate = String(formData.get('is_private') || '').trim() === '1' ? 1 : 0;
+  const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
+  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(type === 'nomads' || requestedNomadVisibility ? 'nomads' : existing.visibility_scope, {
+    allowNomads: isDripNomadUser(user),
+  });
+  if (type === 'nomads' && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const nomadPostKind = String(formData.get('nomad_post_kind') || '').trim().toLowerCase() || existing.nomad_post_kind || 'post';
 
   const formImage = formData.get('image');
   const imageFile = formImage && typeof formImage === 'object' && 'arrayBuffer' in formImage ? formImage : null;
@@ -129,8 +144,8 @@ export async function POST(request, { params }) {
 
   try {
     await db
-      .prepare('UPDATE posts SET title = ?, body = ?, image_key = ?, is_private = ?, updated_at = ? WHERE id = ?')
-      .bind(finalTitle, body || null, imageKey, isPrivate, Date.now(), id)
+      .prepare('UPDATE posts SET title = ?, body = ?, image_key = ?, is_private = ?, visibility_scope = ?, nomad_post_kind = ?, updated_at = ? WHERE id = ?')
+      .bind(finalTitle, body || null, imageKey, isPrivate, visibilityScope, nomadPostKind, Date.now(), id)
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');

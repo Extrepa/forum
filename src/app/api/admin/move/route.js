@@ -461,7 +461,7 @@ async function createDestination(db, { destType, sourceType, source, extra }) {
 
   if (destType === 'post') {
     const postSubtype = String(extra.post_subtype || '').trim().toLowerCase();
-    const allowedPostSubtypes = new Set(['art', 'nostalgia', 'bugs', 'rant', 'lore', 'memories', 'about']);
+    const allowedPostSubtypes = new Set(['art', 'nostalgia', 'bugs', 'rant', 'lore', 'memories', 'nomads', 'about']);
     if (!allowedPostSubtypes.has(postSubtype)) {
       throw new Error('invalid_post_subtype');
     }

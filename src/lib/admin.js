@@ -1,8 +1,17 @@
 import { getDb } from './db';
 import { getSessionToken } from './session';
+import { isAdminUser as isAdminUserByRole, isDripNomadUser, isModeratorUser } from './roles';
 
 export function isAdminUser(user) {
-  return user && user.role === 'admin';
+  return isAdminUserByRole(user);
+}
+
+export function isModUser(user) {
+  return isModeratorUser(user);
+}
+
+export function isDripNomad(user) {
+  return isDripNomadUser(user);
 }
 
 export async function getSessionUserWithRole() {

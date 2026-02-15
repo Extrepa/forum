@@ -35,6 +35,11 @@ export const POST_TYPES = {
     label: 'About',
     path: '/about',
     collectionPath: '/about'
+  },
+  nomads: {
+    label: 'Nomads',
+    path: '/nomads',
+    collectionPath: '/nomads'
   }
 };
 

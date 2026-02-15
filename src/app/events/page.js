@@ -2,7 +2,7 @@ import EventsClient from './EventsClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
-import { isAdminUser } from '../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../lib/admin';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import PostForm from '../../components/PostForm';
@@ -16,6 +16,7 @@ export default async function EventsPage({ searchParams }) {
     redirect('/');
   }
   const isAdmin = isAdminUser(user);
+  const canViewNomads = isDripNomad(user);
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const db = await getDb();
   
@@ -41,6 +42,8 @@ export default async function EventsPage({ searchParams }) {
          WHERE events.moved_to_id IS NULL
            ${hiddenFilter}
            AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+           AND (events.section_scope = 'default' OR events.section_scope IS NULL)
+           AND (${canViewNomads ? "1=1" : "(events.visibility_scope IS NULL OR events.visibility_scope = 'members')"})
          ORDER BY is_pinned DESC, events.created_at DESC
          LIMIT 50`
       )
@@ -171,6 +174,7 @@ export default async function EventsPage({ searchParams }) {
             <NewPostModalButton label="Add Event" title="Add Event" disabled={!canCreate}>
               <PostForm
                 action="/api/events"
+                showNomadVisibilityToggle={canViewNomads}
                 titleLabel="Event title"
                 bodyLabel="Details (optional)"
                 buttonLabel="Add Event"

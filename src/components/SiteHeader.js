@@ -198,7 +198,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     { href: '/art-nostalgia', label: 'Art & Nostalgia' },
     { href: '/bugs-rant', label: 'Bugs & Rants' },
     { href: '/lore-memories', label: 'Lore & Memories' },
-  ]), [strings]);
+    ...((user?.role === 'admin' || user?.role === 'drip_nomad') ? [{ href: '/nomads', label: 'Nomads' }] : []),
+  ]), [strings, user?.role]);
 
   useEffect(() => {
     if (!libraryOpen) return undefined;

@@ -786,7 +786,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     if (tab.id === editProfileSubTab) classes.push('account-edit-tab--active');
     return classes.join(' ');
   };
-  const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : 'Drip';
+  const roleLabel = user?.role === 'admin' ? 'Drip Warden' : user?.role === 'mod' ? 'Drip Guardian' : user?.role === 'drip_nomad' ? 'Drip Nomad' : 'Driplet';
   const roleColor = user?.role === 'admin' ? 'var(--role-admin)' : user?.role === 'mod' ? 'var(--role-mod)' : 'var(--role-user)';
   const [defaultProfileTab, setDefaultProfileTab] = useState(stats?.defaultProfileTab ?? null);
   const [defaultTabSaving, setDefaultTabSaving] = useState(false);

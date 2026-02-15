@@ -1,7 +1,7 @@
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { renderMarkdown } from '../../lib/markdown';
-import { isAdminUser } from '../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../lib/admin';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
@@ -18,6 +18,7 @@ export default async function BugsRantPage({ searchParams }) {
   const isAdmin = isAdminUser(user);
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
+  const canSetNomadVisibility = isDripNomad(user);
   const db = await getDb();
   const isSignedIn = true; // Always true after redirect check
 
@@ -39,6 +40,7 @@ export default async function BugsRantPage({ searchParams }) {
          WHERE posts.type IN ('bugs', 'rant')
            ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+           AND (${canSetNomadVisibility ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
            AND (${isSignedIn ? '1=1' : 'posts.is_private = 0'})
          ORDER BY posts.created_at DESC
          LIMIT 50`
@@ -83,6 +85,7 @@ export default async function BugsRantPage({ searchParams }) {
             <NewPostModalButton label="New Post" title="New Post" disabled={!canCreate} variant="wide">
               <GenericPostForm
                 action="/api/posts"
+                showNomadVisibilityToggle={canSetNomadVisibility}
                 allowedTypes={['bugs', 'rant']}
                 titleLabel="Title (optional)"
                 titlePlaceholder="Short summary"

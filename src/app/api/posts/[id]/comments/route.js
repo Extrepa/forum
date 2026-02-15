@@ -3,22 +3,19 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { canViewScope } from '../../../../../lib/visibility';
 
 export async function GET(request, { params }) {
   const { id } = await params;
   const user = await getSessionUser();
-  const includePrivate = !!user;
   const db = await getDb();
 
   try {
-    const post = await db.prepare('SELECT type, is_private FROM posts WHERE id = ?').bind(id).first();
+    const post = await db.prepare("SELECT type, is_private, COALESCE(visibility_scope, 'members') AS visibility_scope FROM posts WHERE id = ?").bind(id).first();
     if (!post) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
-    if (!user && (post.type === 'lore' || post.type === 'memories')) {
-      return NextResponse.json({ error: 'notfound' }, { status: 404 });
-    }
-    if (!includePrivate && post.is_private) {
+    if (!canViewScope(user, post.visibility_scope)) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 });
     }
 
@@ -65,13 +62,20 @@ export async function POST(request, { params }) {
   const db = await getDb();
   let post = null;
   try {
-    post = await db.prepare('SELECT type, is_private, is_locked FROM posts WHERE id = ?').bind(id).first();
+    post = await db
+      .prepare("SELECT type, is_private, is_locked, COALESCE(visibility_scope, 'members') AS visibility_scope FROM posts WHERE id = ?")
+      .bind(id)
+      .first();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
   if (!post) {
+    redirectUrl.searchParams.set('error', 'notfound');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (!canViewScope(user, post.visibility_scope)) {
     redirectUrl.searchParams.set('error', 'notfound');
     return NextResponse.redirect(redirectUrl, 303);
   }

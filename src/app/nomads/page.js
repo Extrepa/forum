@@ -5,23 +5,24 @@ import { isAdminUser, isDripNomad } from '../../lib/admin';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
 import GenericPostForm from '../../components/GenericPostForm';
-import RantClient from './RantClient';
+import LoreClient from '../lore/LoreClient';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-export default async function RantPage({ searchParams }) {
+export default async function NomadsPage({ searchParams }) {
   const user = await getSessionUser();
   if (!user) {
     redirect('/');
   }
+  if (!isDripNomad(user)) {
+    redirect('/feed');
+  }
   const isAdmin = isAdminUser(user);
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
-  const canSetNomadVisibility = isDripNomad(user);
-  const db = await getDb();
-  const isSignedIn = true; // Always true after redirect check
 
+  const db = await getDb();
   let results = [];
   let dbUnavailable = false;
   const hiddenFilter = showHidden ? '' : 'AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)';
@@ -38,11 +39,11 @@ export default async function RantPage({ searchParams }) {
                 COALESCE(posts.is_pinned, 0) AS is_pinned
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.type = 'rant'
+         WHERE posts.type = 'nomads'
+           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+           AND (posts.visibility_scope = 'nomads' OR posts.visibility_scope IS NULL)
            ${hiddenFilter}
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-           AND (${canSetNomadVisibility ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
-           AND (${isSignedIn ? '1=1' : 'posts.is_private = 0'})
          ORDER BY is_pinned DESC, posts.created_at DESC
          LIMIT 50`
       )
@@ -100,39 +101,46 @@ export default async function RantPage({ searchParams }) {
   const error = searchParams?.error;
   const notice =
     dbUnavailable
-      ? 'Rant is not available yet on this environment. Apply migration 0017_shared_posts.sql.'
-      : error === 'claim'
-      ? 'Sign in before posting.'
+      ? 'Nomads is not available yet on this environment. Apply migration 0017_shared_posts.sql.'
       : error === 'password'
       ? 'Set your password to continue posting.'
       : error === 'missing'
       ? 'Text is required.'
       : error === 'notready'
-      ? 'Rant is not enabled yet (database updates still applying).'
+      ? 'Nomads is not enabled yet (database updates still applying).'
       : null;
 
   return (
     <>
-      <RantClient headerActions={
+      <LoreClient
+        sectionTitle="Nomads"
+        sectionDescription="Private posts for Drip Nomads and admins."
+        hrefBase="/nomads"
+        emptyLabel="No nomad posts yet."
+        headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
-            <NewPostModalButton label="New Rant" title="New Rant" disabled={!canCreate} variant="wide">
+            <NewPostModalButton label="New Nomad Post" title="New Nomad Post" disabled={!canCreate} variant="wide">
               <GenericPostForm
                 action="/api/posts"
-                showNomadVisibilityToggle={canSetNomadVisibility}
-                type="rant"
+                type="nomads"
                 titleLabel="Title (optional)"
                 titlePlaceholder="Optional title"
-                bodyLabel="Rant"
-                bodyPlaceholder="Let it out..."
-                buttonLabel="Post rant"
+                bodyLabel="Nomad Post"
+                bodyPlaceholder="Write your nomad post..."
+                buttonLabel="Post"
                 showImage={true}
                 titleRequired={false}
                 bodyRequired={true}
+                showPrivateToggle={false}
+                showNomadPostKind={true}
               />
             </NewPostModalButton>
           </>
-        } posts={posts} notice={notice} />
+        }
+        posts={posts}
+        notice={notice}
+      />
     </>
   );
 }

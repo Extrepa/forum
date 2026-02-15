@@ -52,11 +52,13 @@ export default function PostForm({
   showImage = false,
   allowImageUploads = true,
   allowMarkdownUpload = true,
-  initialData
+  initialData,
+  showNomadVisibilityToggle = false
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
   const [useEndDate, setUseEndDate] = useState(Boolean(initialData?.ends_at));
+  const [nomadOnly, setNomadOnly] = useState(Boolean(initialData?.visibility_scope === 'nomads'));
 
   const apply = (before, after) => {
     if (!bodyRef.current) {
@@ -117,6 +119,18 @@ export default function PostForm({
         ) : (
           <div className="muted image-note">Image uploads are temporarily disabled by the admin.</div>
         )
+      ) : null}
+      {showNomadVisibilityToggle ? (
+        <label style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            name="visibility_scope_nomads"
+            value="1"
+            checked={nomadOnly}
+            onChange={(event) => setNomadOnly(event.target.checked)}
+          />
+          <span className="muted">Nomads-only</span>
+        </label>
       ) : null}
       {allowMarkdownUpload ? (
         <MarkdownUploader targetRef={bodyRef} helper="Upload a Markdown file to auto-fill the body." />

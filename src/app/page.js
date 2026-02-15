@@ -2,6 +2,7 @@ import ClaimUsernameForm from '../components/ClaimUsernameForm';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
+import { isDripNomad } from '../lib/admin';
 import { assignUniqueColorsForPage } from '../lib/usernameColor';
 import {
   getForumStrings
@@ -86,7 +87,9 @@ export default async function HomePage({ searchParams }) {
     };
 
     // Helper to inject private check
-    const privateCheck = '1=1';
+    const privateCheck = isDripNomad(user)
+      ? '1=1'
+      : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')";
 
     const results = await Promise.all([
       safeFirst(db, 'SELECT COUNT(*) as count FROM timeline_updates WHERE moved_to_id IS NULL AND (is_deleted = 0 OR is_deleted IS NULL)', [], 'SELECT COUNT(*) as count FROM timeline_updates WHERE (is_deleted = 0 OR is_deleted IS NULL)', []),
@@ -116,7 +119,45 @@ export default async function HomePage({ searchParams }) {
       safeFirstNull(db, `SELECT dev_log_comments.created_at, dev_logs.id AS log_id, dev_logs.title AS log_title, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, log_users.username AS log_author, log_users.preferred_username_color_index AS log_author_color_preference FROM dev_log_comments JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id JOIN users AS comment_users ON comment_users.id = dev_log_comments.author_user_id JOIN users AS log_users ON log_users.id = dev_logs.author_user_id WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL) AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL) ORDER BY dev_log_comments.created_at DESC LIMIT 1`),
       safeFirst(db, 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)', [], 'SELECT COUNT(*) as count FROM posts WHERE type IN (\'lore\', \'memories\') AND (is_deleted = 0 OR is_deleted IS NULL)', []),
       safeFirst(db, `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('lore', 'memories') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, [], `SELECT posts.id, posts.title, posts.created_at, posts.type, users.username AS author_name, users.preferred_username_color_index AS author_color_preference FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.type IN ('lore', 'memories') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY posts.created_at DESC LIMIT 1`, []),
-      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('lore', 'memories') AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`)
+      safeFirstNull(db, `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type, comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference, post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference FROM post_comments JOIN posts ON posts.id = post_comments.post_id JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id JOIN users AS post_users ON post_users.id = posts.author_user_id WHERE posts.type IN ('lore', 'memories') AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL) AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) ORDER BY post_comments.created_at DESC LIMIT 1`),
+      safeFirst(
+        db,
+        `SELECT COUNT(*) as count
+         FROM posts
+         WHERE posts.type = 'nomads'
+           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)`,
+        [],
+        `SELECT COUNT(*) as count
+         FROM posts
+         WHERE posts.type = 'nomads'
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)`,
+        []
+      ),
+      safeFirst(
+        db,
+        `SELECT posts.id, posts.title, posts.created_at, posts.type,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type = 'nomads'
+           AND (posts.section_scope = 'nomads' OR posts.section_scope IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 1`,
+        [],
+        `SELECT posts.id, posts.title, posts.created_at, posts.type,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type = 'nomads'
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 1`,
+        []
+      )
     ]);
 
     const [
@@ -128,7 +169,8 @@ export default async function HomePage({ searchParams }) {
       artNostalgiaCount, artNostalgiaRecentPost, artNostalgiaRecentComment,
       bugsRantCount, bugsRantRecentPost, bugsRantRecentComment,
       devlogCount, devlogRecentPost, devlogRecentComment,
-      loreMemoriesCount, loreMemoriesRecentPost, loreMemoriesRecentComment
+      loreMemoriesCount, loreMemoriesRecentPost, loreMemoriesRecentComment,
+      nomadsCount, nomadsRecentPost
     ] = results;
 
     // Derive forumRecent from post + reply
@@ -475,6 +517,26 @@ export default async function HomePage({ searchParams }) {
             href: `/lore-memories/${loreMemoriesRecentComment.post_id}`
           };
         }
+
+    const nomadsRecent = nomadsRecentPost
+      ? {
+          type: 'post',
+          postId: nomadsRecentPost.id,
+          postTitle: nomadsRecentPost.title || 'Untitled',
+          postAuthor: nomadsRecentPost.author_name,
+          postAuthorColorPreference:
+            nomadsRecentPost.author_color_preference !== null && nomadsRecentPost.author_color_preference !== undefined
+              ? Number(nomadsRecentPost.author_color_preference)
+              : null,
+          activityAuthor: nomadsRecentPost.author_name,
+          activityAuthorColorPreference:
+            nomadsRecentPost.author_color_preference !== null && nomadsRecentPost.author_color_preference !== undefined
+              ? Number(nomadsRecentPost.author_color_preference)
+              : null,
+          timeAgo: formatTimeAgo(nomadsRecentPost.created_at),
+          href: `/nomads/${nomadsRecentPost.id}`
+        }
+      : null;
 
     const [
       timelineRecentRows,
@@ -1254,7 +1316,13 @@ export default async function HomePage({ searchParams }) {
               href: loreMemoriesRecent.href
             }
           : null
-      } : null
+      } : null,
+      nomads: hasUsername && isDripNomad(user) && nomadsCount !== null
+        ? {
+            count: nomadsCount?.count || 0,
+            recent: nomadsRecent
+          }
+        : null
     };
   }
 
@@ -1316,6 +1384,9 @@ export default async function HomePage({ searchParams }) {
     }
     if (sectionData.loreMemories?.recent?.activityAuthor && sectionData.loreMemories.recent.activityAuthor !== sectionData.loreMemories.recent.postAuthor) {
       allUsernames.push(sectionData.loreMemories.recent.activityAuthor);
+    }
+    if (sectionData.nomads?.recent?.postAuthor) {
+      allUsernames.push(sectionData.nomads.recent.postAuthor);
     }
   }
 
@@ -1410,6 +1481,9 @@ export default async function HomePage({ searchParams }) {
       if (sectionData.loreMemories.recent.activityAuthor && sectionData.loreMemories.recent.activityAuthorColorPreference !== null && sectionData.loreMemories.recent.activityAuthorColorPreference !== undefined) {
         preferredColors.set(sectionData.loreMemories.recent.activityAuthor, Number(sectionData.loreMemories.recent.activityAuthorColorPreference));
       }
+    }
+    if (sectionData.nomads?.recent?.postAuthor && sectionData.nomads.recent.postAuthorColorPreference !== null && sectionData.nomads.recent.postAuthorColorPreference !== undefined) {
+      preferredColors.set(sectionData.nomads.recent.postAuthor, Number(sectionData.nomads.recent.postAuthorColorPreference));
     }
   }
 
@@ -1538,6 +1612,16 @@ export default async function HomePage({ searchParams }) {
       recentActivities: sectionRecentLists.loreMemories || [],
       recentActivity: sectionData.loreMemories.recent || null,
       href: "/lore-memories"
+    });
+  }
+  if (hasUsername && sectionData?.nomads) {
+    sections.push({
+      title: 'Nomads',
+      description: 'Private section for Drip Nomads and admins.',
+      count: sectionData.nomads.count || 0,
+      recentActivities: [],
+      recentActivity: sectionData.nomads.recent || null,
+      href: '/nomads'
     });
   }
 

@@ -7,6 +7,8 @@ import { parseLocalDateTimeToUTC } from '../../../lib/dates';
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
+import { normalizeVisibilityScope } from '../../../lib/visibility';
+import { isDripNomadUser } from '../../../lib/roles';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -27,6 +29,14 @@ export async function POST(request) {
   const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
   const endsAtRaw = String(formData.get('ends_at') || '').trim();
   const endsAt = endsAtRaw ? parseLocalDateTimeToUTC(endsAtRaw) : null;
+  const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
+  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(requestedNomadVisibility ? 'nomads' : 'members', {
+    allowNomads: isDripNomadUser(user),
+  });
 
   if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -74,16 +84,37 @@ export async function POST(request) {
   try {
     await db
       .prepare(
-        'INSERT INTO events (id, author_user_id, title, details, starts_at, ends_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO events (id, author_user_id, title, details, starts_at, ends_at, created_at, image_key, visibility_scope, section_scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .bind(eventId, user.id, title, body || null, startsAt, endsAt, now, imageKey)
+      .bind(
+        eventId,
+        user.id,
+        title,
+        body || null,
+        startsAt,
+        endsAt,
+        now,
+        imageKey,
+        visibilityScope,
+        visibilityScope === 'nomads' ? 'nomads' : 'default'
+      )
       .run();
   } catch (e) {
     await db
       .prepare(
-        'INSERT INTO events (id, author_user_id, title, details, starts_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO events (id, author_user_id, title, details, starts_at, created_at, image_key, visibility_scope, section_scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .bind(eventId, user.id, title, body || null, startsAt, now, imageKey)
+      .bind(
+        eventId,
+        user.id,
+        title,
+        body || null,
+        startsAt,
+        now,
+        imageKey,
+        visibilityScope,
+        visibilityScope === 'nomads' ? 'nomads' : 'default'
+      )
       .run();
   }
 

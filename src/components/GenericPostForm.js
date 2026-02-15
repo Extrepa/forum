@@ -32,10 +32,13 @@ export default function GenericPostForm({
   defaultPrivate = false,
   titleRequired = false,
   bodyRequired = true,
+  showNomadVisibilityToggle = false,
+  showNomadPostKind = false,
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(type || (allowedTypes && allowedTypes.length > 0 ? allowedTypes[0] : ''));
+  const [nomadOnly, setNomadOnly] = useState(false);
 
   const apply = (before, after) => {
     if (!bodyRef.current) return;
@@ -138,7 +141,30 @@ export default function GenericPostForm({
       {showPrivateToggle ? (
         <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="checkbox" name="is_private" value="1" defaultChecked={defaultPrivate} />
-          <span className="muted">Members-only (signed-in users only)</span>
+          <span className="muted">Members-only</span>
+        </label>
+      ) : null}
+      {showNomadVisibilityToggle ? (
+        <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            name="visibility_scope_nomads"
+            value="1"
+            checked={nomadOnly}
+            onChange={(event) => setNomadOnly(event.target.checked)}
+          />
+          <span className="muted">Nomads-only</span>
+        </label>
+      ) : null}
+      {showNomadPostKind ? (
+        <label>
+          <div className="muted">Nomad post type</div>
+          <select name="nomad_post_kind" defaultValue="post">
+            <option value="post">Post</option>
+            <option value="event">Event</option>
+            <option value="update">Update</option>
+            <option value="invite">Invite</option>
+          </select>
         </label>
       ) : null}
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../../lib/auth';
-import { isAdminUser } from '../../../../../../../lib/admin';
+import { isAdminUser, isModUser } from '../../../../../../../lib/admin';
 
 export async function POST(request, { params }) {
   const { id, replyId } = await params;
@@ -23,7 +23,7 @@ export async function POST(request, { params }) {
   }
 
   const isAdmin = isAdminUser(user);
-  const canDelete = reply.author_user_id === user.id || isAdmin;
+  const canDelete = reply.author_user_id === user.id || isModUser(user);
 
   if (!canDelete) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 403 });

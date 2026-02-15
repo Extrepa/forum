@@ -7,6 +7,8 @@ import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { isValidPostType, postTypeCollectionPath } from '../../../lib/contentTypes';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
+import { normalizeVisibilityScope } from '../../../lib/visibility';
+import { isDripNomadUser } from '../../../lib/roles';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -17,12 +19,13 @@ export async function GET(request) {
   const url = new URL(request.url);
   const type = normalizeType(url.searchParams.get('type'));
   const includePrivate = !!user;
+  const canViewNomads = isDripNomadUser(user);
 
   if (!isValidPostType(type)) {
     return NextResponse.json({ error: 'invalid_type' }, { status: 400 });
   }
 
-  if ((type === 'lore' || type === 'memories') && !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -31,12 +34,14 @@ export async function GET(request) {
     const out = await db
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
+                COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
                 posts.created_at, posts.updated_at,
                 users.username AS author_name
          FROM posts
          JOIN users ON users.id = posts.author_user_id
          WHERE posts.type = ?
            AND (${includePrivate ? '1=1' : 'posts.is_private = 0'})
+           AND (${canViewNomads ? "1=1" : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})
          ORDER BY posts.created_at DESC
          LIMIT 50`
       )
@@ -66,6 +71,19 @@ export async function POST(request) {
   const title = String(formData.get('title') || '').trim();
   const body = String(formData.get('body') || '').trim();
   const isPrivate = String(formData.get('is_private') || '').trim() === '1' ? 1 : 0;
+  const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
+  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(type === 'nomads' || requestedNomadVisibility ? 'nomads' : 'members', {
+    allowNomads: isDripNomadUser(user),
+  });
+  if (type === 'nomads' && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const nomadPostKind = String(formData.get('nomad_post_kind') || '').trim().toLowerCase() || 'post';
 
   if (!isValidPostType(type)) {
     redirectUrl.searchParams.set('error', 'invalid_type');
@@ -119,10 +137,22 @@ export async function POST(request) {
   try {
     await db
       .prepare(
-        `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO posts (id, author_user_id, type, title, body, image_key, is_private, visibility_scope, nomad_post_kind, section_scope, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(postId, user.id, type, finalTitle, body || null, imageKey, isPrivate, now)
+      .bind(
+        postId,
+        user.id,
+        type,
+        finalTitle,
+        body || null,
+        imageKey,
+        isPrivate,
+        visibilityScope,
+        nomadPostKind,
+        type === 'nomads' ? 'nomads' : 'default',
+        now
+      )
       .run();
 
     // Create mention notifications

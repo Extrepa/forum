@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
-import { isAdminUser } from '../../../lib/admin';
+import { isAdminUser, isDripNomad } from '../../../lib/admin';
 import PageTopRow from '../../../components/PageTopRow';
 import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
@@ -48,6 +48,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   if (!user) {
     redirect('/');
   }
+  const canViewNomads = isDripNomad(user);
   const db = await getDb();
   let event = null;
   try {
@@ -56,6 +57,8 @@ export default async function EventDetailPage({ params, searchParams }) {
           `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at, events.ends_at,
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
+                COALESCE(events.visibility_scope, 'members') AS visibility_scope,
+                COALESCE(events.section_scope, 'default') AS section_scope,
                 COALESCE(events.views, 0) AS views,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -79,6 +82,8 @@ export default async function EventDetailPage({ params, searchParams }) {
         .prepare(
             `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at, events.ends_at,
                   events.created_at, events.image_key,
+                  COALESCE(events.visibility_scope, 'members') AS visibility_scope,
+                  COALESCE(events.section_scope, 'default') AS section_scope,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
@@ -111,6 +116,8 @@ export default async function EventDetailPage({ params, searchParams }) {
           .prepare(
               `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
                     events.created_at, events.image_key,
+                    'members' AS visibility_scope,
+                    'default' AS section_scope,
                     users.username AS author_name,
                     users.preferred_username_color_index AS author_color_preference,
                     users.avatar_key AS author_avatar_key,
@@ -140,6 +147,14 @@ export default async function EventDetailPage({ params, searchParams }) {
   }
 
   if (!event) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This event does not exist.</p>
+      </section>
+    );
+  }
+  if (!canViewNomads && String(event.visibility_scope || 'members') === 'nomads') {
     return (
       <section className="card">
         <h2 className="section-title">Not found</h2>
@@ -394,6 +409,7 @@ export default async function EventDetailPage({ params, searchParams }) {
               editModal={
                 <PostForm
                   action={`/api/events/${id}`}
+                  showNomadVisibilityToggle={canViewNomads}
                   titleLabel="Event title"
                   bodyLabel="Details (optional)"
                   buttonLabel="Update Event"
@@ -405,7 +421,8 @@ export default async function EventDetailPage({ params, searchParams }) {
                     title: event.title,
                     details: event.details,
                     starts_at: event.starts_at,
-                    ends_at: event.ends_at
+                    ends_at: event.ends_at,
+                    visibility_scope: event.visibility_scope
                   }}
                 />
               }

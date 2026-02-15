@@ -3,6 +3,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { renderMarkdown } from '../../../lib/markdown';
 import { formatDateTime } from '../../../lib/dates';
 import { isAdminUser, isDripNomad } from '../../../lib/admin';
+import { canViewScope } from '../../../lib/visibility';
 import PageTopRow from '../../../components/PageTopRow';
 import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
@@ -22,7 +23,7 @@ import EditPostModal from '../../../components/EditPostModal';
 
 export const dynamic = 'force-dynamic';
 
-export default async function LoreDetailPage({ params, searchParams }) {
+export default async function NomadsDetailPage({ params, searchParams }) {
   // Next.js 15: params is a Promise, must await
   const { id } = await params;
   
@@ -30,7 +31,9 @@ export default async function LoreDetailPage({ params, searchParams }) {
   if (!user) {
     redirect('/');
   }
-  const canViewNomads = isDripNomad(user);
+  if (!isDripNomad(user)) {
+    redirect('/feed');
+  }
 
   const db = await getDb();
 
@@ -42,8 +45,8 @@ export default async function LoreDetailPage({ params, searchParams }) {
     post = await db
       .prepare(
         `SELECT posts.id, posts.author_user_id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
-                COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
                 posts.created_at, posts.updated_at,
+              COALESCE(posts.visibility_scope, 'members') AS visibility_scope,
               COALESCE(posts.views, 0) AS views,
               COALESCE(posts.is_locked, 0) AS is_locked,
               COALESCE(posts.is_hidden, 0) AS is_hidden,
@@ -55,8 +58,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'post' AND post_id = posts.id) AS like_count
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE posts.id = ? AND posts.type = 'lore'
-           AND (${canViewNomads ? '1=1' : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')"})`
+         WHERE posts.id = ? AND posts.type = 'nomads'`
       )
       .bind(id)
       .first();
@@ -89,13 +91,21 @@ export default async function LoreDetailPage({ params, searchParams }) {
   if (dbUnavailable) {
     return (
       <section className="card">
-        <h2 className="section-title">Lore</h2>
-        <p className="muted">Lore is not available yet on this environment. Apply migration 0017_shared_posts.sql.</p>
+        <h2 className="section-title">Nomads</h2>
+        <p className="muted">Nomads is not available yet on this environment. Apply migration 0017_shared_posts.sql.</p>
       </section>
     );
   }
 
   if (!post) {
+    return (
+      <section className="card">
+        <h2 className="section-title">Not found</h2>
+        <p className="muted">This post does not exist.</p>
+      </section>
+    );
+  }
+  if (!canViewScope(user, post.visibility_scope)) {
     return (
       <section className="card">
         <h2 className="section-title">Not found</h2>
@@ -199,8 +209,8 @@ export default async function LoreDetailPage({ params, searchParams }) {
       <PageTopRow
         items={[
           { href: '/', label: 'Home' },
-          { href: '/lore', label: 'Lore' },
-          { href: `/lore/${id}`, label: post.title || 'Untitled' },
+          { href: '/nomads', label: 'Nomads' },
+          { href: `/nomads/${id}`, label: post.title || 'Untitled' },
         ]}
         right={
           (isAdmin || canEdit) ? (
@@ -323,7 +333,7 @@ export default async function LoreDetailPage({ params, searchParams }) {
             comments.map((c) => {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
-              const replyLink = `/lore/${id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
+              const replyLink = `/nomads/${id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
               return (
                 <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>

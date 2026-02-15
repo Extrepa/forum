@@ -200,7 +200,7 @@ export default function UserPopover({
         </div>
         {userInfo?.role && (
           <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '1px', marginBottom: 0, wordBreak: 'break-word', maxWidth: '100%', flexShrink: 1, minWidth: 0, lineHeight: 1.05 }}>
-            {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : 'Drip'}
+            {userInfo.role === 'admin' ? 'Drip Warden' : userInfo.role === 'mod' ? 'Drip Guardian' : userInfo.role === 'drip_nomad' ? 'Drip Nomad' : 'Driplet'}
           </div>
         )}
         {(userInfo?.profile_mood_text || userInfo?.profile_mood_emoji) && (

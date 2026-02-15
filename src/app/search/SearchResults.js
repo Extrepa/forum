@@ -2,6 +2,7 @@ import SearchClient from './SearchClient';
 import { getDb } from '../../lib/db';
 import { renderMarkdown } from '../../lib/markdown';
 import { getSessionUser } from '../../lib/auth';
+import { isDripNomad } from '../../lib/admin';
 
 export default async function SearchResults({ query }) {
   if (!query) {
@@ -12,11 +13,14 @@ export default async function SearchResults({ query }) {
 
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const canViewNomads = isDripNomad(user);
 
   const db = await getDb();
   const searchTerm = `%${query}%`;
   const normalizedTerm = `%${String(query).toLowerCase()}%`;
-  const signedInPostVisibility = isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')";
+  const signedInPostVisibility = canViewNomads
+    ? '1=1'
+    : "(posts.visibility_scope IS NULL OR posts.visibility_scope = 'members')";
 
   // Search forum threads
   let threads = [];
@@ -136,6 +140,7 @@ export default async function SearchResults({ query }) {
          WHERE events.moved_to_id IS NULL
            AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
            AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+           AND (${canViewNomads ? "1=1" : "(events.visibility_scope IS NULL OR events.visibility_scope = 'members')"})
            AND (
              events.title LIKE ?
              OR events.details LIKE ?
@@ -159,6 +164,7 @@ export default async function SearchResults({ query }) {
          JOIN users ON users.id = events.author_user_id
          WHERE (events.is_hidden = 0 OR events.is_hidden IS NULL)
            AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+           AND (${canViewNomads ? "1=1" : "(events.visibility_scope IS NULL OR events.visibility_scope = 'members')"})
            AND (
              events.title LIKE ?
              OR events.details LIKE ?
@@ -566,7 +572,7 @@ export default async function SearchResults({ query }) {
            )
            AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
-           AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
+           AND (${signedInPostVisibility})
          ORDER BY posts.created_at DESC
          LIMIT 20`
       )
@@ -663,6 +669,7 @@ export default async function SearchResults({ query }) {
     else if (r.parent_type === 'project') url = `/projects/${parentId}`;
     else if (r.parent_type === 'post') {
       if (r.post_type === 'lore' || r.post_type === 'memories') url = `/lore-memories/${parentId}`;
+      else if (r.post_type === 'nomads') url = `/nomads/${parentId}`;
       else if (r.post_type === 'about') url = '/about';
       else url = `/${r.post_type}/${parentId}`;
     }
@@ -682,6 +689,7 @@ export default async function SearchResults({ query }) {
       nostalgia: 'nostalgia',
       lore: 'lore',
       memories: 'memories',
+      nomads: 'nomads',
       about: 'about',
     };
     return labels[t] || t;
@@ -692,6 +700,8 @@ export default async function SearchResults({ query }) {
     let url;
     if (p.type === 'lore' || p.type === 'memories') {
       url = `/lore-memories/${p.id}`;
+    } else if (p.type === 'nomads') {
+      url = `/nomads/${p.id}`;
     } else if (p.type === 'about') {
       url = '/about';
     } else {

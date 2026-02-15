@@ -4,7 +4,7 @@ import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { logAdminAction } from '../../../../../../lib/audit';
 
-const VALID_ROLES = ['user', 'mod', 'admin'];
+const VALID_ROLES = ['user', 'drip_nomad', 'mod', 'admin'];
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();

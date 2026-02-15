@@ -7,6 +7,8 @@ import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from
 import { parseLocalDateTimeToUTC } from '../../../../lib/dates';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
 import { logAdminAction } from '../../../../lib/audit';
+import { normalizeVisibilityScope } from '../../../../lib/visibility';
+import { isDripNomadUser } from '../../../../lib/roles';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
@@ -19,7 +21,7 @@ export async function POST(request, { params }) {
 
   const db = await getDb();
   const existing = await db
-    .prepare('SELECT author_user_id FROM events WHERE id = ?')
+    .prepare("SELECT author_user_id, COALESCE(visibility_scope, 'members') AS visibility_scope FROM events WHERE id = ?")
     .bind(params.id)
     .first();
 
@@ -42,6 +44,14 @@ export async function POST(request, { params }) {
   const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
   const endsAtRaw = String(formData.get('ends_at') || '').trim();
   const endsAt = endsAtRaw ? parseLocalDateTimeToUTC(endsAtRaw) : null;
+  const requestedNomadVisibility = String(formData.get('visibility_scope_nomads') || '').trim() === '1';
+  if (requestedNomadVisibility && !isDripNomadUser(user)) {
+    redirectUrl.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  const visibilityScope = normalizeVisibilityScope(requestedNomadVisibility ? 'nomads' : existing.visibility_scope, {
+    allowNomads: isDripNomadUser(user),
+  });
 
   if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
@@ -87,32 +97,64 @@ export async function POST(request, { params }) {
     if (imageKey) {
       await db
         .prepare(
-          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ?, image_key = ? WHERE id = ?'
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ?, image_key = ?, visibility_scope = ?, section_scope = ? WHERE id = ?'
         )
-        .bind(title, body || null, startsAt, endsAt, imageKey, params.id)
+        .bind(
+          title,
+          body || null,
+          startsAt,
+          endsAt,
+          imageKey,
+          visibilityScope,
+          visibilityScope === 'nomads' ? 'nomads' : 'default',
+          params.id
+        )
         .run();
     } else {
       await db
         .prepare(
-          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ? WHERE id = ?'
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ?, visibility_scope = ?, section_scope = ? WHERE id = ?'
         )
-        .bind(title, body || null, startsAt, endsAt, params.id)
+        .bind(
+          title,
+          body || null,
+          startsAt,
+          endsAt,
+          visibilityScope,
+          visibilityScope === 'nomads' ? 'nomads' : 'default',
+          params.id
+        )
         .run();
     }
   } catch (e) {
     if (imageKey) {
       await db
         .prepare(
-          'UPDATE events SET title = ?, details = ?, starts_at = ?, image_key = ? WHERE id = ?'
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, image_key = ?, visibility_scope = ?, section_scope = ? WHERE id = ?'
         )
-        .bind(title, body || null, startsAt, imageKey, params.id)
+        .bind(
+          title,
+          body || null,
+          startsAt,
+          imageKey,
+          visibilityScope,
+          visibilityScope === 'nomads' ? 'nomads' : 'default',
+          params.id
+        )
         .run();
     } else {
       await db
         .prepare(
-          'UPDATE events SET title = ?, details = ?, starts_at = ? WHERE id = ?'
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, visibility_scope = ?, section_scope = ? WHERE id = ?'
         )
-        .bind(title, body || null, startsAt, params.id)
+        .bind(
+          title,
+          body || null,
+          startsAt,
+          visibilityScope,
+          visibilityScope === 'nomads' ? 'nomads' : 'default',
+          params.id
+        )
         .run();
     }
   }

@@ -28,6 +28,7 @@ export async function POST(request, { params }) {
   else if (post.type === 'nostalgia') redirectPath = `/nostalgia/${id}`;
   else if (post.type === 'bugs') redirectPath = `/bugs/${id}`;
   else if (post.type === 'rant') redirectPath = `/rant/${id}`;
+  else if (post.type === 'nomads') redirectPath = `/nomads/${id}`;
   
   const redirectUrl = new URL(redirectPath, request.url);
 

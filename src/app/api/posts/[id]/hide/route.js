@@ -12,6 +12,7 @@ function redirectPathForType(type, id) {
   if (type === 'nostalgia') return `/nostalgia/${id}`;
   if (type === 'bugs') return `/bugs/${id}`;
   if (type === 'rant') return `/rant/${id}`;
+  if (type === 'nomads') return `/nomads/${id}`;
   return `/posts/${id}`;
 }
 
