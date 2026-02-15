@@ -24,6 +24,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const navDisabled = !isSignedIn;
 
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryPinnedOpen, setLibraryPinnedOpen] = useState(false);
   const [libraryFilterOpen, setLibraryFilterOpen] = useState(false);
   const [librarySearchValue, setLibrarySearchValue] = useState('');
   const [kebabOpen, setKebabOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   const libraryRef = useRef(null);
   const libraryMenuRef = useRef(null);
+  const libraryCloseTimerRef = useRef(null);
   const avatarRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
@@ -78,6 +80,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
   useEffect(() => {
     setLibraryOpen(false);
+    setLibraryPinnedOpen(false);
     setLibraryFilterOpen(false);
     setLibrarySearchValue('');
     setKebabOpen(false);
@@ -94,7 +97,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
       if (libraryOpen) {
         const inLibrary = libraryRef.current?.contains(target);
-        if (!inLibrary) setLibraryOpen(false);
+        if (!inLibrary) {
+          setLibraryOpen(false);
+          setLibraryPinnedOpen(false);
+          setLibraryFilterOpen(false);
+          setLibrarySearchValue('');
+        }
       }
 
       if (kebabOpen) {
@@ -118,6 +126,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     const handleKeyDown = (event) => {
       if (event.key !== 'Escape') return;
       setLibraryOpen(false);
+      setLibraryPinnedOpen(false);
+      setLibraryFilterOpen(false);
+      setLibrarySearchValue('');
       setKebabOpen(false);
       setNotifyOpen(false);
       setGuestFeedArmed(false);
@@ -127,6 +138,12 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => () => {
+    if (libraryCloseTimerRef.current) {
+      clearTimeout(libraryCloseTimerRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -203,6 +220,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     setLibrarySearchValue('');
     setLibraryFilterOpen(false);
     setLibraryOpen(false);
+    setLibraryPinnedOpen(false);
   };
 
   const notificationLabel = useMemo(() => {
@@ -266,15 +284,25 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 ref={libraryRef}
                 onMouseEnter={() => {
                   if (!hoverEnabled || navDisabled) return;
+                  if (libraryCloseTimerRef.current) {
+                    clearTimeout(libraryCloseTimerRef.current);
+                    libraryCloseTimerRef.current = null;
+                  }
                   setNotifyOpen(false);
                   setKebabOpen(false);
                   setLibraryOpen(true);
                 }}
                 onMouseLeave={() => {
                   if (!hoverEnabled) return;
-                  setLibraryOpen(false);
-                  setLibraryFilterOpen(false);
-                  setLibrarySearchValue('');
+                  if (libraryPinnedOpen) return;
+                  if (libraryCloseTimerRef.current) {
+                    clearTimeout(libraryCloseTimerRef.current);
+                  }
+                  libraryCloseTimerRef.current = setTimeout(() => {
+                    setLibraryOpen(false);
+                    setLibraryFilterOpen(false);
+                    setLibrarySearchValue('');
+                  }, 220);
                 }}
               >
                 <button
@@ -282,11 +310,21 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   className={`header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
                   onClick={() => {
                     if (navDisabled) return;
+                    if (libraryCloseTimerRef.current) {
+                      clearTimeout(libraryCloseTimerRef.current);
+                      libraryCloseTimerRef.current = null;
+                    }
                     setNotifyOpen(false);
                     setKebabOpen(false);
-                    setLibraryFilterOpen(false);
-                    setLibrarySearchValue('');
-                    setLibraryOpen((current) => !current);
+                    if (libraryOpen && libraryPinnedOpen) {
+                      setLibraryOpen(false);
+                      setLibraryPinnedOpen(false);
+                      setLibraryFilterOpen(false);
+                      setLibrarySearchValue('');
+                      return;
+                    }
+                    setLibraryOpen(true);
+                    setLibraryPinnedOpen(true);
                   }}
                   aria-expanded={libraryOpen ? 'true' : 'false'}
                   aria-haspopup="true"
@@ -344,6 +382,9 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                             if (navDisabled) return;
                             router.push(item.href);
                             setLibraryOpen(false);
+                            setLibraryPinnedOpen(false);
+                            setLibraryFilterOpen(false);
+                            setLibrarySearchValue('');
                           }}
                         >
                           <span className="header-library-item-label">{item.label}</span>

@@ -112,3 +112,19 @@
 - Re-verification:
   - `npm run lint` -> pass
   - `npm run build` -> pass
+
+## Follow-up Interaction Tuning: Hover Forgiveness + Click-to-Pin Library Menu
+- UX request:
+  - Make hover interaction more forgiving when moving between the trigger and dropdown.
+  - Keep library menu open when explicitly opened by click until outside click or menu action.
+- Implementation:
+  - `src/components/SiteHeader.js`
+    - Added `libraryPinnedOpen` state to distinguish click-opened (pinned) vs hover-opened behavior.
+    - Added delayed hover-close timer (`220ms`) on library `onMouseLeave`.
+    - Hover-enter now clears pending close timers so crossing gaps does not immediately collapse the menu.
+    - Click behavior updated:
+      - Click opens and pins the menu.
+      - If already pinned/open, click toggles it closed.
+    - Outside click, `Escape`, route changes, and menu item selection now close and unpin menu state.
+- Verification:
+  - `npm run lint` -> pass

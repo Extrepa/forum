@@ -353,6 +353,14 @@
   - `npm run lint` (pass)
   - `npm run build` (pass)
 
+## UI Follow-up: Header Library Menu Interaction Tuning
+- Added interaction-state refinement in `src/components/SiteHeader.js`:
+  - Hover close now uses a short delay so pointer movement is more forgiving.
+  - Click-open now pins the Library menu open.
+  - Pinned menu stays open until outside click, `Escape`, route change, or selecting a menu item.
+- Verification:
+  - `npm run lint` (pass)
+
 ## UI Follow-up: Homepage Expanded Section Copy Cleanup
 - Request:
   - Remove `Recent activity ...` line in expanded homepage section cards and avoid repeating `Latest drip:` on every item row.
