@@ -337,16 +337,16 @@ a {
   position: fixed;
   width: max-content;
   min-width: 0;
-  max-width: min(244px, 88vw);
-  padding: 7px;
-  border-radius: 14px;
+  max-width: min(226px, 86vw);
+  padding: 6px;
+  border-radius: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
   background: rgba(4, 10, 20, 0.96);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
   display: grid;
-  gap: 6px;
+  gap: 5px;
   z-index: 1200;
-  transform: translateY(2px);
+  transform: none;
   max-height: min(64vh, 520px);
   overflow: hidden;
 }
@@ -355,8 +355,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 2px 2px 0;
+  gap: 6px;
+  padding: 1px 1px 0;
 }
 
 .header-library-title {
@@ -406,13 +406,13 @@ a {
 
 .header-library-filter {
   width: 100%;
-  min-height: 32px;
-  border-radius: 10px;
+  min-height: 30px;
+  border-radius: 9px;
   border: 1px solid rgba(52, 225, 255, 0.26);
   background: rgba(3, 12, 18, 0.86);
   color: var(--ink);
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 5px 9px;
+  font-size: 11px;
 }
 
 .header-library-filter:focus {
@@ -427,10 +427,10 @@ a {
 
 .header-library-list {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   max-height: min(56vh, 420px);
   overflow-y: auto;
-  padding-right: 2px;
+  padding-right: 1px;
   scrollbar-width: thin;
   scrollbar-color: rgba(52, 225, 255, 0.55) rgba(3, 12, 18, 0.35);
 }
@@ -451,10 +451,10 @@ a {
 
 .header-library-list a {
   display: block;
-  padding: 5px 7px;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border-radius: 7px;
   border: 1px solid transparent;
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--ink);
   transition: all 0.2s ease;
 }
@@ -471,9 +471,9 @@ a {
 }
 
 .header-library-item-label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
@@ -487,12 +487,12 @@ a {
 
 @media (min-width: 901px) {
   .header-library-title {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .header-library-list a {
-    padding: 6px 9px;
-    font-size: 12px;
+    padding: 5px 7px;
+    font-size: 10.5px;
   }
 }
 
@@ -8778,6 +8778,8 @@ header::before {
   gap: 5px;
   flex-wrap: nowrap;
   min-width: 0;
+  padding-inline-end: 0;
+  margin-inline-end: -1px;
 }
 
 .site-header:not(.site-header--guest) .header-brand {
@@ -8868,8 +8870,8 @@ header::before {
   }
 
   .site-header:not(.site-header--guest) .header-nav-pill {
-    padding: 3px 6px !important;
-    font-size: 9px;
+    padding: 3px 7px !important;
+    font-size: 10.5px;
     min-height: 24px !important;
   }
 
@@ -8926,8 +8928,8 @@ header::before {
   }
 
   .site-header:not(.site-header--guest) .header-nav-pill {
-    padding: 2px 5px !important;
-    font-size: 8.5px;
+    padding: 2px 6px !important;
+    font-size: 10px;
   }
 
   .site-header:not(.site-header--guest) .header-right {

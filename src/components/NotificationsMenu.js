@@ -109,23 +109,18 @@ export default function NotificationsMenu({
   
   const hasUnread = unreadCount > 0;
 
-  // Calculate popover position on mobile to align with logo and prevent overflow
+  // Anchor the panel to the trigger on all viewports so it sits directly under the icon.
   useEffect(() => {
     if (!open || typeof window === 'undefined') return;
     
     const updatePosition = () => {
-      if (window.innerWidth > 640) {
-        setPopoverStyle({});
-        return;
-      }
-
       const trigger = anchorRef?.current || document.querySelector('.notifications-logo-trigger');
       if (!trigger) {
         setPopoverStyle({
-          position: 'absolute',
-          right: 0,
+          position: 'fixed',
+          right: 12,
           left: 'auto',
-          top: 'calc(100% + 8px)',
+          top: 72,
           width: 'min(292px, 92vw)',
           maxWidth: 'min(292px, 92vw)',
           minWidth: 'min(232px, 92vw)',
@@ -135,37 +130,25 @@ export default function NotificationsMenu({
       }
 
       const triggerRect = trigger.getBoundingClientRect();
-      const popoverWidth = 292;
+      const popoverWidth = 284;
       const viewportWidth = window.innerWidth;
-      const margin = 12;
+      const margin = viewportWidth <= 640 ? 8 : 12;
       const maxPopoverWidth = viewportWidth - margin * 2;
       const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
-      const logoRightEdge = viewportWidth - triggerRect.right;
-      const spaceNeeded = finalWidth + margin;
-      const spaceAvailable = triggerRect.right;
-
-      let actualRight;
-      if (spaceAvailable >= spaceNeeded && logoRightEdge >= margin) {
-        actualRight = logoRightEdge;
-      } else {
-        const centeredRight = (viewportWidth - finalWidth) / 2;
-        actualRight = centeredRight;
+      let left = triggerRect.right - finalWidth;
+      if (left < margin) left = margin;
+      if (left + finalWidth > viewportWidth - margin) {
+        left = viewportWidth - finalWidth - margin;
       }
 
-      const leftEdgePosition = viewportWidth - actualRight - finalWidth;
-      if (leftEdgePosition < margin) {
-        actualRight = viewportWidth - finalWidth - margin;
-      }
-
-      actualRight = Math.max(margin, Math.min(actualRight, viewportWidth - finalWidth - margin));
-      const top = triggerRect.bottom + 4;
+      const top = triggerRect.bottom + 6;
       const maxHeight = Math.max(220, window.innerHeight - top - margin);
 
       setPopoverStyle({
         position: 'fixed',
         top: `${top}px`,
-        right: `${actualRight}px`,
-        left: 'auto',
+        left: `${left}px`,
+        right: 'auto',
         width: `${finalWidth}px`,
         maxWidth: `${finalWidth}px`,
         minWidth: `${finalWidth}px`,
@@ -223,12 +206,12 @@ export default function NotificationsMenu({
       ref={popoverRef}
       className="neon-outline-card notifications-popover notifications-popover-errl"
       style={{
-        position: 'absolute',
+        position: 'fixed',
         right: anchor === 'right' ? 0 : 'auto',
         left: anchor === 'left' ? 0 : 'auto',
-        top: 'calc(100% + 8px)',
-        width: 292,
-        maxWidth: 'min(292px, 92vw)',
+        top: 'calc(100% + 6px)',
+        width: 284,
+        maxWidth: 'min(284px, 92vw)',
         minWidth: 232,
         zIndex: 1100,
         padding: '10px',
