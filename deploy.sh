@@ -13,11 +13,11 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Ensure Wrangler writes logs inside the repo (sandbox blocks $HOME)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WRANGLER_HOME="$SCRIPT_DIR/.wrangler"
-export WRANGLER_HOME
-mkdir -p "$WRANGLER_HOME/logs"
+# By default, use the user's normal Wrangler profile/auth.
+# If WRANGLER_HOME is explicitly provided, ensure its logs path exists.
+if [ -n "${WRANGLER_HOME:-}" ]; then
+  mkdir -p "$WRANGLER_HOME/logs"
+fi
 
 echo -e "${BLUE}🚀 Errl Forum Deployment Script${NC}"
 echo ""
@@ -110,6 +110,20 @@ if ! npm run build > /dev/null 2>&1; then
   exit 1
 fi
 echo -e "${GREEN}✅ Build verification passed${NC}"
+echo ""
+
+# Rule 4: Wrangler auth verification
+echo -e "${BLUE}🔐 Verifying Cloudflare authentication...${NC}"
+if ! npx wrangler whoami > /dev/null 2>&1; then
+  echo -e "${RED}❌ Wrangler is not authenticated.${NC}"
+  echo ""
+  echo -e "${YELLOW}Run one of the following, then retry:${NC}"
+  echo -e "  npx wrangler login"
+  echo -e "  export CLOUDFLARE_API_TOKEN=..."
+  echo ""
+  exit 1
+fi
+echo -e "${GREEN}✅ Cloudflare authentication verified${NC}"
 echo ""
 
 # Check if there are changes to commit
