@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "preview": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --env=\"\"",
     "deploy:full": "./deploy.sh"
   },
   "dependencies": {
@@ -24,6 +24,6 @@
     "@opennextjs/cloudflare": "^1.14.10",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.5.9",
-    "wrangler": "^4.61.1"
+    "wrangler": "^4.65.0"
   }
 }

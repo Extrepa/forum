@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { getDb } from './db';
 
 export async function logAdminAction({ adminUserId, actionType, targetType, targetId = null, metadata = null }) {
@@ -11,7 +10,7 @@ export async function logAdminAction({ adminUserId, actionType, targetType, targ
     .prepare(
       'INSERT INTO admin_actions (id, admin_user_id, action_type, target_type, target_id, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), adminUserId, actionType, targetType, targetId, payload, Date.now())
+    .bind(globalThis.crypto.randomUUID(), adminUserId, actionType, targetType, targetId, payload, Date.now())
     .run();
 }
 
