@@ -205,8 +205,6 @@ export default function NotificationsMenu({
               width: 16,
               height: 16,
               padding: 0,
-              background: 'transparent',
-              border: 'none',
               cursor: status === 'loading' || refreshing ? 'not-allowed' : 'pointer',
               opacity: status === 'loading' || refreshing ? 0.5 : 0.9,
               display: 'inline-flex',
