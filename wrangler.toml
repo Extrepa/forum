@@ -1,5 +1,10 @@
 name = "errl-portal-forum-docs"
 compatibility_date = "2024-05-13"
 
-[vars]
+[site]
+bucket = ".open-next/assets"
+
+[vars.production]
 IMAGE_UPLOAD_ALLOWLIST = "*"
+
+[env.preview]
