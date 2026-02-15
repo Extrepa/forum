@@ -185,10 +185,19 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       const minMenuWidth = window.innerWidth <= 640 ? 160 : 174;
       const idealMenuWidth = libraryFilterOpen ? 224 : 206;
       const menuWidth = Math.max(minMenuWidth, Math.min(idealMenuWidth, window.innerWidth - (edgePadding * 2)));
-      let left = libraryAnchorRef.current.getBoundingClientRect().left;
-      if (left + menuWidth > window.innerWidth - edgePadding) {
-        left = window.innerWidth - menuWidth - edgePadding;
+      
+      let left;
+      if (window.innerWidth <= 640) {
+        // Center on mobile
+        left = (window.innerWidth - menuWidth) / 2;
+      } else {
+        // Align with anchor on desktop
+        left = libraryAnchorRef.current.getBoundingClientRect().left;
+        if (left + menuWidth > window.innerWidth - edgePadding) {
+          left = window.innerWidth - menuWidth - edgePadding;
+        }
       }
+      
       if (left < edgePadding) left = edgePadding;
       const top = rect.bottom + 2;
       const maxHeight = Math.min(380, Math.max(180, window.innerHeight - top - edgePadding));

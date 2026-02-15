@@ -3124,7 +3124,9 @@ form {
   .formatting-toolbar {
     position: static;
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
+    width: 100%;
     max-width: 100%;
     justify-content: flex-start;
     -webkit-overflow-scrolling: touch;
@@ -3153,7 +3155,9 @@ form {
 
 @media (max-width: 640px) {
   .formatting-toolbar {
+    flex-wrap: wrap;
     gap: 4px;
+    width: 100%;
   }
 
   .formatting-toolbar button {
@@ -7442,7 +7446,7 @@ header::before {
   .formatting-toolbar {
     position: static;
     max-width: 100%;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
     margin-bottom: 8px;
     padding: 8px;
