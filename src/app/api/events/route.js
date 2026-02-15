@@ -16,6 +16,7 @@ export async function POST(request) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
+  const db = await getDb();
   const imageUploadsEnabled = await isImageUploadsEnabled(db);
 
   const formData = await request.formData();
@@ -57,7 +58,6 @@ export async function POST(request) {
     });
   }
 
-  const db = await getDb();
   const eventId = crypto.randomUUID();
   await db
     .prepare(

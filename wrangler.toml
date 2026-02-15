@@ -9,6 +9,11 @@ IMAGE_UPLOAD_ALLOWLIST = "*"
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "errl_forum_db"
+database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
+
 [env.preview]
 compatibility_flags = [
   "nodejs_compat",
