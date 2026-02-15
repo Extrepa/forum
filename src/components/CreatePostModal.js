@@ -47,7 +47,7 @@ export default function CreatePostModal({
   const overlayPadding = isMobile ? '12px' : '20px';
   const overlayAlign = isMobile ? 'center' : 'center';
   const contentMaxWidth = isMobile ? 'min(calc(100% - 40px), 420px)' : resolvedMaxWidth;
-  const contentMaxHeight = isMobile ? '85vh' : resolvedMaxHeight;
+  const contentMaxHeight = isMobile ? 'min(85vh, calc(100vh - 44px))' : resolvedMaxHeight;
 
   const modal = (
     <div
@@ -87,7 +87,7 @@ export default function CreatePostModal({
           backdropFilter: 'blur(12px)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
           {title && <h2 className="section-title" style={{ margin: 0 }}>{title}</h2>}
           <button
             onClick={onClose}
