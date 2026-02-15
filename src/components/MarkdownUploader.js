@@ -90,7 +90,7 @@ export default function MarkdownUploader({
           <span>✓ {fileName}</span>
           <button
             type="button"
-            onClick={reset}
+            onClick={clearSelection}
             className="button ghost mini"
             style={{ padding: '2px 6px' }}
           >
