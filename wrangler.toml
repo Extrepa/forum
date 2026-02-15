@@ -1,10 +1,15 @@
-name = "errl-portal-forum-docs"
+name = "errl-portal-forum"
 compatibility_date = "2024-09-23"
 compatibility_flags = [
   "nodejs_compat",
   "global_fetch_strictly_public"
 ]
 main = ".open-next/worker.js"
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "forum.errl.wtf", custom_domain = true }
+]
 
 [vars]
 IMAGE_UPLOAD_ALLOWLIST = "*"
@@ -18,9 +23,15 @@ binding = "DB"
 database_name = "errl_forum_db"
 database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
 
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "errl-forum-uploads"
+
 [env.preview]
 compatibility_flags = [
   "nodejs_compat",
   "global_fetch_strictly_public"
 ]
+workers_dev = true
+preview_urls = true
 vars = { IMAGE_UPLOAD_ALLOWLIST = "*" }
