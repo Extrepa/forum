@@ -125,6 +125,25 @@
 - Comment redirect and edit redirect for Nomad-scoped posts now resolve to `/nomads/[id]`.
 - Home Nomads card count/recent queries now include Nomad-scoped typed posts.
 
+## 2026-02-15 addendum: Nomads composer section-list completion + recheck
+- Addressed missing section choices in the Nomads "New Post" modal.
+- Updated subtype label mapping:
+  - `nomads` now displays as `Nomad section-only` (instead of `General`).
+- Reworked Nomads create modal to use a unified section selector component:
+  - New file: `src/components/NomadContentComposer.js`
+  - Integrated in: `src/app/nomads/page.js`
+- Section selector now exposes 10+ explicit choices in one list:
+  - Nomad post subtypes: `Nomad section-only`, `Art`, `Nostalgia`, `Bugs`, `Rant`, `Lore`, `Memories`, `About`
+  - Additional section composers: `Events`, `General Forum`, `Shitposts`, `Music`, `Projects`
+  - Admin-only: `Development`
+- Routing/behavior:
+  - Post subtypes submit to `/api/posts` with `section_scope='nomads'` and forced Nomads visibility.
+  - Non-post sections reuse their existing native forms/endpoints (no backend duplication introduced).
+- Recheck/verification run after implementation:
+  - `npm run lint` -> passed
+  - `npm run build` -> passed
+  - Build output confirms `/nomads` and `/nomads/[id]` compile successfully.
+
 ## Consolidated implementation ledger (all work in this thread)
 - Roles and naming:
   - Base member role display standardized to `Driplet` (capabilities unchanged).

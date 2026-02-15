@@ -187,19 +187,33 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return () => mediaQuery.removeEventListener('change', update);
   }, []);
 
-  const libraryLinks = useMemo(() => ([
-    { href: '/announcements', label: strings.tabs.announcements },
-    { href: '/events', label: strings.tabs.events },
-    { href: '/devlog', label: 'Development' },
-    { href: '/lobby', label: 'General' },
-    { href: '/music', label: strings.tabs.music },
-    { href: '/projects', label: strings.tabs.projects },
-    { href: '/shitposts', label: strings.tabs.shitposts },
-    { href: '/art-nostalgia', label: 'Art & Nostalgia' },
-    { href: '/bugs-rant', label: 'Bugs & Rants' },
-    { href: '/lore-memories', label: 'Lore & Memories' },
-    ...((user?.role === 'admin' || user?.role === 'drip_nomad') ? [{ href: '/nomads', label: 'Nomads' }] : []),
-  ]), [strings, user?.role]);
+  const libraryLinks = useMemo(() => {
+    const links = [
+      { href: '/announcements', label: strings.tabs.announcements },
+      { href: '/events', label: strings.tabs.events },
+      { href: '/devlog', label: 'Development' },
+      { href: '/lobby', label: 'General' },
+      { href: '/music', label: strings.tabs.music },
+      { href: '/projects', label: strings.tabs.projects },
+      { href: '/shitposts', label: strings.tabs.shitposts },
+      { href: '/art-nostalgia', label: 'Art & Nostalgia' },
+      { href: '/bugs-rant', label: 'Bugs & Rants' },
+      { href: '/lore-memories', label: 'Lore & Memories' },
+      ...((user?.role === 'admin' || user?.role === 'drip_nomad') ? [{ href: '/nomads', label: 'Nomads' }] : []),
+    ];
+
+    links.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
+
+    if (user?.role === 'drip_nomad') {
+      const nomadsIndex = links.findIndex((item) => item.href === '/nomads');
+      if (nomadsIndex > 0) {
+        const [nomadsLink] = links.splice(nomadsIndex, 1);
+        links.unshift(nomadsLink);
+      }
+    }
+
+    return links;
+  }, [strings, user?.role]);
 
   useEffect(() => {
     if (!libraryOpen) return undefined;

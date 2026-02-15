@@ -537,6 +537,7 @@ export default async function HomePage({ searchParams }) {
             nomadsRecentPost.author_color_preference !== null && nomadsRecentPost.author_color_preference !== undefined
               ? Number(nomadsRecentPost.author_color_preference)
               : null,
+          createdAt: Number(nomadsRecentPost.created_at) || 0,
           timeAgo: formatTimeAgo(nomadsRecentPost.created_at),
           href: `/nomads/${nomadsRecentPost.id}`
         }
@@ -1175,6 +1176,7 @@ export default async function HomePage({ searchParams }) {
               title: timelineRecent.title,
               author: timelineRecent.author_name,
               authorColorPreference: timelineRecent.author_color_preference !== null && timelineRecent.author_color_preference !== undefined ? Number(timelineRecent.author_color_preference) : null,
+              createdAt: Number(timelineRecent.created_at) || 0,
               timeAgo: formatTimeAgo(timelineRecent.created_at),
               url: `/announcements/${timelineRecent.id}`
             }
@@ -1191,6 +1193,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: forumRecent.postAuthorColorPreference,
               activityAuthor: forumRecent.activityAuthor,
               activityAuthorColorPreference: forumRecent.activityAuthorColorPreference,
+              createdAt: Number(forumRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(forumRecent.createdAt),
               href: forumRecent.href
             }
@@ -1207,6 +1210,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: eventsRecent.postAuthorColorPreference,
               activityAuthor: eventsRecent.activityAuthor,
               activityAuthorColorPreference: eventsRecent.activityAuthorColorPreference,
+              createdAt: Number(eventsRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(eventsRecent.createdAt),
               href: eventsRecent.href
             }
@@ -1223,6 +1227,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: musicRecent.postAuthorColorPreference,
               activityAuthor: musicRecent.activityAuthor,
               activityAuthorColorPreference: musicRecent.activityAuthorColorPreference,
+              createdAt: Number(musicRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(musicRecent.createdAt),
               href: musicRecent.href
             }
@@ -1239,6 +1244,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: projectsRecent.postAuthorColorPreference,
               activityAuthor: projectsRecent.activityAuthor,
               activityAuthorColorPreference: projectsRecent.activityAuthorColorPreference,
+              createdAt: Number(projectsRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(projectsRecent.createdAt),
               href: projectsRecent.href
             }
@@ -1252,6 +1258,7 @@ export default async function HomePage({ searchParams }) {
               title: shitpostsRecent.title,
               author: shitpostsRecent.author_name,
               authorColorPreference: shitpostsRecent.author_color_preference !== null && shitpostsRecent.author_color_preference !== undefined ? Number(shitpostsRecent.author_color_preference) : null,
+              createdAt: Number(shitpostsRecent.created_at) || 0,
               timeAgo: formatTimeAgo(shitpostsRecent.created_at),
               url: `/lobby/${shitpostsRecent.id}`
             }
@@ -1268,6 +1275,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: artNostalgiaRecent.postAuthorColorPreference,
               activityAuthor: artNostalgiaRecent.activityAuthor,
               activityAuthorColorPreference: artNostalgiaRecent.activityAuthorColorPreference,
+              createdAt: Number(artNostalgiaRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(artNostalgiaRecent.createdAt),
               href: artNostalgiaRecent.href
             }
@@ -1284,6 +1292,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: bugsRantRecent.postAuthorColorPreference,
               activityAuthor: bugsRantRecent.activityAuthor,
               activityAuthorColorPreference: bugsRantRecent.activityAuthorColorPreference,
+              createdAt: Number(bugsRantRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(bugsRantRecent.createdAt),
               href: bugsRantRecent.href
             }
@@ -1300,6 +1309,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: devlogRecent.postAuthorColorPreference,
               activityAuthor: devlogRecent.activityAuthor,
               activityAuthorColorPreference: devlogRecent.activityAuthorColorPreference,
+              createdAt: Number(devlogRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(devlogRecent.createdAt),
               href: devlogRecent.href
             }
@@ -1316,6 +1326,7 @@ export default async function HomePage({ searchParams }) {
               postAuthorColorPreference: loreMemoriesRecent.postAuthorColorPreference,
               activityAuthor: loreMemoriesRecent.activityAuthor,
               activityAuthorColorPreference: loreMemoriesRecent.activityAuthorColorPreference,
+              createdAt: Number(loreMemoriesRecent.createdAt) || 0,
               timeAgo: formatTimeAgo(loreMemoriesRecent.createdAt),
               href: loreMemoriesRecent.href
             }
@@ -1518,6 +1529,7 @@ export default async function HomePage({ searchParams }) {
         postAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
         activityAuthor: sectionData.timeline.recent.author,
         activityAuthorColorPreference: sectionData.timeline.recent.authorColorPreference,
+        createdAt: sectionData.timeline.recent.createdAt,
         timeAgo: sectionData.timeline.recent.timeAgo,
         href: sectionData.timeline.recent.url
       } : null,
@@ -1567,6 +1579,7 @@ export default async function HomePage({ searchParams }) {
         postAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
         activityAuthor: sectionData.shitposts.recent.author,
         activityAuthorColorPreference: sectionData.shitposts.recent.authorColorPreference,
+        createdAt: sectionData.shitposts.recent.createdAt,
         timeAgo: sectionData.shitposts.recent.timeAgo,
         href: sectionData.shitposts.recent.url
       } : null,
@@ -1621,7 +1634,7 @@ export default async function HomePage({ searchParams }) {
   if (hasUsername && sectionData?.nomads) {
     sections.push({
       title: 'Nomads',
-      description: "private posts for the Nomads and anything we don't want to share with the public",
+      description: 'Private Nomad-only posts and archives.',
       count: sectionData.nomads.count || 0,
       recentActivities: [],
       recentActivity: sectionData.nomads.recent || null,

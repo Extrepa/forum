@@ -309,6 +309,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
     if (!usernameChanged && !colorChanged && !showRoleChanged) {
       handleCancelUsername();
+      setIsEditingUsername(false);
       return;
     }
 
@@ -347,6 +348,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
         setStats((prev) => (prev ? { ...prev, profileShowRole } : prev));
       }
       setUsernameStatus({ type: 'success', message: 'Profile updated!' });
+      setIsEditingUsername(false);
       setTimeout(() => {
         setUsernameStatus({ type: 'idle', message: null });
         router.refresh();
@@ -433,6 +435,32 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     setUsernameStatus({ type: 'idle', message: null });
     setColorStatus({ type: 'idle', message: null });
     setProfileShowRole(stats?.profileShowRole ?? true);
+  };
+
+  const toggleUsernameEditor = () => {
+    if (isEditingUsername) {
+      handleCancelUsername();
+      setIsEditingUsername(false);
+      return;
+    }
+    setNewUsername(user?.username || '');
+    setSelectedColorIndex(user?.preferred_username_color_index ?? null);
+    setUsernameStatus({ type: 'idle', message: null });
+    setColorStatus({ type: 'idle', message: null });
+    setProfileShowRole(stats?.profileShowRole ?? true);
+    setIsEditingUsername(true);
+  };
+
+  const toggleAvatarEditor = () => {
+    if (isEditingAvatar) {
+      if (avatarHasChanges && !window.confirm('You have unsaved changes. Discard them and close the editor?')) {
+        return;
+      }
+      setAvatarHasChanges(false);
+      setIsEditingAvatar(false);
+      return;
+    }
+    setIsEditingAvatar(true);
   };
 
   const handleCancelSocials = () => {
@@ -811,8 +839,13 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
     return () => { cancelled = true; };
   }, [editProfileSubTab, user?.username]);
   useEffect(() => {
-    setIsEditingUsername(editProfileSubTab === 'username');
-    setIsEditingAvatar(editProfileSubTab === 'avatar');
+    if (editProfileSubTab !== 'username') {
+      setIsEditingUsername(false);
+    }
+    if (editProfileSubTab !== 'avatar') {
+      setIsEditingAvatar(false);
+      setAvatarHasChanges(false);
+    }
   }, [editProfileSubTab]);
   const handleGuestbookDelete = async (id) => {
     if (!id || guestbookDeletingId) return;
@@ -968,13 +1001,22 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
   };
 
   const handleSubTabChange = (tabId) => {
-    if (editProfileSubTab === 'avatar' && avatarHasChanges) {
+    if (editProfileSubTab === 'avatar' && isEditingAvatar && avatarHasChanges) {
       if (!window.confirm('You have unsaved changes. Are you sure you want to discard them?')) {
         return;
       }
     }
+    if (editProfileSubTab === 'avatar') {
+      setIsEditingAvatar(false);
+      setAvatarHasChanges(false);
+    }
     setEditProfileSubTab(tabId);
   };
+
+  const selectedColorOption = colorOptions.find((option) => option.index === selectedColorIndex)
+    ?? colorOptions.find((option) => option.index === (user?.preferred_username_color_index ?? null))
+    ?? colorOptions[0];
+  const selectedColorLabel = selectedColorOption?.name || 'Auto (Default)';
 
   return (
     <>
@@ -1144,145 +1186,246 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
             />
 
             {editProfileSubTab === 'username' && (
-              <div style={{ marginBottom: 0 }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                  <h2
-                    className="section-title"
-                    style={{
-                      margin: 0,
-                      marginBottom: 0,
-                      color: '#F5FFB7',
-                      textShadow: '0 0 10px rgba(245, 255, 183, 0.6)',
-                    }}
-                  >
-                    Username
-                  </h2>
-                  <span className="muted" style={{ fontSize: '12px' }}>Update your handle and color.</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginTop: '8px', width: '100%' }}>
-                  <input
-                    type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="username"
-                    pattern="[a-z0-9_]{3,20}"
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(52, 225, 255, 0.3)',
-                      background: 'rgba(2, 7, 10, 0.6)',
-                      color: 'var(--ink)',
-                      fontSize: '14px',
-                      minWidth: 0,
-                      width: '100%',
-                    }}
-                  />
+              <div className="account-edit-panel">
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '2px' }}>
+                  <h2 className="section-title" style={{ margin: 0 }}>Username</h2>
                   <button
                     type="button"
-                    onClick={handleSaveUsername}
-                    disabled={usernameStatus.type === 'loading'}
+                    onClick={toggleUsernameEditor}
+                    className="account-edit-profile-btn"
                     style={{
-                      fontSize: '12px',
-                      padding: '6px 12px',
-                      background: 'var(--accent)',
+                      borderRadius: '999px',
                       border: 'none',
-                      borderRadius: '6px',
-                      color: 'var(--bg)',
-                      cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
-                      width: '100%',
-                      whiteSpace: 'nowrap',
+                      background: isEditingUsername ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                      color: '#001018',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '2px 10px',
+                      lineHeight: '1.2',
+                      opacity: 1,
+                      width: 'auto',
+                      minWidth: '110px'
                     }}
                   >
-                    {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                    {isEditingUsername ? 'Close' : 'Edit username'}
                   </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                      {colorOptions.map((option) => {
-                        const isSelected = selectedColorIndex === option.index;
-                        const disabled = usernameStatus.type === 'loading';
-                        return (
-                          <button
-                            key={option.index ?? 'auto'}
-                            type="button"
-                            onClick={() => !disabled && setSelectedColorIndex(option.index)}
-                            disabled={disabled}
-                            title={option.name}
-                            className="color-picker-btn"
-                            style={{
-                              minHeight: 0,
-                              width: 18,
-                              height: 18,
-                              borderRadius: '50%',
-                              border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
-                              background:
-                                option.index === null
-                                  ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
-                                  : option.color,
-                              cursor: disabled ? 'default' : 'pointer',
-                              padding: 0,
-                            }}
-                          />
-                        );
-                      })}
+                <p className="muted" style={{ fontSize: '12px', marginBottom: '4px', marginTop: '0' }}>Update your handle and color.</p>
+                <div
+                  style={{
+                    border: '1px solid rgba(52, 225, 255, 0.2)',
+                    borderRadius: '10px',
+                    background: 'rgba(2, 7, 10, 0.35)',
+                    padding: '10px 12px',
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    gap: '10px',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Username:</span>
+                      <Username
+                        name={user.username}
+                        colorIndex={getUsernameColorIndex(user.username, { preferredColorIndex: user.preferred_username_color_index })}
+                        href={null}
+                        style={{ fontSize: '15px', fontWeight: 700, minWidth: 0 }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                          border: '1px solid rgba(255,255,255,0.35)',
+                          background:
+                            selectedColorOption.index === null
+                              ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                              : selectedColorOption.color
+                        }}
+                      />
+                      <span style={{ fontSize: '13px' }}>{selectedColorLabel}</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                      Role badge on profile: {profileShowRole ? 'Shown' : 'Hidden'}
                     </div>
                   </div>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      color: 'rgba(255, 255, 255, 0.65)',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={profileShowRole}
-                      onChange={(e) => setProfileShowRole(e.target.checked)}
-                      style={{ margin: 0, accentColor: 'rgba(255, 255, 255, 0.6)' }}
-                    />
-                    <span>Show role on profile</span>
-                  </label>
                 </div>
+                {isEditingUsername && (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginTop: '8px', width: '100%' }}>
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="username"
+                        pattern="[a-z0-9_]{3,20}"
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(52, 225, 255, 0.3)',
+                          background: 'rgba(2, 7, 10, 0.6)',
+                          color: 'var(--ink)',
+                          fontSize: '14px',
+                          minWidth: 0,
+                          width: '100%',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveUsername}
+                        disabled={usernameStatus.type === 'loading'}
+                        style={{
+                          fontSize: '12px',
+                          padding: '6px 12px',
+                          background: 'var(--accent)',
+                          border: 'none',
+                          borderRadius: '6px',
+                          color: 'var(--bg)',
+                          cursor: usernameStatus.type === 'loading' ? 'not-allowed' : 'pointer',
+                          width: '100%',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {usernameStatus.type === 'loading' ? 'Saving…' : 'Save'}
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Color:</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                          {colorOptions.map((option) => {
+                            const isSelected = selectedColorIndex === option.index;
+                            const disabled = usernameStatus.type === 'loading';
+                            return (
+                              <button
+                                key={option.index ?? 'auto'}
+                                type="button"
+                                onClick={() => !disabled && setSelectedColorIndex(option.index)}
+                                disabled={disabled}
+                                title={option.name}
+                                className="color-picker-btn"
+                                style={{
+                                  minHeight: 0,
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: '50%',
+                                  border: isSelected ? '2px solid var(--accent)' : '1px solid rgba(52, 225, 255, 0.3)',
+                                  background:
+                                    option.index === null
+                                      ? 'repeating-linear-gradient(45deg, rgba(52, 225, 255, 0.3), rgba(52, 225, 255, 0.3) 4px, transparent 4px, transparent 8px)'
+                                      : option.color,
+                                  cursor: disabled ? 'default' : 'pointer',
+                                  padding: 0,
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          color: 'rgba(255, 255, 255, 0.65)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={profileShowRole}
+                          onChange={(e) => setProfileShowRole(e.target.checked)}
+                          style={{ margin: 0, accentColor: 'rgba(255, 255, 255, 0.6)' }}
+                        />
+                        <span>Show role on profile</span>
+                      </label>
+                    </div>
+                  </>
+                )}
                 {usernameStatus.message && (usernameStatus.type === 'error' || usernameStatus.type === 'success') && <span style={{ fontSize: '12px', color: usernameStatus.type === 'error' ? '#ff6b6b' : '#00f5a0', marginTop: '4px', display: 'block', textAlign: 'center' }}>{usernameStatus.message}</span>}
               </div>
             )}
             {editProfileSubTab === 'avatar' && (
-              <div style={{ marginBottom: 0 }}>
+              <div className="account-edit-panel">
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
                   <div>
-                    <h2
-                      className="section-title"
-                      style={{
-                        margin: 0,
-                        marginBottom: 0,
-                        color: '#F5FFB7',
-                        textShadow: '0 0 10px rgba(245, 255, 183, 0.6)',
-                      }}
-                    >
-                      Avatar Editor
-                    </h2>
-                    <span className="muted" style={{ fontSize: '12px' }}>
-                      Customize your avatar that&apos;s shown across the forum. Your Errl avatar.
-                    </span>
+                    <h2 className="section-title" style={{ margin: 0 }}>Avatar</h2>
+                    <span className="muted" style={{ fontSize: '12px' }}>Customize your avatar shown across the forum.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleAvatarEditor}
+                    className="account-edit-profile-btn"
+                    style={{
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: isEditingAvatar ? 'rgba(52, 225, 255, 0.3)' : 'linear-gradient(135deg, rgba(52, 225, 255, 0.9), rgba(255, 52, 245, 0.9))',
+                      color: '#001018',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '2px 10px',
+                      lineHeight: '1.2',
+                      width: 'auto',
+                      minWidth: '110px'
+                    }}
+                  >
+                    {isEditingAvatar ? 'Close' : 'Edit avatar'}
+                  </button>
+                </div>
+                <div
+                  style={{
+                    border: '1px solid rgba(52, 225, 255, 0.2)',
+                    borderRadius: '10px',
+                    background: 'rgba(2, 7, 10, 0.35)',
+                    padding: '10px 12px',
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    gap: '10px',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    {user.avatar_key ? (
+                      <>
+                        <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Avatar preview" size={72} loading="eager" />
+                        <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Mini avatar preview" size={36} loading="eager" />
+                      </>
+                    ) : (
+                      <div className="no-avatar-placeholder" style={{ width: '72px', height: '72px' }}>No avatar</div>
+                    )}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '13px' }}>Main preview + mini preview</div>
+                      <div className="muted" style={{ fontSize: '12px' }}>Open the editor when you need changes.</div>
+                    </div>
                   </div>
                 </div>
-                <AvatarCustomizer
-                  onSave={handleAvatarSave}
-                  initialState={avatarInitialState}
-                  onChanges={setAvatarHasChanges}
-                  key={user?.avatar_state || 'avatar-empty'}
-                  previewAvatarKey={user?.avatar_key}
-                />
+                {isEditingAvatar && (
+                  <>
+                    <p className="muted" style={{ margin: '8px 0 4px', fontSize: '12px' }}>
+                      Performance note: avatar effects are smoothest on medium-sized windows, but editing still works on large screens.
+                    </p>
+                    <AvatarCustomizer
+                      onSave={handleAvatarSave}
+                      initialState={avatarInitialState}
+                      onChanges={setAvatarHasChanges}
+                      key={user?.avatar_state || 'avatar-empty'}
+                      previewAvatarKey={user?.avatar_key}
+                    />
+                  </>
+                )}
               </div>
             )}
 
-            {editProfileSubTab && (
+            {editProfileSubTab && editProfileSubTab !== 'username' && editProfileSubTab !== 'avatar' && (
             <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'mood' && (
                 <div className="account-edit-panel">

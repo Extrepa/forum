@@ -47,7 +47,7 @@ export default function GenericPostForm({
 
   // Type label mapping for display
   const typeLabels = {
-    'nomads': 'General',
+    'nomads': 'Nomad section-only',
     'lore': 'Lore',
     'memories': 'Memories',
     'bugs': 'Bugs',

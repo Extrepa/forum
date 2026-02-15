@@ -138,6 +138,14 @@ export default function ProfileTabsClient({
 
   return (
     <div className={`profile-tabs-wrapper${noTabSelected ? ' profile-tabs-wrapper--no-selection' : ''}`} style={{ minWidth: 0, maxWidth: '100%' }}>
+      <ErrlTabSwitcher
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        colorSequence={PROFILE_TAB_COLOR_SEQUENCE}
+        getTabClassName={(tab) => 'profile-tab'}
+      />
+
       <div className={`profile-tab-content profile-tab-content--above${noTabSelected ? ' profile-tab-content--no-selection' : ''}`} style={{ minWidth: 0, maxWidth: '100%' }}>
       {activeTab === 'stats' && (
         <div>
@@ -438,14 +446,6 @@ export default function ProfileTabsClient({
       )}
 
       </div>
-
-      <ErrlTabSwitcher
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        colorSequence={PROFILE_TAB_COLOR_SEQUENCE}
-        getTabClassName={(tab) => 'profile-tab'}
-      />
     </div>
   );
 }

@@ -4,8 +4,9 @@ import { renderMarkdown } from '../../lib/markdown';
 import { isAdminUser, isDripNomad } from '../../lib/admin';
 import NewPostModalButton from '../../components/NewPostModalButton';
 import ShowHiddenToggleButton from '../../components/ShowHiddenToggleButton';
-import GenericPostForm from '../../components/GenericPostForm';
+import NomadContentComposer from '../../components/NomadContentComposer';
 import LoreClient from '../lore/LoreClient';
+import { POST_TYPE_KEYS } from '../../lib/contentTypes';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,7 @@ export default async function NomadsPage({ searchParams }) {
   const isAdmin = isAdminUser(user);
   const showHidden = isAdmin && searchParams?.showHidden === '1';
   const canCreate = !!user && !!user.password_hash;
+  const nomadComposerTypes = ['nomads', ...POST_TYPE_KEYS.filter((key) => key !== 'nomads')];
 
   const db = await getDb();
   let results = [];
@@ -122,22 +124,8 @@ export default async function NomadsPage({ searchParams }) {
         headerActions={
           <>
             {isAdmin ? <ShowHiddenToggleButton showHidden={showHidden} searchParams={searchParams} /> : null}
-            <NewPostModalButton label="New Nomad Post" title="New Nomad Post" disabled={!canCreate} variant="wide">
-              <GenericPostForm
-                action="/api/posts"
-                type="nomads"
-                allowedTypes={['nomads', 'art', 'nostalgia', 'bugs', 'rant', 'lore', 'memories', 'about']}
-                hiddenFields={{ section_scope: 'nomads', force_nomad_visibility: '1' }}
-                titleLabel="Title (optional)"
-                titlePlaceholder="Optional title"
-                bodyLabel="Nomad Post"
-                bodyPlaceholder="Write your nomad post..."
-                buttonLabel="Post"
-                showImage={true}
-                titleRequired={false}
-                bodyRequired={true}
-                showPrivateToggle={false}
-              />
+            <NewPostModalButton label="New Nomad Post" title="New Nomad Content" disabled={!canCreate} variant="wide">
+              <NomadContentComposer postTypes={nomadComposerTypes} isAdmin={isAdmin} />
             </NewPostModalButton>
           </>
         }

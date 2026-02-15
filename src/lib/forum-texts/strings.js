@@ -24,47 +24,47 @@ export const errlForumStrings = {
   cards: {
     announcements: {
       title: 'Announcements',
-      description: 'Official updates, pinned notes, releases.',
+      description: 'Official updates and release notes.',
       empty: 'No drips yet.'
     },
     events: {
       title: 'Events',
-      description: 'Meetups, plans, and festival logistics.',
+      description: 'Meetups, plans, and logistics.',
       empty: 'Calendar currently goo-free.'
     },
     general: {
       title: 'General',
-      description: 'Random thoughts, wild ideas, and general drip-certified chaos.',
+      description: 'Open discussion, ideas, and random chat.',
       empty: 'Nothing new… the goo is resting.'
     },
     music: {
       title: 'Music',
-      description: 'Tracks, mixes, sets, and sonic experiments.',
+      description: 'Tracks, mixes, sets, and experiments.',
       empty: 'Silence… suspicious.'
     },
     projects: {
       title: 'Projects',
-      description: 'Creative ideas, build plans, and things to make with friends.',
+      description: 'Build ideas, collabs, and progress updates.',
       empty: 'The workshop lights are on…'
     },
     shitposts: {
       title: 'Shitposts',
-      description: 'Memes, photos, random thoughts, and sludge.',
+      description: 'Memes, photos, and chaotic fun.',
       empty: 'No sludge yet.'
     },
     artNostalgia: {
       title: 'Art & Nostalgia',
-      description: 'Image-only posts and memories from the 2000s, childhood, and everything in between.',
+      description: 'Art drops, throwbacks, and shared memories.',
       empty: 'No art or nostalgia yet.'
     },
     bugsRant: {
       title: 'Bugs & Rants',
-      description: 'Report issues, weirdness, and broken stuff. Or vent. Get it out. Be kind.',
+      description: 'Bug reports, glitches, and venting.',
       empty: 'No bugs or rants yet.'
     },
     devlog: {
       title: 'Development',
-      description: 'Updates, notes, and builds in progress.',
+      description: 'Build updates and dev notes.',
       empty: 'No Development posts yet.'
     },
     lore: {
@@ -74,12 +74,12 @@ export const errlForumStrings = {
     },
     memories: {
       title: 'Memories',
-      description: 'Nomad history, documents, and the things we did together.',
+      description: 'Nomad archives and shared history.',
       empty: 'No memories yet.'
     },
     loreMemories: {
       title: 'Lore & Memories',
-      description: "Errl's story and history, Nomad history, documents, and the things we did together.",
+      description: "Errl lore, Nomad history, and archives.",
       empty: 'No posts yet.'
     }
   },
@@ -128,7 +128,7 @@ export const errlForumStrings = {
     cards: {
       loreMemories: {
         title: 'Lore & Memories',
-        description: "Errl's story and history, Nomad history, and everything since Mayday Heyday.",
+        description: "Errl lore, Nomad history, and archives.",
         empty: "No lore yet. The story starts May 1, 2015. What's your Errl story?"
       }
     },
@@ -138,4 +138,3 @@ export const errlForumStrings = {
     }
   }
 };
-

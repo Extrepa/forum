@@ -372,3 +372,43 @@
 - Double-check:
   - Verified component now contains one `Latest drip:` label for compact expanded cards.
   - Verified compact expanded card no longer renders `Recent activity` text.
+
+## UI Follow-up: Create/Edit Post Modal Mobile Border Duplication
+- Issue reported:
+  - Create/Edit post modal on mobile showed duplicate/offset outer outline.
+  - Visible mismatch between the intended rainbow frame and the actual modal border.
+- Root cause:
+  - Global `.modal-content::before` / `.modal-content::after` neon pseudo-elements were still rendering on the modal shell while modal-specific styling also introduced a competing border treatment.
+- Fix applied:
+  - Updated `src/app/globals.css`:
+    - Added a single explicit gradient border treatment for `.create-post-modal` and `.edit-post-modal`.
+    - Disabled pseudo-outline layers for those modal classes:
+      - `.create-post-modal::before`, `.create-post-modal::after`
+      - `.edit-post-modal::before`, `.edit-post-modal::after`
+    - Kept existing inner card-flattening rules to avoid card-within-card framing.
+- Verification:
+  - `npm run lint` (pass)
+  - CSS rule order + specificity check confirms modal-specific pseudo-element disable rules are later in file and take precedence.
+
+## UI Follow-up: Admin Header Spacing + Mobile Action Density + System Log Label + Network Traffic Readability
+- Request:
+  - Remove unnecessary header white space in Admin Mission Control.
+  - Condense action button arrangement on mobile.
+  - Use `Log` label on small viewports while keeping `System Log` on larger viewports.
+  - Improve Network traffic chart readability without hover-only labels.
+- Changes applied:
+  - `src/components/AdminConsole.js`
+    - Replaced inline heading margins with compact header classes.
+    - Added responsive tab label rendering (`System Log` full / `Log` compact).
+    - Added traffic scale and summary values (`Low`, `Avg`, `High`).
+    - Added explicit legend entries with metric labels and values for all bars.
+  - `src/app/globals.css`
+    - Reduced admin header padding and tightened header text line-height.
+    - Converted mobile header actions to a denser 2-column quick-action grid.
+    - Added responsive tab label visibility rules for the System Log tab.
+    - Added traffic chart/scale/legend styling and mobile density adjustments.
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+- Detailed note:
+  - `05-Logs/Daily/2026-02-15-admin-console-header-mobile-chart-polish.md`

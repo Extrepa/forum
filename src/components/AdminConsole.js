@@ -13,6 +13,20 @@ const TAB_LOOKUP = TAB_LIST.reduce((acc, tab) => {
   return acc;
 }, {});
 const ADMIN_TAB_COLOR_SEQUENCE = ['#34E1FF', '#FF34F5', '#00FF9F', '#FFD166', '#7CF3FF', '#9E7BFF', '#FF7A59'];
+const TRAFFIC_BAR_COLORS = [
+  '#4BD8FF',
+  '#7EE3FF',
+  '#9DF0FF',
+  '#4DC8FF',
+  '#66D1FF',
+  '#8AD8FF',
+  '#6FE0FF',
+  '#59CCFF',
+  '#45C3FF',
+  '#6BCBFF',
+  '#90DAFF',
+  '#3DB7F4'
+];
 
 const STATUS_PILLS = {
   pinned: 'PINNED',
@@ -760,15 +774,20 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     { label: 'Flagged', value: stats.flaggedItems || 0 },
     { label: 'Open reports', value: reports.length || 0 },
     { label: 'Audit rows', value: actions.length || 0 }
-  ];
+  ].map((point, index) => ({ ...point, color: TRAFFIC_BAR_COLORS[index % TRAFFIC_BAR_COLORS.length] }));
   const maxTrafficValue = Math.max(...trafficSeries.map((point) => point.value), 1);
+  const minTrafficValue = Math.min(...trafficSeries.map((point) => point.value), 0);
+  const midTrafficValue = Math.round(maxTrafficValue / 2);
+  const avgTrafficValue = Math.round(
+    (trafficSeries.reduce((sum, point) => sum + point.value, 0) / Math.max(trafficSeries.length, 1)) * 10
+  ) / 10;
 
   return (
     <div className="admin-console stack">
       <section className="card admin-header-bar">
-        <div>
-          <p className="muted" style={{ marginBottom: '6px' }}>Admin Console</p>
-          <h1 className="section-title" style={{ marginBottom: 0 }}>Mission Control</h1>
+        <div className="admin-header-copy">
+          <p className="muted admin-header-eyebrow">Admin Console</p>
+          <h1 className="section-title admin-header-title">Mission Control</h1>
         </div>
         <div className="admin-header-actions">
           {quickActions.map((action) => (
@@ -791,6 +810,16 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         onTabChange={setActiveTab}
         className="admin-tabs-switcher"
         colorSequence={ADMIN_TAB_COLOR_SEQUENCE}
+        renderTabLabel={(tab) => (
+          tab.id === 'System Log'
+            ? (
+              <>
+                <span className="admin-tab-label-full">System Log</span>
+                <span className="admin-tab-label-compact">Log</span>
+              </>
+            )
+            : tab.label
+        )}
         getTabClassName={(tab) => [
           'account-edit-tab',
           'admin-tab',
@@ -865,16 +894,39 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         {activeTab === 'System Log' && (
           <section className="card stack admin-system-tab">
             <div className="admin-traffic-card">
-              <h3 className="section-title">Network traffic</h3>
-              <div className="admin-traffic-bars">
-                {trafficSeries.map((point) => {
-                  const height = Math.max(16, Math.round((point.value / maxTrafficValue) * 100));
-                  return (
-                    <div key={point.label} className="admin-traffic-bar-column" title={`${point.label}: ${point.value}`}>
-                      <span className="admin-traffic-bar" style={{ height: `${height}%` }} />
-                    </div>
-                  );
-                })}
+              <div className="admin-traffic-header-row">
+                <h3 className="section-title">Network traffic</h3>
+                <div className="admin-traffic-summary muted">
+                  <span>Low: {minTrafficValue}</span>
+                  <span>Avg: {avgTrafficValue}</span>
+                  <span>High: {maxTrafficValue}</span>
+                </div>
+              </div>
+              <div className="admin-traffic-chart">
+                <div className="admin-traffic-scale" aria-hidden="true">
+                  <span>{maxTrafficValue}</span>
+                  <span>{midTrafficValue}</span>
+                  <span>0</span>
+                </div>
+                <div className="admin-traffic-bars">
+                  {trafficSeries.map((point) => {
+                    const height = Math.max(16, Math.round((point.value / maxTrafficValue) * 100));
+                    return (
+                      <div key={point.label} className="admin-traffic-bar-column" title={`${point.label}: ${point.value}`}>
+                        <span className="admin-traffic-bar" style={{ height: `${height}%`, background: point.color }} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="admin-traffic-legend" role="list" aria-label="Network traffic metrics">
+                {trafficSeries.map((point) => (
+                  <div key={`legend-${point.label}`} className="admin-traffic-legend-item" role="listitem">
+                    <span className="admin-traffic-legend-swatch" style={{ background: point.color }} aria-hidden="true" />
+                    <span className="admin-traffic-legend-label">{point.label}</span>
+                    <strong className="admin-traffic-legend-value">{point.value}</strong>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="admin-system-log-window admin-system-log-window--expanded">

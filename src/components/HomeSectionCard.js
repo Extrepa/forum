@@ -23,6 +23,9 @@ export default function HomeSectionCard({
   const recentItems = recentActivity
     ? [recentActivity, ...listItems.filter((item) => item.href !== recentActivity.href || item.timeAgo !== recentActivity.timeAgo)].slice(0, 3)
     : listItems.slice(0, 3);
+  const nowTs = Date.now();
+  const latestActivityTs = Number(recentItems[0]?.createdAt || recentActivity?.createdAt || 0);
+  const hasRecentInLast24h = Number.isFinite(latestActivityTs) && latestActivityTs > 0 && (nowTs - latestActivityTs) <= (24 * 60 * 60 * 1000);
 
   const renderActivityDescription = (activity) => (
     activity.type === 'reply' || activity.type === 'comment' ? (
@@ -74,7 +77,7 @@ export default function HomeSectionCard({
             </span>
             <span className="home-section-card__count-wrap">
               <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
-              <span className={`home-section-card__status-dot${recentActivity ? ' is-active' : ''}`} aria-hidden="true" />
+              <span className={`home-section-card__status-dot${hasRecentInLast24h ? ' is-recent' : ''}`} aria-hidden="true" />
               <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '-' : '+'}</span>
             </span>
           </button>
@@ -82,6 +85,7 @@ export default function HomeSectionCard({
 
         {isExpanded && (
           <div className="home-section-card__details">
+            <p className="home-section-card__full-description">{description}</p>
             <div className="home-section-card__details-head">
               {recentItems.length > 0 ? (
                 <span className="home-section-card__status-text">Latest drip:</span>
@@ -156,7 +160,8 @@ export default function HomeSectionCard({
           onKeyDown={(event) => event.stopPropagation()}
           style={{ color: 'inherit', textDecoration: 'none' }}
         >
-          Latest drip: {renderActivityDescription(recentActivity)} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
+          <span className="home-section-card__status-text">Latest drip:</span>{' '}
+          {renderActivityDescription(recentActivity)} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
         </Link>
       </div>
     </div>

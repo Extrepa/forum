@@ -106,3 +106,37 @@
 - Double-check performed:
   - Verified expanded-mode render now contains only one `Latest drip:` label (header-level).
   - Verified `Recent activity` text is no longer present in compact expanded card output.
+
+## Follow-up (Description/Indicator/Spacing Pass)
+- Request addressed:
+  - Expanded cards should show full description text.
+  - Section descriptions should be concise and remove any "image-only" language.
+  - "Latest drip" label should stand out more.
+  - Status light should only turn on for activity in the last 24 hours, with a distinct recent color.
+  - Mobile section rows should feel tighter/more seamless.
+
+- Implementation details:
+  - `src/components/HomeSectionCard.js`
+    - Added expanded description block (`home-section-card__full-description`) so expanded cards show the full section description.
+    - Added per-card 24-hour freshness logic using activity timestamps.
+    - Switched status-dot activation to freshness-based (`is-recent`) instead of "has any recent activity".
+    - Applied styled `Latest drip:` label in both compact expanded and desktop recent lines.
+  - `src/app/page.js`
+    - Added `createdAt` to section `recent` payloads so 24-hour freshness can be evaluated reliably in the card component.
+    - Passed `createdAt` through section card object mapping for timeline and shitposts wrappers.
+    - Tightened Nomads description copy.
+  - `src/lib/forum-texts/strings.js`
+    - Rewrote homepage section descriptions to shorter, clearer variants.
+    - Removed "image-only" phrasing from Art & Nostalgia.
+  - `src/app/globals.css`
+    - Added full-description styling for expanded compact cards.
+    - Updated status-dot "recent" color/glow (distinct from previous blue).
+    - Increased visual emphasis for `.home-section-card__status-text` ("Latest drip").
+    - Reduced mobile list spacing (`.home-sections-list` gap to `2px`) and compact card padding to tighten stack rhythm.
+
+- Verification performed:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass
+  - Spot-check grep:
+    - Confirmed no remaining "image-only" wording in homepage section card copy sources.
+    - Confirmed new `is-recent` status-dot class and full-description rendering hooks are present.
