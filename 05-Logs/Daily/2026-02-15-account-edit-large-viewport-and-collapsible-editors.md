@@ -39,3 +39,23 @@
 
 ## Notes
 - Workspace contains unrelated modified/untracked files from parallel workstreams; this update remained scoped to the two files listed above.
+
+## Follow-up (Large Viewport Width)
+- User reported account settings still felt constrained on large screens after initial pass.
+- Removed remaining width caps:
+  - `src/app/globals.css`: desktop `.account-card` max width changed from `min(1280px, calc(100vw - 96px))` to `100%`.
+  - `src/app/account/AccountSettings.js`: outer wrapper changed from `maxWidth: '1200px'` to full width (`width: '100%', maxWidth: '100%'`).
+- Re-ran lint:
+  - `npm run lint` -> pass.
+
+## Final Double-Check (Post Follow-up)
+- Re-checked active account settings width fixes and account edit behavior wiring.
+- Confirmed width cap removals are present:
+  - `src/app/account/AccountSettings.js` outer container now uses full-width (`width: '100%', maxWidth: '100%'`).
+  - `src/app/globals.css` desktop `.account-card` now uses `max-width: 100%`.
+- Re-checked account edit flow markers in `src/app/account/AccountTabsClient.js`:
+  - Username and avatar explicit toggle handlers (`toggleUsernameEditor`, `toggleAvatarEditor`).
+  - `Edit username` / `Edit avatar` summary-first UI.
+  - Username/avatar tab-content wrapper exclusion for whitespace control.
+- Validation rerun:
+  - `npm run lint` -> pass.

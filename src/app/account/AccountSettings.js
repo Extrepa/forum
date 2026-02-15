@@ -638,7 +638,7 @@ export default function AccountSettings({ user: initialUser }) {
   const colorIndex = getUsernameColorIndex(user.username, { preferredColorIndex });
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ width: '100%', maxWidth: '100%', margin: '0 auto' }}>
       {/* Notice/Status */}
       {status.type === 'success' && status.context !== 'ui' && (
         <div style={{ marginBottom: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(0, 245, 160, 0.15)', color: '#00f5a0', border: '1px solid rgba(0, 245, 160, 0.3)' }}>

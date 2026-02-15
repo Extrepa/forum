@@ -38,3 +38,19 @@ Adjusted notification panel interaction reliability and button styling in the fo
 ## Coordination note
 - This conversation thread is being used as a documentation/logging thread while implementation may also occur in parallel threads.
 - Entries in this file should be treated as the source-of-record for work tracked from this thread.
+
+## Follow-up fix (same day)
+### Issue reported
+- In the header notification panel context, clicking `Close` did not close the popover.
+- Panel only closed via outside click or toggling the notification icon.
+
+### Root cause
+- `NotificationsMenu` in `src/components/SiteHeader.js` was rendered without an `onClose` prop.
+- `NotificationsMenu` expected `onClose` for the footer `Close` button handler.
+
+### Fix applied
+- Added `onClose={() => setNotifyOpen(false)}` to the `NotificationsMenu` invocation in `src/components/SiteHeader.js`.
+
+### Validation
+- Lint check run for updated file (`src/components/SiteHeader.js`).
+- Behavioral expectation: `Close` now works in the header notification panel as in other notification menu call sites.

@@ -442,6 +442,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
               </button>
               <NotificationsMenu
                 open={notifyOpen}
+                onClose={() => setNotifyOpen(false)}
                 unreadCount={notifyUnreadCount}
                 items={notifyItems}
                 status={notifyStatus}

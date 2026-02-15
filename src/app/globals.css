@@ -2353,7 +2353,7 @@ main {
 /* Desktop: center the account card with a narrower max-width so content is more centered */
 @media (min-width: 1025px) {
   .account-card {
-    max-width: min(1280px, calc(100vw - 96px));
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
