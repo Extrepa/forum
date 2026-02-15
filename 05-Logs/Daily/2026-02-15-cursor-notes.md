@@ -86,3 +86,15 @@
 - Modified:
   - `wrangler.toml`
 - Untracked local npm debug logs under `.npm/_logs/` from command runs.
+
+## UI Fix: Delete Confirmation Modal Stacking Context
+- Reported issue:
+  - Delete confirmation modal appeared inline near the post action area instead of overlaying the full viewport.
+- Root cause:
+  - `DeleteConfirmModal` was rendered inside transformed/stacked UI regions (e.g. post action popover). In that context, `position: fixed` did not escape to viewport reliably due local stacking context behavior.
+- Fix applied:
+  - Updated `src/components/DeleteConfirmModal.js` to render through `createPortal(..., document.body)`.
+  - Added client mount guard before portal render.
+  - Increased overlay z-index to `12000` to sit above existing header/panel layers.
+- Verification:
+  - `npm run lint` passed after the modal patch.

@@ -1,9 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemType = 'post' }) {
   const modalRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -17,9 +23,9 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
     }
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -28,7 +34,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 10000,
+        zIndex: 12000,
         padding: '20px'
       }}
       onClick={(e) => {
@@ -56,7 +62,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
             type="button"
             onClick={onClose}
             className="button"
-            style={{ 
+            style={{
               background: 'rgba(2, 7, 10, 0.6)',
               color: 'var(--ink)',
               border: '1px solid rgba(52, 225, 255, 0.3)'
@@ -78,6 +84,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemTyp
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
