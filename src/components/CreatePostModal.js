@@ -44,9 +44,9 @@ export default function CreatePostModal({
 
   const resolvedMaxWidth = maxWidth || (variant === 'wide' ? '900px' : '600px');
   const resolvedMaxHeight = maxHeight || '90vh';
-  const overlayPadding = isMobile ? '12px 12px 30px' : '20px';
+  const overlayPadding = isMobile ? '12px' : '20px';
   const overlayAlign = isMobile ? 'flex-start' : 'center';
-  const contentMaxWidth = isMobile ? 'min(100%, 420px)' : resolvedMaxWidth;
+  const contentMaxWidth = isMobile ? 'calc(100% - 24px)' : resolvedMaxWidth;
   const contentMaxHeight = isMobile ? '85vh' : resolvedMaxHeight;
 
   const modal = (
