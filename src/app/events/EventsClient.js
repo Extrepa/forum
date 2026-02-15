@@ -69,6 +69,10 @@ export default function EventsClient({ events, notice , headerActions}) {
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{row.title}</>
                   : row.title;
+                const eventEndAt = row.ends_at || row.starts_at;
+                const hasPassed = eventEndAt <= Date.now();
+                const attendeeLabel = hasPassed ? 'attended' : 'attending';
+                const attendeeTitle = row.attendee_names?.length ? row.attendee_names.join(', ') : '';
 
                 return (
                   <a
@@ -128,14 +132,19 @@ export default function EventsClient({ events, notice , headerActions}) {
                           suppressHydrationWarning
                         >
                           {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
-                          {isEventUpcoming(row.starts_at) ? (
+                          {!hasPassed && isEventUpcoming(row.starts_at) ? (
                             <span className="muted" style={{ marginLeft: '4px' }}>
                               ({formatRelativeEventDate(row.starts_at)})
                             </span>
                           ) : null}
+                          {hasPassed ? (
+                            <span className="muted" style={{ marginLeft: '4px' }}>
+                              (Event happened)
+                            </span>
+                          ) : null}
                           {row.attendee_count > 0 ? (
-                            <span className="muted" style={{ marginLeft: '6px' }}>
-                              · {row.attendee_count} attending
+                            <span className="muted" style={{ marginLeft: '6px' }} title={attendeeTitle}>
+                              · {row.attendee_count} {attendeeLabel}
                             </span>
                           ) : null}
                         </span>

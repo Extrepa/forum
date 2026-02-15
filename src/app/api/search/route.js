@@ -13,6 +13,7 @@ export async function GET(request) {
 
   const user = await getSessionUser();
   const isSignedIn = !!user;
+  const normalizedQuery = String(query).trim().toLowerCase();
 
   const db = await getDb();
   const searchTerm = `%${query.trim()}%`;
@@ -26,17 +27,23 @@ export async function GET(request) {
         `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                 forum_threads.created_at, forum_threads.image_key,
                 users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
          FROM forum_threads
          JOIN users ON users.id = forum_threads.author_user_id
          WHERE forum_threads.moved_to_id IS NULL
            AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
            AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
-           AND (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
+           AND (
+             forum_threads.title LIKE ?
+             OR forum_threads.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
          ORDER BY forum_threads.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     threads = out?.results || [];
   } catch (e) {
@@ -46,16 +53,22 @@ export async function GET(request) {
           `SELECT forum_threads.id, forum_threads.title, forum_threads.body,
                   forum_threads.created_at, forum_threads.image_key,
                   users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM forum_replies WHERE forum_replies.thread_id = forum_threads.id AND forum_replies.is_deleted = 0) AS reply_count
            FROM forum_threads
            JOIN users ON users.id = forum_threads.author_user_id
            WHERE (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
              AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
-             AND (forum_threads.title LIKE ? OR forum_threads.body LIKE ?)
+             AND (
+               forum_threads.title LIKE ?
+               OR forum_threads.body LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             )
            ORDER BY forum_threads.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm, searchTerm)
+        .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
         .all();
       threads = out?.results || [];
     } catch (e2) {
@@ -70,17 +83,23 @@ export async function GET(request) {
       .prepare(
         `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                 timeline_updates.created_at, timeline_updates.image_key,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM timeline_updates
          JOIN users ON users.id = timeline_updates.author_user_id
          WHERE timeline_updates.moved_to_id IS NULL
            AND (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
            AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
-           AND (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
+           AND (
+             timeline_updates.title LIKE ?
+             OR timeline_updates.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
          ORDER BY timeline_updates.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     updates = out?.results || [];
   } catch (e) {
@@ -89,16 +108,22 @@ export async function GET(request) {
         .prepare(
           `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body,
                   timeline_updates.created_at, timeline_updates.image_key,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM timeline_updates
            JOIN users ON users.id = timeline_updates.author_user_id
            WHERE (timeline_updates.is_hidden = 0 OR timeline_updates.is_hidden IS NULL)
              AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
-             AND (timeline_updates.title LIKE ? OR timeline_updates.body LIKE ?)
+             AND (
+               timeline_updates.title LIKE ?
+               OR timeline_updates.body LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             )
            ORDER BY timeline_updates.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm, searchTerm)
+        .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
         .all();
       updates = out?.results || [];
     } catch (e2) {
@@ -113,17 +138,23 @@ export async function GET(request) {
       .prepare(
         `SELECT events.id, events.title, events.details, events.starts_at,
                 events.created_at, events.image_key,
-                users.username AS author_name
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
            AND (events.is_hidden = 0 OR events.is_hidden IS NULL)
            AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
-           AND (events.title LIKE ? OR events.details LIKE ?)
+           AND (
+             events.title LIKE ?
+             OR events.details LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
          ORDER BY events.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     events = out?.results || [];
   } catch (e) {
@@ -132,16 +163,22 @@ export async function GET(request) {
         .prepare(
           `SELECT events.id, events.title, events.details, events.starts_at,
                   events.created_at, events.image_key,
-                  users.username AS author_name
+                  users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM events
            JOIN users ON users.id = events.author_user_id
            WHERE (events.is_hidden = 0 OR events.is_hidden IS NULL)
              AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
-             AND (events.title LIKE ? OR events.details LIKE ?)
+             AND (
+               events.title LIKE ?
+               OR events.details LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             )
            ORDER BY events.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm, searchTerm)
+        .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
         .all();
       events = out?.results || [];
     } catch (e2) {
@@ -156,17 +193,24 @@ export async function GET(request) {
       .prepare(
         `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                 music_posts.type, music_posts.tags, music_posts.image_key,
-                music_posts.created_at, users.username AS author_name
+                music_posts.created_at, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM music_posts
          JOIN users ON users.id = music_posts.author_user_id
          WHERE music_posts.moved_to_id IS NULL
            AND (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
            AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
-           AND (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
+           AND (
+             music_posts.title LIKE ?
+             OR music_posts.body LIKE ?
+             OR music_posts.tags LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
          ORDER BY music_posts.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     music = out?.results || [];
   } catch (e) {
@@ -175,16 +219,23 @@ export async function GET(request) {
         .prepare(
           `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.url,
                   music_posts.type, music_posts.tags, music_posts.image_key,
-                  music_posts.created_at, users.username AS author_name
+                  music_posts.created_at, users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM music_posts
            JOIN users ON users.id = music_posts.author_user_id
            WHERE (music_posts.is_hidden = 0 OR music_posts.is_hidden IS NULL)
              AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
-             AND (music_posts.title LIKE ? OR music_posts.body LIKE ? OR music_posts.tags LIKE ?)
+             AND (
+               music_posts.title LIKE ?
+               OR music_posts.body LIKE ?
+               OR music_posts.tags LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             )
            ORDER BY music_posts.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm, searchTerm, searchTerm)
+        .bind(searchTerm, searchTerm, searchTerm, searchTerm, normalizedTerm)
         .all();
       music = out?.results || [];
     } catch (e2) {
@@ -199,17 +250,23 @@ export async function GET(request) {
       .prepare(
         `SELECT projects.id, projects.title, projects.description, projects.status,
                 projects.github_url, projects.demo_url, projects.image_key,
-                projects.created_at, users.username AS author_name
+                projects.created_at, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM projects
          JOIN users ON users.id = projects.author_user_id
          WHERE projects.moved_to_id IS NULL
            AND (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
            AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
-           AND (projects.title LIKE ? OR projects.description LIKE ?)
+           AND (
+             projects.title LIKE ?
+             OR projects.description LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
          ORDER BY projects.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     projects = out?.results || [];
   } catch (e) {
@@ -218,16 +275,22 @@ export async function GET(request) {
         .prepare(
           `SELECT projects.id, projects.title, projects.description, projects.status,
                   projects.github_url, projects.demo_url, projects.image_key,
-                  projects.created_at, users.username AS author_name
+                  projects.created_at, users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference
            FROM projects
            JOIN users ON users.id = projects.author_user_id
            WHERE (projects.is_hidden = 0 OR projects.is_hidden IS NULL)
              AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
-             AND (projects.title LIKE ? OR projects.description LIKE ?)
+             AND (
+               projects.title LIKE ?
+               OR projects.description LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             )
            ORDER BY projects.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm, searchTerm)
+        .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
         .all();
       projects = out?.results || [];
     } catch (e2) {
@@ -242,11 +305,16 @@ export async function GET(request) {
       .prepare(
         `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
                 forum_replies.thread_id, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
                 forum_threads.title AS thread_title
          FROM forum_replies
          JOIN users ON users.id = forum_replies.author_user_id
          JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
-         WHERE forum_replies.body LIKE ?
+         WHERE (
+             forum_replies.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
            AND forum_replies.is_deleted = 0
            AND forum_threads.moved_to_id IS NULL
            AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
@@ -254,7 +322,7 @@ export async function GET(request) {
          ORDER BY forum_replies.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm)
+      .bind(searchTerm, searchTerm, normalizedTerm)
       .all();
     replies = out?.results || [];
   } catch (e) {
@@ -263,17 +331,22 @@ export async function GET(request) {
         .prepare(
           `SELECT forum_replies.id, forum_replies.body, forum_replies.created_at,
                   forum_replies.thread_id, users.username AS author_name,
+                  users.preferred_username_color_index AS author_color_preference,
                   forum_threads.title AS thread_title
            FROM forum_replies
            JOIN users ON users.id = forum_replies.author_user_id
            JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
-           WHERE forum_replies.body LIKE ? AND forum_replies.is_deleted = 0
+           WHERE (
+               forum_replies.body LIKE ?
+               OR users.username LIKE ?
+               OR users.username_norm LIKE ?
+             ) AND forum_replies.is_deleted = 0
              AND (forum_threads.is_hidden = 0 OR forum_threads.is_hidden IS NULL)
              AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
            ORDER BY forum_replies.created_at DESC
            LIMIT 20`
         )
-        .bind(searchTerm)
+        .bind(searchTerm, searchTerm, normalizedTerm)
         .all();
       replies = out?.results || [];
     } catch (e2) {
@@ -287,17 +360,23 @@ export async function GET(request) {
     const out = await db
       .prepare(
         `SELECT posts.id, posts.type, posts.title, posts.body, posts.image_key, posts.is_private,
-                posts.created_at, users.username AS author_name
+                posts.created_at, users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference
          FROM posts
          JOIN users ON users.id = posts.author_user_id
-         WHERE (posts.title LIKE ? OR posts.body LIKE ?)
+         WHERE (
+             posts.title LIKE ?
+             OR posts.body LIKE ?
+             OR users.username LIKE ?
+             OR users.username_norm LIKE ?
+           )
            AND (posts.is_hidden = 0 OR posts.is_hidden IS NULL)
            AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
            AND (${isSignedIn ? '1=1' : "posts.is_private = 0 AND posts.type NOT IN ('lore','memories')"})
          ORDER BY posts.created_at DESC
          LIMIT 20`
       )
-      .bind(searchTerm, searchTerm)
+      .bind(searchTerm, searchTerm, searchTerm, normalizedTerm)
       .all();
     posts = out?.results || [];
   } catch (e) {
@@ -309,7 +388,7 @@ export async function GET(request) {
   try {
     const out = await db
       .prepare(
-        `SELECT users.id, users.username, users.created_at
+        `SELECT users.id, users.username, users.created_at, users.preferred_username_color_index AS author_color_preference
          FROM users
          WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
            AND (users.is_deleted = 0 OR users.is_deleted IS NULL)
@@ -323,7 +402,7 @@ export async function GET(request) {
     try {
       const out = await db
         .prepare(
-          `SELECT users.id, users.username, users.created_at
+          `SELECT users.id, users.username, users.created_at, users.preferred_username_color_index AS author_color_preference
            FROM users
            WHERE (users.username LIKE ? OR users.username_norm LIKE ?)
            ORDER BY users.created_at DESC
@@ -414,9 +493,28 @@ export async function GET(request) {
     ...u,
     title: u.username,
     author_name: u.username,
+    author_color_preference: u.author_color_preference,
     type: 'user',
     url: `/profile/${encodeURIComponent(u.username)}`
   }));
+
+  const getResultRank = (result) => {
+    const normalizedAuthor = String(result.author_name || '').toLowerCase();
+    const normalizedTitle = String(result.title || result.thread_title || '').toLowerCase();
+    const normalizedBody = String(result.body || '').toLowerCase();
+    let rank = 0;
+
+    if (normalizedAuthor === normalizedQuery) rank += 100;
+    else if (normalizedAuthor.includes(normalizedQuery)) rank += 45;
+
+    if (result.type === 'user' && normalizedTitle === normalizedQuery) rank += 120;
+    else if (result.type === 'user' && normalizedTitle.includes(normalizedQuery)) rank += 55;
+
+    if (normalizedTitle.includes(normalizedQuery)) rank += 20;
+    if (normalizedBody.includes(normalizedQuery)) rank += 8;
+
+    return rank;
+  };
 
   const allResults = [
     ...processedThreads,
@@ -427,7 +525,11 @@ export async function GET(request) {
     ...processedReplies,
     ...processedPosts,
     ...processedUsers
-  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  ].sort((a, b) => {
+    const rankDiff = getResultRank(b) - getResultRank(a);
+    if (rankDiff !== 0) return rankDiff;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
 
   return NextResponse.json({ results: allResults });
 }

@@ -6,6 +6,7 @@ import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { isValidPostType, postTypeCollectionPath } from '../../../lib/contentTypes';
+import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -131,6 +132,14 @@ export async function POST(request) {
       targetType: type === 'about' ? 'about' : type,
       targetId: postId,
       requestUrl: request.url
+    });
+
+    await notifyAdminsOfNewPost({
+      db,
+      actorUser: user,
+      targetType: 'post',
+      targetId: postId,
+      createdAt: now
     });
 
   } catch (e) {

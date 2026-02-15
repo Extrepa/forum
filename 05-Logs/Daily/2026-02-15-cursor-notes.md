@@ -164,3 +164,55 @@
   - Worker: `errl-portal-forum`
   - Version: `fc33e087-de9c-4f35-8fb7-a0c8c2f17239`
   - Route: `forum.errl.wtf`
+
+## UI Follow-up: Admin Mobile Tab Switcher Cleanup
+- Request:
+  - Replace the long stacked Admin tab strip on mobile with the shared tab switcher used in Edit Profile.
+- Changes applied:
+  - `src/components/AdminConsole.js`
+    - Swapped old `admin-tabs` button strip for `ErrlTabSwitcher`.
+    - Added `ADMIN_TABS` mapping and `ADMIN_TAB_COLOR_SEQUENCE` for neon indicator colors.
+    - Preserved existing `activeTab` state flow and all tab panel conditions.
+  - `src/app/globals.css`
+    - Added `.admin-tabs-switcher` and tighter admin switcher inner padding.
+    - Tuned `.admin-tab` sizing/spacing for mobile density.
+    - Simplified `.admin-tab--active` to weight emphasis (switcher indicator now handles visual active frame).
+- Verification:
+  - `npx eslint src/components/AdminConsole.js` (pass)
+  - `npm run build` (pass)
+- Detailed log:
+  - `05-Logs/Daily/2026-02-15-admin-console-tab-switcher-mobile.md`
+
+## UI Follow-up: Library + Notification Popover Positioning + Hover Open
+- Request:
+  - Fix desktop popover placement for Library and Notifications so they open directly near the clicked control.
+  - Unify menu positioning behavior across desktop/mobile and avoid viewport overflow.
+  - Add hover-open support for Library on desktop.
+- Changes implemented:
+  - Added shared anchor-and-clamp utility:
+    - `src/lib/anchoredPopover.js`
+  - Updated:
+    - `src/components/SiteHeader.js`
+    - `src/components/NotificationsMenu.js`
+  - Notifications now anchor to the actual message icon button ref (not wrapper).
+  - Library now supports desktop hover-open with delayed hover-close.
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+- Detailed log:
+  - `05-Logs/Daily/2026-02-15-library-notification-popover-positioning.md`
+
+## Feature Follow-up: Events Ordering + End Time + RSVP Close + Invites
+- Implemented events behavior update request:
+  - pinned-first then newest-created order for event lists,
+  - optional event end time on create/edit,
+  - passed-event state (`Event happened`) with RSVP close and comments still enabled,
+  - author/admin invite flow (individual users, role groups, invite-all),
+  - new `event_invite` in-app notification path and UI rendering.
+- Added migration:
+  - `migrations/0065_events_end_time_and_invites.sql`
+- Added APIs:
+  - `src/app/api/events/[id]/invites/route.js`
+  - `src/app/api/events/[id]/attendance/route.js`
+- Full implementation + verification notes:
+  - `05-Logs/Daily/2026-02-15-events-ordering-endtime-rsvp-invites.md`

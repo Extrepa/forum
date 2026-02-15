@@ -3359,28 +3359,24 @@ textarea {
   line-height: 1;
 }
 
-.admin-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.admin-tabs-switcher {
+  margin-top: 2px;
+}
+
+.admin-tabs-switcher .tabs-pill-inner {
+  padding-inline: clamp(3px, 1vw, 8px);
 }
 
 .admin-tab {
-  min-height: 34px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font-family: inherit;
+  min-height: 36px;
+  padding: 7px 12px;
   font-size: 12px;
-  line-height: 1;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
 }
 
 .admin-tab--active {
-  background: rgba(52, 225, 255, 0.2);
-  border-color: rgba(255, 52, 245, 0.4);
+  font-weight: 700;
 }
 
 .admin-tab-panel {
@@ -3691,6 +3687,10 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
   padding: 16px;
+}
+
+.admin-drawer--wide {
+  width: min(560px, 100%);
 }
 
 .admin-move-stack {
@@ -4151,15 +4151,13 @@ button.ghost:hover,
 
 /* Username popover should stay compact across viewports */
 .user-popover.card {
-  width: min(140px, calc(100vw - 32px));
-  max-width: min(140px, calc(100vw - 32px));
-  min-width: 0;
+  width: fit-content !important;
+  max-width: none !important;
+  min-width: 140px;
   height: auto;
-  max-height: min(200px, calc(100vh - 48px));
+  max-height: none !important;
   padding: 6px 8px 2px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible !important;
   box-sizing: border-box;
 }
 
@@ -5596,6 +5594,58 @@ span:has(.username) + .status-badge {
   font-size: 13px;
   color: var(--muted);
   font-style: italic;
+}
+
+.home-section-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home-section-card__toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-section-card__title {
+  font-weight: 700;
+}
+
+.home-section-card__open-link {
+  flex-shrink: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--errl-accent-2);
+  border: 1px solid rgba(52, 225, 255, 0.3);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.home-section-card__open-link:hover {
+  border-color: rgba(52, 225, 255, 0.6);
+}
+
+.home-section-card__description {
+  margin: 6px 0 0;
+}
+
+.home-section-card__details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(52, 225, 255, 0.18);
 }
 
 /* Homepage Stats: 3 cards on desktop */
@@ -7441,6 +7491,39 @@ header::before {
     grid-template-columns: 1fr;
   }
 
+  .home-sections-list {
+    gap: 10px;
+  }
+
+  .home-section-card--compact {
+    padding: 10px 11px;
+  }
+
+  .home-section-card--compact .section-card-count {
+    font-size: 12px;
+  }
+
+  .home-section-card--compact .home-section-card__description {
+    font-size: 11px;
+    line-height: 1.35;
+    max-width: 92%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+  }
+
+  .home-section-card--compact .section-stats,
+  .home-section-card--compact .section-card-empty-cta {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: 0;
+  }
+
+  .home-section-card--compact .home-section-card__details {
+    animation: homeSectionExpand 180ms ease-out;
+  }
+
   main button {
     width: 100%;
     justify-self: stretch;
@@ -7664,6 +7747,17 @@ header::before {
 
   .list-item {
     padding: 16px 20px;
+  }
+}
+
+@keyframes homeSectionExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -8161,6 +8255,9 @@ header::before {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
 }
 
 .edit-post-modal > .card::before,
@@ -8198,6 +8295,11 @@ header::before {
 .create-post-modal .formatting-toolbar {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+}
+
+.modal-content .card {
+  min-height: 0;
+  height: auto;
 }
 
 .form-inline-toggle {
@@ -8339,6 +8441,24 @@ header::before {
   font-size: 14px;
 }
 
+.search-page-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.search-page-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.search-page-button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 120px;
+}
+
 
 /* Header variant styling */
 .forum-logo-header {
@@ -8448,6 +8568,17 @@ header::before {
   
   .header-search-input {
     flex: 1;
+    min-width: 0;
+  }
+
+  .search-page-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-page-button {
+    width: 100%;
     min-width: 0;
   }
 

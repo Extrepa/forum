@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ErrlTabSwitcher from './ErrlTabSwitcher';
+import CreatePostModal from './CreatePostModal';
 
 const GALLERY_MAX = 10;
 const GALLERY_COLS = 5;
@@ -292,66 +293,25 @@ export default function ProfileTabsClient({
                   </div>
                 ))}
               </div>
-              {galleryModalEntry && (
-                <div
-                  className="profile-gallery-modal-overlay"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="Gallery image full size"
-                  onClick={() => setGalleryModalEntry(null)}
-                  onKeyDown={(e) => { if (e.key === 'Escape') setGalleryModalEntry(null); }}
-                  tabIndex={-1}
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.85)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999,
-                    padding: '20px',
-                    boxSizing: 'border-box',
-                  }}
+              {galleryModalEntry ? (
+                <CreatePostModal
+                  isOpen={Boolean(galleryModalEntry)}
+                  onClose={() => setGalleryModalEntry(null)}
+                  title="Gallery image"
+                  className="profile-gallery-modal"
+                  maxWidth="1200px"
+                  maxHeight="92vh"
+                  confirmOnUnsavedChanges={false}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setGalleryModalEntry(null)}
-                    aria-label="Close"
-                    style={{
-                      position: 'absolute',
-                      top: '16px',
-                      right: '16px',
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      border: 'none',
-                      background: 'rgba(255, 107, 0, 0.2)',
-                      color: '#ff6b6b',
-                      fontSize: '24px',
-                      cursor: 'pointer',
-                      lineHeight: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 0 12px rgba(255, 82, 82, 0.6)',
-                      transition: 'all 0.2s ease',
-                      zIndex: 10001,
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 82, 82, 0.8)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 82, 82, 0.6)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                  >
-                    &times;
-                  </button>
                   <div
-                    onClick={(e) => e.stopPropagation()}
                     style={{
-                      width: 'min(100%, 1200px)',
-                      height: '100%',
+                      width: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       position: 'relative',
+                      minHeight: 0,
                     }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -360,7 +320,7 @@ export default function ProfileTabsClient({
                       alt={galleryModalEntry.caption || 'Gallery image'}
                       style={{
                         maxWidth: '100%',
-                        maxHeight: 'calc(100vh - 40px)',
+                        maxHeight: 'calc(100vh - 220px)',
                         objectFit: 'contain',
                         display: 'block',
                         borderRadius: '4px',
@@ -369,14 +329,10 @@ export default function ProfileTabsClient({
                         boxShadow: 'none',
                       }}
                     />
-                    
-                    {galleryModalEntry.caption && (
+                    {galleryModalEntry.caption ? (
                       <div
                         style={{
-                          position: 'absolute',
-                          bottom: '20px',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
+                          marginTop: '12px',
                           background: 'rgba(2, 7, 10, 0.8)',
                           backdropFilter: 'blur(8px)',
                           padding: '8px 16px',
@@ -386,15 +342,14 @@ export default function ProfileTabsClient({
                           width: 'max-content',
                           textAlign: 'center',
                           boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                          zIndex: 10,
                         }}
                       >
                         <p style={{ margin: 0, color: '#e0e0e0', fontSize: '14px' }}>{galleryModalEntry.caption}</p>
                       </div>
-                    )}
+                    ) : null}
                   </div>
-                </div>
-              )}
+                </CreatePostModal>
+              ) : null}
             </>
           ) : (
             <div className="muted" style={{ padding: '12px' }}>No photos uploaded yet.</div>

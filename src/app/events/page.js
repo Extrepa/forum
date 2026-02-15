@@ -24,22 +24,24 @@ export default async function EventsPage({ searchParams }) {
   try {
     const out = await db
       .prepare(
-        `SELECT events.id, events.title, events.details, events.starts_at,
+        `SELECT events.id, events.title, events.details, events.starts_at, events.ends_at,
                 events.created_at, events.image_key,
                 COALESCE(events.views, 0) AS views,
                 COALESCE(events.is_pinned, 0) AS is_pinned,
+                COALESCE(events.attendance_reopened, 0) AS attendance_reopened,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
                 (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                 COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at,
-                (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count
+                (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
+                (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
          FROM events
          JOIN users ON users.id = events.author_user_id
          WHERE events.moved_to_id IS NULL
            ${hiddenFilter}
            AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
-         ORDER BY is_pinned DESC, events.starts_at ASC
+         ORDER BY is_pinned DESC, events.created_at DESC
          LIMIT 50`
       )
       .all();
@@ -49,19 +51,21 @@ export default async function EventsPage({ searchParams }) {
     try {
       const out = await db
         .prepare(
-          `SELECT events.id, events.title, events.details, events.starts_at,
+          `SELECT events.id, events.title, events.details, events.starts_at, events.ends_at,
                   events.created_at, events.image_key,
                   COALESCE(events.views, 0) AS views,
                   COALESCE(events.is_pinned, 0) AS is_pinned,
+                  COALESCE(events.attendance_reopened, 0) AS attendance_reopened,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
                   (SELECT COUNT(*) FROM event_comments WHERE event_comments.event_id = events.id AND event_comments.is_deleted = 0) AS comment_count,
                   (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                   COALESCE((SELECT MAX(created_at) FROM event_comments WHERE event_id = events.id AND is_deleted = 0), events.created_at) AS last_activity_at,
-                  (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count
+                  (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) AS attendee_count,
+                  (SELECT GROUP_CONCAT(users.username) FROM event_attendees JOIN users ON users.id = event_attendees.user_id WHERE event_attendees.event_id = events.id) AS attendee_names
          FROM events
          JOIN users ON users.id = events.author_user_id
-         ORDER BY is_pinned DESC, events.starts_at ASC
+         ORDER BY is_pinned DESC, events.created_at DESC
            LIMIT 50`
         )
         .all();
@@ -135,7 +139,8 @@ export default async function EventsPage({ searchParams }) {
   const events = results.map(row => ({
     ...row,
     detailsHtml: row.details ? renderMarkdown(row.details) : null,
-    user_attending: !!userAttendingMap[row.id]
+    user_attending: !!userAttendingMap[row.id],
+    attendee_names: row.attendee_names ? String(row.attendee_names).split(',').filter(Boolean) : []
   }));
 
   const error = searchParams?.error;
@@ -152,6 +157,8 @@ export default async function EventsPage({ searchParams }) {
       ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title and date are required.'
+      : error === 'invalid_end'
+      ? 'End date must be valid and cannot be before the event start.'
       : null;
 
   const canCreate = !!user && !!user.password_hash;
@@ -168,6 +175,7 @@ export default async function EventsPage({ searchParams }) {
                 bodyLabel="Details (optional)"
                 buttonLabel="Add Event"
                 showDate
+                showOptionalEndDate
                 bodyRequired={false}
                 showImage={true}
               />

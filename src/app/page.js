@@ -2,12 +2,11 @@ import ClaimUsernameForm from '../components/ClaimUsernameForm';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '../lib/auth';
 import { getDb } from '../lib/db';
-import Username from '../components/Username';
-import { getUsernameColorIndex, assignUniqueColorsForPage } from '../lib/usernameColor';
+import { assignUniqueColorsForPage } from '../lib/usernameColor';
 import {
   getForumStrings
 } from '../lib/forum-texts';
-import HomeSectionCard from '../components/HomeSectionCard';
+import HomeSectionsList from '../components/HomeSectionsList';
 
 export const dynamic = 'force-dynamic';
 
@@ -892,20 +891,10 @@ export default async function HomePage({ searchParams }) {
           <h3 className="section-title" style={{ marginBottom: '16px' }}>
             Explore Sections
           </h3>
-          <div className="list grid-tiles">
-            {sections.map((section) => (
-              <HomeSectionCard
-                key={section.href}
-                title={section.title}
-                description={section.description}
-                count={section.count}
-                recentActivity={section.recentActivity}
-                href={section.href}
-                usernameColorMap={usernameColorMap}
-                preferredColors={preferredColors}
-              />
-            ))}
-          </div>
+          <HomeSectionsList
+            sections={sections}
+            usernameColorMap={usernameColorMap}
+          />
         </section>
       )}
     </div>

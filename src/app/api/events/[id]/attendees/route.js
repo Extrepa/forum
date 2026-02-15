@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const db = await getDb();
   
   let attendees = [];
@@ -16,7 +17,7 @@ export async function GET(request, { params }) {
          WHERE event_attendees.event_id = ?
          ORDER BY event_attendees.created_at ASC`
       )
-      .bind(params.id)
+      .bind(id)
       .all();
     attendees = out?.results || [];
   } catch (e) {

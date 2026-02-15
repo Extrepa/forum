@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -70,38 +71,13 @@ export async function POST(request) {
     requestUrl: request.url
   });
 
-  if (user.role !== 'admin') {
-    try {
-      const { results: admins } = await db
-        .prepare('SELECT id FROM users WHERE role = ? AND notify_admin_new_post_enabled = 1')
-        .bind('admin')
-        .all();
-
-      if (admins && admins.length) {
-        await Promise.all(
-          admins.map((admin) =>
-            db
-              .prepare(
-                `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`
-              )
-              .bind(
-                crypto.randomUUID(),
-                admin.id,
-                user.id,
-                'admin_post',
-                'forum_thread',
-                threadId,
-                now
-              )
-              .run()
-          )
-        );
-      }
-    } catch (e) {
-      // Ignore admin notification failures
-    }
-  }
+  await notifyAdminsOfNewPost({
+    db,
+    actorUser: user,
+    targetType: 'forum_thread',
+    targetId: threadId,
+    createdAt: now
+  });
 
   return NextResponse.redirect(redirectUrl, 303);
 }

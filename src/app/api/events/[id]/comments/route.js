@@ -43,16 +43,20 @@ export async function POST(request, { params }) {
 
   const db = await getDb();
   
-  // Check if event is locked (rollout-safe)
+  let eventEndsAt = 0;
+  let attendanceReopened = 0;
+  // Check if event is locked and gather attendance window (rollout-safe)
   try {
     const event = await db
-      .prepare('SELECT is_locked FROM events WHERE id = ?')
+      .prepare('SELECT is_locked, starts_at, ends_at, COALESCE(attendance_reopened, 0) AS attendance_reopened FROM events WHERE id = ?')
       .bind(id)
       .first();
     if (event && event.is_locked) {
       redirectUrl.searchParams.set('error', 'locked');
       return NextResponse.redirect(redirectUrl, 303);
     }
+    eventEndsAt = Number(event?.ends_at || event?.starts_at || 0);
+    attendanceReopened = Number(event?.attendance_reopened || 0);
   } catch (e) {
     // Column might not exist yet, that's okay - allow posting
   }
@@ -78,7 +82,7 @@ export async function POST(request, { params }) {
     });
 
     const eventAuthor = await db
-      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM events JOIN users ON users.id = events.author_user_id WHERE events.id = ?')
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM events JOIN users u ON u.id = events.author_user_id WHERE events.id = ?')
       .bind(id)
       .first();
 
@@ -144,7 +148,8 @@ export async function POST(request, { params }) {
   }
 
   // Handle RSVP if checkbox was checked
-  if (attending) {
+  const attendanceClosedByTime = eventEndsAt > 0 && Date.now() >= eventEndsAt && attendanceReopened !== 1;
+  if (attending && !attendanceClosedByTime) {
     try {
       // Check if already RSVP'd
       const existing = await db
@@ -199,4 +204,3 @@ export async function POST(request, { params }) {
 
   return NextResponse.redirect(redirectUrl, 303);
 }
-

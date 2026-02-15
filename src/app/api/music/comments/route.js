@@ -57,7 +57,7 @@ export async function POST(request) {
     });
 
     const musicPostAuthor = await db
-      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM music_posts JOIN users ON users.id = music_posts.author_user_id WHERE music_posts.id = ?')
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM music_posts JOIN users u ON u.id = music_posts.author_user_id WHERE music_posts.id = ?')
       .bind(postId)
       .first();
 

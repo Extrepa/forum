@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import AdminStatCard from './AdminStatCard';
+import ErrlTabSwitcher from './ErrlTabSwitcher';
+import CreatePostModal from './CreatePostModal';
 
 const TAB_LIST = ['Overview', 'System Log', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
+const ADMIN_TABS = TAB_LIST.map((tab) => ({ id: tab, label: tab }));
 const TAB_LOOKUP = TAB_LIST.reduce((acc, tab) => {
   acc[tab.toLowerCase()] = tab;
   return acc;
 }, {});
+const ADMIN_TAB_COLOR_SEQUENCE = ['#34E1FF', '#FF34F5', '#00FF9F', '#FFD166', '#7CF3FF', '#9E7BFF', '#FF7A59'];
 
 const STATUS_PILLS = {
   pinned: 'PINNED',
@@ -190,6 +194,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [userFilter, setUserFilter] = useState('');
   const [busyPost, setBusyPost] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
+  const [notificationBroadcastBusy, setNotificationBroadcastBusy] = useState(false);
+  const [notificationBroadcastMessage, setNotificationBroadcastMessage] = useState(null);
+  const [broadcastComposerOpen, setBroadcastComposerOpen] = useState(false);
+  const [broadcastMessageDraft, setBroadcastMessageDraft] = useState('');
+  const [broadcastSendBusy, setBroadcastSendBusy] = useState(false);
   const [drawerPost, setDrawerPost] = useState(null);
   const [drawerUser, setDrawerUser] = useState(null);
   const [showDeletedPosts, setShowDeletedPosts] = useState(false);
@@ -656,6 +665,63 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     }
   };
 
+  const handleSendNavigationTip = async () => {
+    if (notificationBroadcastBusy) return;
+    setNotificationBroadcastBusy(true);
+    setNotificationBroadcastMessage(null);
+    try {
+      const response = await fetch('/api/admin/test-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'navigation_tip' })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Broadcast failed');
+      }
+      setNotificationBroadcastMessage(payload?.message || 'Navigation tip notification sent.');
+      appendSystemLog(payload?.message || 'Navigation tip notification broadcast sent to users.', {
+        source: 'system'
+      });
+    } catch (error) {
+      const message = error?.message || 'Broadcast failed.';
+      setNotificationBroadcastMessage(message);
+      appendSystemLog(`Navigation tip broadcast failed: ${message}`, {
+        level: 'error',
+        source: 'system'
+      });
+    } finally {
+      setNotificationBroadcastBusy(false);
+    }
+  };
+
+  const handleSendCustomBroadcast = async () => {
+    const message = broadcastMessageDraft.trim();
+    if (!message || broadcastSendBusy) return;
+    setBroadcastSendBusy(true);
+    try {
+      const response = await fetch('/api/admin/notifications/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Broadcast send failed');
+      }
+      setNotificationBroadcastMessage(payload?.message || 'Broadcast sent.');
+      appendSystemLog(payload?.message || 'Custom broadcast notification sent.', { source: 'system' });
+      setBroadcastComposerOpen(false);
+      setBroadcastMessageDraft('');
+    } catch (error) {
+      const messageText = error?.message || 'Broadcast send failed.';
+      setNotificationBroadcastMessage(messageText);
+      appendSystemLog(`Custom broadcast failed: ${messageText}`, { level: 'error', source: 'system' });
+    } finally {
+      setBroadcastSendBusy(false);
+    }
+  };
+
   const overviewStats = [
     { label: 'Total users', value: stats.totalUsers || 0, helper: 'All accounts' },
     { label: 'Active (24h)', value: stats.active24h || 0 },
@@ -715,19 +781,18 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         </div>
       </section>
 
-      <div className="admin-tabs">
-        {TAB_LIST.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={[ 'admin-tab', activeTab === tab ? 'admin-tab--active' : '' ].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab(tab)}
-            title={`Open ${tab} tab`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <ErrlTabSwitcher
+        tabs={ADMIN_TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="admin-tabs-switcher"
+        colorSequence={ADMIN_TAB_COLOR_SEQUENCE}
+        getTabClassName={(tab) => [
+          'account-edit-tab',
+          'admin-tab',
+          activeTab === tab.id ? 'account-edit-tab--active admin-tab--active' : ''
+        ].filter(Boolean).join(' ')}
+      />
 
       <div className="admin-tab-panel">
         {activeTab === 'Overview' && (
@@ -1288,6 +1353,34 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 {imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads'}
               </button>
             </form>
+            <div className="stack" style={{ gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleSendNavigationTip}
+                disabled={notificationBroadcastBusy}
+                title="Send one-time navigation guidance notification to all users"
+              >
+                {notificationBroadcastBusy ? 'Sending navigation tip...' : 'Send navigation tip to all users'}
+              </button>
+              <p className="muted" style={{ margin: 0 }}>
+                Sends a one-time in-app message explaining notifications are in the header Messages icon and account/admin links are in the three-dot menu.
+              </p>
+              {notificationBroadcastMessage ? <div className="notice">{notificationBroadcastMessage}</div> : null}
+            </div>
+            <div className="stack" style={{ gap: '8px' }}>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => setBroadcastComposerOpen(true)}
+                disabled={broadcastSendBusy}
+                title="Open composer to send a custom in-app notification to all users"
+              >
+                Compose broadcast notification
+              </button>
+              <p className="muted" style={{ margin: 0 }}>
+                Opens a pop-out composer so you can send a custom site-wide in-app notification any time.
+              </p>
+            </div>
             <a className="action-button" href="/admin/moderation">More moderation tools</a>
           </section>
         )}
@@ -1301,15 +1394,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       </div>
 
       {drawerPost ? (
-        <div className="admin-drawer-overlay" onClick={() => setDrawerPost(null)}>
-          <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <h3 className="section-title">Edit post</h3>
-              <button type="button" onClick={() => setDrawerPost(null)} className="icon-button" aria-label="Close drawer">
-                ×
-              </button>
-            </div>
-            {drawerPost.editHref ? (
+        <CreatePostModal
+          isOpen={Boolean(drawerPost)}
+          onClose={() => setDrawerPost(null)}
+          title="Edit post"
+          className="admin-drawer"
+          maxWidth="420px"
+          confirmOnUnsavedChanges
+        >
+          {drawerPost.editHref ? (
               <form action={drawerPost.editHref} method="post">
                 <label>
                   <div className="muted">Title</div>
@@ -1363,173 +1456,224 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   </a>
                 </div>
               </form>
-            ) : (
-              <div className="muted">Editing for this content type is not available yet.</div>
-            )}
-          </div>
-        </div>
+          ) : (
+            <div className="muted">Editing for this content type is not available yet.</div>
+          )}
+        </CreatePostModal>
       ) : null}
 
       {drawerUser ? (
-        <div className="admin-drawer-overlay" onClick={() => setDrawerUser(null)}>
-          <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <h3 className="section-title">User details</h3>
-              <button type="button" onClick={() => setDrawerUser(null)} className="icon-button" aria-label="Close drawer">
-                ×
+        <CreatePostModal
+          isOpen={Boolean(drawerUser)}
+          onClose={() => setDrawerUser(null)}
+          title="User details"
+          className="admin-drawer"
+          maxWidth="420px"
+          confirmOnUnsavedChanges={false}
+        >
+          <div className="stack" style={{ gap: '10px' }}>
+            <div>
+              <div className="muted">Username</div>
+              <strong>{drawerUser.username}</strong>
+            </div>
+            <div>
+              <div className="muted">Role</div>
+              <strong>{drawerUser.role}</strong>
+            </div>
+            <div>
+              <div className="muted">Joined</div>
+              <strong>{formatTime(drawerUser.createdAt)}</strong>
+            </div>
+            <div>
+              <div className="muted">Last seen</div>
+              <strong>{formatTime(drawerUser.lastSeen)}</strong>
+            </div>
+            <div>
+              <div className="muted">Posts</div>
+              <strong>{drawerUser.postsCount ?? 0}</strong>
+            </div>
+            <div>
+              <div className="muted">Comments</div>
+              <strong>{drawerUser.commentsCount ?? 0}</strong>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
+              <a className="button mini ghost" href={`/profile/${drawerUser.username}`} target="_blank" rel="noreferrer">
+                View profile
+              </a>
+              <button type="button" className="button ghost" onClick={() => handleDeleteUser(drawerUser)} disabled={drawerUser.isDeleted}>
+                Delete account
               </button>
             </div>
-            <div className="stack" style={{ gap: '10px' }}>
-              <div>
-                <div className="muted">Username</div>
-                <strong>{drawerUser.username}</strong>
-              </div>
-              <div>
-                <div className="muted">Role</div>
-                <strong>{drawerUser.role}</strong>
-              </div>
-              <div>
-                <div className="muted">Joined</div>
-                <strong>{formatTime(drawerUser.createdAt)}</strong>
-              </div>
-              <div>
-                <div className="muted">Last seen</div>
-                <strong>{formatTime(drawerUser.lastSeen)}</strong>
-              </div>
-              <div>
-                <div className="muted">Posts</div>
-                <strong>{drawerUser.postsCount ?? 0}</strong>
-              </div>
-              <div>
-                <div className="muted">Comments</div>
-                <strong>{drawerUser.commentsCount ?? 0}</strong>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
-                <a className="button mini ghost" href={`/profile/${drawerUser.username}`} target="_blank" rel="noreferrer">
-                  View profile
-                </a>
-                <button type="button" className="button ghost" onClick={() => handleDeleteUser(drawerUser)} disabled={drawerUser.isDeleted}>
-                  Delete account
-                </button>
-              </div>
-              <div className="muted" style={{ fontSize: '12px' }}>
-                Privacy note: email/phone/passwords are not shown here. Deleting an account anonymizes personal data.
-              </div>
+            <div className="muted" style={{ fontSize: '12px' }}>
+              Privacy note: email/phone/passwords are not shown here. Deleting an account anonymizes personal data.
             </div>
           </div>
-        </div>
+        </CreatePostModal>
       ) : null}
 
       {movePost ? (
-        <div className="admin-drawer-overlay" onClick={closeMoveDialog}>
-          <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
-              <h3 className="section-title">Move post</h3>
-              <button type="button" onClick={closeMoveDialog} className="icon-button" aria-label="Close drawer">
-                ×
-              </button>
-            </div>
-            <div className="stack admin-move-stack">
-              <p className="muted">
-                Moving <strong>{movePost.title}</strong> from <strong>{movePost.sectionLabel}</strong>.
-              </p>
+        <CreatePostModal
+          isOpen={Boolean(movePost)}
+          onClose={() => {
+            if (!moveBusy) closeMoveDialog();
+          }}
+          title="Move post"
+          className="admin-drawer"
+          maxWidth="420px"
+          confirmOnUnsavedChanges
+        >
+          <div className="stack admin-move-stack">
+            <p className="muted">
+              Moving <strong>{movePost.title}</strong> from <strong>{movePost.sectionLabel}</strong>.
+            </p>
+            <label>
+              <div className="muted">Destination</div>
+              <select
+                value={moveDestination}
+                onChange={(e) => setMoveDestination(e.target.value)}
+                disabled={moveBusy}
+              >
+                {movePost.type === 'post'
+                  ? POST_SECTION_DESTINATIONS
+                      .filter((option) => option.value !== movePost.subtype)
+                      .map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))
+                  : CONTENT_MOVE_DESTINATIONS
+                      .filter((option) => option.value !== currentMoveDestination(movePost))
+                      .map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+              </select>
+            </label>
+            {movePost.type !== 'post' && moveDestination === 'event' ? (
               <label>
-                <div className="muted">Destination</div>
-                <select
-                  value={moveDestination}
-                  onChange={(e) => setMoveDestination(e.target.value)}
+                <div className="muted">Event start (local time)</div>
+                <input
+                  type="datetime-local"
+                  value={moveStartsAt}
+                  onChange={(e) => setMoveStartsAt(e.target.value)}
+                  required
                   disabled={moveBusy}
-                >
-                  {movePost.type === 'post'
-                    ? POST_SECTION_DESTINATIONS
-                        .filter((option) => option.value !== movePost.subtype)
-                        .map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))
-                    : CONTENT_MOVE_DESTINATIONS
-                        .filter((option) => option.value !== currentMoveDestination(movePost))
-                        .map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                </select>
+                />
               </label>
-              {movePost.type !== 'post' && moveDestination === 'event' ? (
+            ) : null}
+            {movePost.type !== 'post' && moveDestination === 'music_post' ? (
+              <>
                 <label>
-                  <div className="muted">Event start (local time)</div>
+                  <div className="muted">Music URL</div>
                   <input
-                    type="datetime-local"
-                    value={moveStartsAt}
-                    onChange={(e) => setMoveStartsAt(e.target.value)}
-                    required
+                    type="url"
+                    value={moveMusicUrl}
+                    onChange={(e) => setMoveMusicUrl(e.target.value)}
+                    placeholder="https://..."
                     disabled={moveBusy}
                   />
                 </label>
-              ) : null}
-              {movePost.type !== 'post' && moveDestination === 'music_post' ? (
-                <>
-                  <label>
-                    <div className="muted">Music URL</div>
-                    <input
-                      type="url"
-                      value={moveMusicUrl}
-                      onChange={(e) => setMoveMusicUrl(e.target.value)}
-                      placeholder="https://..."
-                      disabled={moveBusy}
-                    />
-                  </label>
-                  <label>
-                    <div className="muted">Music type</div>
-                    <input
-                      type="text"
-                      value={moveMusicType}
-                      onChange={(e) => setMoveMusicType(e.target.value)}
-                      placeholder="song, album, mix..."
-                      disabled={moveBusy}
-                    />
-                  </label>
-                  <label>
-                    <div className="muted">Tags (optional)</div>
-                    <input
-                      type="text"
-                      value={moveMusicTags}
-                      onChange={(e) => setMoveMusicTags(e.target.value)}
-                      placeholder="lofi, ambient"
-                      disabled={moveBusy}
-                    />
-                  </label>
-                </>
-              ) : null}
-              {movePost.type !== 'post' && moveDestination === 'project' ? (
                 <label>
-                  <div className="muted">Project status</div>
-                  <select
-                    value={moveProjectStatus}
-                    onChange={(e) => setMoveProjectStatus(e.target.value)}
+                  <div className="muted">Music type</div>
+                  <input
+                    type="text"
+                    value={moveMusicType}
+                    onChange={(e) => setMoveMusicType(e.target.value)}
+                    placeholder="song, album, mix..."
                     disabled={moveBusy}
-                  >
-                    <option value="active">Active</option>
-                    <option value="on-hold">On Hold</option>
-                    <option value="completed">Completed</option>
-                    <option value="archived">Archived</option>
-                  </select>
+                  />
                 </label>
-              ) : null}
-              <div className="admin-drawer-actions">
-                <button type="button" onClick={handleMovePost} disabled={moveBusy || !moveDestination}>
-                  {moveBusy ? 'Moving...' : 'Move now'}
-                </button>
-                <button type="button" className="button ghost" onClick={closeMoveDialog} disabled={moveBusy}>
-                  Cancel
-                </button>
-              </div>
-              <p className="muted admin-move-help">
-                {movePost.type === 'post'
-                  ? 'This keeps the same post and updates its section.'
-                  : 'This creates destination content, migrates discussion, and marks the source as moved.'}
-              </p>
+                <label>
+                  <div className="muted">Tags (optional)</div>
+                  <input
+                    type="text"
+                    value={moveMusicTags}
+                    onChange={(e) => setMoveMusicTags(e.target.value)}
+                    placeholder="lofi, ambient"
+                    disabled={moveBusy}
+                  />
+                </label>
+              </>
+            ) : null}
+            {movePost.type !== 'post' && moveDestination === 'project' ? (
+              <label>
+                <div className="muted">Project status</div>
+                <select
+                  value={moveProjectStatus}
+                  onChange={(e) => setMoveProjectStatus(e.target.value)}
+                  disabled={moveBusy}
+                >
+                  <option value="active">Active</option>
+                  <option value="on-hold">On Hold</option>
+                  <option value="completed">Completed</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+            ) : null}
+            <div className="admin-drawer-actions">
+              <button type="button" onClick={handleMovePost} disabled={moveBusy || !moveDestination}>
+                {moveBusy ? 'Moving...' : 'Move now'}
+              </button>
+              <button type="button" className="button ghost" onClick={closeMoveDialog} disabled={moveBusy}>
+                Cancel
+              </button>
+            </div>
+            <p className="muted admin-move-help">
+              {movePost.type === 'post'
+                ? 'This keeps the same post and updates its section.'
+                : 'This creates destination content, migrates discussion, and marks the source as moved.'}
+            </p>
+          </div>
+        </CreatePostModal>
+      ) : null}
+
+      {broadcastComposerOpen ? (
+        <CreatePostModal
+          isOpen={broadcastComposerOpen}
+          onClose={() => {
+            if (!broadcastSendBusy) setBroadcastComposerOpen(false);
+          }}
+          title="Broadcast notification"
+          className="admin-drawer admin-drawer--wide"
+          maxWidth="560px"
+          confirmOnUnsavedChanges
+        >
+          <div className="stack" style={{ gap: '10px' }}>
+            <p className="muted" style={{ margin: 0 }}>
+              This sends an in-app notification to all users. Keep it short and clear.
+            </p>
+            <label>
+              <div className="muted">Message</div>
+              <textarea
+                value={broadcastMessageDraft}
+                onChange={(event) => setBroadcastMessageDraft(event.target.value)}
+                rows={4}
+                maxLength={280}
+                placeholder="Example: Notifications are now in the Messages icon in the top right. Use the three-dot menu for Account, Profile, and Admin."
+                style={{ resize: 'vertical' }}
+              />
+            </label>
+            <div className="muted" style={{ fontSize: '12px' }}>
+              {broadcastMessageDraft.trim().length}/280
+            </div>
+            <div className="admin-drawer-actions">
+              <button
+                type="button"
+                onClick={handleSendCustomBroadcast}
+                disabled={!broadcastMessageDraft.trim() || broadcastSendBusy}
+              >
+                {broadcastSendBusy ? 'Sending...' : 'Send to all users'}
+              </button>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => {
+                  if (!broadcastSendBusy) setBroadcastComposerOpen(false);
+                }}
+                disabled={broadcastSendBusy}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </div>
+        </CreatePostModal>
       ) : null}
     </div>
   );

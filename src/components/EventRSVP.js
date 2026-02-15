@@ -9,6 +9,13 @@ export default function EventRSVP({ eventId, initialAttending, initialAttendees 
   const [attendees, setAttendees] = useState(initialAttendees || []);
   const [loading, setLoading] = useState(false);
 
+  const getPreferredColorIndex = (attendee) => {
+    const raw = attendee?.preferred_username_color_index;
+    if (raw === null || raw === undefined) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const toggleRSVP = async () => {
     setLoading(true);
     try {
@@ -46,14 +53,20 @@ export default function EventRSVP({ eventId, initialAttending, initialAttendees 
       </label>
       {attendees.length > 0 ? (
         <div className="list">
-          {attendees.map((attendee) => (
-            <div key={attendee.id} className="list-item">
+          {attendees.map((attendee) => {
+            const preferredColorIndex = getPreferredColorIndex(attendee);
+            return (
+              <div key={attendee.id} className="list-item">
               <Username
                 name={attendee.username}
-                colorIndex={getUsernameColorIndex(attendee.username)}
+                colorIndex={getUsernameColorIndex(attendee.username, {
+                  preferredColorIndex,
+                })}
+                preferredColorIndex={preferredColorIndex}
               />
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="muted">No attendees yet.</p>

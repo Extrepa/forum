@@ -40,9 +40,19 @@ export async function POST(request, { params }) {
   const body = String(formData.get('body') || '').trim();
   const startsAtRaw = String(formData.get('starts_at') || '').trim();
   const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
+  const endsAtRaw = String(formData.get('ends_at') || '').trim();
+  const endsAt = endsAtRaw ? parseLocalDateTimeToUTC(endsAtRaw) : null;
 
   if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (endsAtRaw && !endsAt) {
+    redirectUrl.searchParams.set('error', 'invalid_end');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (endsAt && endsAt < startsAt) {
+    redirectUrl.searchParams.set('error', 'invalid_end');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
@@ -73,20 +83,38 @@ export async function POST(request, { params }) {
     });
   }
 
-  if (imageKey) {
-    await db
-      .prepare(
-        'UPDATE events SET title = ?, details = ?, starts_at = ?, image_key = ? WHERE id = ?'
-      )
-      .bind(title, body || null, startsAt, imageKey, params.id)
-      .run();
-  } else {
-    await db
-      .prepare(
-        'UPDATE events SET title = ?, details = ?, starts_at = ? WHERE id = ?'
-      )
-      .bind(title, body || null, startsAt, params.id)
-      .run();
+  try {
+    if (imageKey) {
+      await db
+        .prepare(
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ?, image_key = ? WHERE id = ?'
+        )
+        .bind(title, body || null, startsAt, endsAt, imageKey, params.id)
+        .run();
+    } else {
+      await db
+        .prepare(
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, ends_at = ? WHERE id = ?'
+        )
+        .bind(title, body || null, startsAt, endsAt, params.id)
+        .run();
+    }
+  } catch (e) {
+    if (imageKey) {
+      await db
+        .prepare(
+          'UPDATE events SET title = ?, details = ?, starts_at = ?, image_key = ? WHERE id = ?'
+        )
+        .bind(title, body || null, startsAt, imageKey, params.id)
+        .run();
+    } else {
+      await db
+        .prepare(
+          'UPDATE events SET title = ?, details = ?, starts_at = ? WHERE id = ?'
+        )
+        .bind(title, body || null, startsAt, params.id)
+        .run();
+    }
   }
 
   if (isAdminUser(user)) {

@@ -58,9 +58,6 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
     return null;
   }
 
-  let lastName = null;
-  let lastIndex = null;
-
   return (
     <div className="search-results-popover" ref={popoverRef}>
       <div className="search-results-header">
@@ -70,12 +67,14 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
       </div>
       <div className="search-results-list">
         {results.slice(0, 5).map((result) => {
+          const preferredColorRaw = result?.author_color_preference;
+          const preferredColorIndex =
+            preferredColorRaw === null || preferredColorRaw === undefined
+              ? null
+              : Number(preferredColorRaw);
           const colorIndex = getUsernameColorIndex(result.author_name, {
-            avoidIndex: lastIndex,
-            avoidName: lastName,
+            preferredColorIndex: Number.isFinite(preferredColorIndex) ? preferredColorIndex : null,
           });
-          lastName = result.author_name;
-          lastIndex = colorIndex;
 
           return (
             <div
@@ -103,7 +102,21 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
                 </div>
               )}
               <div className="search-result-meta">
-                <Username name={result.author_name} colorIndex={colorIndex} />
+                <span
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                  onMouseDown={(event) => {
+                    event.stopPropagation();
+                  }}
+                >
+                  <Username
+                    name={result.author_name}
+                    colorIndex={colorIndex}
+                    preferredColorIndex={Number.isFinite(preferredColorIndex) ? preferredColorIndex : null}
+                  />
+                </span>
                 <span className="search-result-date" suppressHydrationWarning>
                   {new Date(result.created_at).toLocaleDateString()}
                 </span>

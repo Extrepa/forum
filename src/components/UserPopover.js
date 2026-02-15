@@ -121,25 +121,13 @@ export default function UserPopover({
     : 0;
 
   const safeName = String(username || '').trim();
-  const baseMaxWidth = 180;
+  const baseWidth = 180;
   const overflowThreshold = 14;
   const extraWidth = Math.max(0, safeName.length - overflowThreshold) * 8;
 
-  const minContentWidth = 140; // Minimum width for popover content
-  const padding = 32; // 16px on each side (left and right)
-
-  // Calculate the maximum available width for the popover within the viewport
-  // Ensure that even if viewportWidth is very small, we allow at least minContentWidth + padding space for calculation
-  const availableViewportWidth = Math.max(minContentWidth + padding, viewportWidth) - padding;
-
-  // Calculate the content-based maximum width, but cap it by the availableViewportWidth
-  const expandedContentWidth = Math.min(baseMaxWidth + extraWidth, availableViewportWidth);
-
-  // The computed width should be at least minContentWidth, but also respect the expandedContentWidth
-  const computedWidth = Math.max(minContentWidth, expandedContentWidth);
-
-  // Finally, ensure the computed width does not exceed the actual viewport space available
-  const finalComputedWidth = Math.min(computedWidth, viewportWidth - padding);
+  const minContentWidth = 140;
+  // Keep a compact, content-driven width. Do not force viewport-based stretching.
+  const computedWidth = Math.max(minContentWidth, baseWidth + extraWidth);
 
   return createPortal(
     <div
@@ -150,12 +138,11 @@ export default function UserPopover({
         zIndex: 9999,
         top: popoverPosition.top,
         left: popoverPosition.left,
-        width: `min(calc(100vw - ${padding}px), ${finalComputedWidth}px)`,
-        maxWidth: `min(calc(100vw - ${padding}px), ${finalComputedWidth}px)`,
+        width: `${computedWidth}px`,
+        maxWidth: 'none',
         minWidth: `${minContentWidth}px`,
-        maxHeight: 'min(190px, calc(100vh - 48px))',
-        overflowY: 'auto',
-        overflowX: 'hidden',
+        maxHeight: 'none',
+        overflow: 'visible',
         padding: '6px 8px 2px',
         background: 'var(--errl-panel)',
         display: 'flex',
@@ -203,7 +190,7 @@ export default function UserPopover({
             fontWeight: '700',
             lineHeight: 1.1,
             color: userInfo ? undefined : 'var(--muted)',
-            wordBreak: 'break-word',
+            whiteSpace: 'nowrap',
             maxWidth: '100%',
             flexShrink: 1,
             minWidth: 0

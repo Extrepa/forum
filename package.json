@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "preview": "wrangler dev",
+    "deploy:preview": "./deploy.sh --preview",
     "deploy": "wrangler deploy --env=\"\"",
     "deploy:full": "./deploy.sh"
   },

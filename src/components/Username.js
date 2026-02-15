@@ -91,8 +91,15 @@ export default function Username({
     schedulePopoverClose();
   };
 
-  const handleClick = () => {
+  const handlePointerDown = (event) => {
     if (!isTouch) return;
+    event.stopPropagation();
+  };
+
+  const handleClick = (event) => {
+    if (!isTouch) return;
+    event.preventDefault();
+    event.stopPropagation();
     cancelHoverTimers();
     setShowPopover(true);
   };
@@ -108,6 +115,8 @@ export default function Username({
         style={{ ...style, cursor: disableLink ? 'default' : 'pointer' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onMouseDown={handlePointerDown}
+        onTouchStart={handlePointerDown}
         onClick={handleClick}
       >
         {avatarUrl && (

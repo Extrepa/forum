@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 
 export async function GET() {
   const db = await getDb();
@@ -77,11 +78,12 @@ export async function POST(request) {
   }
 
   const projectId = crypto.randomUUID();
+  const now = Date.now();
   await db
     .prepare(
       'INSERT INTO projects (id, author_user_id, title, description, status, github_url, demo_url, image_key, created_at, updates_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(projectId, user.id, title, description, status, githubUrl, demoUrl, imageKey, Date.now(), updatesEnabled)
+    .bind(projectId, user.id, title, description, status, githubUrl, demoUrl, imageKey, now, updatesEnabled)
     .run();
 
   // Create mention notifications
@@ -91,6 +93,14 @@ export async function POST(request) {
     targetType: 'project',
     targetId: projectId,
     requestUrl: request.url
+  });
+
+  await notifyAdminsOfNewPost({
+    db,
+    actorUser: user,
+    targetType: 'project',
+    targetId: projectId,
+    createdAt: now
   });
 
   return NextResponse.redirect(redirectUrl, 303);

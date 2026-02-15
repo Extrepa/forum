@@ -47,27 +47,18 @@ export default function SearchClient({ query: initialQuery, results }) {
   };
 
   return (
-    <div className="stack">
+    <div className="stack search-page">
       <section className="card">
         <h2 className="section-title">Search</h2>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+        <form onSubmit={handleSearch} className="search-page-form">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search posts, threads, events, music, projects..."
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              borderRadius: '12px',
-              border: '1px solid rgba(52, 225, 255, 0.35)',
-              background: 'rgba(2, 7, 10, 0.6)',
-              color: 'var(--ink)',
-              fontSize: '16px',
-              fontFamily: 'inherit'
-            }}
+            className="search-page-input"
           />
-          <button type="submit">Search</button>
+          <button type="submit" className="search-page-button">Search</button>
         </form>
       </section>
 
@@ -82,16 +73,15 @@ export default function SearchClient({ query: initialQuery, results }) {
           {results.length > 0 && (
             <div className="list">
               {(() => {
-                let lastName = null;
-                let lastIndex = null;
-
                 return results.map((result) => {
+                  const preferredColorRaw = result?.author_color_preference;
+                  const preferredColorIndex =
+                    preferredColorRaw === null || preferredColorRaw === undefined
+                      ? null
+                      : Number(preferredColorRaw);
                   const colorIndex = getUsernameColorIndex(result.author_name, {
-                    avoidIndex: lastIndex,
-                    avoidName: lastName,
+                    preferredColorIndex: Number.isFinite(preferredColorIndex) ? preferredColorIndex : null,
                   });
-                  lastName = result.author_name;
-                  lastIndex = colorIndex;
 
                   return (
                     <div key={`${result.type}-${result.id}`} className="list-item">
@@ -146,7 +136,11 @@ export default function SearchClient({ query: initialQuery, results }) {
                         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                       >
                         <span>
-                          <Username name={result.author_name} colorIndex={colorIndex} />
+                          <Username
+                            name={result.author_name}
+                            colorIndex={colorIndex}
+                            preferredColorIndex={Number.isFinite(preferredColorIndex) ? preferredColorIndex : null}
+                          />
                         </span>
                         <span>
                           <span suppressHydrationWarning>{formatDateTime(result.created_at)}</span>

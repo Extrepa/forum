@@ -198,6 +198,27 @@ export async function POST(request) {
     // Notifications table might not exist yet, ignore
   }
 
+  // Navigation tip notification (for users after the header notification icon move)
+  try {
+    await db
+      .prepare(
+        `INSERT INTO notifications (id, user_id, actor_user_id, type, target_type, target_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        crypto.randomUUID(),
+        userId,
+        userId,
+        'navigation_tip',
+        'system',
+        'header_messages_and_kebab_v1',
+        now
+      )
+      .run();
+  } catch (e) {
+    // Notifications table might not exist yet, ignore
+  }
+
   // Admin notifications for new signups (opt-in)
   try {
     const { results: admins } = await db

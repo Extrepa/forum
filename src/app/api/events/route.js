@@ -6,6 +6,7 @@ import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from
 import { parseLocalDateTimeToUTC } from '../../../lib/dates';
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -24,9 +25,19 @@ export async function POST(request) {
   const body = String(formData.get('body') || '').trim();
   const startsAtRaw = String(formData.get('starts_at') || '').trim();
   const startsAt = parseLocalDateTimeToUTC(startsAtRaw);
+  const endsAtRaw = String(formData.get('ends_at') || '').trim();
+  const endsAt = endsAtRaw ? parseLocalDateTimeToUTC(endsAtRaw) : null;
 
   if (!title || !startsAt) {
     redirectUrl.searchParams.set('error', 'missing');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (endsAtRaw && !endsAt) {
+    redirectUrl.searchParams.set('error', 'invalid_end');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (endsAt && endsAt < startsAt) {
+    redirectUrl.searchParams.set('error', 'invalid_end');
     return NextResponse.redirect(redirectUrl, 303);
   }
 
@@ -59,12 +70,22 @@ export async function POST(request) {
   }
 
   const eventId = crypto.randomUUID();
-  await db
-    .prepare(
-      'INSERT INTO events (id, author_user_id, title, details, starts_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    )
-    .bind(eventId, user.id, title, body || null, startsAt, Date.now(), imageKey)
-    .run();
+  const now = Date.now();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO events (id, author_user_id, title, details, starts_at, ends_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(eventId, user.id, title, body || null, startsAt, endsAt, now, imageKey)
+      .run();
+  } catch (e) {
+    await db
+      .prepare(
+        'INSERT INTO events (id, author_user_id, title, details, starts_at, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(eventId, user.id, title, body || null, startsAt, now, imageKey)
+      .run();
+  }
 
   // Create mention notifications
   await createMentionNotifications({
@@ -73,6 +94,14 @@ export async function POST(request) {
     targetType: 'event',
     targetId: eventId,
     requestUrl: request.url
+  });
+
+  await notifyAdminsOfNewPost({
+    db,
+    actorUser: user,
+    targetType: 'event',
+    targetId: eventId,
+    createdAt: now
   });
 
   return NextResponse.redirect(redirectUrl, 303);

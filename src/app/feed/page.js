@@ -99,7 +99,7 @@ export default async function FeedPage() {
     ),
     safeAll(
       db,
-      `SELECT events.id, events.title, events.created_at, events.starts_at,
+      `SELECT events.id, events.title, events.created_at, events.starts_at, events.ends_at,
               COALESCE(events.views, 0) AS views,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
@@ -117,7 +117,7 @@ export default async function FeedPage() {
        ORDER BY events.created_at DESC
        LIMIT ${limitPerType}`,
       [],
-      `SELECT events.id, events.title, events.created_at, events.starts_at,
+      `SELECT events.id, events.title, events.created_at, events.starts_at, events.ends_at,
               COALESCE(events.views, 0) AS views,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference,
@@ -337,6 +337,7 @@ export default async function FeedPage() {
       lastActivity: row.last_activity_at || row.created_at,
       lastActivityBy: row.last_activity_author || row.author_name || null,
       startsAt: row.starts_at,
+      endsAt: row.ends_at || null,
       attendeeCount: row.attendee_count || 0,
       attendeeNames: row.attendee_names ? String(row.attendee_names).split(',') : []
     })),
@@ -498,12 +499,29 @@ export default async function FeedPage() {
   }).filter(Boolean);
   
   const preferredColors = new Map();
-  items.forEach(item => {
+  const uniqueUsernames = [...new Set(allUsernames.filter(Boolean).map(name => String(name).trim()).filter(Boolean))];
+  if (uniqueUsernames.length > 0) {
+    try {
+      const placeholders = uniqueUsernames.map(() => '?').join(',');
+      const out = await db
+        .prepare(`SELECT username, preferred_username_color_index FROM users WHERE username IN (${placeholders})`)
+        .bind(...uniqueUsernames)
+        .all();
+      for (const row of out?.results || []) {
+        if (row?.username && row.preferred_username_color_index !== null && row.preferred_username_color_index !== undefined) {
+          preferredColors.set(String(row.username), Number(row.preferred_username_color_index));
+        }
+      }
+    } catch (e) {
+      // Fall back to per-item values when lookup is unavailable.
+    }
+  }
+  items.forEach((item) => {
     if (item.author && item.authorColorPreference !== null && item.authorColorPreference !== undefined) {
       preferredColors.set(item.author, Number(item.authorColorPreference));
     }
   });
-  const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
+  const usernameColorMap = assignUniqueColorsForPage(uniqueUsernames, preferredColors);
   const outlineDurations = [5.2, 5.6, 6.0, 6.4, 6.8];
 
   return (
@@ -556,14 +574,19 @@ export default async function FeedPage() {
                     createdAt={item.createdAt}
                     lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
                     lastActivityBy={item.type === 'Event' ? undefined : item.lastActivityBy}
-                    lastActivityByColorIndex={item.lastActivityBy ? (usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy)) : undefined}
-                    lastActivityByPreferredColorIndex={undefined}
+                    lastActivityByColorIndex={item.lastActivityBy ? (usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })) : undefined}
+                    lastActivityByPreferredColorIndex={item.lastActivityBy ? preferredColors.get(item.lastActivityBy) : undefined}
                     titleHref={item.href}
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
                   />
                   {item.type === 'Event' ? (
                     <>
+                      {(() => {
+                        const eventEndAt = item.endsAt || item.startsAt;
+                        const hasPassed = eventEndAt <= Date.now();
+                        return (
+                          <>
                       {/* Second Row: Post time on left, Event Information on right */}
                       <div className="event-info-row" style={{
                         display: 'flex',
@@ -599,9 +622,14 @@ export default async function FeedPage() {
                           </svg>
                           <span className="muted" style={{ color: 'var(--errl-accent-3)', fontSize: '12px' }}>
                             Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
-                            {isEventUpcoming(item.startsAt) ? (
+                            {!hasPassed && isEventUpcoming(item.startsAt) ? (
                               <span className="muted" style={{ marginLeft: '4px', color: 'var(--errl-accent-3)' }}>
                                 ({formatRelativeEventDate(item.startsAt)})
+                              </span>
+                            ) : null}
+                            {hasPassed ? (
+                              <span className="muted" style={{ marginLeft: '4px', color: 'var(--errl-accent-3)' }}>
+                                (Event happened)
                               </span>
                             ) : null}
                           </span>
@@ -620,13 +648,14 @@ export default async function FeedPage() {
                       }}>
                         {/* Bottom Left: Attending List */}
                         {item.attendeeCount > 0 && (
-                          <span style={{ color: 'var(--muted)' }}>
-                            {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
+                          <span style={{ color: 'var(--muted)' }} title={item.attendeeNames.join(', ')}>
+                            {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
                               <span key={name}>
                                 {i > 0 ? ', ' : ''}
                                 <Username 
                                   name={name}
-                                  colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name)}
+                                  colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
+                                  preferredColorIndex={preferredColors.get(name)}
                                 />
                               </span>
                             ))}
@@ -636,11 +665,14 @@ export default async function FeedPage() {
                         {item.lastActivity && item.replies > 0 && (
                           <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
                             Last activity{item.lastActivityBy ? (
-                              <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy)} /></>
+                              <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
                             ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
                           </span>
                         )}
                       </div>
+                          </>
+                        );
+                      })()}
                     </>
                   ) : item.meta ? (
                     <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>

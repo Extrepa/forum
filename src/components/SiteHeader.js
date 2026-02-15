@@ -9,6 +9,7 @@ import AvatarImage from './AvatarImage';
 import NotificationsMenu from './NotificationsMenu';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
+import { getAnchoredPopoverLayout } from '../lib/anchoredPopover';
 
 function isActivePath(pathname, href) {
   if (!pathname) return false;
@@ -42,10 +43,21 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
   const libraryAnchorRef = useRef(null);
   const libraryMenuRef = useRef(null);
   const avatarRef = useRef(null);
+  const notifyAnchorRef = useRef(null);
+  const libraryButtonRef = useRef(null);
   const kebabRef = useRef(null);
   const kebabMenuRef = useRef(null);
   const brandRef = useRef(null);
   const guestFeedArmTimerRef = useRef(null);
+  const libraryHoverCloseTimerRef = useRef(null);
+  const [hoverEnabled, setHoverEnabled] = useState(false);
+
+  const clearLibraryHoverCloseTimer = useCallback(() => {
+    if (libraryHoverCloseTimerRef.current) {
+      clearTimeout(libraryHoverCloseTimerRef.current);
+      libraryHoverCloseTimerRef.current = null;
+    }
+  }, []);
 
   const refreshNotifications = useCallback(async () => {
     if (navDisabled) return;
@@ -105,7 +117,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
       }
 
       if (notifyOpen) {
-        const inTrigger = avatarRef.current?.contains(target);
+        const inTrigger = notifyAnchorRef.current?.contains(target);
         const inMenu = document.querySelector('.notifications-popover');
         if (!inTrigger && !inMenu?.contains(target)) setNotifyOpen(false);
       }
@@ -161,7 +173,41 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     if (guestFeedArmTimerRef.current) {
       clearTimeout(guestFeedArmTimerRef.current);
     }
+    clearLibraryHoverCloseTimer();
+  }, [clearLibraryHoverCloseTimer]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const update = () => setHoverEnabled(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
   }, []);
+
+  const openLibraryMenu = useCallback((anchorElement) => {
+    if (navDisabled) return;
+    clearLibraryHoverCloseTimer();
+    if (anchorElement) {
+      libraryAnchorRef.current = anchorElement;
+    } else if (libraryButtonRef.current) {
+      libraryAnchorRef.current = libraryButtonRef.current;
+    }
+    setNotifyOpen(false);
+    setKebabOpen(false);
+    setLibraryOpen(true);
+  }, [clearLibraryHoverCloseTimer, navDisabled]);
+
+  const queueLibraryHoverClose = useCallback(() => {
+    if (!hoverEnabled) return;
+    clearLibraryHoverCloseTimer();
+    libraryHoverCloseTimerRef.current = setTimeout(() => {
+      setLibraryOpen(false);
+      setLibraryFilterOpen(false);
+      setLibrarySearchValue('');
+      libraryHoverCloseTimerRef.current = null;
+    }, 140);
+  }, [clearLibraryHoverCloseTimer, hoverEnabled]);
 
   const libraryLinks = useMemo(() => ([
     { href: '/announcements', label: strings.tabs.announcements },
@@ -180,34 +226,29 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     if (!libraryOpen || typeof window === 'undefined' || !libraryAnchorRef.current) return undefined;
 
     const updatePosition = () => {
-      const rect = libraryAnchorRef.current.getBoundingClientRect();
+      const anchorRect = libraryAnchorRef.current.getBoundingClientRect();
       const edgePadding = window.innerWidth <= 640 ? 10 : 16;
       const minMenuWidth = window.innerWidth <= 640 ? 160 : 174;
       const idealMenuWidth = libraryFilterOpen ? 224 : 206;
-      const menuWidth = Math.max(minMenuWidth, Math.min(idealMenuWidth, window.innerWidth - (edgePadding * 2)));
-      
-      const clampLeft = (value) => {
-        const maxLeft = Math.max(edgePadding, window.innerWidth - menuWidth - edgePadding);
-        return Math.min(Math.max(value, edgePadding), maxLeft);
-      };
-
-      let left;
-      if (window.innerWidth <= 640) {
-        const centered = (window.innerWidth - menuWidth) / 2;
-        left = clampLeft(centered);
-      } else {
-        const anchorCenter = rect.left + (rect.width / 2);
-        const centered = anchorCenter - (menuWidth / 2);
-        left = clampLeft(centered);
-      }
-      
-      const top = rect.bottom + 2;
-      const maxHeight = Math.min(380, Math.max(180, window.innerHeight - top - edgePadding));
+      const panelHeight = libraryMenuRef.current?.offsetHeight || 0;
+      const { left, top, width, maxHeight } = getAnchoredPopoverLayout({
+        anchorRect,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        desiredWidth: idealMenuWidth,
+        minWidth: minMenuWidth,
+        edgePadding,
+        gap: 6,
+        minHeight: 180,
+        maxHeight: 380,
+        panelHeight,
+        align: 'center',
+      });
       setLibraryStyle({
         position: 'fixed',
         top,
         left,
-        width: menuWidth,
+        width,
         maxHeight,
       });
     };
@@ -303,8 +344,10 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                 <button
                   type="button"
                   className={`header-nav-pill nav-pill-button nav-pill-library ${libraryOpen ? 'is-active' : ''}`}
+                  ref={libraryButtonRef}
                   onClick={(event) => {
                     if (navDisabled) return;
+                    clearLibraryHoverCloseTimer();
                     libraryAnchorRef.current = event.currentTarget;
                     setNotifyOpen(false);
                     setKebabOpen(false);
@@ -312,6 +355,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                     setLibrarySearchValue('');
                     setLibraryOpen((current) => !current);
                   }}
+                  onMouseEnter={(event) => {
+                    if (!hoverEnabled) return;
+                    openLibraryMenu(event.currentTarget);
+                  }}
+                  onMouseLeave={queueLibraryHoverClose}
                   aria-expanded={libraryOpen ? 'true' : 'false'}
                   aria-haspopup="true"
                   disabled={navDisabled}
@@ -322,7 +370,14 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   <span aria-hidden="true" className="nav-pill-caret">▾</span>
                 </button>
                 {libraryOpen ? (
-                  <div className="header-library-menu" ref={libraryMenuRef} role="menu" style={libraryStyle}>
+                  <div
+                    className="header-library-menu"
+                    ref={libraryMenuRef}
+                    role="menu"
+                    style={libraryStyle}
+                    onMouseEnter={clearLibraryHoverCloseTimer}
+                    onMouseLeave={queueLibraryHoverClose}
+                  >
                     <div className="header-library-head">
                       <span className="header-library-title">Library</span>
                       <button
@@ -382,6 +437,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
             <div className="header-avatar" ref={avatarRef}>
               <button
                 type="button"
+                ref={notifyAnchorRef}
                 className="header-icon-button header-icon-button--notifications header-icon-button--messages"
                 onClick={async () => {
                   const next = !notifyOpen;
@@ -525,8 +581,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
                   // ignore
                 }
               }}
-              anchor="right"
-              anchorRef={avatarRef}
+              anchorRef={notifyAnchorRef}
             />
           ) : null}
         </div>

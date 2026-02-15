@@ -75,7 +75,7 @@ export async function POST(request, { params }) {
     });
 
     const projectAuthor = await db
-      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM projects JOIN users ON users.id = projects.author_user_id WHERE projects.id = ?')
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM projects JOIN users u ON u.id = projects.author_user_id WHERE projects.id = ?')
       .bind(id)
       .first();
 

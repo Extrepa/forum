@@ -45,6 +45,8 @@ export default function PostForm({
   bodyLabel,
   buttonLabel,
   showDate = false,
+  showOptionalEndDate = false,
+  endDateLabel = 'End date and time (optional)',
   titleRequired = true,
   bodyRequired = true,
   showImage = false,
@@ -54,6 +56,7 @@ export default function PostForm({
 }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
+  const [useEndDate, setUseEndDate] = useState(Boolean(initialData?.ends_at));
 
   const apply = (before, after) => {
     if (!bodyRef.current) {
@@ -71,15 +74,39 @@ export default function PostForm({
         <input name="title" placeholder={titleLabel || 'Title'} required={titleRequired} defaultValue={initialData?.title || ''} />
       </label>
       {showDate ? (
-        <label>
-          <div className="muted">Date and time</div>
-          <input 
-            name="starts_at" 
-            type="datetime-local" 
-            required 
-            defaultValue={initialData?.starts_at ? toLocalDateTimeString(initialData.starts_at) : getCurrentLocalDateTimeString()}
-          />
-        </label>
+        <>
+          <label>
+            <div className="muted">Date and time</div>
+            <input
+              name="starts_at"
+              type="datetime-local"
+              required
+              defaultValue={initialData?.starts_at ? toLocalDateTimeString(initialData.starts_at) : getCurrentLocalDateTimeString()}
+            />
+          </label>
+          {showOptionalEndDate ? (
+            <>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={useEndDate}
+                  onChange={(e) => setUseEndDate(e.target.checked)}
+                />
+                <span>{endDateLabel}</span>
+              </label>
+              {useEndDate ? (
+                <label>
+                  <div className="muted">End date and time</div>
+                  <input
+                    name="ends_at"
+                    type="datetime-local"
+                    defaultValue={initialData?.ends_at ? toLocalDateTimeString(initialData.ends_at) : ''}
+                  />
+                </label>
+              ) : null}
+            </>
+          ) : null}
+        </>
       ) : null}
       {showImage ? (
         shouldShowImageInput ? (

@@ -1,7 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+
+function snapshotFormState(root) {
+  if (!root) {
+    return '[]';
+  }
+
+  const fields = root.querySelectorAll('input, textarea, select');
+  const payload = [];
+
+  fields.forEach((field, index) => {
+    if (field.disabled) return;
+
+    const tag = field.tagName.toLowerCase();
+    const type = field.type || tag;
+
+    if (type === 'button' || type === 'submit' || type === 'reset' || type === 'hidden') {
+      return;
+    }
+
+    const key = field.name || field.id || `${tag}:${index}`;
+
+    if (type === 'checkbox' || type === 'radio') {
+      payload.push(`${key}:${type}:${field.checked ? '1' : '0'}`);
+      return;
+    }
+
+    if (type === 'file') {
+      payload.push(`${key}:${type}:${field.files?.length || 0}`);
+      return;
+    }
+
+    payload.push(`${key}:${type}:${field.value ?? ''}`);
+  });
+
+  return JSON.stringify(payload);
+}
 
 export default function CreatePostModal({
   isOpen,
@@ -11,7 +47,9 @@ export default function CreatePostModal({
   className = '',
   variant = 'default', // default | wide
   maxWidth,
-  maxHeight
+  maxHeight,
+  confirmOnUnsavedChanges = true,
+  unsavedChangesMessage = 'You have unsaved changes. Discard them and close?'
 }) {
   const [mounted, setMounted] = useState(false);
   const [viewport, setViewport] = useState(() => {
@@ -20,6 +58,8 @@ export default function CreatePostModal({
     }
     return { width: window.innerWidth, height: window.innerHeight };
   });
+  const modalContentRef = useRef(null);
+  const initialSnapshotRef = useRef('[]');
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +85,54 @@ export default function CreatePostModal({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen || !mounted) {
+      initialSnapshotRef.current = '[]';
+      return undefined;
+    }
+
+    const raf = window.requestAnimationFrame(() => {
+      initialSnapshotRef.current = snapshotFormState(modalContentRef.current);
+    });
+
+    return () => window.cancelAnimationFrame(raf);
+  }, [isOpen, mounted]);
+
+  const shouldConfirmClose = useCallback(() => {
+    if (!confirmOnUnsavedChanges) {
+      return true;
+    }
+
+    const currentSnapshot = snapshotFormState(modalContentRef.current);
+    if (currentSnapshot === initialSnapshotRef.current) {
+      return true;
+    }
+
+    return window.confirm(unsavedChangesMessage);
+  }, [confirmOnUnsavedChanges, unsavedChangesMessage]);
+
+  const requestClose = useCallback(() => {
+    if (!shouldConfirmClose()) {
+      return;
+    }
+    onClose?.();
+  }, [onClose, shouldConfirmClose]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      event.preventDefault();
+      requestClose();
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, requestClose]);
+
   if (!isOpen || !mounted) return null;
 
   const isMobile = viewport.width > 0 && viewport.width <= 640;
@@ -64,7 +152,7 @@ export default function CreatePostModal({
   const modal = (
     <div
       className="modal-overlay"
-      onClick={onClose}
+      onClick={requestClose}
       style={{
         position: 'fixed',
         top: 0,
@@ -81,8 +169,12 @@ export default function CreatePostModal({
       }}
     >
       <div
+        ref={modalContentRef}
         className={`modal-content ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
         style={{
           backgroundColor: 'var(--card)',
           borderRadius: 'var(--radius)',
@@ -99,12 +191,13 @@ export default function CreatePostModal({
           position: 'relative',
           isolation: 'isolate',
           backdropFilter: 'blur(12px)',
+          minHeight: 0,
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
           {title && <h2 className="section-title" style={{ margin: 0 }}>{title}</h2>}
           <button
-            onClick={onClose}
+            onClick={requestClose}
             style={{
               background: 'transparent',
               border: 'none',

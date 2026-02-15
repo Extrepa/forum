@@ -15,6 +15,7 @@ import AvatarImage from '../../components/AvatarImage';
 import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
 import { getSongProviderMeta } from '../../lib/songProviders';
 import ErrlTabSwitcher from '../../components/ErrlTabSwitcher';
+import CreatePostModal from '../../components/CreatePostModal';
 import { contentTypeLabel, contentTypeViewPath, postTypeLabel, postTypePath } from '../../lib/contentTypes';
 
 function getRarityColor(value) {
@@ -1744,65 +1745,23 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                           </div>
                         ))}
                       </div>
-                      {galleryModalEntry && (
-                        <div
-                          role="dialog"
-                          aria-modal="true"
-                          aria-label="Gallery image full size"
-                          onClick={() => setGalleryModalEntry(null)}
-                          onKeyDown={(e) => { if (e.key === 'Escape') setGalleryModalEntry(null); }}
-                          tabIndex={-1}
-                          style={{
-                            position: 'fixed',
-                            inset: 0,
-                            background: 'rgba(0,0,0,0.85)',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'center',
-                            zIndex: 9999,
-                            padding: '24px 20px 40px',
-                            boxSizing: 'border-box',
-                            overflowY: 'auto',
-                          }}
+                      {galleryModalEntry ? (
+                        <CreatePostModal
+                          isOpen={Boolean(galleryModalEntry)}
+                          onClose={() => setGalleryModalEntry(null)}
+                          title="Gallery image"
+                          className="account-gallery-modal"
+                          maxWidth="920px"
+                          maxHeight="92vh"
+                          confirmOnUnsavedChanges={false}
                         >
-                          <button
-                            type="button"
-                            onClick={() => setGalleryModalEntry(null)}
-                            aria-label="Close"
-                            style={{
-                              position: 'absolute',
-                              top: '16px',
-                              right: '16px',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              border: 'none',
-                              background: 'rgba(255, 107, 0, 0.2)',
-                              color: '#ff6b6b',
-                              fontSize: '24px',
-                              cursor: 'pointer',
-                              lineHeight: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: '0 0 12px rgba(255, 82, 82, 0.6)',
-                              transition: 'all 0.2s ease',
-                              zIndex: 10001,
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 82, 82, 0.8)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 82, 82, 0.6)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                          >
-                            &times;
-                          </button>
                           <div
-                            onClick={(e) => e.stopPropagation()}
                             style={{
-                              width: 'min(920px, 100%)',
+                              width: '100%',
                               display: 'flex',
                               flexDirection: 'column',
                               alignItems: 'center',
                               gap: '12px',
-                              padding: '8px 0 16px',
                             }}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1811,17 +1770,15 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               alt={galleryModalEntry.caption || 'Gallery'}
                               style={{
                                 maxWidth: '100%',
-                                maxHeight: '70vh',
+                                maxHeight: 'calc(100vh - 300px)',
                                 objectFit: 'contain',
                                 display: 'block',
                                 borderRadius: '8px',
                               }}
                             />
-                            {galleryModalEntry.caption && <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p>}
+                            {galleryModalEntry.caption ? <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', textAlign: 'center' }}>{galleryModalEntry.caption}</p> : null}
                             <div
                               style={{
-                                position: 'sticky',
-                                bottom: '12px',
                                 width: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -1835,11 +1792,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               }}
                             >
                               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                                {coverFeedbackMessage && (
+                                {coverFeedbackMessage ? (
                                   <span style={{ fontSize: '12px', color: coverFeedbackType === 'error' ? '#ff6b6b' : '#00f5a0', marginBottom: '6px' }}>
                                     {coverFeedbackMessage}
                                   </span>
-                                )}
+                                ) : null}
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1881,11 +1838,11 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                                   {galleryDeletingId === galleryModalEntry.id ? 'Deleting…' : 'Delete photo'}
                                 </button>
                               </div>
-                              {coverFeedbackMessage && (
+                              {coverFeedbackMessage ? (
                                 <p style={{ margin: 0, fontSize: '12px', color: coverFeedbackType === 'error' ? '#ff6b6b' : '#00f5a0', textAlign: 'center' }}>
                                   {coverFeedbackMessage}
                                 </p>
-                              )}
+                              ) : null}
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Cover mode:</span>
                                 {[
@@ -1917,8 +1874,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        </CreatePostModal>
+                      ) : null}
                     </>
                   ) : (
                     <div className="muted" style={{ padding: '12px' }}>No images yet. Upload one above.</div>

@@ -9,11 +9,9 @@ import PostActionMenu from '../../../components/PostActionMenu';
 import DeletePostButton from '../../../components/DeletePostButton';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
-import EditPostModal from '../../../components/EditPostModal';
 import PostForm from '../../../components/PostForm';
-import Username from '../../../components/Username';
-import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
-import { formatEventDate, formatEventDateLarge, formatEventTime, formatRelativeEventDate, isEventUpcoming } from '../../../lib/dates';
+import { assignUniqueColorsForPage } from '../../../lib/usernameColor';
+import { formatEventDateLarge, formatEventTime, formatRelativeEventDate } from '../../../lib/dates';
 import LikeButton from '../../../components/LikeButton';
 import EventCommentsSection from '../../../components/EventCommentsSection';
 import PostHeader from '../../../components/PostHeader';
@@ -54,7 +52,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   try {
     event = await db
       .prepare(
-          `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
+          `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at, events.ends_at,
                 events.created_at, events.image_key,
                 events.moved_to_type, events.moved_to_id,
                 COALESCE(events.views, 0) AS views,
@@ -63,6 +61,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                 users.avatar_key AS author_avatar_key,
                 (SELECT COUNT(*) FROM post_likes WHERE post_type = 'event' AND post_id = events.id) AS like_count,
                 COALESCE(events.is_locked, 0) AS is_locked,
+                COALESCE(events.attendance_reopened, 0) AS attendance_reopened,
                 COALESCE(events.is_hidden, 0) AS is_hidden,
                 COALESCE(events.is_pinned, 0) AS is_pinned,
                 COALESCE(events.is_deleted, 0) AS is_deleted
@@ -77,13 +76,14 @@ export default async function EventDetailPage({ params, searchParams }) {
     try {
       event = await db
         .prepare(
-            `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at,
+            `SELECT events.id, events.author_user_id, events.title, events.details, events.starts_at, events.ends_at,
                   events.created_at, events.image_key,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
                   users.avatar_key AS author_avatar_key,
                   0 AS like_count,
                   COALESCE(events.is_locked, 0) AS is_locked,
+                  COALESCE(events.attendance_reopened, 0) AS attendance_reopened,
                   COALESCE(events.is_hidden, 0) AS is_hidden,
                   COALESCE(events.is_pinned, 0) AS is_pinned,
                   COALESCE(events.is_deleted, 0) AS is_deleted
@@ -98,6 +98,7 @@ export default async function EventDetailPage({ params, searchParams }) {
         event.moved_to_id = null;
         event.moved_to_type = null;
         event.is_locked = event.is_locked ?? 0;
+        event.attendance_reopened = event.attendance_reopened ?? 0;
         event.is_hidden = event.is_hidden ?? 0;
         event.is_pinned = event.is_pinned ?? 0;
         event.is_deleted = event.is_deleted ?? 0;
@@ -114,6 +115,7 @@ export default async function EventDetailPage({ params, searchParams }) {
                     users.avatar_key AS author_avatar_key,
                     0 AS like_count,
                     0 AS is_locked,
+                    0 AS attendance_reopened,
                     0 AS is_hidden,
                     COALESCE(events.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted
@@ -128,6 +130,7 @@ export default async function EventDetailPage({ params, searchParams }) {
           event.moved_to_id = null;
           event.moved_to_type = null;
           event.is_locked = 0;
+          event.attendance_reopened = 0;
         }
       } catch (e3) {
         event = null;
@@ -194,6 +197,42 @@ export default async function EventDetailPage({ params, searchParams }) {
   }
 
   const isAdmin = isAdminUser(user);
+  const canInvite = !!user && !!user.password_hash && (user.id === event.author_user_id || isAdmin);
+  let invitableUsers = [];
+  if (canInvite) {
+    try {
+      const out = await db
+        .prepare(
+          `SELECT users.id, users.username, users.role,
+                  CASE WHEN event_invites.id IS NULL THEN 0 ELSE 1 END AS already_invited
+           FROM users
+           LEFT JOIN event_invites
+             ON event_invites.invited_user_id = users.id
+            AND event_invites.event_id = ?
+           WHERE users.id != ?
+             AND (users.is_deleted = 0 OR users.is_deleted IS NULL)
+           ORDER BY users.username ASC`
+        )
+        .bind(id, user.id)
+        .all();
+      invitableUsers = out?.results || [];
+    } catch (e) {
+      try {
+        const out = await db
+          .prepare(
+            `SELECT users.id, users.username, users.role, 0 AS already_invited
+             FROM users
+             WHERE users.id != ?
+             ORDER BY users.username ASC`
+          )
+          .bind(user.id)
+          .all();
+        invitableUsers = out?.results || [];
+      } catch (e2) {
+        invitableUsers = [];
+      }
+    }
+  }
 
   // Check if current user has liked this event
   let userLiked = false;
@@ -304,15 +343,21 @@ export default async function EventDetailPage({ params, searchParams }) {
       ? 'Only image files are allowed.'
       : error === 'missing'
       ? 'Title and date are required.'
+      : error === 'invalid_end'
+      ? 'End date must be valid and cannot be before the event start.'
       : error === 'notfound'
       ? 'This event does not exist.'
       : null;
 
   const canToggleLock = isAdmin;
   const isLocked = event.is_locked ? Boolean(event.is_locked) : false;
+  const attendanceReopened = event.attendance_reopened ? Boolean(event.attendance_reopened) : false;
   const isHidden = event.is_hidden ? Boolean(event.is_hidden) : false;
   const isPinned = event.is_pinned ? Boolean(event.is_pinned) : false;
   const isDeleted = event.is_deleted ? Boolean(event.is_deleted) : false;
+  const eventEndAt = Number(event.ends_at || event.starts_at || 0);
+  const eventHasPassed = eventEndAt > 0 && Date.now() >= eventEndAt;
+  const canRSVP = !eventHasPassed || attendanceReopened;
 
   if (isDeleted) {
     return (
@@ -351,12 +396,14 @@ export default async function EventDetailPage({ params, searchParams }) {
                   bodyLabel="Details (optional)"
                   buttonLabel="Update Event"
                   showDate
+                  showOptionalEndDate
                   bodyRequired={false}
                   showImage={true}
                   initialData={{
                     title: event.title,
                     details: event.details,
-                    starts_at: event.starts_at
+                    starts_at: event.starts_at,
+                    ends_at: event.ends_at
                   }}
                 />
               }
@@ -397,6 +444,34 @@ export default async function EventDetailPage({ params, searchParams }) {
                   </button>
                 </form>
               ) : null}
+              {isAdmin && eventHasPassed ? (
+                <form action={`/api/events/${id}/attendance`} method="post" style={{ margin: 0 }}>
+                  <input type="hidden" name="reopened" value={attendanceReopened ? '0' : '1'} />
+                  <button
+                    type="submit"
+                    className="button"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      minWidth: '90px',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span>{attendanceReopened ? 'Close' : 'Reopen'}</span>
+                      <span style={{ whiteSpace: 'nowrap' }}>attendance</span>
+                    </span>
+                  </button>
+                </form>
+              ) : null}
             </PostActionMenu>
           ) : null
         }
@@ -431,6 +506,11 @@ export default async function EventDetailPage({ params, searchParams }) {
             Comments locked
           </span>
         ) : null}
+        {eventHasPassed ? (
+          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
+            Event happened{attendanceReopened ? ' · Attendance reopened by admin' : ''}
+          </span>
+        ) : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
           <svg
             width="24"
@@ -450,9 +530,14 @@ export default async function EventDetailPage({ params, searchParams }) {
           </svg>
           <span>
             {formatEventDateLarge(event.starts_at)} {formatEventTime(event.starts_at)}
+            {event.ends_at ? (
+              <span style={{ fontSize: '15px', fontWeight: 'normal', marginLeft: '8px' }}>
+                - {formatEventTime(event.ends_at)}
+              </span>
+            ) : null}
           </span>
           <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal' }}>
-            ({formatRelativeEventDate(event.starts_at)})
+            ({eventHasPassed ? 'Event happened' : formatRelativeEventDate(event.starts_at)})
           </span>
         </div>
         {event.image_key ? (
@@ -496,6 +581,10 @@ export default async function EventDetailPage({ params, searchParams }) {
         commentNotice={commentNotice}
         usernameColorMap={usernameColorMap}
         isLocked={event.is_locked}
+        canRSVP={canRSVP}
+        eventHasPassed={eventHasPassed}
+        canInvite={canInvite}
+        invitableUsers={invitableUsers}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 
 export async function POST(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: 'Sign in to RSVP.' }, { status: 401 });
@@ -12,33 +13,48 @@ export async function POST(request, { params }) {
   const db = await getDb();
   
   // Check if event exists
-  const event = await db
-    .prepare('SELECT id FROM events WHERE id = ?')
-    .bind(params.id)
-    .first();
+  let event = null;
+  try {
+    event = await db
+      .prepare('SELECT id, starts_at, ends_at, COALESCE(attendance_reopened, 0) AS attendance_reopened FROM events WHERE id = ?')
+      .bind(id)
+      .first();
+  } catch (e) {
+    event = await db
+      .prepare('SELECT id, starts_at FROM events WHERE id = ?')
+      .bind(id)
+      .first();
+  }
 
   if (!event) {
     return NextResponse.json({ error: 'Event not found.' }, { status: 404 });
   }
 
+  const eventEndAt = Number(event.ends_at || event.starts_at || 0);
+  const attendanceReopened = Number(event.attendance_reopened || 0) === 1;
+  const isClosedByTime = eventEndAt > 0 && Date.now() >= eventEndAt && !attendanceReopened;
+  if (isClosedByTime) {
+    return NextResponse.json({ error: 'RSVP is closed for this event.', attendance_closed: true }, { status: 400 });
+  }
+
   // Check if already RSVP'd
   const existing = await db
     .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
-    .bind(params.id, user.id)
+    .bind(id, user.id)
     .first();
 
   if (existing) {
     // Remove RSVP
     await db
       .prepare('DELETE FROM event_attendees WHERE event_id = ? AND user_id = ?')
-      .bind(params.id, user.id)
+      .bind(id, user.id)
       .run();
     return NextResponse.json({ attending: false });
   } else {
     // Add RSVP
     await db
       .prepare('INSERT INTO event_attendees (id, event_id, user_id, created_at) VALUES (?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), params.id, user.id, Date.now())
+      .bind(crypto.randomUUID(), id, user.id, Date.now())
       .run();
 
     // Notify event author
@@ -50,7 +66,7 @@ export async function POST(request, { params }) {
           JOIN users u ON u.id = e.author_user_id
           WHERE e.id = ?
         `)
-        .bind(params.id)
+        .bind(id)
         .first();
       
       if (author?.author_user_id && author.author_user_id !== user.id && author.notify_rsvp_enabled !== 0) {
@@ -64,7 +80,7 @@ export async function POST(request, { params }) {
             user.id,
             'rsvp',
             'event',
-            params.id,
+            id,
             Date.now()
           )
           .run();
@@ -76,7 +92,7 @@ export async function POST(request, { params }) {
           actorUsername: user.username || 'Someone',
           type: 'rsvp',
           targetType: 'event',
-          targetId: params.id,
+          targetId: id,
           targetTitle: author.title
         });
       }
@@ -89,6 +105,7 @@ export async function POST(request, { params }) {
 }
 
 export async function GET(request, { params }) {
+  const { id } = await params;
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ attending: false });
@@ -97,7 +114,7 @@ export async function GET(request, { params }) {
   const db = await getDb();
   const rsvp = await db
     .prepare('SELECT id FROM event_attendees WHERE event_id = ? AND user_id = ?')
-    .bind(params.id, user.id)
+    .bind(id, user.id)
     .first();
 
   return NextResponse.json({ attending: !!rsvp });

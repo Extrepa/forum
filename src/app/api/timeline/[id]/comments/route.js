@@ -76,7 +76,7 @@ export async function POST(request, { params }) {
     });
 
     const updateAuthor = await db
-      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM timeline_updates JOIN users ON users.id = timeline_updates.author_user_id WHERE timeline_updates.id = ?')
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM timeline_updates JOIN users u ON u.id = timeline_updates.author_user_id WHERE timeline_updates.id = ?')
       .bind(id)
       .first();
 
@@ -143,4 +143,3 @@ export async function POST(request, { params }) {
 
   return NextResponse.redirect(redirectUrl, 303);
 }
-

@@ -113,7 +113,7 @@ export async function POST(request, { params }) {
     });
 
     const postAuthor = await db
-      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM posts JOIN users ON users.id = posts.author_user_id WHERE posts.id = ?')
+      .prepare('SELECT author_user_id, title, notify_comment_enabled, u.email, u.phone, u.notify_email_enabled, u.notify_sms_enabled FROM posts JOIN users u ON u.id = posts.author_user_id WHERE posts.id = ?')
       .bind(id)
       .first();
 

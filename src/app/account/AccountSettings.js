@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import Username from '../../components/Username';
+import CreatePostModal from '../../components/CreatePostModal';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
 
 /* ---------------------------------------------
@@ -119,126 +120,29 @@ function SecondaryButton(props) {
   );
 }
 
-function EditSheet({ open, title, onClose, children }) {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+function EditSheet({ open, title, onClose, children, dirty = false }) {
+  const requestClose = () => {
+    if (dirty && !window.confirm('You have unsaved changes. Discard them and close?')) {
+      return;
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
-
-  if (!open) return null;
+    onClose();
+  };
 
   return (
-    <div
-      className="edit-sheet-overlay"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1000,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '24px 16px',
-        overflowY: 'auto',
-      }}
+    <CreatePostModal
+      isOpen={open}
+      onClose={requestClose}
+      title={title}
+      className="account-edit-modal"
+      variant="wide"
+      maxWidth="780px"
+      maxHeight="90vh"
+      confirmOnUnsavedChanges={false}
     >
-      {/* Backdrop */}
-      <div
-        className="edit-sheet-backdrop"
-        style={{
-          position: 'absolute',
-          inset: 0,
-        }}
-        onClick={onClose}
-      />
-      
-      {/* Panel */}
-      <div
-        className="edit-sheet-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        style={{
-          position: 'relative',
-          width: 'min(780px, 100%)',
-          maxHeight: 'min(90vh, 880px)',
-          background: '#06131a',
-          borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          zIndex: 1,
-        }}
-      >
-        <div className="edit-sheet-header" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{title}</div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'var(--button-bg-secondary)',
-              border: 'none',
-              color: 'var(--text-color-muted)',
-              fontSize: '18px',
-              cursor: 'pointer',
-              padding: 0,
-              lineHeight: 1,
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s',
-              boxShadow: '0 0 8px rgba(0, 220, 255, 0.3)', // Added glow effect
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--button-bg-secondary-hover)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(0, 220, 255, 0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--button-bg-secondary)'; e.currentTarget.style.boxShadow = '0 0 8px rgba(0, 220, 255, 0.3)'; }}
-          >
-            ×
-          </button>
-        </div>
-        <div className="edit-sheet-content">
-          {children}
-        </div>
-      </div>
+      {children}
       <style jsx global>{`
-        @keyframes editSheetPop {
-          from {
-            opacity: 0;
-            transform: scale(0.96);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .edit-sheet-overlay {
-          align-items: center;
-          padding: 24px 16px;
-          overflow-y: auto;
-        }
-        .edit-sheet-backdrop {
-          background: rgba(0, 0, 0, 0.65);
-          backdrop-filter: blur(4px);
-        }
-        .edit-sheet-panel {
-          width: min(780px, 100%);
-          max-width: 780px;
-          max-height: min(90vh, 880px);
+        .account-edit-modal {
           border-radius: 24px;
-          box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-          animation: editSheetPop 0.24s ease;
-        }
-        .edit-sheet-content {
-          padding: 20px;
-          overflow-y: auto;
         }
         .notifications-grid {
           display: grid;
@@ -281,18 +185,12 @@ function EditSheet({ open, title, onClose, children }) {
           font-weight: 500;
         }
         @media (max-width: 640px) {
-          .edit-sheet-overlay {
-            padding: 16px;
-          }
-          .edit-sheet-panel {
+          .account-edit-modal {
             border-radius: 16px;
-          }
-          .edit-sheet-content {
-            padding: 16px;
           }
         }
       `}</style>
-    </div>
+    </CreatePostModal>
   );
 }
 
@@ -724,6 +622,10 @@ export default function AccountSettings({ user: initialUser }) {
   
   if (!user) return <div className="muted">Loading account...</div>;
 
+  const contactDirty = contactDraft.email !== (user?.email || '') || (contactDraft.phone || '') !== (user?.phone || '');
+  const passwordDirty = Boolean(pwDraft.oldPassword || pwDraft.newPassword);
+  const notifDirty = JSON.stringify(notifDraft) !== JSON.stringify(notifPrefs);
+
   const enabledCount = countEnabledSiteNotifs(notifPrefs.site);
   const delivery = deliverySummary(notifPrefs.delivery, Boolean(user.phone));
   const adminOn = user.role === 'admin' && notifPrefs.admin
@@ -886,15 +788,15 @@ export default function AccountSettings({ user: initialUser }) {
       </div>
 
       {/* Sheets */}
-      <EditSheet open={openPanel === 'editContact'} title="Edit contact info" onClose={() => setOpenPanel('none')}>
+      <EditSheet open={openPanel === 'editContact'} title="Edit contact info" onClose={() => setOpenPanel('none')} dirty={contactDirty}>
         <ContactEditor draft={contactDraft} onChange={setContactDraft} saving={saving} onSave={handleSaveContact} />
       </EditSheet>
 
-      <EditSheet open={openPanel === 'changePassword'} title="Change password" onClose={() => setOpenPanel('none')}>
+      <EditSheet open={openPanel === 'changePassword'} title="Change password" onClose={() => setOpenPanel('none')} dirty={passwordDirty}>
         <PasswordEditor draft={pwDraft} onChange={setPwDraft} saving={saving} onSave={handleSavePassword} />
       </EditSheet>
 
-      <EditSheet open={openPanel === 'editNotifications'} title="Edit notifications" onClose={() => setOpenPanel('none')}>
+      <EditSheet open={openPanel === 'editNotifications'} title="Edit notifications" onClose={() => setOpenPanel('none')} dirty={notifDirty}>
         <NotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} validation={notifValidation} saving={saving} onSave={handleSaveNotifs} />
       </EditSheet>
 

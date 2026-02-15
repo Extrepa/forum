@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { postTypeLabel, postTypePath, contentTypeLabel, contentTypeViewPath } from '../lib/contentTypes';
+import { getAnchoredPopoverLayout } from '../lib/anchoredPopover';
 function formatTimeAgo(timestamp) {
   const now = Date.now();
   const diff = Math.max(0, now - Number(timestamp || 0));
@@ -78,6 +79,19 @@ const resolveContentLabel = (targetType, postCategory) => {
   return contentTypeLabel(targetType, { type: postCategory }) || 'content';
 };
 
+const adminPostTypeLabel = (targetType, postCategory) => {
+  if (targetType === 'post') {
+    return `${postTypeLabel(postCategory || 'post')} post`;
+  }
+  if (targetType === 'forum_thread') return 'forum thread';
+  if (targetType === 'event') return 'event';
+  if (targetType === 'project') return 'project';
+  if (targetType === 'music_post') return 'music post';
+  if (targetType === 'dev_log') return 'dev log';
+  if (targetType === 'timeline_update') return 'announcement';
+  return 'post';
+};
+
 export default function NotificationsMenu({
   open,
   onClose,
@@ -88,7 +102,6 @@ export default function NotificationsMenu({
   onMarkRead,
   onMarkAllRead,
   onClearAll,
-  anchor = 'right',
   anchorRef = null,
 }) {
   const router = useRouter();
@@ -118,8 +131,7 @@ export default function NotificationsMenu({
       if (!trigger) {
         setPopoverStyle({
           position: 'fixed',
-          right: 12,
-          left: 'auto',
+          left: 12,
           top: 72,
           width: 'min(292px, 92vw)',
           maxWidth: 'min(292px, 92vw)',
@@ -131,27 +143,29 @@ export default function NotificationsMenu({
 
       const triggerRect = trigger.getBoundingClientRect();
       const popoverWidth = 284;
-      const viewportWidth = window.innerWidth;
-      const margin = viewportWidth <= 640 ? 8 : 12;
-      const maxPopoverWidth = viewportWidth - margin * 2;
-      const finalWidth = Math.min(popoverWidth, maxPopoverWidth);
-      let left = triggerRect.right - finalWidth;
-      if (left < margin) left = margin;
-      if (left + finalWidth > viewportWidth - margin) {
-        left = viewportWidth - finalWidth - margin;
-      }
-
-      const top = triggerRect.bottom + 6;
-      const maxHeight = Math.max(220, window.innerHeight - top - margin);
+      const margin = window.innerWidth <= 640 ? 8 : 12;
+      const panelHeight = popoverRef.current?.offsetHeight || 0;
+      const { left, top, width, maxHeight } = getAnchoredPopoverLayout({
+        anchorRect: triggerRect,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        desiredWidth: popoverWidth,
+        minWidth: 232,
+        edgePadding: margin,
+        gap: 6,
+        minHeight: 220,
+        maxHeight: 720,
+        panelHeight,
+        align: 'end',
+      });
 
       setPopoverStyle({
         position: 'fixed',
         top: `${top}px`,
         left: `${left}px`,
-        right: 'auto',
-        width: `${finalWidth}px`,
-        maxWidth: `${finalWidth}px`,
-        minWidth: `${finalWidth}px`,
+        width: `${width}px`,
+        maxWidth: `${width}px`,
+        minWidth: `${width}px`,
         height: 'auto',
         maxHeight: `${maxHeight}px`,
       });
@@ -207,9 +221,8 @@ export default function NotificationsMenu({
       className="neon-outline-card notifications-popover notifications-popover-errl"
       style={{
         position: 'fixed',
-        right: anchor === 'right' ? 0 : 'auto',
-        left: anchor === 'left' ? 0 : 'auto',
-        top: 'calc(100% + 6px)',
+        left: 12,
+        top: 72,
         width: 284,
         maxWidth: 'min(284px, 92vw)',
         minWidth: 232,
@@ -309,15 +322,24 @@ export default function NotificationsMenu({
               if (n.type === 'welcome' && n.target_type === 'account') {
                 href = '/account';
                 label = 'Account setup';
+              } else if (n.type === 'navigation_tip' && n.target_type === 'system') {
+                href = '#';
+                label = 'Notifications are now in this Messages icon. Use the three-dot menu for Account, Profile, and Admin links.';
+              } else if (n.type === 'broadcast' && n.target_type === 'system') {
+                href = '#';
+                label = String(n.target_id || 'Forum update');
               } else if (n.type === 'test' && n.target_type === 'system') {
                 href = '/account';
                 label = 'System notification';
               } else if (n.type === 'admin_signup' && n.target_type === 'user') {
                 href = `/profile/${n.target_id}`;
                 label = `New user signed up: ${actor}`;
-              } else if (n.type === 'admin_post' && n.target_type === 'forum_thread') {
-                href = `/lobby/${n.target_id}`;
-                label = `New forum thread by ${actor}`;
+              } else if (n.type === 'admin_post') {
+                const resolvedTarget = n.target_type === 'post'
+                  ? 'post'
+                  : n.target_type;
+                href = resolveContentHref(resolvedTarget, n.target_id, n.target_post_category);
+                label = `New ${adminPostTypeLabel(n.target_type, n.target_post_category)} by ${actor}`;
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${actor} replied to a thread`;
@@ -345,6 +367,9 @@ export default function NotificationsMenu({
               } else if (n.type === 'rsvp' && n.target_type === 'event') {
                 href = `/events/${n.target_id}`;
                 label = `${actor} is attending your event`;
+              } else if (n.type === 'event_invite' && n.target_type === 'event') {
+                href = `/events/${n.target_id}`;
+                label = `${actor} invited you to an event`;
               } else if (n.type === 'like') {
                 const resolvedTarget = n.target_type === 'post'
                   ? (n.target_post_category || 'post')

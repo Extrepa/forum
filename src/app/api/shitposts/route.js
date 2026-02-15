@@ -4,6 +4,7 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../lib/uploads';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -55,13 +56,15 @@ export async function POST(request) {
 
   // Use a default title if none provided
   const finalTitle = title || 'Untitled';
+  const threadId = crypto.randomUUID();
+  const now = Date.now();
 
   const insertWithFlag = async () => {
     await db
       .prepare(
         'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, image_key, is_shitpost) VALUES (?, ?, ?, ?, ?, ?, ?)'
       )
-      .bind(crypto.randomUUID(), user.id, finalTitle, body, Date.now(), imageKey, 1)
+      .bind(threadId, user.id, finalTitle, body, now, imageKey, 1)
       .run();
   };
 
@@ -74,12 +77,20 @@ export async function POST(request) {
         .prepare(
           'INSERT INTO forum_threads (id, author_user_id, title, body, created_at, image_key) VALUES (?, ?, ?, ?, ?, ?)'
         )
-        .bind(crypto.randomUUID(), user.id, finalTitle, body, Date.now(), imageKey)
+        .bind(threadId, user.id, finalTitle, body, now, imageKey)
         .run();
     } else {
       throw error;
     }
   }
+
+  await notifyAdminsOfNewPost({
+    db,
+    actorUser: user,
+    targetType: 'forum_thread',
+    targetId: threadId,
+    createdAt: now
+  });
 
   return NextResponse.redirect(redirectUrl, 303);
 }

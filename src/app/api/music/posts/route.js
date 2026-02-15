@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
 import { safeEmbedFromUrl } from '../../../../lib/embeds';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
+import { notifyAdminsOfNewPost } from '../../../../lib/adminNotifications';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -64,13 +65,15 @@ export async function POST(request) {
     });
   }
 
+  const postId = crypto.randomUUID();
+  const now = Date.now();
   try {
     await db
       .prepare(
         'INSERT INTO music_posts (id, author_user_id, title, body, url, type, tags, image_key, embed_style, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
       .bind(
-        crypto.randomUUID(),
+        postId,
         user.id,
         title,
         body || null,
@@ -79,7 +82,7 @@ export async function POST(request) {
         tags || null,
         imageKey,
         embedStyle || 'auto',
-        Date.now()
+        now
       )
       .run();
   } catch (e) {
@@ -89,7 +92,7 @@ export async function POST(request) {
         'INSERT INTO music_posts (id, author_user_id, title, body, url, type, tags, image_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
       .bind(
-        crypto.randomUUID(),
+        postId,
         user.id,
         title,
         body || null,
@@ -97,10 +100,18 @@ export async function POST(request) {
         type,
         tags || null,
         imageKey,
-        Date.now()
+        now
       )
       .run();
   }
+
+  await notifyAdminsOfNewPost({
+    db,
+    actorUser: user,
+    targetType: 'music_post',
+    targetId: postId,
+    createdAt: now
+  });
 
   return NextResponse.redirect(redirectUrl, 303);
 }
