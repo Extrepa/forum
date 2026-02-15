@@ -3224,6 +3224,9 @@ input[type="password"]::placeholder {
 }
 
 input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 8px 10px;
   background: rgba(2, 7, 10, 0.4);
   color: var(--muted);
@@ -8147,18 +8150,8 @@ header::before {
   box-shadow: 0 0 16px rgba(255, 52, 245, 0.55) !important;
 }
 
-/* Edit modal content is often provided as a card; flatten it to avoid card-within-card and duplicate title. */
-.edit-post-modal > .card {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-
+/* Edit/create modal content is often provided as a card; flatten it to avoid card-within-card and duplicate title. */
+.edit-post-modal > .card,
 .create-post-modal > .card {
   padding: 0;
   border: 0;
@@ -8171,21 +8164,14 @@ header::before {
 }
 
 .edit-post-modal > .card::before,
-.edit-post-modal > .card::after {
-  content: none;
-  display: none;
-}
-
+.edit-post-modal > .card::after,
 .create-post-modal > .card::before,
 .create-post-modal > .card::after {
   content: none;
   display: none;
 }
 
-.edit-post-modal > .card > .section-title:first-child {
-  display: none;
-}
-
+.edit-post-modal > .card > .section-title:first-child,
 .create-post-modal > .card > .section-title:first-child {
   display: none;
 }
@@ -8195,13 +8181,11 @@ header::before {
 .edit-post-modal .text-field,
 .edit-post-modal input,
 .edit-post-modal textarea,
-.edit-post-modal select {
-  max-width: 100%;
-  min-width: 0;
-}
-
+.edit-post-modal select,
 .create-post-modal form,
 .create-post-modal label,
+.create-post-modal details,
+.create-post-modal summary,
 .create-post-modal .text-field,
 .create-post-modal input,
 .create-post-modal textarea,
@@ -8210,11 +8194,7 @@ header::before {
   min-width: 0;
 }
 
-.edit-post-modal .formatting-toolbar {
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
+.edit-post-modal .formatting-toolbar,
 .create-post-modal .formatting-toolbar {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;

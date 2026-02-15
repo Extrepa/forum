@@ -88,6 +88,7 @@ export default function CreatePostModal({
           borderRadius: 'var(--radius)',
           padding: isMobile ? '18px' : '24px',
           maxWidth: contentMaxWidth,
+          minWidth: 0,
           width: '100%',
           margin: '0 auto',
           maxHeight: contentMaxHeight,
