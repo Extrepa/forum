@@ -347,7 +347,7 @@ a {
   gap: 5px;
   z-index: 1200;
   transform: none;
-  max-height: min(64vh, 520px);
+  max-height: min(52vh, 360px);
   overflow: hidden;
 }
 
@@ -428,7 +428,7 @@ a {
 .header-library-list {
   display: grid;
   gap: 3px;
-  max-height: min(56vh, 420px);
+  max-height: min(44vh, 300px);
   overflow-y: auto;
   padding-right: 1px;
   scrollbar-width: thin;
@@ -1146,10 +1146,10 @@ a {
   }
 
   .header-library-menu {
-    width: min(244px, calc(100vw - 12px)) !important;
+    width: min(224px, calc(100vw - 12px)) !important;
     min-width: 0 !important;
-    max-width: min(244px, calc(100vw - 12px)) !important;
-    max-height: min(70vh, calc(100vh - 96px)) !important;
+    max-width: min(224px, calc(100vw - 12px)) !important;
+    max-height: min(58vh, calc(100vh - 104px)) !important;
     margin: 0 !important;
   }
 
@@ -5669,12 +5669,12 @@ span:has(.username) + .status-badge {
 }
 
 .post-detail-title {
-  font-size: clamp(18px, 2.2vw, 28px);
+  font-size: clamp(17px, 2vw, 24px);
   line-height: 1.06;
 }
 
 .thread-replies .section-title {
-  font-size: clamp(16px, 1.8vw, 24px);
+  font-size: clamp(15px, 1.6vw, 21px);
   line-height: 1.08;
 }
 
@@ -7847,7 +7847,7 @@ header::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 9px;
   margin-bottom: 0;
   flex-wrap: nowrap;
   overflow: visible;
@@ -7859,7 +7859,7 @@ header::before {
 }
 
 .page-top-row--context {
-  padding: 6px 14px;
+  padding: 5px 11px;
   border: 1px solid rgba(22, 58, 74, 0.6);
   border-radius: calc(var(--radius) - 6px);
   background: rgba(3, 16, 30, 0.42);
@@ -7869,7 +7869,7 @@ header::before {
 .page-top-row-context {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
@@ -7886,12 +7886,12 @@ header::before {
 
 .page-top-row-context__section {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.045em;
   background: rgba(255, 255, 255, 0.06);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 4px;
   transition: all 0.2s ease;
 }
@@ -7909,7 +7909,7 @@ header::before {
 .page-top-row-context__current {
   color: var(--ink);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .page-top-row-right {
@@ -8687,11 +8687,11 @@ header::before {
 @media (max-width: 640px) {
   .page-top-row {
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 6px;
   }
 
   .page-top-row--context {
-    padding: 5px 9px;
+    padding: 4px 8px;
     min-width: 0;
     flex: 1 1 auto;
   }
@@ -8702,12 +8702,12 @@ header::before {
   }
 
   .page-top-row-context__section {
-    padding: 2px 7px;
-    font-size: 10px;
+    padding: 2px 6px;
+    font-size: 9px;
   }
 
   .page-top-row-context__current {
-    font-size: 12px;
+    font-size: 11px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -8719,12 +8719,12 @@ header::before {
   }
 
   .post-detail-title {
-    font-size: clamp(14px, 8vw, 24px);
+    font-size: clamp(13px, 7vw, 20px);
     line-height: 1.04;
   }
 
   .thread-replies .section-title {
-    font-size: clamp(14px, 7.2vw, 22px);
+    font-size: clamp(13px, 6.4vw, 18px);
     line-height: 1.05;
   }
 

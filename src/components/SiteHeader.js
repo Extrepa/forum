@@ -189,8 +189,8 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
         left = window.innerWidth - menuWidth - edgePadding;
       }
       if (left < edgePadding) left = edgePadding;
-      const top = rect.bottom + 4;
-      const maxHeight = Math.max(220, window.innerHeight - top - edgePadding);
+      const top = rect.bottom + 2;
+      const maxHeight = Math.min(380, Math.max(180, window.innerHeight - top - edgePadding));
       setLibraryStyle({
         position: 'fixed',
         top,

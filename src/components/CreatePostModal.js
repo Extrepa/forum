@@ -14,6 +14,7 @@ export default function CreatePostModal({
   maxHeight
 }) {
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
 
   useEffect(() => {
     setMounted(true);
@@ -30,10 +31,23 @@ export default function CreatePostModal({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+    return undefined;
+  }, []);
+
   if (!isOpen || !mounted) return null;
 
   const resolvedMaxWidth = maxWidth || (variant === 'wide' ? '900px' : '600px');
   const resolvedMaxHeight = maxHeight || '90vh';
+  const overlayPadding = isMobile ? '12px 12px 30px' : '20px';
+  const overlayAlign = isMobile ? 'flex-start' : 'center';
+  const contentMaxWidth = isMobile ? 'min(100%, 420px)' : resolvedMaxWidth;
+  const contentMaxHeight = isMobile ? '85vh' : resolvedMaxHeight;
 
   const modal = (
     <div
@@ -47,10 +61,10 @@ export default function CreatePostModal({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.75)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: overlayAlign,
         justifyContent: 'center',
         zIndex: 12000,
-        padding: '20px',
+        padding: overlayPadding,
       }}
     >
       <div
@@ -59,10 +73,10 @@ export default function CreatePostModal({
         style={{
           backgroundColor: 'var(--card)',
           borderRadius: 'var(--radius)',
-          padding: '24px',
-          maxWidth: resolvedMaxWidth,
+          padding: isMobile ? '18px' : '24px',
+          maxWidth: contentMaxWidth,
           width: '100%',
-          maxHeight: resolvedMaxHeight,
+          maxHeight: contentMaxHeight,
           overflowX: 'hidden',
           overflowY: 'auto',
           boxShadow: 'var(--shadow)',

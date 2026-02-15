@@ -18,6 +18,7 @@ import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
 import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
 import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
+import { isImageUploadsEnabled } from '../../../lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         </div>
       );
     }
+    const imageUploadsEnabled = await isImageUploadsEnabled(db);
     let project = null;
   try {
     project = await db
@@ -653,6 +655,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
         usernameColorMap={usernameColorMap}
         isLocked={isLocked}
         repliesEnabled={repliesEnabled}
+        allowImageUploads={imageUploadsEnabled}
       />
     </div>
   );

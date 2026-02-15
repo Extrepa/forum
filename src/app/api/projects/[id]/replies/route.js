@@ -10,6 +10,8 @@ import { isImageUploadsEnabled } from '../../../../../lib/settings';
 export async function POST(request, { params }) {
   const { id } = await params;
   const user = await getSessionUser();
+  const db = await getDb();
+  const imageUploadsEnabled = await isImageUploadsEnabled(db);
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
   const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
@@ -87,9 +89,6 @@ export async function POST(request, { params }) {
     }
   }
 
-  const db = await getDb();
-  const imageUploadsEnabled = await isImageUploadsEnabled(db);
-  
   // Check if project is locked (rollout-safe)
   try {
     const project = await db

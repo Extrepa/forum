@@ -226,7 +226,9 @@ export default function NotificationsMenu({
       aria-label="Messages and notifications"
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <h3 style={{ margin: 0, fontSize: '14px', lineHeight: 1.1 }}>Notifications</h3>
+        <h3 style={{ margin: 0, fontSize: '14px', lineHeight: 1.1 }}>
+          Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}
+        </h3>
         <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
           <button
             type="button"
@@ -290,22 +292,6 @@ export default function NotificationsMenu({
             Mark read
           </button>
         </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-        <button type="button" className="header-notify-tab is-active">
-          Notifications {unreadCount > 0 ? `(${unreadCount})` : ''}
-        </button>
-        <button
-          type="button"
-          className="header-notify-tab"
-          onClick={() => {
-            onClose?.();
-            router.push('/messages');
-          }}
-        >
-          Messages
-        </button>
       </div>
 
       <div style={{ flex: '0 1 auto', overflowY: 'auto', overflowX: 'hidden', maxHeight: '160px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
@@ -476,6 +462,37 @@ export default function NotificationsMenu({
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'nowrap', minWidth: 0 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              router.push('/messages');
+            }}
+            style={{
+              fontSize: '11px',
+              padding: '6px 11px',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: '999px',
+              color: 'var(--muted)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--accent)';
+              e.currentTarget.style.color = 'var(--ink)';
+              e.currentTarget.style.boxShadow = '0 0 8px var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.color = 'var(--muted)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Messages
+          </button>
         <button
             type="button"
             onClick={handleClearAll}
@@ -505,6 +522,7 @@ export default function NotificationsMenu({
           >
             Clear
           </button>
+        </div>
         <button 
           type="button"
           onClick={onClose}

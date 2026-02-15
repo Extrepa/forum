@@ -1,32 +1,5 @@
-name = "errl-portal-forum"
-compatibility_date = "2026-01-14"
-main = ".open-next/worker.js"
-compatibility_flags = ["nodejs_compat"]
-assets = { directory = ".open-next/assets", binding = "ASSETS" }
+name = "errl-portal-forum-docs"
+compatibility_date = "2024-05-13"
 
-# Workers Paid: 30s CPU default (vs 10ms on Free). Explicit limit for clarity.
-[limits]
-cpu_ms = 30000
-
-# Production (Default)
-[[d1_databases]]
-binding = "DB"
-database_name = "errl_forum_db"
-database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
-
-[[r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "errl-forum-uploads"
-
-# Preview Environment
-[env.preview]
-name = "errl-portal-forum-preview"
-
-[[env.preview.d1_databases]]
-binding = "DB"
-database_name = "errl_forum_db"
-database_id = "f6acc52e-a23b-4a6c-8b62-c93892e41940"
-
-[[env.preview.r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "errl-forum-uploads"
+[vars]
+IMAGE_UPLOAD_ALLOWLIST = "*"
