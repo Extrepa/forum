@@ -64,47 +64,6 @@ export default function EventCommentsSection({
 
       {commentNotice ? <div className="notice">{commentNotice}</div> : null}
 
-      {isLocked ? (
-        <p className="muted" style={{ marginTop: '10px' }}>Comments are locked for this event.</p>
-      ) : user ? (
-        showCommentBox ? (
-          <form id="comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '12px' }}>
-            {replyingTo ? (
-              <input
-                ref={hiddenReplyToRef}
-                type="hidden"
-                name="reply_to_id"
-                value={replyingTo.id || ''}
-              />
-            ) : null}
-            <label>
-              <div className="muted">
-                {replyingTo ? `Replying to ${replyingTo.author_name}` : 'What would you like to say?'}
-              </div>
-              <textarea
-                ref={textareaRef}
-                name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
-                required
-              />
-            </label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="submit">Post comment</button>
-              <button type="button" onClick={handleCancelComment}>Cancel</button>
-            </div>
-          </form>
-        ) : (
-          <button id="comment-form" type="button" onClick={() => setShowCommentBox(true)} style={{ marginTop: '10px' }}>
-            Post comment
-          </button>
-        )
-      ) : (
-        <p className="muted" style={{ marginTop: '10px' }}>Sign in to comment.</p>
-      )}
-
-      <div className="list-divider" style={{ margin: '16px 0 12px' }} />
-      <h4 className="section-title" style={{ marginTop: 0, fontSize: '14px' }}>Posts</h4>
-
       <div className="list">
         {comments.length === 0 ? (
           <p className="muted">No comments yet.</p>
@@ -145,6 +104,44 @@ export default function EventCommentsSection({
           })
         )}
       </div>
+
+      {isLocked ? (
+        <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this event.</p>
+      ) : user ? (
+        showCommentBox ? (
+          <form id="comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '12px' }}>
+            {replyingTo ? (
+              <input
+                ref={hiddenReplyToRef}
+                type="hidden"
+                name="reply_to_id"
+                value={replyingTo.id || ''}
+              />
+            ) : null}
+            <label>
+              <div className="muted">
+                {replyingTo ? `Replying to ${replyingTo.author_name}` : 'What would you like to say?'}
+              </div>
+              <textarea
+                ref={textareaRef}
+                name="body"
+                placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
+                required
+              />
+            </label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="submit">Post comment</button>
+              <button type="button" onClick={handleCancelComment}>Cancel</button>
+            </div>
+          </form>
+        ) : (
+          <button id="comment-form" type="button" onClick={() => setShowCommentBox(true)} style={{ marginTop: '12px' }}>
+            Post comment
+          </button>
+        )
+      ) : (
+        <p className="muted" style={{ marginTop: '12px' }}>Sign in to comment.</p>
+      )}
     </section>
   );
 }

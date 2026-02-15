@@ -9,6 +9,7 @@ export default function HomeSectionCard({
   title,
   description,
   count,
+  recentActivities,
   recentActivity,
   href,
   usernameColorMap,
@@ -18,36 +19,40 @@ export default function HomeSectionCard({
 }) {
   const router = useRouter();
   const countLabel = `${count} ${count === 1 ? 'post' : 'posts'}`;
+  const listItems = Array.isArray(recentActivities) ? recentActivities.filter(Boolean) : [];
+  const recentItems = recentActivity
+    ? [recentActivity, ...listItems.filter((item) => item.href !== recentActivity.href || item.timeAgo !== recentActivity.timeAgo)].slice(0, 3)
+    : listItems.slice(0, 3);
 
-  const activityDescription = recentActivity
-    ? (recentActivity.type === 'reply' || recentActivity.type === 'comment' ? (
+  const renderActivityDescription = (activity) => (
+    activity.type === 'reply' || activity.type === 'comment' ? (
       <>
         <Username
-          name={recentActivity.activityAuthor}
-          colorIndex={usernameColorMap?.get(recentActivity.activityAuthor) ?? getUsernameColorIndex(recentActivity.activityAuthor, { preferredColorIndex: recentActivity.activityAuthorColorPreference })}
-          preferredColorIndex={recentActivity.activityAuthorColorPreference}
+          name={activity.activityAuthor}
+          colorIndex={usernameColorMap?.get(activity.activityAuthor) ?? getUsernameColorIndex(activity.activityAuthor, { preferredColorIndex: activity.activityAuthorColorPreference })}
+          preferredColorIndex={activity.activityAuthorColorPreference}
         />
-        {recentActivity.type === 'comment' ? ' commented on ' : ' replied to '}
-        <span style={{ color: 'var(--errl-accent-3)' }}>{recentActivity.postTitle}</span>
+        {activity.type === 'comment' ? ' commented on ' : ' replied to '}
+        <span style={{ color: 'var(--errl-accent-3)' }}>{activity.postTitle}</span>
         {' by '}
         <Username
-          name={recentActivity.postAuthor}
-          colorIndex={usernameColorMap?.get(recentActivity.postAuthor) ?? getUsernameColorIndex(recentActivity.postAuthor, { preferredColorIndex: recentActivity.postAuthorColorPreference })}
-          preferredColorIndex={recentActivity.postAuthorColorPreference}
+          name={activity.postAuthor}
+          colorIndex={usernameColorMap?.get(activity.postAuthor) ?? getUsernameColorIndex(activity.postAuthor, { preferredColorIndex: activity.postAuthorColorPreference })}
+          preferredColorIndex={activity.postAuthorColorPreference}
         />
       </>
     ) : (
       <>
         <Username
-          name={recentActivity.postAuthor || recentActivity.author}
-          colorIndex={usernameColorMap?.get(recentActivity.postAuthor || recentActivity.author) ?? getUsernameColorIndex(recentActivity.postAuthor || recentActivity.author, { preferredColorIndex: recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference })}
-          preferredColorIndex={recentActivity.postAuthorColorPreference || recentActivity.authorColorPreference}
+          name={activity.postAuthor || activity.author}
+          colorIndex={usernameColorMap?.get(activity.postAuthor || activity.author) ?? getUsernameColorIndex(activity.postAuthor || activity.author, { preferredColorIndex: activity.postAuthorColorPreference || activity.authorColorPreference })}
+          preferredColorIndex={activity.postAuthorColorPreference || activity.authorColorPreference}
         />
         {' posted '}
-        <span style={{ color: 'var(--errl-accent-3)' }}>{recentActivity.postTitle || recentActivity.title}</span>
+        <span style={{ color: 'var(--errl-accent-3)' }}>{activity.postTitle || activity.title}</span>
       </>
-    ))
-    : null;
+    )
+  );
 
   if (compactMode) {
     return (
@@ -61,47 +66,42 @@ export default function HomeSectionCard({
             aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${title}`}
           >
             <span className="home-section-card__title-wrap">
-              <span className="home-section-card__title">{title}</span>
-              <span className={`home-section-card__status${recentActivity ? ' is-active' : ''}`} suppressHydrationWarning>
-                <span className="home-section-card__status-dot" aria-hidden="true" />
-                {recentActivity ? `Recent activity ${recentActivity.timeAgo || 'just now'}` : 'Quiet right now'}
+              <span className="home-section-card__headline">
+                <span className="home-section-card__title">{title}</span>
+                <span className="home-section-card__headline-sep" aria-hidden="true"> - </span>
+                <span className="home-section-card__headline-description">{description}</span>
               </span>
             </span>
             <span className="home-section-card__count-wrap">
               <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
-              <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+              <span className={`home-section-card__status-dot${recentActivity ? ' is-active' : ''}`} aria-hidden="true" />
+              <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '-' : '+'}</span>
             </span>
           </button>
         </div>
 
         {isExpanded && (
           <div className="home-section-card__details">
-            <p className="list-meta home-section-card__description">{description}</p>
-            {recentActivity ? (
-              <>
-                <div className="section-stats" suppressHydrationWarning>
-                  <Link href={recentActivity.href} style={{ color: 'inherit', textDecoration: 'none' }}>
-                    Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
-                  </Link>
-                </div>
-                <div className="home-section-card__actions">
-                  <Link href={recentActivity.href} className="home-section-card__detail-link">
-                    Open latest activity
-                  </Link>
-                  <Link href={href} className="home-section-card__detail-link is-subtle">
-                    Open section
-                  </Link>
-                </div>
-              </>
+            <div className="home-section-card__details-head">
+              <span className="home-section-card__status-text" suppressHydrationWarning>
+                {recentItems.length > 0 ? `Recent activity ${recentItems[0].timeAgo || 'just now'}` : 'Quiet right now'}
+              </span>
+              <Link href={href} className="home-section-card__section-link">
+                Open section
+              </Link>
+            </div>
+            {recentItems.length > 0 ? (
+              <ul className="home-section-card__recent-list">
+                {recentItems.slice(0, 3).map((item, idx) => (
+                  <li key={`${item.href}-${idx}`} className="home-section-card__recent-item">
+                    <Link href={item.href} className="home-section-card__recent-link" suppressHydrationWarning>
+                      Latest drip: {renderActivityDescription(item)} · <span suppressHydrationWarning>{item.timeAgo || 'just now'}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <>
-                <p className="section-card-empty-cta">The goo is quiet here — head in and post something.</p>
-                <div className="home-section-card__actions">
-                  <Link href={href} className="home-section-card__detail-link is-subtle">
-                    Open section
-                  </Link>
-                </div>
-              </>
+              <p className="section-card-empty-cta">The goo is quiet here - head in and post something.</p>
             )}
           </div>
         )}
@@ -122,7 +122,7 @@ export default function HomeSectionCard({
         </div>
         <div className="list-meta">{description}</div>
         <p className="section-card-empty-cta" aria-hidden="true">
-          The goo is quiet here — head in and post something.
+          The goo is quiet here - head in and post something.
         </p>
       </Link>
     );
@@ -154,7 +154,7 @@ export default function HomeSectionCard({
           onKeyDown={(event) => event.stopPropagation()}
           style={{ color: 'inherit', textDecoration: 'none' }}
         >
-          Latest drip: {activityDescription} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
+          Latest drip: {renderActivityDescription(recentActivity)} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
         </Link>
       </div>
     </div>

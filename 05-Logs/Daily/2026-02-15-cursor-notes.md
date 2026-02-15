@@ -215,6 +215,18 @@
   - `npm run lint` (pass)
   - `npm run build` (pass)
 
+## UI Follow-up Fix: Library Header Clipping + Notifications Client Error
+- User-reported regressions:
+  - Library dropdown looked constrained to header instead of clearly appearing below it.
+  - Notifications click produced client-side app exception.
+- Applied fixes:
+  - Set `.header-center` to `overflow: visible` so header dropdowns can render below without clipping.
+  - Restored missing `onClose` prop in `NotificationsMenu` (was still used internally during item navigation/button actions).
+- Verification:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+  - Final recheck requested by user: `npm run lint` + `npm run build` both pass.
+
 ## Feature Follow-up: Events Ordering + End Time + RSVP Close + Invites
 - Implemented events behavior update request:
   - pinned-first then newest-created order for event lists,
@@ -286,3 +298,45 @@
 - Verification:
   - Structural check: single `ErrlTabSwitcher` instance remains and it is above `.account-edit-tab-content--above`.
   - `npm run lint` (pass)
+
+## Events UI Follow-up: Invite Label + Replies Flow Cleanup
+- Updated event detail layout wording/flow:
+  - Removed standalone `Invitations` heading in engagement card.
+  - Kept single `Invite People` button that expands invite controls.
+  - Removed redundant `Posts` heading in replies card.
+  - Moved `Post comment` action below existing replies / `No comments yet` text.
+- Updated files:
+  - `src/components/EventEngagementSection.js`
+  - `src/components/EventCommentsSection.js`
+- Verification:
+  - `npm run lint` (pass)
+
+## UI Follow-up: Edit Profile Tab Order Correction
+- Issue reported after switcher move:
+  - Username/avatar tab content could still render above the tab switcher.
+- Root cause:
+  - `editProfileSubTab === 'username'` and `editProfileSubTab === 'avatar'` blocks were positioned before `ErrlTabSwitcher` in `AccountTabsClient`.
+- Fix applied:
+  - Reordered render sequence in `src/app/account/AccountTabsClient.js` so `ErrlTabSwitcher` renders immediately after the profile preview block and before all tab-specific content blocks.
+- Verification:
+  - Structural check:
+    - `ErrlTabSwitcher` at `src/app/account/AccountTabsClient.js:1136`
+    - username block starts at `src/app/account/AccountTabsClient.js:1146`
+    - avatar block starts at `src/app/account/AccountTabsClient.js:1255`
+  - `npm run lint` (pass)
+
+## UI Follow-up: Homepage Explore Sections Final Behavior + Mixed Activity Feed
+- Additional UX refinements applied to match requested interaction:
+  - Collapsed row now shows `Title - short description` in one line.
+  - Collapsed right side keeps post count + activity dot + expand indicator.
+  - Expanded state now places `Open section` inline with the recent-activity header.
+  - Latest activity rows are directly clickable (no separate `Open latest activity` button).
+- Data enhancement applied:
+  - Built true mixed `recentActivities` per section (posts + replies/comments), sorted newest-first, limited to top 3.
+  - Implemented by adding per-section `safeAll` queries and merge/sort helpers in `src/app/page.js`.
+  - Passed through `HomeSectionsList` into `HomeSectionCard` for compact expanded rendering.
+- Reliability checks rerun:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+- Note:
+  - Worktree contains unrelated pre-existing edits outside this scope (including non-homepage `globals.css` areas). Homepage task changes were kept scoped to section-card behavior and data wiring.

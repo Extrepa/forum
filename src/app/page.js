@@ -55,6 +55,7 @@ export default async function HomePage({ searchParams }) {
 
   // Fetch section data for all users (guests get public content)
   let sectionData = null;
+  let sectionRecentLists = {};
   
   if (hasUsername) {
     const db = await getDb();
@@ -70,6 +71,19 @@ export default async function HomePage({ searchParams }) {
       }
     };
     const safeFirstNull = (d, sql) => d.prepare(sql).first().catch(() => null);
+    const safeAll = async (db, primarySql, primaryBinds, fallbackSql, fallbackBinds) => {
+      try {
+        const stmt = db.prepare(primarySql);
+        const bound = primaryBinds?.length ? stmt.bind(...primaryBinds) : stmt;
+        const out = await bound.all();
+        return out?.results || [];
+      } catch (e) {
+        const stmt = db.prepare(fallbackSql);
+        const bound = fallbackBinds?.length ? stmt.bind(...fallbackBinds) : stmt;
+        const out = await bound.all();
+        return out?.results || [];
+      }
+    };
 
     // Helper to inject private check
     const privateCheck = '1=1';
@@ -462,6 +476,630 @@ export default async function HomePage({ searchParams }) {
           };
         }
 
+    const [
+      timelineRecentRows,
+      timelineRecentComments,
+      forumRecentRows,
+      forumRecentReplies,
+      eventsRecentRows,
+      eventsRecentComments,
+      musicRecentRows,
+      musicRecentComments,
+      projectsRecentRows,
+      projectsRecentReplies,
+      shitpostsRecentRows,
+      shitpostsRecentReplies,
+      artNostalgiaRecentRows,
+      artNostalgiaRecentComments,
+      bugsRantRecentRows,
+      bugsRantRecentComments,
+      devlogRecentRows,
+      devlogRecentComments,
+      loreMemoriesRecentRows,
+      loreMemoriesRecentComments
+    ] = await Promise.all([
+      safeAll(
+        db,
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE timeline_updates.moved_to_id IS NULL AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM timeline_updates
+         JOIN users ON users.id = timeline_updates.author_user_id
+         WHERE (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
+         ORDER BY timeline_updates.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT timeline_comments.created_at, timeline_updates.id AS update_id, timeline_updates.title AS update_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM timeline_comments
+         JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+         JOIN users AS comment_users ON comment_users.id = timeline_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = timeline_updates.author_user_id
+         WHERE (timeline_comments.is_deleted = 0 OR timeline_comments.is_deleted IS NULL)
+           AND (timeline_updates.is_deleted = 0 OR timeline_updates.is_deleted IS NULL)
+         ORDER BY timeline_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT timeline_comments.created_at, timeline_updates.id AS update_id, timeline_updates.title AS update_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM timeline_comments
+         JOIN timeline_updates ON timeline_updates.id = timeline_comments.update_id
+         JOIN users AS comment_users ON comment_users.id = timeline_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = timeline_updates.author_user_id
+         ORDER BY timeline_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL) AND (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '')
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT forum_replies.created_at, forum_threads.id AS thread_id, forum_threads.title AS thread_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                thread_users.username AS thread_author, thread_users.preferred_username_color_index AS thread_author_color_preference
+         FROM forum_replies
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         JOIN users AS reply_users ON reply_users.id = forum_replies.author_user_id
+         JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+         WHERE (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
+           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT forum_replies.created_at, forum_threads.id AS thread_id, forum_threads.title AS thread_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                thread_users.username AS thread_author, thread_users.preferred_username_color_index AS thread_author_color_preference
+         FROM forum_replies
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         JOIN users AS reply_users ON reply_users.id = forum_replies.author_user_id
+         JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT events.id, events.title, events.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL) AND (events.moved_to_id IS NULL OR events.moved_to_id = '')
+         ORDER BY events.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT events.id, events.title, events.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM events
+         JOIN users ON users.id = events.author_user_id
+         WHERE (events.is_deleted = 0 OR events.is_deleted IS NULL)
+         ORDER BY events.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT event_comments.created_at, events.id AS event_id, events.title AS event_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                event_users.username AS event_author, event_users.preferred_username_color_index AS event_author_color_preference
+         FROM event_comments
+         JOIN events ON events.id = event_comments.event_id
+         JOIN users AS comment_users ON comment_users.id = event_comments.author_user_id
+         JOIN users AS event_users ON event_users.id = events.author_user_id
+         WHERE (event_comments.is_deleted = 0 OR event_comments.is_deleted IS NULL)
+           AND (events.is_deleted = 0 OR events.is_deleted IS NULL)
+         ORDER BY event_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT event_comments.created_at, events.id AS event_id, events.title AS event_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                event_users.username AS event_author, event_users.preferred_username_color_index AS event_author_color_preference
+         FROM event_comments
+         JOIN events ON events.id = event_comments.event_id
+         JOIN users AS comment_users ON comment_users.id = event_comments.author_user_id
+         JOIN users AS event_users ON event_users.id = events.author_user_id
+         ORDER BY event_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT music_posts.id, music_posts.title, music_posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL) AND (music_posts.moved_to_id IS NULL OR music_posts.moved_to_id = '')
+         ORDER BY music_posts.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT music_posts.id, music_posts.title, music_posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM music_posts
+         JOIN users ON users.id = music_posts.author_user_id
+         WHERE (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+         ORDER BY music_posts.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT music_comments.created_at, music_posts.id AS post_id, music_posts.title AS post_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM music_comments
+         JOIN music_posts ON music_posts.id = music_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = music_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = music_posts.author_user_id
+         WHERE (music_comments.is_deleted = 0 OR music_comments.is_deleted IS NULL)
+           AND (music_posts.is_deleted = 0 OR music_posts.is_deleted IS NULL)
+         ORDER BY music_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT music_comments.created_at, music_posts.id AS post_id, music_posts.title AS post_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM music_comments
+         JOIN music_posts ON music_posts.id = music_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = music_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = music_posts.author_user_id
+         ORDER BY music_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT projects.id, projects.title, projects.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL) AND (projects.moved_to_id IS NULL OR projects.moved_to_id = '')
+         ORDER BY projects.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT projects.id, projects.title, projects.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM projects
+         JOIN users ON users.id = projects.author_user_id
+         WHERE (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+         ORDER BY projects.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT project_replies.created_at, projects.id AS project_id, projects.title AS project_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                project_users.username AS project_author, project_users.preferred_username_color_index AS project_author_color_preference
+         FROM project_replies
+         JOIN projects ON projects.id = project_replies.project_id
+         JOIN users AS reply_users ON reply_users.id = project_replies.author_user_id
+         JOIN users AS project_users ON project_users.id = projects.author_user_id
+         WHERE (project_replies.is_deleted = 0 OR project_replies.is_deleted IS NULL)
+           AND (projects.is_deleted = 0 OR projects.is_deleted IS NULL)
+         ORDER BY project_replies.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT project_replies.created_at, projects.id AS project_id, projects.title AS project_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                project_users.username AS project_author, project_users.preferred_username_color_index AS project_author_color_preference
+         FROM project_replies
+         JOIN projects ON projects.id = project_replies.project_id
+         JOIN users AS reply_users ON reply_users.id = project_replies.author_user_id
+         JOIN users AS project_users ON project_users.id = projects.author_user_id
+         ORDER BY project_replies.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL AND forum_threads.moved_to_id IS NULL AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT forum_threads.id, forum_threads.title, forum_threads.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM forum_threads
+         JOIN users ON users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+         ORDER BY forum_threads.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT forum_replies.created_at, forum_threads.id AS thread_id, forum_threads.title AS thread_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                thread_users.username AS thread_author, thread_users.preferred_username_color_index AS thread_author_color_preference
+         FROM forum_replies
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         JOIN users AS reply_users ON reply_users.id = forum_replies.author_user_id
+         JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL
+           AND (forum_replies.is_deleted = 0 OR forum_replies.is_deleted IS NULL)
+           AND (forum_threads.is_deleted = 0 OR forum_threads.is_deleted IS NULL)
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT forum_replies.created_at, forum_threads.id AS thread_id, forum_threads.title AS thread_title,
+                reply_users.username AS reply_author, reply_users.preferred_username_color_index AS reply_author_color_preference,
+                thread_users.username AS thread_author, thread_users.preferred_username_color_index AS thread_author_color_preference
+         FROM forum_replies
+         JOIN forum_threads ON forum_threads.id = forum_replies.thread_id
+         JOIN users AS reply_users ON reply_users.id = forum_replies.author_user_id
+         JOIN users AS thread_users ON thread_users.id = forum_threads.author_user_id
+         WHERE forum_threads.image_key IS NOT NULL
+         ORDER BY forum_replies.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (${privateCheck})
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('art', 'nostalgia') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('art', 'nostalgia') AND (${privateCheck})
+           AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('art', 'nostalgia')
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL) AND (${privateCheck})
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('bugs', 'rant') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('bugs', 'rant') AND (${privateCheck})
+           AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('bugs', 'rant')
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM dev_logs
+         JOIN users ON users.id = dev_logs.author_user_id
+         WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+         ORDER BY dev_logs.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT dev_logs.id, dev_logs.title, dev_logs.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM dev_logs
+         JOIN users ON users.id = dev_logs.author_user_id
+         WHERE (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+         ORDER BY dev_logs.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT dev_log_comments.created_at, dev_logs.id AS log_id, dev_logs.title AS log_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                log_users.username AS log_author, log_users.preferred_username_color_index AS log_author_color_preference
+         FROM dev_log_comments
+         JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+         JOIN users AS comment_users ON comment_users.id = dev_log_comments.author_user_id
+         JOIN users AS log_users ON log_users.id = dev_logs.author_user_id
+         WHERE (dev_log_comments.is_deleted = 0 OR dev_log_comments.is_deleted IS NULL)
+           AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)
+         ORDER BY dev_log_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT dev_log_comments.created_at, dev_logs.id AS log_id, dev_logs.title AS log_title,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                log_users.username AS log_author, log_users.preferred_username_color_index AS log_author_color_preference
+         FROM dev_log_comments
+         JOIN dev_logs ON dev_logs.id = dev_log_comments.log_id
+         JOIN users AS comment_users ON comment_users.id = dev_log_comments.author_user_id
+         JOIN users AS log_users ON log_users.id = dev_logs.author_user_id
+         ORDER BY dev_log_comments.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('lore', 'memories') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT posts.id, posts.title, posts.type, posts.created_at, users.username AS author_name, users.preferred_username_color_index AS author_color_preference
+         FROM posts
+         JOIN users ON users.id = posts.author_user_id
+         WHERE posts.type IN ('lore', 'memories') AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY posts.created_at DESC
+         LIMIT 3`,
+        []
+      ),
+      safeAll(
+        db,
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('lore', 'memories')
+           AND (post_comments.is_deleted = 0 OR post_comments.is_deleted IS NULL)
+           AND (posts.is_deleted = 0 OR posts.is_deleted IS NULL)
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        [],
+        `SELECT post_comments.created_at, posts.id AS post_id, posts.title AS post_title, posts.type AS post_type,
+                comment_users.username AS comment_author, comment_users.preferred_username_color_index AS comment_author_color_preference,
+                post_users.username AS post_author, post_users.preferred_username_color_index AS post_author_color_preference
+         FROM post_comments
+         JOIN posts ON posts.id = post_comments.post_id
+         JOIN users AS comment_users ON comment_users.id = post_comments.author_user_id
+         JOIN users AS post_users ON post_users.id = posts.author_user_id
+         WHERE posts.type IN ('lore', 'memories')
+         ORDER BY post_comments.created_at DESC
+         LIMIT 3`,
+        []
+      )
+    ]);
+
+    const toTs = (value) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : 0;
+    };
+
+    const toPostActivities = (rows, hrefBuilder) =>
+      (rows || []).map((row) => ({
+        type: 'post',
+        postId: row.id,
+        postTitle: row.title || 'Untitled',
+        postAuthor: row.author_name,
+        postAuthorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
+        activityAuthor: row.author_name,
+        activityAuthorColorPreference: row.author_color_preference !== null && row.author_color_preference !== undefined ? Number(row.author_color_preference) : null,
+        createdAt: toTs(row.created_at),
+        href: hrefBuilder(row)
+      }));
+
+    const mergeActivities = (...lists) =>
+      lists
+        .flat()
+        .filter(Boolean)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 3)
+        .map((item) => ({
+          ...item,
+          timeAgo: formatTimeAgo(item.createdAt)
+        }));
+
+    sectionRecentLists = {
+      timeline: mergeActivities(
+        toPostActivities(timelineRecentRows, (row) => `/announcements/${row.id}`),
+        (timelineRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.update_id,
+          postTitle: row.update_title || 'Untitled',
+          postAuthor: row.post_author,
+          postAuthorColorPreference: row.post_author_color_preference != null ? Number(row.post_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/announcements/${row.update_id}`
+        }))
+      ),
+      forum: mergeActivities(
+        toPostActivities(forumRecentRows, (row) => `/lobby/${row.id}`),
+        (forumRecentReplies || []).map((row) => ({
+          type: 'reply',
+          postId: row.thread_id,
+          postTitle: row.thread_title || 'Untitled',
+          postAuthor: row.thread_author,
+          postAuthorColorPreference: row.thread_author_color_preference != null ? Number(row.thread_author_color_preference) : null,
+          activityAuthor: row.reply_author,
+          activityAuthorColorPreference: row.reply_author_color_preference != null ? Number(row.reply_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/lobby/${row.thread_id}`
+        }))
+      ),
+      events: mergeActivities(
+        toPostActivities(eventsRecentRows, (row) => `/events/${row.id}`),
+        (eventsRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.event_id,
+          postTitle: row.event_title || 'Untitled',
+          postAuthor: row.event_author,
+          postAuthorColorPreference: row.event_author_color_preference != null ? Number(row.event_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/events/${row.event_id}`
+        }))
+      ),
+      music: mergeActivities(
+        toPostActivities(musicRecentRows, (row) => `/music/${row.id}`),
+        (musicRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.post_id,
+          postTitle: row.post_title || 'Untitled',
+          postAuthor: row.post_author,
+          postAuthorColorPreference: row.post_author_color_preference != null ? Number(row.post_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/music/${row.post_id}`
+        }))
+      ),
+      projects: mergeActivities(
+        toPostActivities(projectsRecentRows, (row) => `/projects/${row.id}`),
+        (projectsRecentReplies || []).map((row) => ({
+          type: 'reply',
+          postId: row.project_id,
+          postTitle: row.project_title || 'Untitled',
+          postAuthor: row.project_author,
+          postAuthorColorPreference: row.project_author_color_preference != null ? Number(row.project_author_color_preference) : null,
+          activityAuthor: row.reply_author,
+          activityAuthorColorPreference: row.reply_author_color_preference != null ? Number(row.reply_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/projects/${row.project_id}`
+        }))
+      ),
+      shitposts: mergeActivities(
+        toPostActivities(shitpostsRecentRows, (row) => `/lobby/${row.id}`),
+        (shitpostsRecentReplies || []).map((row) => ({
+          type: 'reply',
+          postId: row.thread_id,
+          postTitle: row.thread_title || 'Untitled',
+          postAuthor: row.thread_author,
+          postAuthorColorPreference: row.thread_author_color_preference != null ? Number(row.thread_author_color_preference) : null,
+          activityAuthor: row.reply_author,
+          activityAuthorColorPreference: row.reply_author_color_preference != null ? Number(row.reply_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/lobby/${row.thread_id}`
+        }))
+      ),
+      artNostalgia: mergeActivities(
+        toPostActivities(artNostalgiaRecentRows, (row) => `/${row.type}/${row.id}`),
+        (artNostalgiaRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.post_id,
+          postTitle: row.post_title || 'Untitled',
+          postAuthor: row.post_author,
+          postAuthorColorPreference: row.post_author_color_preference != null ? Number(row.post_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/${row.post_type}/${row.post_id}`
+        }))
+      ),
+      bugsRant: mergeActivities(
+        toPostActivities(bugsRantRecentRows, (row) => `/${row.type}/${row.id}`),
+        (bugsRantRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.post_id,
+          postTitle: row.post_title || 'Untitled',
+          postAuthor: row.post_author,
+          postAuthorColorPreference: row.post_author_color_preference != null ? Number(row.post_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/${row.post_type}/${row.post_id}`
+        }))
+      ),
+      devlog: mergeActivities(
+        toPostActivities(devlogRecentRows, (row) => `/devlog/${row.id}`),
+        (devlogRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.log_id,
+          postTitle: row.log_title || 'Untitled',
+          postAuthor: row.log_author,
+          postAuthorColorPreference: row.log_author_color_preference != null ? Number(row.log_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/devlog/${row.log_id}`
+        }))
+      ),
+      loreMemories: mergeActivities(
+        toPostActivities(loreMemoriesRecentRows, (row) => `/lore-memories/${row.id}`),
+        (loreMemoriesRecentComments || []).map((row) => ({
+          type: 'comment',
+          postId: row.post_id,
+          postTitle: row.post_title || 'Untitled',
+          postAuthor: row.post_author,
+          postAuthorColorPreference: row.post_author_color_preference != null ? Number(row.post_author_color_preference) : null,
+          activityAuthor: row.comment_author,
+          activityAuthorColorPreference: row.comment_author_color_preference != null ? Number(row.comment_author_color_preference) : null,
+          createdAt: toTs(row.created_at),
+          href: `/lore-memories/${row.post_id}`
+        }))
+      )
+    };
+
     sectionData = {
       timeline: {
         count: timelineCount?.count || 0,
@@ -680,6 +1318,13 @@ export default async function HomePage({ searchParams }) {
       allUsernames.push(sectionData.loreMemories.recent.activityAuthor);
     }
   }
+
+  Object.values(sectionRecentLists || {}).forEach((items) => {
+    (items || []).forEach((item) => {
+      if (item?.postAuthor) allUsernames.push(item.postAuthor);
+      if (item?.activityAuthor && item.activityAuthor !== item.postAuthor) allUsernames.push(item.activityAuthor);
+    });
+  });
   
   // Build map of username -> preferred color index
   const preferredColors = new Map();
@@ -767,6 +1412,17 @@ export default async function HomePage({ searchParams }) {
       }
     }
   }
+
+  Object.values(sectionRecentLists || {}).forEach((items) => {
+    (items || []).forEach((item) => {
+      if (item?.postAuthor && item.postAuthorColorPreference !== null && item.postAuthorColorPreference !== undefined) {
+        preferredColors.set(item.postAuthor, Number(item.postAuthorColorPreference));
+      }
+      if (item?.activityAuthor && item.activityAuthorColorPreference !== null && item.activityAuthorColorPreference !== undefined) {
+        preferredColors.set(item.activityAuthor, Number(item.activityAuthorColorPreference));
+      }
+    });
+  });
   
   const usernameColorMap = assignUniqueColorsForPage([...new Set(allUsernames)], preferredColors);
 
@@ -776,6 +1432,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.announcements.title,
       description: strings.cards.announcements.description,
       count: sectionData?.timeline?.count || 0,
+      recentActivities: sectionRecentLists.timeline || [],
       recentActivity: sectionData?.timeline?.recent ? {
         type: 'post',
         postTitle: sectionData.timeline.recent.title,
@@ -792,6 +1449,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.general.title,
       description: strings.cards.general.description,
       count: sectionData?.forum?.count || 0,
+      recentActivities: sectionRecentLists.forum || [],
       recentActivity: sectionData?.forum?.recent || null,
       href: "/lobby"
     },
@@ -799,6 +1457,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.events.title,
       description: strings.cards.events.description,
       count: sectionData?.events?.count || 0,
+      recentActivities: sectionRecentLists.events || [],
       recentActivity: sectionData?.events?.recent || null,
       href: "/events"
     },
@@ -806,6 +1465,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.music.title,
       description: strings.cards.music.description,
       count: sectionData?.music?.count || 0,
+      recentActivities: sectionRecentLists.music || [],
       recentActivity: sectionData?.music?.recent || null,
       href: "/music"
     },
@@ -813,6 +1473,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.projects.title,
       description: strings.cards.projects.description,
       count: sectionData?.projects?.count || 0,
+      recentActivities: sectionRecentLists.projects || [],
       recentActivity: sectionData?.projects?.recent || null,
       href: "/projects"
     },
@@ -820,6 +1481,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.shitposts.title,
       description: strings.cards.shitposts.description,
       count: sectionData?.shitposts?.count || 0,
+      recentActivities: sectionRecentLists.shitposts || [],
       recentActivity: sectionData?.shitposts?.recent ? {
         type: 'post',
         postTitle: sectionData.shitposts.recent.title,
@@ -840,6 +1502,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.artNostalgia.title,
       description: strings.cards.artNostalgia.description,
       count: sectionData.artNostalgia.count || 0,
+      recentActivities: sectionRecentLists.artNostalgia || [],
       recentActivity: sectionData.artNostalgia.recent || null,
       href: "/art-nostalgia"
     });
@@ -850,6 +1513,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.bugsRant.title,
       description: strings.cards.bugsRant.description,
       count: sectionData.bugsRant.count || 0,
+      recentActivities: sectionRecentLists.bugsRant || [],
       recentActivity: sectionData.bugsRant.recent || null,
       href: "/bugs-rant"
     });
@@ -860,6 +1524,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.devlog.title,
       description: strings.cards.devlog.description,
       count: sectionData.devlog?.count || 0,
+      recentActivities: sectionRecentLists.devlog || [],
       recentActivity: sectionData.devlog?.recent || null,
       href: "/devlog"
     });
@@ -870,6 +1535,7 @@ export default async function HomePage({ searchParams }) {
       title: strings.cards.loreMemories.title,
       description: strings.cards.loreMemories.description,
       count: sectionData.loreMemories.count || 0,
+      recentActivities: sectionRecentLists.loreMemories || [],
       recentActivity: sectionData.loreMemories.recent || null,
       href: "/lore-memories"
     });

@@ -93,6 +93,7 @@ const adminPostTypeLabel = (targetType, postCategory) => {
 
 export default function NotificationsMenu({
   open,
+  onClose,
   unreadCount,
   items,
   status,

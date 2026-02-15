@@ -70,3 +70,22 @@
 - Verification after simplification:
   - `npm run lint` -> pass
   - `npm run build` -> pass
+
+## Follow-up Fix: Header Clipping + Notifications Runtime Error
+- Reported issues:
+  - Library dropdown appeared constrained/clipped by header instead of rendering clearly below.
+  - Clicking notifications triggered client-side application error.
+- Root causes:
+  - Header center container still clipped overflow in this layout path.
+  - `NotificationsMenu` still invoked `onClose(...)` internally, but `onClose` had been removed from component props during simplification, causing runtime ReferenceError.
+- Fixes:
+  - `src/app/globals.css`
+    - `.header-center` -> `overflow: visible` to allow dropdown rendering below header.
+  - `src/components/NotificationsMenu.js`
+    - Restored `onClose` in function props.
+  - `src/components/SiteHeader.js`
+    - Continues passing `onClose` behavior through notifications usage paths.
+- Final verification:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass
+  - Re-ran lint/build again after user confirmation request -> pass/pass.

@@ -167,3 +167,26 @@
 - Build checks:
   - `npm run lint` -> pass
   - `npm run build` -> pass
+
+## Follow-up: Event Detail UI Rearrangement (Invite + Replies)
+
+### Objective
+- Simplify the engagement card wording/structure.
+- Reorder replies content so comment actions appear after existing replies/empty-state text.
+
+### Changes applied
+- Engagement card invite area:
+  - Removed separate `Invitations` title line.
+  - Kept a single `Invite People` button.
+  - Expands to an `Invite People` panel for selection controls.
+- Replies card structure:
+  - Removed the extra `Posts` subheading/divider.
+  - Replies list / empty state (`No comments yet.`) now appears first.
+  - `Post comment` action now appears beneath that section.
+
+### Files
+- `src/components/EventEngagementSection.js`
+- `src/components/EventCommentsSection.js`
+
+### Verification
+- `npm run lint` -> pass

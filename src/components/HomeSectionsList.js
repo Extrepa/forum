@@ -33,6 +33,7 @@ export default function HomeSectionsList({ sections, usernameColorMap }) {
           title={section.title}
           description={section.description}
           count={section.count}
+          recentActivities={section.recentActivities}
           recentActivity={section.recentActivity}
           href={section.href}
           usernameColorMap={usernameColorMap}

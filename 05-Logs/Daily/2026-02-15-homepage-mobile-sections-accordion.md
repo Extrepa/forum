@@ -77,3 +77,21 @@
 - Homepage sections are significantly more scannable on mobile.
 - Full section information remains available on demand.
 - Interaction model now balances quick browsing with depth.
+
+## Final Follow-up (Mixed Activity Top-3)
+- Updated collapsed row layout:
+  - Section title + shortened description now share one line.
+  - Count, activity dot, and expand indicator remain on the right.
+- Updated expanded row behavior:
+  - `Open section` is now inline with the recent-activity header.
+  - Latest activity rows are directly clickable (`Latest drip` line itself), removing need for a separate latest-activity button.
+- Added true mixed activity feed per section (top 3):
+  - Combines posts + replies/comments, sorted newest-first.
+  - Not just UI duplication of a single latest item.
+- Technical wiring:
+  - `src/app/page.js` now builds per-section `recentActivities` arrays with merged activity sources.
+  - `src/components/HomeSectionsList.js` passes `recentActivities`.
+  - `src/components/HomeSectionCard.js` renders up to 3 compact recent lines in expanded mode.
+- Verification rerun after final changes:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass

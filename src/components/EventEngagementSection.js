@@ -168,12 +168,14 @@ export default function EventEngagementSection({
       {canInvite ? (
         <>
           <div className="list-divider" style={{ margin: '12px 0' }} />
-          <h3 className="section-title" style={{ marginTop: 0 }}>Invitations</h3>
           <button type="button" onClick={() => setShowInvitePanel((v) => !v)}>
-            {showInvitePanel ? 'Close invites' : 'Invite people'}
+            {showInvitePanel ? 'Close Invite People' : 'Invite People'}
           </button>
           {showInvitePanel ? (
             <div style={{ marginTop: '10px', border: '1px solid var(--line)', borderRadius: '10px', padding: '12px' }}>
+              <h4 className="section-title" style={{ marginTop: 0, marginBottom: '10px', fontSize: '14px' }}>
+                Invite People
+              </h4>
               <div style={{ marginBottom: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <input type="checkbox" checked={inviteAll} onChange={(e) => setInviteAll(e.target.checked)} />

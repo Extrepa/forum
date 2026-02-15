@@ -1133,6 +1133,16 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               </div>
             </div>
 
+            <ErrlTabSwitcher
+              tabs={EDIT_PROFILE_SUB_TABS}
+              activeTab={editProfileSubTab}
+              onTabChange={handleSubTabChange}
+              className=""
+              renderTabLabel={renderTabLabel}
+              getTabClassName={getTabClassName}
+              colorSequence={TAB_COLOR_SEQUENCE}
+            />
+
             {editProfileSubTab === 'username' && (
               <div style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
@@ -1272,15 +1282,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
               </div>
             )}
 
-            <ErrlTabSwitcher
-              tabs={EDIT_PROFILE_SUB_TABS}
-              activeTab={editProfileSubTab}
-              onTabChange={handleSubTabChange}
-              className=""
-              renderTabLabel={renderTabLabel}
-              getTabClassName={getTabClassName}
-              colorSequence={TAB_COLOR_SEQUENCE}
-            />
             {editProfileSubTab && (
             <div className="account-edit-tab-content account-edit-tab-content--above">
               {editProfileSubTab === 'mood' && (
