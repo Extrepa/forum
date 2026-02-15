@@ -98,7 +98,7 @@ export default function DevLogClient({ logs, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {logs.length === 0 ? (
             <p className="muted">No Development posts yet.</p>
           ) : (
@@ -153,7 +153,7 @@ export default function DevLogClient({ logs, notice , headerActions}) {
                         Comments locked
                       </span>
                     ) : null}
-                    {row.image_key ? (
+                    {row.image_key && (!condensed || row.is_pinned) ? (
                       <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""

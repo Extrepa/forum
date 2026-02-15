@@ -25,7 +25,7 @@ export default function ArtNostalgiaClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {posts.length === 0 ? (
             <p className="muted">No posts yet.</p>
           ) : (
@@ -71,7 +71,7 @@ export default function ArtNostalgiaClient({ posts, notice , headerActions}) {
                       {p.type === 'art' ? 'Art' : 'Nostalgia'}
                       {p.is_private ? ' · Members-only' : ''}
                     </span>
-                    {!condensed && p.image_key ? (
+                    {p.image_key && (!condensed || p.is_pinned) ? (
                     <Image
                       src={`/api/media/${p.image_key}`}
                       alt=""

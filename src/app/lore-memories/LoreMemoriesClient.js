@@ -24,7 +24,7 @@ export default function LoreMemoriesClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {posts.length === 0 ? (
             <p className="muted">No posts yet.</p>
           ) : (

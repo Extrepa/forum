@@ -25,7 +25,7 @@ export default function ArtClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {posts.length === 0 ? (
             <p className="muted">No art yet.</p>
           ) : (
@@ -78,7 +78,7 @@ export default function ArtClient({ posts, notice , headerActions}) {
                       Members-only
                     </span>
                   ) : null}
-                  {!condensed && p.image_key ? (
+                  {p.image_key && (!condensed || p.is_pinned) ? (
                     <Image
                       src={`/api/media/${p.image_key}`}
                       alt=""

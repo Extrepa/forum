@@ -27,7 +27,7 @@ export default function EventsClient({ events, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {events.length === 0 ? (
             <p className="muted">{strings.cards.events.empty}</p>
           ) : (
@@ -98,7 +98,7 @@ export default function EventsClient({ events, notice , headerActions}) {
                     {!condensed && row.details ? (
                       <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
-                    {row.image_key ? (
+                    {row.image_key && (!condensed || row.is_pinned) ? (
                       <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""

@@ -538,6 +538,48 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     });
   };
 
+  const handleClearSystemLog = ({ clearAll = false } = {}) => {
+    const targetEntries = clearAll ? allSystemLogEntries : filteredSystemLogEntries;
+    if (targetEntries.length === 0) {
+      pushNotice('No log entries to clear.', 'info');
+      return;
+    }
+    const prompt = clearAll
+      ? `Clear all ${targetEntries.length} loaded system log entries?`
+      : `Clear ${targetEntries.length} currently visible system log entries?`;
+    if (!confirm(prompt)) return;
+
+    const targetIds = new Set(targetEntries.map((entry) => entry.id));
+    setSystemLogEntries((prev) => prev.filter((entry) => !targetIds.has(entry.id)));
+    setSystemLogArchives((prev) => {
+      const next = [];
+      prev.forEach((archive) => {
+        const remaining = archive.entries.filter((entry) => !targetIds.has(entry.id));
+        if (remaining.length === 0) {
+          try {
+            URL.revokeObjectURL(archive.url);
+          } catch (_) {
+            // ignore URL revoke failures
+          }
+          archiveUrlsRef.current = archiveUrlsRef.current.filter((url) => url !== archive.url);
+          return;
+        }
+        next.push({
+          ...archive,
+          entries: remaining
+        });
+      });
+      return next;
+    });
+    const label = clearAll ? 'all loaded' : 'filtered';
+    pushNotice(`Cleared ${targetEntries.length} ${label} system log entries.`, 'success');
+    appendSystemLog(`Cleared ${targetEntries.length} ${label} system log entries.`, {
+      source: 'system',
+      actor: 'admin',
+      actionType: 'delete'
+    });
+  };
+
   const handleJumpToAuditLog = () => {
     setActiveTab('Overview');
     if (typeof window !== 'undefined') {
@@ -988,29 +1030,32 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const quickActions = [
     { label: 'Create announcement', href: '/announcements', title: 'Create a new announcement post' },
     { label: 'Mod queue', href: '/admin?tab=reports', title: 'Open moderation queue' },
+    { label: 'Moderation', href: '/admin/moderation', title: 'Open moderation toolkit' },
     { label: 'Audit log', action: handleJumpToAuditLog, title: 'Jump to recent admin actions' },
     { label: 'Backup status', href: '/admin/backups', title: 'Review backup status and workflows' }
   ];
 
-  const trafficSeries = [
+  const activitySeries = [
     { label: 'Active (24h)', value: stats.active24h || 0 },
     { label: 'Posts (24h)', value: stats.posts24h || 0 },
     { label: 'Comments (24h)', value: stats.comments24h || 0 },
     { label: 'Active (7d)', value: stats.active7d || 0 },
     { label: 'Posts (7d)', value: stats.posts7d || 0 },
-    { label: 'Comments (7d)', value: stats.comments7d || 0 },
+    { label: 'Comments (7d)', value: stats.comments7d || 0 }
+  ].map((point, index) => ({ ...point, color: TRAFFIC_BAR_COLORS[index % TRAFFIC_BAR_COLORS.length] }));
+  const operationalTotals = [
     { label: 'Hidden posts', value: stats.hiddenPosts || 0 },
     { label: 'Locked posts', value: stats.lockedPosts || 0 },
     { label: 'Pinned posts', value: stats.pinnedPosts || 0 },
     { label: 'Flagged', value: stats.flaggedItems || 0 },
     { label: 'Open reports', value: reports.length || 0 },
     { label: 'Audit rows', value: actions.length || 0 }
-  ].map((point, index) => ({ ...point, color: TRAFFIC_BAR_COLORS[index % TRAFFIC_BAR_COLORS.length] }));
-  const maxTrafficValue = Math.max(...trafficSeries.map((point) => point.value), 1);
-  const minTrafficValue = Math.min(...trafficSeries.map((point) => point.value), 0);
+  ];
+  const maxTrafficValue = Math.max(...activitySeries.map((point) => point.value), 1);
+  const minTrafficValue = Math.min(...activitySeries.map((point) => point.value), 0);
   const midTrafficValue = Math.round(maxTrafficValue / 2);
   const avgTrafficValue = Math.round(
-    (trafficSeries.reduce((sum, point) => sum + point.value, 0) / Math.max(trafficSeries.length, 1)) * 10
+    (activitySeries.reduce((sum, point) => sum + point.value, 0) / Math.max(activitySeries.length, 1)) * 10
   ) / 10;
 
   return (
@@ -1074,34 +1119,38 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             <div id="admin-actions" className="admin-overview-layout">
               <div className="admin-overview-feed-column">
                 <div className="admin-overview-feed-scroll">
-                  <div className="admin-panel">
+                  <div className="admin-panel admin-panel--scroll-list">
                     <h3 className="section-title">Recent admin actions</h3>
                     {actions.length === 0 ? (
                       <p className="muted">No admin activity captured yet.</p>
                     ) : (
+                      <div className="admin-panel-list-scroll">
+                        <ul className="admin-action-list">
+                          {actions.map((action) => (
+                            <li key={action.id}>
+                              <strong>{action.admin_username}</strong> {action.action_type.replace('_', ' ')} {action.target_type}
+                              {action.target_id ? ` (${action.target_id})` : ''}
+                              <div className="muted" style={{ fontSize: '13px' }}>{formatTime(action.created_at)}</div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  <div className="admin-panel admin-panel--scroll-list">
+                    <h3 className="section-title">Latest threads</h3>
+                    <div className="admin-panel-list-scroll">
                       <ul className="admin-action-list">
-                        {actions.map((action) => (
-                          <li key={action.id}>
-                            <strong>{action.admin_username}</strong> {action.action_type.replace('_', ' ')} {action.target_type}
-                            {action.target_id ? ` (${action.target_id})` : ''}
-                            <div className="muted" style={{ fontSize: '13px' }}>{formatTime(action.created_at)}</div>
+                        {postList.map((post) => (
+                          <li key={postKey(post)}>
+                            <strong>{post.title}</strong>
+                            <div className="muted" style={{ fontSize: '12px' }}>
+                              {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
+                            </div>
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </div>
-                  <div className="admin-panel">
-                    <h3 className="section-title">Latest threads</h3>
-                    <ul className="admin-action-list">
-                      {postList.slice(0, 6).map((post) => (
-                        <li key={postKey(post)}>
-                          <strong>{post.title}</strong>
-                          <div className="muted" style={{ fontSize: '12px' }}>
-                            {post.sectionLabel} · {post.authorName} · {formatTime(post.createdAt)}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1109,9 +1158,6 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 <div className="admin-panel-header-row">
                   <h3 className="section-title">System log</h3>
                   <div className="admin-system-log-actions">
-                    <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
-                      Export .md
-                    </button>
                     <button type="button" className="button mini ghost" onClick={() => setActiveTab('System Log')}>
                       Open tab
                     </button>
@@ -1122,6 +1168,49 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                     <span>system.log</span>
                     <span className="admin-system-log-dot" aria-hidden="true" />
                   </div>
+                  <div className="admin-system-log-controls">
+                    <label className="admin-system-log-filter">
+                      <span className="muted">User</span>
+                      <select value={logUserFilter} onChange={(event) => setLogUserFilter(event.target.value)}>
+                        <option value="all">All users</option>
+                        {logUserOptions.map((userName) => (
+                          <option key={userName} value={userName}>{userName}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="admin-system-log-filter">
+                      <span className="muted">Action type</span>
+                      <select value={logTypeFilter} onChange={(event) => setLogTypeFilter(event.target.value)}>
+                        <option value="all">All actions</option>
+                        {logTypeOptions.map((actionType) => (
+                          <option key={actionType} value={actionType}>{formatActionLabel(actionType)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="admin-system-log-actions">
+                      <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
+                        Export filtered .md
+                      </button>
+                      <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: true })}>
+                        Export full .md
+                      </button>
+                      <button type="button" className="button mini ghost" onClick={() => handleClearSystemLog({ clearAll: false })}>
+                        Clear visible
+                      </button>
+                    </div>
+                  </div>
+                  {systemLogArchives.length > 0 ? (
+                    <div className="admin-system-log-archives">
+                      <p className="muted">Archived log files:</p>
+                      <div className="admin-system-log-archive-list">
+                        {systemLogArchives.map((archive) => (
+                          <a key={archive.id} className="button mini ghost" href={archive.url} download={archive.name}>
+                            Download {archive.name} ({archive.entries.length})
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                   <ul className="admin-system-log-list">
                     {filteredSystemLogEntries.slice(0, 14).map((entry) => (
                       <li key={entry.id} className={`admin-system-log-line admin-system-log-line--${entry.level || 'info'}`}>
@@ -1141,7 +1230,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
           <section className="card stack admin-system-tab">
             <div className="admin-traffic-card">
               <div className="admin-traffic-header-row">
-                <h3 className="section-title">Network traffic</h3>
+                <h3 className="section-title">Network activity</h3>
                 <div className="admin-traffic-summary muted">
                   <span>Low: {minTrafficValue}</span>
                   <span>Avg: {avgTrafficValue}</span>
@@ -1154,8 +1243,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   <span>{midTrafficValue}</span>
                   <span>0</span>
                 </div>
-                <div className="admin-traffic-bars">
-                  {trafficSeries.map((point) => {
+                <div className="admin-traffic-bars" style={{ gridTemplateColumns: `repeat(${activitySeries.length}, minmax(0, 1fr))` }}>
+                  {activitySeries.map((point) => {
                     const height = Math.max(16, Math.round((point.value / maxTrafficValue) * 100));
                     return (
                       <div
@@ -1172,8 +1261,8 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   })}
                 </div>
               </div>
-              <div className="admin-traffic-legend" role="list" aria-label="Network traffic metrics">
-                {trafficSeries.map((point) => (
+              <div className="admin-traffic-legend" role="list" aria-label="Network activity metrics">
+                {activitySeries.map((point) => (
                   <div key={`legend-${point.label}`} className="admin-traffic-legend-item" role="listitem">
                     <span className="admin-traffic-legend-swatch" style={{ background: point.color }} aria-hidden="true" />
                     <span className="admin-traffic-legend-label">{point.label}</span>
@@ -1181,52 +1270,69 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="admin-system-log-controls">
-              <label className="admin-system-log-filter">
-                <span className="muted">User</span>
-                <select value={logUserFilter} onChange={(event) => setLogUserFilter(event.target.value)}>
-                  <option value="all">All users</option>
-                  {logUserOptions.map((userName) => (
-                    <option key={userName} value={userName}>{userName}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="admin-system-log-filter">
-                <span className="muted">Action type</span>
-                <select value={logTypeFilter} onChange={(event) => setLogTypeFilter(event.target.value)}>
-                  <option value="all">All actions</option>
-                  {logTypeOptions.map((actionType) => (
-                    <option key={actionType} value={actionType}>{formatActionLabel(actionType)}</option>
-                  ))}
-                </select>
-              </label>
-              <div className="admin-system-log-actions">
-                <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
-                  Export filtered .md
-                </button>
-                <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: true })}>
-                  Export full .md
-                </button>
-              </div>
-            </div>
-            {systemLogArchives.length > 0 ? (
-              <div className="admin-system-log-archives">
-                <p className="muted">Archived log files (auto-created as log grows):</p>
-                <div className="admin-system-log-archive-list">
-                  {systemLogArchives.map((archive) => (
-                    <a key={archive.id} className="button mini ghost" href={archive.url} download={archive.name}>
-                      Download {archive.name} ({archive.entries.length})
-                    </a>
+              <div className="admin-operational-totals">
+                <h4 className="admin-operational-title">Operational totals</h4>
+                <div className="admin-operational-grid">
+                  {operationalTotals.map((metric) => (
+                    <div key={metric.label} className="admin-operational-item">
+                      <span className="admin-operational-label">{metric.label}</span>
+                      <strong className="admin-operational-value">{metric.value}</strong>
+                    </div>
                   ))}
                 </div>
               </div>
-            ) : null}
+            </div>
             <div className="admin-system-log-window admin-system-log-window--expanded">
               <div className="admin-system-log-titlebar">
                 <span>system.log</span>
                 <span className="admin-system-log-dot" aria-hidden="true" />
               </div>
+              <div className="admin-system-log-controls">
+                <label className="admin-system-log-filter">
+                  <span className="muted">User</span>
+                  <select value={logUserFilter} onChange={(event) => setLogUserFilter(event.target.value)}>
+                    <option value="all">All users</option>
+                    {logUserOptions.map((userName) => (
+                      <option key={userName} value={userName}>{userName}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="admin-system-log-filter">
+                  <span className="muted">Action type</span>
+                  <select value={logTypeFilter} onChange={(event) => setLogTypeFilter(event.target.value)}>
+                    <option value="all">All actions</option>
+                    {logTypeOptions.map((actionType) => (
+                      <option key={actionType} value={actionType}>{formatActionLabel(actionType)}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="admin-system-log-actions">
+                  <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: false })}>
+                    Export filtered .md
+                  </button>
+                  <button type="button" className="button mini ghost" onClick={() => handleExportSystemLogMarkdown({ includeAll: true })}>
+                    Export full .md
+                  </button>
+                  <button type="button" className="button mini ghost" onClick={() => handleClearSystemLog({ clearAll: false })}>
+                    Clear visible
+                  </button>
+                  <button type="button" className="button mini ghost" onClick={() => handleClearSystemLog({ clearAll: true })}>
+                    Clear all loaded
+                  </button>
+                </div>
+              </div>
+              {systemLogArchives.length > 0 ? (
+                <div className="admin-system-log-archives">
+                  <p className="muted">Archived log files (auto-created as log grows):</p>
+                  <div className="admin-system-log-archive-list">
+                    {systemLogArchives.map((archive) => (
+                      <a key={archive.id} className="button mini ghost" href={archive.url} download={archive.name}>
+                        Download {archive.name} ({archive.entries.length})
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <ul className="admin-system-log-list">
                 {filteredSystemLogEntries.length === 0 ? (
                   <li className="admin-system-log-line admin-system-log-line--info">
@@ -1692,51 +1798,95 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         )}
 
         {activeTab === 'Settings' && (
-          <section className="card stack">
+          <section className="card stack admin-settings-panel">
             <h3 className="section-title">Settings</h3>
             <p className="muted">Global toggles for admin workflows.</p>
-            <p className="muted">
-              Image uploads are currently {imageUploadsEnabled ? 'enabled' : 'disabled'}.
-            </p>
-            <div className="stack" style={{ gap: '12px' }}>
-              <button type="button" onClick={handleToggleImageUploads} disabled={settingsBusy}>
-                {settingsBusy
-                  ? 'Saving...'
-                  : (imageUploadsEnabled ? 'Disable image uploads' : 'Enable image uploads')}
-              </button>
-              <p className="muted" style={{ margin: 0 }}>
-                Changes save immediately and show confirmation in the admin notice bar.
-              </p>
+            <div className="admin-settings-grid">
+              <div className="admin-settings-row">
+                <div className="admin-settings-copy">
+                  <strong>Image uploads</strong>
+                  <p className="muted">Currently {imageUploadsEnabled ? 'enabled' : 'disabled'}. Saves immediately and confirms in notice bar.</p>
+                </div>
+                <div className="admin-settings-actions">
+                  <button type="button" className="button mini" onClick={handleToggleImageUploads} disabled={settingsBusy}>
+                    {settingsBusy ? 'Saving...' : (imageUploadsEnabled ? 'Disable uploads' : 'Enable uploads')}
+                  </button>
+                </div>
+              </div>
+              <div className="admin-settings-row">
+                <div className="admin-settings-copy">
+                  <strong>Navigation tip broadcast</strong>
+                  <p className="muted">Sends one-time guidance for notifications and account/admin links in the header menu.</p>
+                </div>
+                <div className="admin-settings-actions">
+                  <button
+                    type="button"
+                    className="button mini"
+                    onClick={handleSendNavigationTip}
+                    disabled={notificationBroadcastBusy}
+                    title="Send one-time navigation guidance notification to all users"
+                  >
+                    {notificationBroadcastBusy ? 'Sending...' : 'Send tip'}
+                  </button>
+                </div>
+              </div>
+              <div className={`admin-settings-composer ${broadcastComposerOpen ? 'admin-settings-composer--open' : ''}`}>
+                <div className="admin-settings-row">
+                  <div className="admin-settings-copy">
+                    <strong>Custom broadcast</strong>
+                    <p className="muted">Open the composer to draft and send a site-wide in-app notification.</p>
+                  </div>
+                  <div className="admin-settings-actions">
+                    <button
+                      type="button"
+                      className="button mini ghost"
+                      onClick={() => setBroadcastComposerOpen((open) => !open)}
+                      disabled={broadcastSendBusy}
+                      title="Open composer to send a custom in-app notification to all users"
+                    >
+                      {broadcastComposerOpen ? 'Collapse' : 'Compose'}
+                    </button>
+                  </div>
+                </div>
+                {broadcastComposerOpen ? (
+                  <div className="admin-settings-composer-body">
+                    <label>
+                      <div className="muted">Message</div>
+                      <textarea
+                        value={broadcastMessageDraft}
+                        onChange={(event) => setBroadcastMessageDraft(event.target.value)}
+                        rows={4}
+                        maxLength={280}
+                        placeholder="Example: Notifications are now in the Messages icon in the top right. Use the three-dot menu for Account, Profile, and Admin."
+                        style={{ resize: 'vertical' }}
+                      />
+                    </label>
+                    <div className="admin-settings-composer-footer">
+                      <span className="muted">{broadcastMessageDraft.trim().length}/280</span>
+                      <div className="admin-settings-actions">
+                        <button
+                          type="button"
+                          className="button mini"
+                          onClick={handleSendCustomBroadcast}
+                          disabled={!broadcastMessageDraft.trim() || broadcastSendBusy}
+                        >
+                          {broadcastSendBusy ? 'Sending...' : 'Send broadcast'}
+                        </button>
+                        <button
+                          type="button"
+                          className="button mini ghost"
+                          onClick={() => setBroadcastComposerOpen(false)}
+                          disabled={broadcastSendBusy}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
-            <div className="stack" style={{ gap: '8px' }}>
-              <button
-                type="button"
-                onClick={handleSendNavigationTip}
-                disabled={notificationBroadcastBusy}
-                title="Send one-time navigation guidance notification to all users"
-              >
-                {notificationBroadcastBusy ? 'Sending navigation tip...' : 'Send navigation tip to all users'}
-              </button>
-              <p className="muted" style={{ margin: 0 }}>
-                Sends a one-time in-app message explaining notifications are in the header Messages icon and account/admin links are in the three-dot menu.
-              </p>
-              {notificationBroadcastMessage ? <div className="notice">{notificationBroadcastMessage}</div> : null}
-            </div>
-            <div className="stack" style={{ gap: '8px' }}>
-              <button
-                type="button"
-                className="button ghost"
-                onClick={() => setBroadcastComposerOpen(true)}
-                disabled={broadcastSendBusy}
-                title="Open composer to send a custom in-app notification to all users"
-              >
-                Compose broadcast notification
-              </button>
-              <p className="muted" style={{ margin: 0 }}>
-                Opens a pop-out composer so you can send a custom site-wide in-app notification any time.
-              </p>
-            </div>
-            <a className="action-button" href="/admin/moderation">More moderation tools</a>
+            {notificationBroadcastMessage ? <div className="notice">{notificationBroadcastMessage}</div> : null}
           </section>
         )}
 
@@ -1979,57 +2129,6 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         </CreatePostModal>
       ) : null}
 
-      {broadcastComposerOpen ? (
-        <CreatePostModal
-          isOpen={broadcastComposerOpen}
-          onClose={() => {
-            if (!broadcastSendBusy) setBroadcastComposerOpen(false);
-          }}
-          title="Broadcast notification"
-          className="admin-drawer admin-drawer--wide"
-          maxWidth="560px"
-          confirmOnUnsavedChanges
-        >
-          <div className="stack" style={{ gap: '10px' }}>
-            <p className="muted" style={{ margin: 0 }}>
-              This sends an in-app notification to all users. Keep it short and clear.
-            </p>
-            <label>
-              <div className="muted">Message</div>
-              <textarea
-                value={broadcastMessageDraft}
-                onChange={(event) => setBroadcastMessageDraft(event.target.value)}
-                rows={4}
-                maxLength={280}
-                placeholder="Example: Notifications are now in the Messages icon in the top right. Use the three-dot menu for Account, Profile, and Admin."
-                style={{ resize: 'vertical' }}
-              />
-            </label>
-            <div className="muted" style={{ fontSize: '12px' }}>
-              {broadcastMessageDraft.trim().length}/280
-            </div>
-            <div className="admin-drawer-actions">
-              <button
-                type="button"
-                onClick={handleSendCustomBroadcast}
-                disabled={!broadcastMessageDraft.trim() || broadcastSendBusy}
-              >
-                {broadcastSendBusy ? 'Sending...' : 'Send to all users'}
-              </button>
-              <button
-                type="button"
-                className="button ghost"
-                onClick={() => {
-                  if (!broadcastSendBusy) setBroadcastComposerOpen(false);
-                }}
-                disabled={broadcastSendBusy}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </CreatePostModal>
-      ) : null}
     </div>
   );
 }

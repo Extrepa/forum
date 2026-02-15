@@ -40,7 +40,7 @@ export default function ShitpostsClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {posts.length === 0 ? (
             <p className="muted">{strings.cards.shitposts.empty}</p>
           ) : (
@@ -87,7 +87,7 @@ export default function ShitpostsClient({ posts, notice , headerActions}) {
                       titleHref={`/lobby/${row.id}`}
                       showTitleLink={false}
                     />
-                    {!condensed && row.image_key ? (
+                    {row.image_key && (!condensed || row.is_pinned) ? (
                       <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""

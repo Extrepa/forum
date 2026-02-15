@@ -103,7 +103,7 @@ export default function ForumClient({ announcements = [], stickies = [], threads
         {items.length === 0 ? (
           <p className="muted">No threads yet.</p>
         ) : (
-          <div className="list">
+          <div className="list list--tight">
             {items.map((row) => renderItem(row, { condensed: true }))}
           </div>
         )}

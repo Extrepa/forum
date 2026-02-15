@@ -26,7 +26,7 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list">
+        <div className="list list--tight">
           {updates.length === 0 ? (
             <p className="muted">{strings.cards.announcements.empty}</p>
           ) : (
@@ -74,7 +74,7 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
                       titleHref={`${basePath}/${row.id}`}
                       showTitleLink={false}
                     />
-                    {row.image_key ? (
+                    {row.image_key && (!condensed || row.is_pinned) ? (
                       <Image
                         src={`/api/media/${row.image_key}`}
                         alt=""
