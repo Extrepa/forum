@@ -95,3 +95,14 @@
 - Verification rerun after final changes:
   - `npm run lint` -> pass
   - `npm run build` -> pass
+
+## Follow-up (Expanded Card Copy Cleanup)
+- User-requested copy adjustment in compact expanded cards:
+  - Removed the `Recent activity {timeAgo}` header line.
+  - Added one shared `Latest drip:` label above the recent items list.
+  - Removed repeated `Latest drip:` prefix from each list row so each row now reads as plain activity text + time.
+- File updated:
+  - `src/components/HomeSectionCard.js`
+- Double-check performed:
+  - Verified expanded-mode render now contains only one `Latest drip:` label (header-level).
+  - Verified `Recent activity` text is no longer present in compact expanded card output.

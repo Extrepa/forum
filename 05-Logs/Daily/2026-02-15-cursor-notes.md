@@ -340,3 +340,27 @@
   - `npm run build` (pass)
 - Note:
   - Worktree contains unrelated pre-existing edits outside this scope (including non-homepage `globals.css` areas). Homepage task changes were kept scoped to section-card behavior and data wiring.
+
+## UI Follow-up: Header Library Dropdown (Mobile Visibility + List Width Stability)
+- Additional CSS-only refinement applied for the header Library menu:
+  - Prevented small-viewport clipping by allowing small-breakpoint `.header-nav` overflow to remain visible for anchored dropdown rendering.
+  - Set a stable responsive menu width to avoid perceived width change when hovering list items.
+  - Reserved right-side scrollbar gutter/padding so list text is not obscured.
+- Files updated:
+  - `src/app/globals.css`
+  - `05-Logs/Daily/2026-02-15-library-notification-popover-positioning.md` (detailed section)
+- Verification rerun:
+  - `npm run lint` (pass)
+  - `npm run build` (pass)
+
+## UI Follow-up: Homepage Expanded Section Copy Cleanup
+- Request:
+  - Remove `Recent activity ...` line in expanded homepage section cards and avoid repeating `Latest drip:` on every item row.
+- Change applied:
+  - Updated `src/components/HomeSectionCard.js` compact expanded view:
+    - Replaced dynamic `Recent activity {timeAgo}` header text with a single static `Latest drip:` header label.
+    - Removed per-row `Latest drip:` prefix from each recent activity item.
+    - Kept list ordering/limit unchanged (top 3 recent mixed activities).
+- Double-check:
+  - Verified component now contains one `Latest drip:` label for compact expanded cards.
+  - Verified compact expanded card no longer renders `Recent activity` text.

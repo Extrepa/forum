@@ -338,9 +338,9 @@ a {
   top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  width: max-content;
-  min-width: 0;
-  max-width: min(226px, 86vw);
+  width: min(236px, 86vw);
+  min-width: min(236px, 86vw);
+  max-width: min(236px, 86vw);
   padding: 6px;
   border-radius: 12px;
   border: 1px solid rgba(22, 58, 74, 0.6);
@@ -432,7 +432,9 @@ a {
   gap: 3px;
   max-height: min(44vh, 300px);
   overflow-y: auto;
-  padding-right: 1px;
+  padding-right: 8px;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(52, 225, 255, 0.55) rgba(3, 12, 18, 0.35);
 }
@@ -453,6 +455,8 @@ a {
 
 .header-library-list a {
   display: block;
+  width: 100%;
+  box-sizing: border-box;
   padding: 4px 6px;
   border-radius: 7px;
   border: 1px solid transparent;
@@ -473,10 +477,13 @@ a {
 }
 
 .header-library-item-label {
+  display: block;
   font-size: 10.5px;
   font-weight: 600;
   line-height: 1.15;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-library-empty {
@@ -847,9 +854,7 @@ a {
   .header-nav {
     max-width: 100%;
     min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
+    overflow: visible;
     padding-bottom: 2px;
   }
 
@@ -947,14 +952,7 @@ a {
     max-width: 100%;
     justify-content: flex-start;
     flex-wrap: nowrap !important;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .header-nav::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
 
   .header-nav > a,

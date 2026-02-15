@@ -83,9 +83,11 @@ export default function HomeSectionCard({
         {isExpanded && (
           <div className="home-section-card__details">
             <div className="home-section-card__details-head">
-              <span className="home-section-card__status-text" suppressHydrationWarning>
-                {recentItems.length > 0 ? `Recent activity ${recentItems[0].timeAgo || 'just now'}` : 'Quiet right now'}
-              </span>
+              {recentItems.length > 0 ? (
+                <span className="home-section-card__status-text">Latest drip:</span>
+              ) : (
+                <span />
+              )}
               <Link href={href} className="home-section-card__section-link">
                 Open section
               </Link>
@@ -95,7 +97,7 @@ export default function HomeSectionCard({
                 {recentItems.slice(0, 3).map((item, idx) => (
                   <li key={`${item.href}-${idx}`} className="home-section-card__recent-item">
                     <Link href={item.href} className="home-section-card__recent-link" suppressHydrationWarning>
-                      Latest drip: {renderActivityDescription(item)} · <span suppressHydrationWarning>{item.timeAgo || 'just now'}</span>
+                      {renderActivityDescription(item)} · <span suppressHydrationWarning>{item.timeAgo || 'just now'}</span>
                     </Link>
                   </li>
                 ))}

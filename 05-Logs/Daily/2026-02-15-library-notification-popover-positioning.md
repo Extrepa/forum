@@ -89,3 +89,26 @@
   - `npm run lint` -> pass
   - `npm run build` -> pass
   - Re-ran lint/build again after user confirmation request -> pass/pass.
+
+## Follow-up Fix: Library Dropdown on Small Viewports + Scrollbar Overlap
+- Reported issues:
+  - Library dropdown was not reliably visible on mobile/smaller viewports.
+  - Hovering library items appeared to change row width.
+  - Scrollbar could overlap list content.
+- Root causes:
+  - Small-breakpoint `.header-nav` rules used scroll/hidden overflow behavior that could clip absolutely positioned dropdown content.
+  - Library menu width was content-driven, so visual width could feel inconsistent as row states changed.
+  - Library list reserved almost no right gutter for the scrollbar track/thumb.
+- Fixes:
+  - `src/app/globals.css`
+    - `.header-nav` under small-breakpoint blocks now uses `overflow: visible` so the anchored library menu can render outside the nav row.
+    - `.header-library-menu` now uses a stable responsive width (`min(236px, 86vw)`) rather than `max-content`.
+    - `.header-library-list` now reserves scrollbar space via:
+      - `padding-right: 8px`
+      - `box-sizing: border-box`
+      - `scrollbar-gutter: stable`
+    - `.header-library-list a` now fills row width consistently (`width: 100%`, `box-sizing: border-box`).
+    - `.header-library-item-label` now truncates safely (`display: block`, `overflow: hidden`, `text-overflow: ellipsis`).
+- Re-verification:
+  - `npm run lint` -> pass
+  - `npm run build` -> pass
