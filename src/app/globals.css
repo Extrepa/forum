@@ -3121,17 +3121,15 @@ form {
   width: 100%;
 }
 
-.formatting-toolbar {
-  position: static;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  max-width: 100%;
-  justify-content: flex-start;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  z-index: 1;
+  .formatting-toolbar {
+    position: static;
+    display: flex;
+    gap: 4px;
+    max-width: 100%;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    z-index: 1;
 }
 
 .formatting-toolbar::-webkit-scrollbar {
@@ -3155,7 +3153,6 @@ form {
 
 @media (max-width: 640px) {
   .formatting-toolbar {
-    flex-wrap: nowrap;
     gap: 4px;
   }
 
@@ -8179,7 +8176,6 @@ header::before {
 }
 
 .edit-post-modal .formatting-toolbar {
-  overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }

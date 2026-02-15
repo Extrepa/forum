@@ -13,6 +13,12 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Ensure Wrangler writes logs inside the repo (sandbox blocks $HOME)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WRANGLER_HOME="$SCRIPT_DIR/.wrangler"
+export WRANGLER_HOME
+mkdir -p "$WRANGLER_HOME/logs"
+
 echo -e "${BLUE}🚀 Errl Forum Deployment Script${NC}"
 echo ""
 
