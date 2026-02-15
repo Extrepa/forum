@@ -181,10 +181,11 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
 
     const updatePosition = () => {
       const rect = libraryAnchorRef.current.getBoundingClientRect();
-      const edgePadding = window.innerWidth <= 640 ? 8 : 12;
-      const preferredWidth = libraryFilterOpen ? 224 : 206;
-      const menuWidth = Math.max(174, Math.min(preferredWidth, window.innerWidth - (edgePadding * 2)));
-      let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+      const edgePadding = window.innerWidth <= 640 ? 10 : 16;
+      const minMenuWidth = window.innerWidth <= 640 ? 160 : 174;
+      const idealMenuWidth = libraryFilterOpen ? 224 : 206;
+      const menuWidth = Math.max(minMenuWidth, Math.min(idealMenuWidth, window.innerWidth - (edgePadding * 2)));
+      let left = libraryAnchorRef.current.getBoundingClientRect().left;
       if (left + menuWidth > window.innerWidth - edgePadding) {
         left = window.innerWidth - menuWidth - edgePadding;
       }
