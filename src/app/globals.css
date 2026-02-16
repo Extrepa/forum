@@ -2388,13 +2388,13 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
 
 .section-intro__meta {
   min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 2px;
 }
 
 .section-intro__title {
@@ -4676,10 +4676,10 @@ button.ghost:hover,
 }
 
 .list.list--tight {
-  gap: 4px;
+  gap: 2px;
 }
 
-/* PostMetaBar: title row, by-user row (block never splits), last-activity + stats column */
+/* PostMetaBar: single top row (title + stats), then by-line; stats one line, no wrap */
 .post-meta-inline-date {
   display: inline-block;
   white-space: nowrap;
@@ -4695,17 +4695,46 @@ button.ghost:hover,
   min-width: 0;
 }
 
-.post-meta-stats-column {
+.post-meta-stats-inline {
   white-space: nowrap;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: rgba(52, 225, 255, 0.06);
-  border: 1px solid rgba(52, 225, 255, 0.12);
 }
 
-.post-meta-stat-line {
-  display: block;
-  line-height: 1.25;
+/* Feed event details: one line on large, stack on small */
+.event-details-row {
+  margin-top: 2px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.event-details-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.event-details-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.event-details-icon {
+  color: var(--errl-accent-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .event-details-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .event-details-item {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 767px) {
@@ -5735,8 +5764,8 @@ a.profile-activity-item:hover {
 
 .list-item {
   border: 1px solid rgba(22, 58, 74, 0.6);
-  border-radius: 14px;
-  padding: 6px 12px 8px;
+  border-radius: 12px;
+  padding: 4px 10px 5px;
   background: rgba(4, 16, 23, 0.7);
   position: relative;
   isolation: isolate;
@@ -8052,7 +8081,7 @@ header::before {
   }
 
   .list-item {
-    padding: 8px 12px;
+    padding: 5px 10px;
   }
 
   .list-item h3 {
@@ -8317,7 +8346,7 @@ header::before {
   }
 
   .list-item {
-    padding: 10px 14px;
+    padding: 6px 10px;
   }
 }
 

@@ -595,73 +595,46 @@ export default async function FeedPage() {
                         const hasPassed = completionAt > 0 && Date.now() > completionAt;
                         const hasAttendedOrActivity = item.attendeeCount > 0 || (item.lastActivity && item.replies > 0);
                         return (
-                          <>
-                      {/* Event row 3: Starts + (optional) attended/last activity in one block */}
-                      <div className="event-details-row" style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                        marginTop: '4px',
-                        fontSize: '12px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{ color: 'var(--errl-accent-3)', flexShrink: 0 }}
-                          >
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                          </svg>
-                          <span className="muted" style={{ color: 'var(--errl-accent-3)', fontSize: '12px' }}>
-                            Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
-                            {!hasPassed && isEventUpcoming(item.startsAt) ? (
-                              <span className="muted" style={{ marginLeft: '4px', color: 'var(--errl-accent-3)' }}>
-                                ({formatRelativeEventDate(item.startsAt)})
+                          <div className="event-details-row">
+                            <div className="event-details-inner">
+                              <span className="event-details-item">
+                                <svg className="event-details-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                  <line x1="16" y1="2" x2="16" y2="6" />
+                                  <line x1="8" y1="2" x2="8" y2="6" />
+                                  <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                <span className="muted">
+                                  Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
+                                  {!hasPassed && isEventUpcoming(item.startsAt) ? (
+                                    <span className="muted"> ({formatRelativeEventDate(item.startsAt)})</span>
+                                  ) : null}
+                                  {hasPassed ? <span className="muted"> (Event happened)</span> : null}
+                                </span>
                               </span>
-                            ) : null}
-                            {hasPassed ? (
-                              <span className="muted" style={{ marginLeft: '4px', color: 'var(--errl-accent-3)' }}>
-                                (Event happened)
-                              </span>
-                            ) : null}
-                          </span>
-                        </div>
-                        {hasAttendedOrActivity && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: '20px' }}>
-                            {item.attendeeCount > 0 && (
-                              <span className="muted" title={item.attendeeNames.join(', ')}>
-                                {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
-                                  <span key={name}>
-                                    {i > 0 ? ', ' : ''}
-                                    <Username
-                                      name={name}
-                                      colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
-                                      preferredColorIndex={preferredColors.get(name)}
-                                    />
-                                  </span>
-                                ))}
-                              </span>
-                            )}
-                            {item.lastActivity && item.replies > 0 && (
-                              <span className="muted">
-                                Last activity{item.lastActivityBy ? (
-                                  <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                                ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
-                              </span>
-                            )}
+                              {item.attendeeCount > 0 && (
+                                <span className="event-details-item muted" title={item.attendeeNames.join(', ')}>
+                                  {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
+                                    <span key={name}>
+                                      {i > 0 ? ', ' : ''}
+                                      <Username
+                                        name={name}
+                                        colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
+                                        preferredColorIndex={preferredColors.get(name)}
+                                      />
+                                    </span>
+                                  ))}
+                                </span>
+                              )}
+                              {item.lastActivity && item.replies > 0 && (
+                                <span className="event-details-item muted">
+                                  Last activity{item.lastActivityBy ? (
+                                    <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
+                                  ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                          </>
                         );
                       })()}
                     </>

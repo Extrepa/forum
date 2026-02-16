@@ -6,11 +6,9 @@ import { formatDateTime } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout: two columns, same rows. Left column = title, by user, last activity.
- * Right column = stats (still a vertical column), aligned to the same rows:
- * Row 1: Title only (left).
- * Row 2: "by username at time" (left) | first stat or full stats column (right).
- * Row 3 (when last activity): Last activity (left) | remaining stats stacked (right).
+ * Layout: Row 1 = title + (type) on left, stats on right (one line, no wrap).
+ * Row 2 = "by user at time" and optionally "Last activity by ..." (wraps on small).
+ * Stats stay on one line (e.g. "21 views · 1 reply · 1 like").
  */
 export default function PostMetaBar({
   title,
@@ -44,14 +42,13 @@ export default function PostMetaBar({
   ].filter(Boolean);
 
   const hasStats = statLines.length > 0 && !hideStats;
-  const isCondensed = replies === 0;
   const hasLastActivity = Boolean(lastActivity && replies > 0);
 
   const TitleElement = showTitleLink && titleHref ? 'a' : 'span';
   const titleProps = showTitleLink && titleHref ? { href: titleHref } : {};
 
   const byUserAtTime = (
-    <span className="post-meta-by-block muted" style={{ fontSize: '14px' }}>
+    <span className="post-meta-by-block muted" style={{ fontSize: '12px' }}>
       by <Username
         name={author}
         colorIndex={authorColorIndex}
@@ -61,94 +58,59 @@ export default function PostMetaBar({
     </span>
   );
 
-  const statsColumnStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: '1px',
-    lineHeight: 1.25,
-    fontSize: '12px',
-    flexShrink: 0
-  };
-  const firstStat = hasStats ? statLines[0] : null;
-  const restStats = hasStats && statLines.length > 1 ? statLines.slice(1) : [];
-
-  const row2Right = hasStats && (
-    !hasLastActivity
-      ? (
-          <div className="post-meta-stats-column muted" style={statsColumnStyle}>
-            {statLines.map((line) => (
-              <span key={line} className="post-meta-stat-line">{line}</span>
-            ))}
-          </div>
-        )
-      : firstStat != null && (
-          <div className="post-meta-stats-column muted" style={statsColumnStyle}>
-            <span className="post-meta-stat-line">{firstStat}</span>
-          </div>
-        )
-  );
-
-  const row3Right = hasLastActivity && restStats.length > 0 && (
-    <div className="post-meta-stats-column muted" style={statsColumnStyle}>
-      {restStats.map((line) => (
-        <span key={line} className="post-meta-stat-line">{line}</span>
-      ))}
-    </div>
-  );
+  const statsInline = hasStats ? (
+    <span className="post-meta-stats-inline muted" style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+      {statLines.join(' \u00B7 ')}
+    </span>
+  ) : null;
 
   return (
-    <div className={`${className} post-meta ${isCondensed ? 'post-meta--condensed' : ''}`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      {/* Row 1: Title only so it wraps cleanly */}
-      <div className="post-meta-row1 post-meta-title-row" style={{ minWidth: 0 }}>
+    <div className={`${className} post-meta`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
+      {/* Row 1: Title (left, can wrap) + stats (right, one line) */}
+      <div
+        className="post-meta-row1 post-meta-title-row"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '8px',
+          flexWrap: 'wrap',
+          minWidth: 0
+        }}
+      >
         <TitleElement
           {...titleProps}
-          style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
+          style={{ ...(showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}), minWidth: 0, flex: '1 1 auto' }}
         >
-          <h3 style={{ margin: 0, display: 'inline' }}>{title}</h3>
+          <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
+        {statsInline}
       </div>
 
-      {/* Row 2: "by user at time" (left) | first stat or full stats column (right) */}
+      {/* Row 2: by user at time; on same row as last activity when present for compactness */}
       <div
         className="post-meta-row2 post-meta-by-row"
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          flexWrap: 'wrap',
           alignItems: 'center',
-          gap: '8px',
-          flexWrap: 'nowrap',
-          minWidth: 0
+          gap: '4px 10px',
+          minWidth: 0,
+          fontSize: '12px'
         }}
       >
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>{byUserAtTime}</div>
-        {row2Right}
-      </div>
-
-      {/* Row 3: Last activity (left) | remaining stats column (right) */}
-      {hasLastActivity && (
-        <div
-          className="post-meta-row3"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: '8px',
-            flexWrap: 'nowrap',
-            fontSize: '12px',
-            minWidth: 0
-          }}
-        >
-          <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-            <span className="post-meta-last-activity muted" style={{ display: 'block' }}>
+        {byUserAtTime}
+        {hasLastActivity && (
+          <>
+            <span className="muted" style={{ flexShrink: 0 }}>\u00B7</span>
+            <span className="post-meta-last-activity muted">
               Last activity{lastActivityBy ? (
                 <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
               ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
             </span>
-          </div>
-          {row3Right}
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
