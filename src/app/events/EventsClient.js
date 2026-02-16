@@ -74,6 +74,7 @@ export default function EventsClient({ events, notice , headerActions}) {
                 const hasPassed = completionAt > 0 && Date.now() > completionAt;
                 const attendeeLabel = hasPassed ? 'attended' : 'attending';
                 const attendeeTitle = row.attendee_names?.length ? row.attendee_names.join(', ') : '';
+                const showAttendingTag = row.user_attending && !hasPassed;
 
                 return (
                   <a
@@ -96,22 +97,18 @@ export default function EventsClient({ events, notice , headerActions}) {
                       showTitleLink={false}
                       authorDateInline={condensed}
                     />
-                    {!condensed && row.details ? (
-                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
-                    ) : null}
-                    {row.image_key && (!condensed || row.is_pinned) ? (
-                      <Image
-                        src={`/api/media/${row.image_key}`}
-                        alt=""
-                        className="post-image"
-                        width={1200}
-                        height={800}
-                        loading="lazy"
-                        unoptimized
-                        style={{ marginTop: '8px', marginBottom: '8px' }}
-                      />
-                    ) : null}
-                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: condensed ? '12px' : '14px' }}>
+                    <div
+                      className="event-info-row"
+                      style={{
+                        marginTop: '8px',
+                        display: 'flex',
+                        flexWrap: condensed ? 'nowrap' : 'wrap',
+                        alignItems: 'center',
+                        gap: condensed ? '4px' : '6px',
+                        fontSize: condensed ? '12px' : '14px',
+                        minWidth: 0,
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 auto', minWidth: 0 }}>
                         <svg
                           width={condensed ? "12" : "14"}
@@ -130,7 +127,13 @@ export default function EventsClient({ events, notice , headerActions}) {
                           <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
                         <span
-                          style={{ fontSize: condensed ? '11px' : '12px', color: 'var(--muted)' }}
+                          style={{
+                            fontSize: condensed ? '11px' : '12px',
+                            color: 'var(--muted)',
+                            whiteSpace: condensed ? 'nowrap' : 'normal',
+                            overflow: condensed ? 'hidden' : 'visible',
+                            textOverflow: condensed ? 'ellipsis' : 'clip',
+                          }}
                           suppressHydrationWarning
                         >
                           {formatEventDate(row.starts_at)} {formatEventTime(row.starts_at)}
@@ -150,18 +153,33 @@ export default function EventsClient({ events, notice , headerActions}) {
                             </span>
                           ) : null}
                         </span>
-                        {row.user_attending ? (
-                          <span style={{ marginLeft: '8px', color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px' }}>
-                            ✓ Attending
-                          </span>
-                        ) : null}
                       </div>
-                      {(row.last_activity_at || row.created_at) && (row.comment_count || 0) > 0 ? (
-                          <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: condensed ? '11px' : '12px' }} suppressHydrationWarning>
+                      {showAttendingTag ? (
+                        <span style={{ color: 'var(--errl-accent-4)', fontSize: condensed ? '11px' : '12px', flexShrink: 0 }}>
+                          ✓ Attending
+                        </span>
+                      ) : null}
+                      {!condensed && (row.last_activity_at || row.created_at) && (row.comment_count || 0) > 0 ? (
+                        <span className="muted" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '12px' }} suppressHydrationWarning>
                           Last activity at {formatDateTime(row.last_activity_at || row.created_at)}
                         </span>
                       ) : null}
                     </div>
+                    {row.image_key && (!condensed || row.is_pinned) ? (
+                      <Image
+                        src={`/api/media/${row.image_key}`}
+                        alt=""
+                        className="post-image"
+                        width={1200}
+                        height={800}
+                        loading="lazy"
+                        unoptimized
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
+                      />
+                    ) : null}
+                    {!condensed && row.details ? (
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                    ) : null}
                   </a>
                 );
               };

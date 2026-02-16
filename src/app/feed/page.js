@@ -637,41 +637,43 @@ export default async function FeedPage() {
                           </span>
                         </div>
                       </div>
-                      {/* Bottom Row: Attending List on left, Last Activity on right */}
-                      <div style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                        marginTop: '8px',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                        rowGap: '4px'
-                      }}>
-                        {/* Bottom Left: Attending List */}
-                        {item.attendeeCount > 0 && (
-                          <span style={{ color: 'var(--muted)' }} title={item.attendeeNames.join(', ')}>
-                            {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
-                              <span key={name}>
-                                {i > 0 ? ', ' : ''}
-                                <Username 
-                                  name={name}
-                                  colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
-                                  preferredColorIndex={preferredColors.get(name)}
-                                />
-                              </span>
-                            ))}
-                          </span>
-                        )}
-                        {/* Bottom Right: Last Activity - hide when no replies (avoids duplicating author) */}
-                        {item.lastActivity && item.replies > 0 && (
-                          <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-                            Last activity{item.lastActivityBy ? (
-                              <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                            ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
-                          </span>
-                        )}
-                      </div>
+                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0)) && (
+                        /* Bottom Row: Attending List on left, Last Activity on right */
+                        <div style={{ 
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '12px',
+                          marginTop: '8px',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          rowGap: '4px'
+                        }}>
+                          {/* Bottom Left: Attending List */}
+                          {item.attendeeCount > 0 && (
+                            <span style={{ color: 'var(--muted)' }} title={item.attendeeNames.join(', ')}>
+                              {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
+                                <span key={name}>
+                                  {i > 0 ? ', ' : ''}
+                                  <Username 
+                                    name={name}
+                                    colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
+                                    preferredColorIndex={preferredColors.get(name)}
+                                  />
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                          {/* Bottom Right: Last Activity - hide when no replies (avoids duplicating author) */}
+                          {item.lastActivity && item.replies > 0 && (
+                            <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                              Last activity{item.lastActivityBy ? (
+                                <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
+                              ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
                           </>
                         );
                       })()}

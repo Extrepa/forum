@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import EditPostButtonWithPanel from './EditPostButtonWithPanel';
 import EditPostModal from './EditPostModal';
 
@@ -15,11 +16,13 @@ export default function PostActionMenu({
   const [hovering, setHovering] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState({});
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef(null);
   const popoverRef = useRef(null);
   const closeTimer = useRef(null);
 
   useEffect(() => {
+    setMounted(true);
     return () => {
       if (closeTimer.current) {
         window.clearTimeout(closeTimer.current);
@@ -79,6 +82,11 @@ export default function PostActionMenu({
       let top = anchorRect.top + (anchorRect.height / 2) - (panelHeight / 2);
       top = Math.max(edgePadding, Math.min(top, viewportHeight - panelHeight - edgePadding));
 
+      if (viewportWidth <= 640) {
+        left = Math.max(edgePadding, Math.min(anchorRect.right - panelWidth, viewportWidth - panelWidth - edgePadding));
+        top = Math.min(anchorRect.bottom + gap, viewportHeight - panelHeight - edgePadding);
+      }
+
       setPopoverStyle({
         position: 'fixed',
         left: `${left}px`,
@@ -86,6 +94,7 @@ export default function PostActionMenu({
         right: 'auto',
         transform: 'none',
         maxWidth: `${Math.max(160, viewportWidth - (edgePadding * 2))}px`,
+        zIndex: 4000,
       });
     };
 
@@ -136,6 +145,22 @@ export default function PostActionMenu({
   };
 
   const containerClass = showMenu ? 'post-action-menu post-action-menu--active' : 'post-action-menu';
+  const popover = showMenu ? (
+    <div
+      ref={popoverRef}
+      className="post-action-menu__popover"
+      style={popoverStyle}
+      onMouseEnter={handlePointerEnter}
+      onMouseLeave={handlePointerLeave}
+    >
+      <div className="post-action-menu__left">
+        {children}
+      </div>
+      {rightChildren ? (
+        <div className="post-action-menu__right">{rightChildren}</div>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <div
@@ -151,22 +176,7 @@ export default function PostActionMenu({
         buttonLabel={buttonLabel} 
         onOpen={() => setIsEditModalOpen(true)} 
       />
-      {showMenu && (
-        <div
-          ref={popoverRef}
-          className="post-action-menu__popover"
-          style={popoverStyle}
-          onMouseEnter={handlePointerEnter}
-          onMouseLeave={handlePointerLeave}
-        >
-          <div className="post-action-menu__left">
-            {children}
-          </div>
-          {rightChildren ? (
-            <div className="post-action-menu__right">{rightChildren}</div>
-          ) : null}
-        </div>
-      )}
+      {mounted && popover ? createPortal(popover, document.body) : null}
       {editModal && (
         <EditPostModal
           isOpen={isEditModalOpen}

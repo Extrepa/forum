@@ -152,7 +152,7 @@ export default function EventEngagementSection({
         <p className="muted" style={{ marginTop: 0 }}>No one has marked attending yet.</p>
       )}
 
-      {user ? (
+      {user && !eventHasPassed ? (
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
           <input
             type="checkbox"
@@ -162,7 +162,7 @@ export default function EventEngagementSection({
           />
           <span>I&apos;m attending</span>
         </label>
-      ) : (
+      ) : user ? null : (
         <p className="muted" style={{ marginBottom: '10px' }}>Sign in to mark attendance.</p>
       )}
 

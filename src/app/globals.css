@@ -4623,6 +4623,9 @@ button.ghost:hover,
 
 /* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
 @media (min-width: 768px) {
+  .post-meta-inline-date-mobile-only {
+    display: none !important;
+  }
   /* Condensed desktop: author next to title (left), stats on right; hide mobile meta row */
   .post-meta-condensed-author-desktop {
     display: inline !important;
@@ -4659,6 +4662,12 @@ button.ghost:hover,
 }
 
 @media (max-width: 767px) {
+  .post-meta-inline-date-mobile-only {
+    display: inline !important;
+  }
+  .post-meta-date-desktop-only {
+    display: none !important;
+  }
   .post-meta-condensed-author-desktop {
     display: none !important;
   }
@@ -8691,7 +8700,7 @@ header::before {
   background: var(--card);
   backdrop-filter: blur(12px);
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
-  z-index: 90;
+  z-index: 4000;
   white-space: nowrap;
   min-width: 180px;
   max-width: calc(100vw - 32px);
@@ -8711,6 +8720,8 @@ header::before {
     gap: 6px;
     padding: 4px 8px;
     min-width: 0;
+    white-space: normal;
+    flex-wrap: wrap;
     max-width: calc(100vw - 32px);
   }
 

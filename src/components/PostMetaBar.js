@@ -51,6 +51,7 @@ export default function PostMetaBar({
   const titleProps = showTitleLink && titleHref ? { href: titleHref } : {};
 
   const isCondensed = replies === 0;
+  const showMobileInlineDate = Boolean(createdAt && !authorDateInline && !isCondensed);
   const hasDateRow = Boolean(createdAt && replies > 0 && !authorDateInline);
   const hasMobileStatsRow = Boolean(topRight && !isCondensed);
   const hasLastActivity = Boolean(lastActivity && replies > 0);
@@ -82,6 +83,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
+              {showMobileInlineDate ? <> at <span className="post-meta-inline-date post-meta-inline-date-mobile-only" style={{ fontSize: '12px', whiteSpace: 'nowrap' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
               {authorDateInline && createdAt ? <> at <span className="post-meta-inline-date" style={{ fontSize: '12px', whiteSpace: 'nowrap' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
           )}
@@ -136,7 +138,7 @@ export default function PostMetaBar({
           minWidth: 0
         }}>
           {hasDateRow && (
-            <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
+            <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''} ${showMobileInlineDate ? 'post-meta-date-desktop-only' : ''}`.trim()} suppressHydrationWarning>
               {formatDateTime(createdAt)}
             </span>
           )}
