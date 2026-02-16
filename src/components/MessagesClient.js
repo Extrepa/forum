@@ -7,20 +7,15 @@ import Username from './Username';
 import { formatTimeAgo, formatDateTimeShort } from '../lib/dates';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { renderMarkdown } from '../lib/markdown';
-const CARD_STYLE = {
-  padding: '16px 20px',
-  borderRadius: 'var(--radius)',
-  border: '1px solid rgba(52, 225, 255, 0.28)',
-  background: 'rgba(2, 7, 10, 0.6)',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-};
 
+const MOBILE_BREAKPOINT = 720;
+/* Match forum design: softer radii (12–14px), pill shapes for chips */
 const INPUT_STYLE = {
   width: '100%',
   padding: '10px 14px',
-  borderRadius: '8px',
-  border: '1px solid rgba(52, 225, 255, 0.35)',
-  background: 'rgba(2, 7, 10, 0.7)',
+  borderRadius: '12px',
+  border: '1px solid rgba(52, 225, 255, 0.3)',
+  background: 'rgba(2, 7, 10, 0.6)',
   color: 'var(--ink)',
   fontSize: '14px',
 };
@@ -42,6 +37,22 @@ function truncate(str, max = 60) {
   return s.length <= max ? s : s.slice(0, max - 1) + '...';
 }
 
+function applyFormatting(textareaRef, setBody, before, after = '') {
+  if (!textareaRef?.current) return;
+  const ta = textareaRef.current;
+  const start = ta.selectionStart || 0;
+  const end = ta.selectionEnd || 0;
+  const value = ta.value;
+  const selected = value.slice(start, end);
+  const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
+  const cursor = start + before.length + selected.length + after.length;
+  setBody(nextValue);
+  setTimeout(() => {
+    ta.focus();
+    ta.setSelectionRange(cursor, cursor);
+  }, 0);
+}
+
 export default function MessagesClient({ user, isAdmin }) {
   const searchParams = useSearchParams();
   const initialConversationId = searchParams?.get('conversation') || searchParams?.get('id') || null;
@@ -61,8 +72,20 @@ export default function MessagesClient({ user, isAdmin }) {
   const [broadcastRole, setBroadcastRole] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [mobileView, setMobileView] = useState('list'); // 'list' | 'conversation'
+  const [recentUsers, setRecentUsers] = useState([]);
   const messagesEndRef = useRef(null);
   const searchDebounceRef = useRef(null);
+  const replyBodyRef = useRef(null);
+  const composeBodyRef = useRef(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const fetchConversations = useCallback(async () => {
     if (!user) return;
@@ -107,6 +130,13 @@ export default function MessagesClient({ user, isAdmin }) {
   }, [initialConversationId]);
 
   useEffect(() => {
+    if (isMobile) {
+      setMobileView(selectedId ? 'conversation' : 'list');
+    }
+  }, [selectedId, isMobile]);
+
+  useEffect(() => {
+    setError(null);
     if (selectedId) {
       fetchConversation(selectedId);
     } else {
@@ -124,6 +154,7 @@ export default function MessagesClient({ user, isAdmin }) {
     const body = String(composeBody).trim();
     if (!body || !conversation) return;
     setSending(true);
+    setError(null);
     try {
       const res = await fetch(`/api/messages/conversations/${conversation.id}`, {
         method: 'POST',
@@ -134,6 +165,7 @@ export default function MessagesClient({ user, isAdmin }) {
       if (!res.ok) throw new Error(data.error || 'Failed to send');
       setMessages((prev) => [...prev, data.message]);
       setComposeBody('');
+      setError(null);
       fetchConversations();
     } catch (err) {
       setError(err.message);
@@ -182,6 +214,26 @@ export default function MessagesClient({ user, isAdmin }) {
   };
 
   useEffect(() => {
+    if (!composeOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setComposeOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [composeOpen]);
+
+  useEffect(() => {
+    if (composeOpen) {
+      fetch('/api/messages/users?list=recent')
+        .then((r) => r.json())
+        .then((d) => setRecentUsers(d.users || []))
+        .catch(() => setRecentUsers([]));
+    } else {
+      setRecentUsers([]);
+    }
+  }, [composeOpen]);
+
+  useEffect(() => {
     if (!userSearch || userSearch.length < 2) {
       setUserResults([]);
       return;
@@ -214,7 +266,7 @@ export default function MessagesClient({ user, isAdmin }) {
 
   if (!user) {
     return (
-      <div className="card" style={CARD_STYLE}>
+      <div className="card" style={{ padding: '16px 20px' }}>
         <h2 style={{ marginTop: 0 }}>Messages</h2>
         <p className="muted">Log in to send and view private messages.</p>
         <Link href="/account?tab=login" className="link" style={{ color: 'var(--errl-accent)' }}>
@@ -224,16 +276,30 @@ export default function MessagesClient({ user, isAdmin }) {
     );
   }
 
+  const showSidebar = !isMobile || mobileView === 'list';
+  const showMain = !isMobile || mobileView === 'conversation';
+
   return (
-    <div className="messages-layout" style={{ display: 'flex', gap: 16, minHeight: 400 }}>
+    <div
+      className="messages-layout"
+      style={{
+        display: 'flex',
+        minHeight: 400,
+        marginTop: 4,
+        gap: 0,
+      }}
+    >
       <aside
         className="messages-sidebar"
         style={{
-          width: 280,
+          width: isMobile ? '100%' : 280,
           flexShrink: 0,
-          ...CARD_STYLE,
-          maxHeight: 'min(70vh, 520px)',
+          padding: '16px 20px',
+          borderRight: isMobile ? 'none' : '1px solid rgba(22, 58, 74, 0.4)',
+          background: isMobile ? 'transparent' : 'rgba(4, 16, 23, 0.35)',
+          maxHeight: isMobile ? 'none' : 'min(70vh, 520px)',
           overflowY: 'auto',
+          display: showSidebar ? undefined : 'none',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -267,7 +333,7 @@ export default function MessagesClient({ user, isAdmin }) {
                   width: '100%',
                   textAlign: 'left',
                   padding: '10px 12px',
-                  borderRadius: 10,
+                  borderRadius: '12px',
                   border: selectedId === c.id ? '1px solid rgba(255, 52, 245, 0.5)' : '1px solid transparent',
                   background: selectedId === c.id ? 'rgba(255, 52, 245, 0.12)' : 'transparent',
                   color: 'var(--ink)',
@@ -275,8 +341,25 @@ export default function MessagesClient({ user, isAdmin }) {
                   transition: 'background 0.2s, border-color 0.2s',
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>
+                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  {c.type === 'group' && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        background: 'rgba(255, 52, 245, 0.2)',
+                        color: 'var(--errl-accent-2)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Group
+                    </span>
+                  )}
                   {c.display_name || 'Conversation'}
+                  {c.type === 'group' && c.participants?.length > 0 && (
+                    <span className="muted" style={{ fontSize: 10 }}>({c.participants.length} people)</span>
+                  )}
                 </div>
                 <div className="muted" style={{ fontSize: 11, lineHeight: 1.3 }}>
                   {truncate(c.last_message_preview, 45)}
@@ -295,12 +378,26 @@ export default function MessagesClient({ user, isAdmin }) {
         style={{
           flex: 1,
           minWidth: 0,
-          ...CARD_STYLE,
-          display: 'flex',
+          padding: '16px 20px',
+          display: showMain ? 'flex' : 'none',
           flexDirection: 'column',
-          maxHeight: 'min(70vh, 520px)',
+          maxHeight: isMobile ? 'none' : 'min(70vh, 520px)',
         }}
       >
+        {isMobile && showMain && (
+          <button
+            type="button"
+            onClick={() => setMobileView('list')}
+            style={{
+              ...BUTTON_STYLE,
+              alignSelf: 'flex-start',
+              marginBottom: 12,
+              fontSize: 12,
+            }}
+          >
+            ← Back to inbox
+          </button>
+        )}
         {!selectedId ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <p className="muted" style={{ textAlign: 'center' }}>
@@ -410,8 +507,8 @@ export default function MessagesClient({ user, isAdmin }) {
                     style={{
                       alignSelf: isOwn ? 'flex-end' : 'flex-start',
                       maxWidth: '85%',
-                      padding: '8px 12px',
-                      borderRadius: 12,
+                      padding: '10px 14px',
+                      borderRadius: '14px',
                       background: isOwn ? 'rgba(52, 225, 255, 0.15)' : 'rgba(7, 27, 37, 0.8)',
                       border: `1px solid ${isOwn ? 'rgba(52, 225, 255, 0.3)' : 'rgba(52, 225, 255, 0.2)'}`,
                     }}
@@ -437,30 +534,42 @@ export default function MessagesClient({ user, isAdmin }) {
               <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8 }}>
-              <textarea
-                value={composeBody}
-                onChange={(e) => setComposeBody(e.target.value)}
-                placeholder="Write a message..."
-                rows={2}
-                style={{
-                  ...INPUT_STYLE,
-                  flex: 1,
-                  resize: 'vertical',
-                  minHeight: 44,
-                }}
-              />
-              <button
-                type="submit"
-                disabled={sending || !composeBody.trim()}
-                style={{
-                  ...BUTTON_STYLE,
-                  alignSelf: 'flex-end',
-                  opacity: sending || !composeBody.trim() ? 0.6 : 1,
-                }}
-              >
-                Send
-              </button>
+            {error && (
+              <p style={{ color: '#ff6b6b', fontSize: 13, marginBottom: 8 }}>{error}</p>
+            )}
+
+            <form onSubmit={handleSendMessage} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="formatting-toolbar" style={{ marginBottom: 0 }}>
+                <button type="button" title="Bold" onClick={() => applyFormatting(replyBodyRef, setComposeBody, '**', '**')}>B</button>
+                <button type="button" title="Italic" onClick={() => applyFormatting(replyBodyRef, setComposeBody, '*', '*')}>I</button>
+                <button type="button" title="Code" onClick={() => applyFormatting(replyBodyRef, setComposeBody, '`', '`')}>`</button>
+                <button type="button" title="Link" onClick={() => applyFormatting(replyBodyRef, setComposeBody, '[text](', ')')}>[]</button>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                <textarea
+                  ref={replyBodyRef}
+                  value={composeBody}
+                  onChange={(e) => setComposeBody(e.target.value)}
+                  placeholder="Write a message... (Markdown supported)"
+                  rows={2}
+                  style={{
+                    ...INPUT_STYLE,
+                    flex: 1,
+                    resize: 'vertical',
+                    minHeight: 44,
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !composeBody.trim()}
+                  style={{
+                    ...BUTTON_STYLE,
+                    opacity: sending || !composeBody.trim() ? 0.6 : 1,
+                  }}
+                >
+                  Send
+                </button>
+              </div>
             </form>
           </>
         ) : null}
@@ -484,11 +593,12 @@ export default function MessagesClient({ user, isAdmin }) {
           onClick={(e) => e.target === e.currentTarget && setComposeOpen(false)}
         >
           <div
+            className="card messages-compose-modal"
             style={{
-              ...CARD_STYLE,
               width: 'min(440px, 100%)',
               maxHeight: '90vh',
               overflowY: 'auto',
+              padding: '20px 24px',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -520,24 +630,41 @@ export default function MessagesClient({ user, isAdmin }) {
                     type="text"
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
-                    placeholder="Search users..."
+                    placeholder="Search users or choose from list below..."
                     style={INPUT_STYLE}
                   />
-                  {userResults.length > 0 && (
+                  {selectedUsers.length >= 2 && (
+                    <div
+                  style={{
+                    marginTop: 8,
+                    padding: '8px 12px',
+                    borderRadius: '12px',
+                        background: 'rgba(255, 52, 245, 0.12)',
+                        border: '1px solid rgba(255, 52, 245, 0.3)',
+                        fontSize: 12,
+                        color: 'var(--errl-accent-2)',
+                      }}
+                    >
+                      Group conversation ({selectedUsers.length} recipients). Add a subject below to name the group.
+                    </div>
+                  )}
+                  {userSearch.length >= 2 && userResults.length > 0 && (
                     <div
                       style={{
                         marginTop: 4,
                         border: '1px solid rgba(52, 225, 255, 0.25)',
-                        borderRadius: 8,
-                        maxHeight: 120,
+                        borderRadius: '12px',
+                        maxHeight: 140,
                         overflowY: 'auto',
                       }}
                     >
+                      <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Search results</div>
                       {userResults.map((u) => (
                         <button
                           key={u.id}
                           type="button"
                           onClick={() => addUser(u)}
+                          disabled={selectedUsers.some((x) => x.id === u.id)}
                           style={{
                             display: 'block',
                             width: '100%',
@@ -548,6 +675,42 @@ export default function MessagesClient({ user, isAdmin }) {
                             color: 'var(--ink)',
                             cursor: 'pointer',
                             fontSize: 13,
+                            opacity: selectedUsers.some((x) => x.id === u.id) ? 0.5 : 1,
+                          }}
+                        >
+                          <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {userSearch.length < 2 && recentUsers.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: 4,
+                        border: '1px solid rgba(52, 225, 255, 0.25)',
+                        borderRadius: '12px',
+                        maxHeight: 140,
+                        overflowY: 'auto',
+                      }}
+                    >
+                      <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Recent conversations</div>
+                      {recentUsers.map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => addUser(u)}
+                          disabled={selectedUsers.some((x) => x.id === u.id)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '8px 12px',
+                            textAlign: 'left',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--ink)',
+                            cursor: 'pointer',
+                            fontSize: 13,
+                            opacity: selectedUsers.some((x) => x.id === u.id) ? 0.5 : 1,
                           }}
                         >
                           <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
@@ -591,12 +754,14 @@ export default function MessagesClient({ user, isAdmin }) {
                   )}
                 </div>
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Subject (optional, for groups)</label>
+                  <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                    {selectedUsers.length >= 2 ? 'Group name (recommended)' : 'Subject (optional, for groups)'}
+                  </label>
                   <input
                     type="text"
                     value={composeSubject}
                     onChange={(e) => setComposeSubject(e.target.value)}
-                    placeholder="Group subject"
+                    placeholder={selectedUsers.length >= 2 ? 'e.g. Trip planning, Project team' : 'Group subject'}
                     style={INPUT_STYLE}
                   />
                 </div>
@@ -605,10 +770,17 @@ export default function MessagesClient({ user, isAdmin }) {
 
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Message</label>
+              <div className="formatting-toolbar" style={{ marginBottom: 6 }}>
+                <button type="button" title="Bold" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '**', '**')}>B</button>
+                <button type="button" title="Italic" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '*', '*')}>I</button>
+                <button type="button" title="Code" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '`', '`')}>`</button>
+                <button type="button" title="Link" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '[text](', ')')}>[]</button>
+              </div>
               <textarea
+                ref={composeBodyRef}
                 value={composeBody}
                 onChange={(e) => setComposeBody(e.target.value)}
-                placeholder="Write your message..."
+                placeholder="Write your message... (Markdown supported)"
                 rows={4}
                 style={{ ...INPUT_STYLE, resize: 'vertical' }}
               />

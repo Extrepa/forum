@@ -50,9 +50,20 @@ export default function PostActionMenu({
       }
     };
 
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMenuOpen(false);
+        setHovering(false);
+        clearCloseTimer();
+      }
+    };
+
     document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, [hasExtras, menuOpen]);
 

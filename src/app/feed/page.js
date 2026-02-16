@@ -590,6 +590,7 @@ export default async function FeedPage() {
                       const eventEndAt = item.endsAt || item.startsAt;
                       const completionAt = getEventDayCompletionTimestamp(eventEndAt);
                       const hasPassed = completionAt > 0 && Date.now() > completionAt;
+                      const hasEventLastActivity = item.lastActivity && item.replies > 0;
                       const byUser = (
                         <span className="post-meta-by-block muted" style={{ fontSize: '12px' }}>
                           by <Username name={item.author} colorIndex={authorColorIndex} preferredColorIndex={authorPreferredColor} />
@@ -641,13 +642,23 @@ export default async function FeedPage() {
                           )}
                         </span>
                       );
+                      const eventLastActivityEl = hasEventLastActivity && (
+                        <span className="post-meta-last-activity post-meta-last-activity-inline muted" style={{ fontSize: '12px' }}>
+                          Last activity{item.lastActivityBy ? (
+                            <> by <Username
+                              name={item.lastActivityBy}
+                              colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })}
+                              preferredColorIndex={preferredColors.get(item.lastActivityBy)}
+                            /></>
+                          ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
+                        </span>
+                      );
                       return (
-                        <>
-                          <div className="event-row2">
-                            {byUser}
-                            <span className="event-row2-middle">{eventInfo}</span>
-                          </div>
-                        </>
+                        <div className={`event-row2${hasEventLastActivity ? ' event-row2-with-activity' : ''}`}>
+                          {byUser}
+                          <span className="event-row2-middle">{eventInfo}</span>
+                          {eventLastActivityEl}
+                        </div>
                       );
                     })() : null}
                   />

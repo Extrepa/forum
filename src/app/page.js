@@ -1655,7 +1655,7 @@ export default async function HomePage({ searchParams }) {
 
       {hasUsername && (
         <section className="card">
-          <h3 className="section-title" style={{ marginBottom: '16px' }}>
+          <h3 className="section-title" style={{ marginBottom: '10px' }}>
             Explore Sections
           </h3>
           <HomeSectionsList

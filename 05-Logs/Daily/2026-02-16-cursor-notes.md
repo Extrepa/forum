@@ -1,5 +1,158 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Keyboard controls across forum (2026-02-16)
+
+**Request:** Add keyboard controls wherever appropriate for adaptability/accessibility.
+
+**Changes:**
+
+1. **SearchResultsPopover** (`src/components/SearchResultsPopover.js`): Result items are focusable with `role="button"`, `tabIndex={0}`; Enter/Space activate; Escape closes popover.
+2. **PostActionMenu** (`src/components/PostActionMenu.js`): Escape closes the action popover when open.
+3. **SiteHeader** (`src/components/SiteHeader.js`): Library menu supports ArrowDown/ArrowUp and Home/End to move focus between search input and library links when menu is open. (Escape already closed all menus.)
+4. **ErrlTabSwitcher** (`src/components/ErrlTabSwitcher.js`): Tab list supports ArrowLeft/ArrowRight (and ArrowUp/ArrowDown), Home and End to switch tabs from keyboard.
+5. **CreatePostModal** (`src/components/CreatePostModal.js`): Focus trap when open—focus moves to first focusable element; Tab/Shift+Tab wrap inside modal so focus cannot leave. (Escape already closed.)
+6. **UserPopover** (`src/components/UserPopover.js`): Escape closes the popover.
+7. **BoomboxWidget** (`src/components/boombox/BoomboxWidget.js`): Track row clickable area has `role="button"`, `tabIndex={0}`, Enter/Space to select/play; `aria-label` for play/now-playing.
+
+Existing keyboard support kept/unchanged: NotificationsMenu items (Enter/Space), CreatePostModal and DeleteConfirmModal (Escape), HomeSectionCard (Enter/Space on card, button for toggle), ProfileTabsClient gallery tiles (Enter/Space).
+
+### Verification (double-check)
+
+| Component | What was verified | Notes |
+|-----------|-------------------|--------|
+| **SearchResultsPopover** | Escape listener (doc), result items role/tabIndex/onKeyDown/aria-label | Escape only registered when `results.length > 0`; inner Username span uses stopPropagation so clicking author doesn't trigger card navigate. |
+| **PostActionMenu** | handleEscape in same effect as handlePointerDown, clears menu + hovering + timer | Listener only when `hasExtras && menuOpen`; cleanup removes both pointerdown and keydown. |
+| **SiteHeader** | Library menu ArrowUp/Down, Home/End on focusable (input + links) | `focusable` includes search input when `libraryFilterOpen`; effect deps `[libraryOpen, libraryFilterOpen]`; Escape left to existing global handler. |
+| **ErrlTabSwitcher** | handleTabListKeyDown on tablist div; role=tab check; index from tabButtonsRef | Arrow Left/Up = prev, Right/Down = next; Home/End; onTabChange(tabs[nextIndex].id) then focus tab button. Ref array matches tabs order. |
+| **CreatePostModal** | Focus trap effect: focus first focusable on open; Tab only prevented when wrapping (first->last or last->first) | getFocusable() used on open and in handler (fresh list); no preventDefault when focus moves naturally inside modal. |
+| **UserPopover** | Escape listener with onClose; cleanup on unmount | Document-level listener; no conflict with other Escape handlers (order of handlers undefined but all call their onClose). |
+| **BoomboxWidget** | errl-boombox__trackLeft: role=button, tabIndex=0, Enter/Space, aria-label | Play/Remove remain real buttons; track row is additional focusable target for same action. |
+
+**Lint:** No linter errors reported on modified files.
+
+---
+
+## Messages page: mobile layout, user picker, group UI, design polish (2026-02-16)
+
+**Request:** Reorganize messages page; fix broken mobile layout; add user list in To section; improve group messaging UI; align with forum design (less square/boxy).
+
+**Changes:**
+
+1. **Mobile-responsive layout** (`src/components/MessagesClient.js`):
+   - On viewports &lt; 720px: single-pane view—show either Inbox list OR conversation (not side-by-side)
+   - Added `mobileView` state: `'list'` | `'conversation'`
+   - "Back to inbox" button when viewing a conversation on mobile
+   - Breakpoint constant `MOBILE_BREAKPOINT = 720`
+
+2. **User picker in To section**:
+   - **API** (`src/app/api/messages/users/route.js`): Added `?list=recent` param—returns users from recent conversations (up to 20) for quick picker without typing
+   - Compose modal: "Recent conversations" list shown by default (people you've messaged)
+   - Search results (2+ chars) labeled "Search results"
+   - Placeholder: "Search users or choose from list below..."
+
+3. **Group messaging UI**:
+   - When 2+ recipients selected: prominent "Group conversation (N recipients)" hint with subject prompt
+   - Subject label: "Group name (recommended)" for groups vs "Subject (optional, for groups)" for DMs
+   - Inbox list: "Group" badge (pill-shaped) and "(N people)" for group conversations
+
+4. **Design consistency (less square)**:
+   - **Inputs**: borderRadius 8px → 12px (matches forum `.notice`, create-post inputs)
+   - **Pills/chips**: Group badge and selected-user chips use `borderRadius: '999px'`
+   - **Layout**: Removed heavy nested card styling; sidebar and main are sub-regions of the page card with a subtle divider and light background tint on sidebar
+   - **Message bubbles**: 14px radius (was 12px)
+   - **Dropdowns**: User picker lists use 12px radius
+   - **Compose modal**: Uses `card` class and `messages-compose-modal` for forum-consistent modal styling
+
+5. **CSS** (`src/app/globals.css`): `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; `.messages-compose-modal` for modal radius and input styling.
+
+### Additional polish (2026-02-16)
+
+6. **Markdown formatting**:
+   - Formatting toolbar (Bold, Italic, Code, Link) on both inline reply and compose modal—borrowed pattern from ReplyForm
+   - Message display: `dm-message-body` uses same markdown styling as `post-body` (links, blockquotes, code blocks)
+   - Placeholder: "Write a message... (Markdown supported)"
+
+7. **UX details**:
+   - Escape key closes compose modal
+   - Error shown in conversation view when send fails; cleared on success and on conversation switch
+   - Compose validation: "Select at least one recipient" when To is empty (non-broadcast)
+
+### Full audit: messages feature coverage
+
+| Feature | Status | Notes |
+|--------|--------|------|
+| Single (DM) messages | OK | Create with 1 recipient; inbox shows direct convos |
+| Group messages | OK | 2+ recipients; subject/group name; Group badge in inbox |
+| Composing | OK | New message modal; inline reply in conversation; user picker + recent list |
+| Deleting | OK | Admin: delete conversation; Any: leave conversation |
+| Markdown display | OK | renderMarkdown + dm-message-body CSS |
+| Markdown input | OK | Formatting toolbar on both compose areas |
+| Editing messages | Not implemented | Would need PATCH API + UI; dm_messages has no edited_at |
+| Delete own message | Not implemented | Would need PATCH/soft-delete API; dm_messages has is_deleted |
+| Broadcast (admin) | OK | Send to role (all, user, drip_nomad, mod, admin) |
+| Mobile layout | OK | Single-pane; Back to inbox |
+| Error handling | OK | Shown in modal and conversation view |
+| Escape to close | OK | Compose modal |
+
+### Verification checklist (2026-02-16)
+
+- [ ] **Mobile (< 720px)**: Inbox shows full-width; tapping a conversation switches to conversation view; "Back to inbox" returns to list; no truncated "Select conver or st new" text
+- [ ] **Desktop**: Two-column layout; sidebar has light background tint and right border; main area clean
+- [ ] **Compose modal**: Opens with "Recent conversations" list when no search; typing 2+ chars shows search results; selecting users adds pills; 2+ users shows group hint; Escape closes
+- [ ] **Formatting**: Bold/Italic/Code/Link buttons work on inline reply and compose modal
+- [ ] **Markdown display**: Links, code, blockquotes render correctly in message bubbles
+- [ ] **API `/api/messages/users?list=recent`**: Returns recent conversation participants; respects role-based messageability
+- [ ] **Design**: Inputs, buttons, and dropdowns use 12px+ radius; no harsh 6–8px corners; pill shapes for badges/chips
+
+### Files changed (messages work – 2026-02-16)
+
+| File | Changes |
+|------|---------|
+| `src/components/MessagesClient.js` | Mobile layout (mobileView, isMobile, showSidebar/showMain); user picker (recent + search); group UI (badge, subject label); applyFormatting + formatting toolbar (replyBodyRef, composeBodyRef); Escape key listener; error display in conversation view; design constants (INPUT_STYLE, BUTTON_STYLE); refactored layout (no nested CARD_STYLE) |
+| `src/app/api/messages/users/route.js` | `?list=recent` param; query for recent conversation participants; role-based filtering |
+| `src/app/globals.css` | `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; `.messages-compose-modal`; `.dm-message-body` (links, blockquote, pre, code styling) |
+
+### Implementation notes
+
+- **applyFormatting**: Wraps selected text with markdown delimiters; uses ref + setState for controlled textarea; `setTimeout(0)` to restore cursor after React re-render.
+- **Formatting toolbar**: Two instances—inline reply (replyBodyRef) and compose modal (composeBodyRef); uses `.formatting-toolbar` class from globals.css.
+- **Escape listener**: `useEffect` adds keydown listener when composeOpen; removes on cleanup.
+- **Recent users**: Fetched on modal open via `GET /api/messages/users?list=recent`; SQL joins dm_participants/dm_conversations to get other participants, ordered by `c.updated_at DESC`.
+
+---
+
+## Feed post cards: event centering, last activity row (2026-02-16)
+
+**Request:** At large viewports: (1) center event information on event post cards and keep last activity on the same row (condensed); (2) on regular posts (Lobby, Lore, etc.) put last activity on the second row (wrap to second line). At shrunken viewports: keep event information centered; leave everything else as is.
+
+---
+
+### Double-check summary
+
+- **PostMetaBar.js**: Row 3 removed in all cases. When custom (events), row 2 = custom only. When no custom + has last activity, row 2 = byUser + `<span class="post-meta-last-activity-second-line">` wrapping lastActivityEl; row 2 gets `post-meta-row2-with-activity`. JSDoc updated to describe two-row layout and no row 3.
+- **feed/page.js**: Event custom row returns a single `<div class="event-row2 [event-row2-with-activity]">` containing byUser, `event-row2-middle` (event info), and conditionally eventLastActivityEl. `item.attendeeNames` only used when `item.attendeeCount > 0` (no unsafe .join). Last activity uses same format as PostMetaBar (formatDateTimeShort, Username with color indices from usernameColorMap/preferredColors).
+- **globals.css**: `.event-row2` has `width: 100%`; `.event-row2-middle` unchanged (flex: 1 1 auto, justify-content: center). New `.post-meta-last-activity-second-line` (flex-basis: 100%, display: block, text-align: right). `.post-meta-row3` and `.event-row3` remain in CSS but PostMetaBar no longer renders a row 3 div.
+- **Other consumers of PostMetaBar**: Feed is the only caller that passes `customRowsAfterTitle`. All others (MusicClient, EventsClient, ForumClient, LoreClient, etc.) use default row 2; they now get last activity on the second line of row 2 when they have lastActivity and replies > 0. No props or API changes required.
+
+---
+
+### Full change log
+
+| File | Change |
+|------|--------|
+| **src/components/PostMetaBar.js** | **JSDoc (lines 7–14):** Updated to describe two-row layout only; when custom, row 2 = custom (caller includes last activity); when no custom + has last activity, row 2 = by user + last activity on second line via `.post-meta-last-activity-second-line`; no row 3. **Logic (lines 68–88):** `lastActivityEl` still built the same. Introduced `hasCustomRow2 = customRowsAfterTitle != null`, `row2HasActivity = !hasCustomRow2 && hasLastActivity`. `row2Content` = customRowsAfterTitle if custom; else if row2HasActivity then `byUserAtTime` + `<span className="post-meta-last-activity-second-line">{lastActivityEl}</span>`; else `byUserAtTime`. **JSX (lines 89–121):** Removed the row 3 block entirely. Row 2 div now gets conditional class `post-meta-row2-with-activity` when `row2HasActivity`. Comment updated to "when not custom and has last activity, last activity wraps to second line". |
+| **src/app/feed/page.js** | **Event custom row (lines 589–664):** Added `hasEventLastActivity = item.lastActivity && item.replies > 0`. Built `eventLastActivityEl` when true (same structure as PostMetaBar: "Last activity" + optional "by &lt;Username&gt;" + " at &lt;formatDateTimeShort(item.lastActivity)&gt;", with usernameColorMap and preferredColors for lastActivityBy). Return value changed from fragment `<>...</>` to single `<div className={\`event-row2${hasEventLastActivity ? ' event-row2-with-activity' : ''}\`}>` containing byUser, `<span className="event-row2-middle">{eventInfo}</span>`, and `{eventLastActivityEl}`. No change to byUser, eventInfo, or attendee rendering; `item.attendeeNames.join` only used when `item.attendeeCount > 0`. |
+| **src/app/globals.css** | **~4809–4834:** Comment before `.event-row2` updated to "Event row 2: by user (left) + event info (centered in middle) + last activity (right); full width so middle can center". `.event-row2` given `width: 100%` (new). `.event-row2-middle` unchanged (flex: 1 1 auto, justify-content: center, min-width: 0). New block: "Regular posts: last activity on row 2, wraps to second line (right-aligned)" for `.post-meta-last-activity-second-line` with `flex-basis: 100%`, `display: block`, `text-align: right`. **~4913–4926:** Existing `@media (max-width: 640px)` for `.event-row2` (column, align-items: flex-start), `.event-row2-with-activity .post-meta-last-activity-inline` (align-self: flex-end), `.event-row2-middle` (width: 100%, justify-content: center) left as-is so event info stays centered when stacked. |
+
+---
+
+### Scope and behavior
+
+- **Feed:** Event cards use custom row with event info centered and last activity on same row (right); regular feed items use default PostMetaBar row 2 with last activity on second line. Shrunken viewport: event row stacks; event-row2-middle stays centered.
+- **All other PostMetaBar usages** (Music, Events, Art, Forum, Lore, Projects, Timeline, DevLog, Memories, etc.): No custom row; when they have lastActivity and replies > 0, last activity appears on the second line of row 2 (right-aligned). No code changes needed in those callers.
+
+---
+
 ## Reply meta row: compact on mobile (2026-02-16)
 
 **Request:** On small viewports, threaded replies had unnecessary height because the Reply/Like buttons wrapped to a new row and the post time was too large. User wanted Reply/Like in top-right corner and smaller/condensed time.
@@ -1278,3 +1431,48 @@ Summary of feed layout changes made this session:
 - **Request:** Put section descriptions in the same row as titles on full viewport (like small viewports) to save vertical space.
 - **HomeSectionCard.js:** Full viewport card top row changed from separate title row + `list-meta` description to single row using compact layout: `home-section-card__top` > `title-wrap` > `headline` (title + " - " + `headline-description`) and `count-wrap`. Reuses same classes as compact so description gets ellipsis (single line) and matches small viewport.
 - **globals.css:** `.home-section-card--full .home-section-card__top { justify-content: space-between; width: 100%; }` so the top row lays out without the compact toggle button.
+
+## Home Explore Sections: Open section desktop removal (2026-02-16)
+
+**Request:** On larger viewports, remove the "Open section" button; keep only card click and drip-line links. "Open section" should remain only for small (compact) viewports.
+
+**Changes:**
+- **HomeSectionCard.js:** Removed the "Open section" `<Link>` from the full (desktop) variant. Full card still uses `onClick={() => router.push(href)}` and `onKeyDown` (Enter/Space) on the wrapper div; drip lines remain `<Link href={item.href}>` with `stopPropagation`. Compact variant unchanged: expanded state still shows "Open section" (line 109-111).
+
+## Home Explore Sections: drip dedupe by post + condense layout (2026-02-16)
+
+**Request:** (1) If latest drip entries are about the same post (e.g. comment + original post), show only one entry per post. (2) Reduce wasted white space: put cards closer together and condense the block.
+
+**Changes:**
+- **HomeSectionCard.js:** Build `recentItems` by combining `recentActivity` and `listItems`, sorting by `createdAt` desc, then keeping first occurrence per `href` (one entry per post), then `slice(0, 3)`. Stops duplicate "Lore & Memories" / "General" / "Projects" lines for the same thread.
+- **globals.css:** Tighter spacing: `.home-sections-list` gap 6px -> 4px; `.home-section-card--full` padding 8px 10px 10px -> 6px 8px 8px; `.home-section-card__details` margin-top/padding-top 8px -> 4px; `.home-section-card__details-head` gap 8px -> 6px; `.home-section-card__recent-list` margin 8px 0 0 -> 4px 0 0, gap 6px -> 4px.
+- **page.js:** "Explore Sections" title marginBottom 16px -> 10px.
+
+### Double-check / verification (2026-02-16)
+
+**Scope:** All Home Explore Sections changes from this session (Open section removal, drip dedupe, condense layout).
+
+1. **Open section removal (desktop):**
+   - **HomeSectionCard.js** full variant (lines 153-202): No "Open section" link; only `details-head` (Latest drip: or empty CTA) and `recent-list`. Card wrapper has `role="link"`, `tabIndex={0}`, `onClick`/`onKeyDown` -> `router.push(href)`. Drip items are `<Link href={item.href}>` with `onClick`/`onKeyDown` `stopPropagation`.
+   - Compact variant (lines 66-129): "Open section" link still present in expanded details (lines 109-111). Confirmed.
+
+2. **Drip dedupe by post:**
+   - **HomeSectionCard.js** (lines 22-30): `combined = recentActivity ? [recentActivity, ...listItems] : listItems`; `sorted = [...combined].sort((a,b) => (b.createdAt||0) - (a.createdAt||0))`; filter with `seenHref` Set so first occurrence per `item.href` is kept; `.slice(0, 3)`. Result: at most one row per post (by href), up to 3 posts, most recent activity per post shown.
+   - Edge cases: `recentActivity` null -> combined = listItems only; empty list -> recentItems = []. Full card only renders when `recentActivity` truthy (line 132), so empty recentItems from dedupe would only occur if all activities had same href (still one item). `latestActivityTs` uses `recentItems[0]?.createdAt || recentActivity?.createdAt` for 24h badge; safe when recentItems empty in compact branch.
+
+3. **Condense layout (CSS + page):**
+   - **globals.css:** `.home-section-card__details` (6399-6402) margin-top 4px, padding-top 4px. `.home-section-card__details-head` (6412-6418) gap 6px. `.home-section-card__recent-list` (6483-6489) margin 4px 0 0, gap 4px. `.home-sections-list` (6512-6515) gap 4px. `.home-section-card--full` (6517-6519) padding 6px 8px 8px. Mobile override (8374-8376): `.home-sections-list { gap: 2px }` unchanged.
+   - **page.js** (1658): `section-title` for "Explore Sections" has `style={{ marginBottom: '10px' }}`.
+
+4. **Compact branch:** `recentItems.slice(0, 3)` at line 116 is redundant (recentItems already max 3) but harmless. Key for list items uses `${item.href}-${idx}` to avoid React key collisions when same post appears (post-dedupe this is moot; kept for consistency).
+
+## Home Explore Sections: space between post count and 24h badge (mobile) (2026-02-16)
+
+**Request:** On mobile/small viewports, add a little space between the post count (e.g. "11 posts") and the "24h" text so they don't run together (e.g. "11 posts24H+").
+
+**Changes:**
+- **globals.css:** `.section-card-recent-badge` (lines 6270-6279): added `margin-left: 6px` so the 24h badge is visually separated from the preceding count text. Badge appears only in compact (mobile) section cards when `hasRecentInLast24h` is true; no JS changes.
+
+### Double-check / verification (2026-02-16)
+
+- **globals.css** (6270-6279): `.section-card-recent-badge` has `margin-left: 6px` between `gap: 3px` and `color: #57ffbe`. Badge is rendered inside `.section-card-count` in **HomeSectionCard.js** compact branch (lines 85-94); countLabel (e.g. "11 posts") and the badge are siblings within that span, so the left margin on the badge creates space between "posts" and "24h". Confirmed no other uses of `.section-card-recent-badge` that would be adversely affected (full card does not show the 24h badge).

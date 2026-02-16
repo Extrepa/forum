@@ -133,6 +133,39 @@ export default function CreatePostModal({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, requestClose]);
 
+  useEffect(() => {
+    if (!isOpen || !mounted || !modalContentRef.current) return undefined;
+    const root = modalContentRef.current;
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => Array.from(root.querySelectorAll(focusableSelector)).filter((el) => el.tabIndex !== -1 && !el.disabled);
+    const focusable = getFocusable();
+    const first = focusable[0];
+    if (first) {
+      first.focus();
+    }
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Tab') return;
+      const list = getFocusable();
+      if (list.length === 0) return;
+      const current = document.activeElement;
+      const idx = list.indexOf(current);
+      if (idx === -1) return;
+      if (event.shiftKey) {
+        if (idx === 0) {
+          event.preventDefault();
+          list[list.length - 1]?.focus();
+        }
+      } else {
+        if (idx === list.length - 1) {
+          event.preventDefault();
+          list[0]?.focus();
+        }
+      }
+    };
+    root.addEventListener('keydown', handleKeyDown);
+    return () => root.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, mounted]);
+
   if (!isOpen || !mounted) return null;
 
   const isMobile = viewport.width > 0 && viewport.width <= 640;

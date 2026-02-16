@@ -27,6 +27,18 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
     };
   }, [results, onClose, excludeRef]);
 
+  useEffect(() => {
+    if (!results || results.length === 0) return undefined;
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [results, onClose]);
+
   const getTypeLabel = (type) => {
     const labels = {
       thread: 'General Post',
@@ -82,11 +94,19 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
             <div
               key={`${result.type}-${result.id}`}
               className="search-result-item"
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 if (onResultClick) {
                   onResultClick(result.url);
                 }
               }}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                e.preventDefault();
+                if (onResultClick) onResultClick(result.url);
+              }}
+              aria-label={`Open: ${result.title || result.thread_title || 'Untitled'}`}
             >
               <div className="search-result-header">
                 <h4 className="search-result-title">

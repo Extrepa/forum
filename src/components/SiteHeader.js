@@ -226,6 +226,38 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     return () => window.cancelAnimationFrame(rafId);
   }, [libraryOpen, pathname]);
 
+  useEffect(() => {
+    if (!libraryOpen || !libraryMenuRef.current) return undefined;
+    const menu = libraryMenuRef.current;
+    const links = Array.from(menu.querySelectorAll('a[href]'));
+    const focusable = libraryFilterOpen
+      ? Array.from(menu.querySelectorAll('input, a[href]'))
+      : links;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        return;
+      }
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Home' && event.key !== 'End') {
+        return;
+      }
+      const current = document.activeElement;
+      const idx = focusable.indexOf(current);
+      if (idx === -1) return;
+      event.preventDefault();
+      let next = idx;
+      if (event.key === 'ArrowDown' || event.key === 'End') {
+        next = event.key === 'End' ? focusable.length - 1 : Math.min(idx + 1, focusable.length - 1);
+      } else {
+        next = event.key === 'Home' ? 0 : Math.max(idx - 1, 0);
+      }
+      focusable[next]?.focus();
+    };
+
+    menu.addEventListener('keydown', handleKeyDown);
+    return () => menu.removeEventListener('keydown', handleKeyDown);
+  }, [libraryOpen, libraryFilterOpen]);
+
   const handleForumSearchSubmit = (event) => {
     event.preventDefault();
     if (navDisabled) return;

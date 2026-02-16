@@ -137,6 +137,33 @@ export default function ErrlTabSwitcher({
   const defaultLabel = (tab) => tab.label;
   const renderLabel = renderTabLabel || defaultLabel;
 
+  const handleTabListKeyDown = (e) => {
+    const target = e.target;
+    if (target.getAttribute('role') !== 'tab') return;
+    const currentIndex = tabButtonsRef.current.indexOf(target);
+    if (currentIndex === -1) return;
+    let nextIndex = currentIndex;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      nextIndex = Math.max(0, currentIndex - 1);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextIndex = Math.min(tabs.length - 1, currentIndex + 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      nextIndex = tabs.length - 1;
+    } else {
+      return;
+    }
+    if (nextIndex !== currentIndex && tabs[nextIndex]) {
+      onTabChange?.(tabs[nextIndex].id);
+      tabButtonsRef.current[nextIndex]?.focus();
+    }
+  };
+
   useEffect(() => {
     return () => {
       stopAutoScroll();
@@ -144,7 +171,12 @@ export default function ErrlTabSwitcher({
   }, [stopAutoScroll]);
 
   return (
-    <div className={`tabs-pill neon-outline-card ${className}`} role="tablist" aria-label="Errl tab switcher">
+    <div
+      className={`tabs-pill neon-outline-card ${className}`}
+      role="tablist"
+      aria-label="Errl tab switcher"
+      onKeyDown={handleTabListKeyDown}
+    >
       <div
         className="tabs-pill-inner"
         ref={tabsInnerRef}

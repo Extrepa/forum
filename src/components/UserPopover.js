@@ -63,6 +63,17 @@ export default function UserPopover({
   }, [anchorRef, onClose]);
 
   useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose?.();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  useEffect(() => {
     const calculatePosition = () => {
       if (!anchorRef.current || !popoverRef.current) return;
 

@@ -243,7 +243,16 @@ export default function BoomboxWidget() {
                 >
                   <div
                     className="errl-boombox__trackLeft"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setActive(idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActive(idx);
+                      }
+                    }}
+                    aria-label={idx === state.activeIndex ? `Now playing: ${t.title || t.sourceUrl}` : `Play: ${t.title || t.sourceUrl}`}
                   >
                     <div className="errl-boombox__trackName">
                       {t.title || t.sourceUrl}

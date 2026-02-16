@@ -20,9 +20,15 @@ export default function HomeSectionCard({
   const router = useRouter();
   const countLabel = `${count} ${count === 1 ? 'post' : 'posts'}`; /* for non-compact / a11y */
   const listItems = Array.isArray(recentActivities) ? recentActivities.filter(Boolean) : [];
-  const recentItems = recentActivity
-    ? [recentActivity, ...listItems.filter((item) => item.href !== recentActivity.href || item.timeAgo !== recentActivity.timeAgo)].slice(0, 3)
-    : listItems.slice(0, 3);
+  const combined = recentActivity ? [recentActivity, ...listItems] : listItems;
+  const sorted = [...combined].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const seenHref = new Set();
+  const recentItems = sorted.filter((item) => {
+    const key = item.href || '';
+    if (seenHref.has(key)) return false;
+    seenHref.add(key);
+    return true;
+  }).slice(0, 3);
   const nowTs = Date.now();
   const latestActivityTs = Number(recentItems[0]?.createdAt || recentActivity?.createdAt || 0);
   const hasRecentInLast24h = Number.isFinite(latestActivityTs) && latestActivityTs > 0 && (nowTs - latestActivityTs) <= (24 * 60 * 60 * 1000);
@@ -172,9 +178,6 @@ export default function HomeSectionCard({
           ) : (
             <span className="section-card-empty-cta">The goo is quiet here - head in and post something.</span>
           )}
-          <Link href={href} className="home-section-card__section-link" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-            Open section
-          </Link>
         </div>
         {recentItems.length > 0 ? (
           <ul className="home-section-card__recent-list">

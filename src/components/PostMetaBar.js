@@ -6,10 +6,11 @@ import { formatDateTimeShort } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout: Row 1 = title (left) + stats (top right). Row 2 = "by user" / custom (left). Row 3 = last activity (bottom right) when present.
- * Stats and last activity stay right-aligned on all viewports (stats in a wrapper so they stay right when row 1 wraps).
- * Pass customRowsAfterTitle to override row 2 (e.g. for events: by + event info).
- * Uses formatDateTimeShort for compact date/time.
+ * Layout: Row 1 = title (left) + stats (top right). Row 2 = "by user" / custom content / or "by user" + last activity.
+ * - When customRowsAfterTitle is passed (e.g. events): row 2 is that custom content only; caller includes last activity in it. No row 3.
+ * - When no custom and has last activity: row 2 = by user (line 1) + last activity in .post-meta-last-activity-second-line (line 2, right-aligned). No row 3.
+ * - When no custom and no last activity: row 2 = by user only.
+ * Stats stay right-aligned (wrapper with flex-end). Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
   title,
@@ -66,8 +67,6 @@ export default function PostMetaBar({
     </span>
   ) : null;
 
-  const row2Content = customRowsAfterTitle ?? byUserAtTime;
-
   const lastActivityEl = hasLastActivity && (
     <span className="post-meta-last-activity post-meta-last-activity-inline muted" style={{ fontSize: '12px' }}>
       Last activity{lastActivityBy ? (
@@ -75,6 +74,19 @@ export default function PostMetaBar({
       ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
     </span>
   );
+
+  /* When custom (e.g. event): row 2 is custom only; no row 3 (custom includes last activity).
+     When not custom and has last activity: row 2 = by user + last activity (last activity wraps to second line); no row 3. */
+  const hasCustomRow2 = customRowsAfterTitle != null;
+  const row2HasActivity = !hasCustomRow2 && hasLastActivity;
+  const row2Content = hasCustomRow2
+    ? customRowsAfterTitle
+    : (row2HasActivity ? (
+        <>
+          {byUserAtTime}
+          <span className="post-meta-last-activity-second-line">{lastActivityEl}</span>
+        </>
+      ) : byUserAtTime);
 
   return (
     <div className={`${className} post-meta`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
@@ -102,17 +114,10 @@ export default function PostMetaBar({
         )}
       </div>
 
-      {/* Row 2: by user / custom (left only) */}
-      <div className="post-meta-row2 post-meta-by-row">
+      {/* Row 2: by user / custom; when not custom and has last activity, last activity wraps to second line */}
+      <div className={`post-meta-row2 post-meta-by-row${row2HasActivity ? ' post-meta-row2-with-activity' : ''}`}>
         {row2Content}
       </div>
-
-      {/* Row 3: Last activity (bottom right) */}
-      {lastActivityEl && (
-        <div className="post-meta-row3 post-meta-last-activity-row">
-          {lastActivityEl}
-        </div>
-      )}
     </div>
   );
 }
