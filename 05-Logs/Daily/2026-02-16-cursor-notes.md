@@ -19,6 +19,27 @@
 - **Issue:** Event cards still showed stats (views, replies) only in the event-bottom-row, so they appeared at the very bottom after title, by user, and "Starts..." row, creating unnecessary height and a messy look.
 - **Change:** Events now show stats in PostMetaBar like other types: `hideStats={false}` for all items. PostMetaBar row 2 shows "by user at time" | full stats column for events (no last activity in PostMetaBar for events). Removed duplicate stats from the event block: event-bottom-row now only renders when `attendeeCount > 0 || (lastActivity && replies > 0)` and has no right-side stats column (stats live in PostMetaBar row 2). Removed `eventStatLines` from the event block.
 
+## Feed: last activity bottom right, attendee hover, short date/time
+
+- **Request:** When layout is stretched, put "Last activity" in the bottom right to condense; for completed events hide the list of who attended unless hovering over "N attended"; shorten date/time and remove weird text.
+- **`src/lib/dates.js`:** Added `formatDateTimeShort(timestamp)`: compact format for feed/meta. Uses `toLocaleDateString` + `toLocaleTimeString` (en-US, FORUM_TIME_ZONE), omits year when same as current year (else 2-digit year), joins with a single space (e.g. "2/15 9:02 PM", "2/15/26 9:02 PM") to avoid locale odd characters.
+- **`src/components/PostMetaBar.js`:** Row 2 is "by user at time" only. Row 3 (when `hasLastActivity`) added: "Last activity by ... at [time]" in a div with `justifyContent: 'flex-end'` so it sits in the bottom right. Switched to `formatDateTimeShort` for createdAt and lastActivity.
+- **`src/app/feed/page.js`:** Events use `formatDateTimeShort(item.lastActivity)` for the "at" time. Attendees: when `hasPassed` (event completed), render only "{attendeeCount} attended" with `title={item.attendeeNames.join(', ')}` so names show on hover; add class `event-attendee-count--hover-only` for that case. When !hasPassed, still show "attending: name1, name2". Last activity span has class `event-last-activity-right`.
+- **`src/app/globals.css`:** `.event-last-activity-right { margin-left: auto; }` so in the event-details flex row, last activity aligns to the right when stretched. `.event-attendee-count--hover-only { cursor: help; }` so completed-event attendee count indicates hover.
+
+### Double-check (last activity, attendee hover, short date)
+
+- **PostMetaBar:** Row 1 = title + statsInline (middot-separated). Row 2 = byUserAtTime only. Row 3 only when `lastActivity && replies > 0`, flex row with `justifyContent: 'flex-end'`; single child is the "Last activity..." span. All date/time in PostMetaBar use `formatDateTimeShort`.
+- **formatDateTimeShort:** Returns "Unknown" for falsy/invalid; builds dateStr (month, day, year only if different year) and timeStr (hour, minute, hour12) with normal space; no toLocaleString single-call so no narrow no-break space or other locale quirks.
+- **Events (feed):** Attendee block: `hasPassed` => only "N attended" + title with names; `!hasPassed` => "N attending: " + Username list. Last activity uses formatDateTimeShort. event-last-activity-right pushes that item to the end of the flex row.
+- **CSS:** margin-left: auto on event-last-activity-right works in both flex row (wide) and column (narrow) layouts.
+
+## Feed: completed events – no "Starts", same row as attended, centered on small
+
+- **Request:** For completed events, don't say "Starts yesterday"; show when the event was and that it's completed. Keep that line centered on small viewports. Put the attended list in the same row to save space.
+- **`src/app/feed/page.js`:** When `hasPassed`: first event-details-item shows `{formatEventDate(startsAt)} {formatEventTime(startsAt)} (Event happened)` (no "Starts"). If `attendeeCount > 0`, append ` · N attended` in the same span (hover-only span with title=names). When !hasPassed: keep "Starts ..." and optional relative date; attendee list stays a separate span ("N attending: name1, name2").
+- **`src/app/globals.css`:** In the 640px media query for `.event-details-inner`: `align-items: center` and `text-align: center` so event details stay centered on small viewports; `.event-details-item` gets `justify-content: center` so the inline content is centered.
+
 ## Profile page: padding between profile card and tab switcher
 
 - **`src/app/globals.css`**: `.profile-tabs-wrapper` `margin-top` changed from `0` to `12px` so the tab switcher (Activity, Gallery, Notes, Socials, Stats) has spacing above it. Media queries still reduce to 8px/4px on smaller viewports.

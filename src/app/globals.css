@@ -4725,15 +4725,27 @@ button.ghost:hover,
   flex-shrink: 0;
 }
 
+/* When stretched: last activity in bottom right */
+.event-last-activity-right {
+  margin-left: auto;
+}
+
+/* Completed events: attendee names only on hover */
+.event-attendee-count--hover-only {
+  cursor: help;
+}
+
 @media (max-width: 640px) {
   .event-details-inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 2px;
+    text-align: center;
   }
 
   .event-details-item {
     white-space: normal;
+    justify-content: center;
   }
 }
 

@@ -33,6 +33,35 @@ export function formatDateTime(timestamp) {
 }
 
 /**
+ * Short date/time for compact UIs (feed, meta). Avoids locale odd characters.
+ * e.g. "2/15 9:02 PM" or "2/15/26 9:02 PM" when year differs.
+ */
+export function formatDateTimeShort(timestamp) {
+  if (!timestamp) {
+    return 'Unknown';
+  }
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
+  const now = new Date();
+  const sameYear = date.getFullYear() === now.getFullYear();
+  const dateStr = date.toLocaleDateString('en-US', {
+    month: 'numeric',
+    day: 'numeric',
+    year: sameYear ? undefined : '2-digit',
+    timeZone: FORUM_TIME_ZONE
+  });
+  const timeStr = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: FORUM_TIME_ZONE
+  });
+  return `${dateStr} ${timeStr}`;
+}
+
+/**
  * Format a timestamp to a date-only string (no time)
  */
 export function formatDate(timestamp) {

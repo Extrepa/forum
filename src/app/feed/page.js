@@ -4,7 +4,7 @@ import { isDripNomad } from '../../lib/admin';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/usernameColor';
 import PostMetaBar from '../../components/PostMetaBar';
 import { redirect } from 'next/navigation';
-import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTime, getEventDayCompletionTimestamp } from '../../lib/dates';
+import { formatEventDate, formatEventTime, isEventUpcoming, formatRelativeEventDate, formatDateTimeShort, getEventDayCompletionTimestamp } from '../../lib/dates';
 import Username from '../../components/Username';
 
 export const dynamic = 'force-dynamic';
@@ -605,16 +605,34 @@ export default async function FeedPage() {
                                   <line x1="3" y1="10" x2="21" y2="10" />
                                 </svg>
                                 <span className="muted">
-                                  Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
-                                  {!hasPassed && isEventUpcoming(item.startsAt) ? (
-                                    <span className="muted"> ({formatRelativeEventDate(item.startsAt)})</span>
-                                  ) : null}
-                                  {hasPassed ? <span className="muted"> (Event happened)</span> : null}
+                                  {hasPassed ? (
+                                    <>
+                                      {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)} (Event happened)
+                                      {item.attendeeCount > 0 && (
+                                        <>
+                                          {' \u00B7 '}
+                                          <span
+                                            className="event-attendee-count event-attendee-count--hover-only"
+                                            title={item.attendeeNames.join(', ')}
+                                          >
+                                            {item.attendeeCount} attended
+                                          </span>
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
+                                      {isEventUpcoming(item.startsAt) ? (
+                                        <span className="muted"> ({formatRelativeEventDate(item.startsAt)})</span>
+                                      ) : null}
+                                    </>
+                                  )}
                                 </span>
                               </span>
-                              {item.attendeeCount > 0 && (
-                                <span className="event-details-item muted" title={item.attendeeNames.join(', ')}>
-                                  {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
+                              {!hasPassed && item.attendeeCount > 0 && (
+                                <span className="event-details-item muted event-attendee-count" title={item.attendeeNames.join(', ')}>
+                                  {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
                                     <span key={name}>
                                       {i > 0 ? ', ' : ''}
                                       <Username
@@ -627,10 +645,10 @@ export default async function FeedPage() {
                                 </span>
                               )}
                               {item.lastActivity && item.replies > 0 && (
-                                <span className="event-details-item muted">
+                                <span className="event-details-item muted event-last-activity-right">
                                   Last activity{item.lastActivityBy ? (
                                     <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                                  ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
+                                  ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
                                 </span>
                               )}
                             </div>
