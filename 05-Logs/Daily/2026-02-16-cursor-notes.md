@@ -877,12 +877,28 @@ Summary of feed layout changes made this session:
 - **Attended spacing**: `event-details-sep` wraps `{' \u00B7 '}` with `margin: 0 2px` and `white-space: pre`; applied to both hasPassed and upcoming branches. Prevents collapse; visible gap before "N attended"/"N attending".
 - **Non-events row consolidation**: PostMetaBar row 2 has `post-meta-row2-with-activity` when `hasLastActivity`. Single div contains `byUserAtTime` and `post-meta-last-activity-inline`; `justify-content: space-between` + `margin-left: auto` on last activity pushes it right. When viewport narrows and row wraps, last activity goes below (flex-wrap).
 - **Events row consolidation**: Events use `customRowsAfterTitle`; single `event-row2` div with `byUser`, `event-row2-middle` (eventInfo), and `eventLastActivityEl`. `event-row2-with-activity` when `hasEventLastActivity`. Last activity has `margin-left: auto` for right alignment. No separate row 3 for events.
-- **Narrow viewport (640px)**: event-row2 becomes `flex-direction: column`, `align-items: flex-start`; by-user and event info left-aligned. Last activity `align-self: flex-end` when stacked. event-row2-middle `justify-content: flex-start`.
+- **Narrow viewport (640px)**: event-row2 becomes `flex-direction: column`, `align-items: flex-start`; by-user left-aligned; event info centered via event-row2-middle `justify-content: center`. Last activity `align-self: flex-end` when stacked.
+- **Super small viewport (480px)**: `.post-meta-title-row` uses `flex-direction: column`, `align-items: flex-start` so title and stats stack; stats (views · replies · likes) sit on their own line below the title, left-aligned, instead of wrapping to a lone right-aligned line.
 - **Dead CSS**: `.post-meta-row3` and `.event-row3` rules remain (used in overflow-wrap selector); separate row3 divs no longer rendered. `.event-row2-centered` removed.
+
+### Double-check: feed small-viewport CSS (2026-02-16)
+
+**Verified:**
+
+1. **Event info centering (≤640px)**  
+   - `src/app/globals.css` @media (max-width: 640px): `.event-row2` → column, `align-items: flex-start`; `.event-row2-middle` → `width: 100%`, `justify-content: center`.  
+   - Feed event row structure (`src/app/feed/page.js`): single `event-row2` with `byUser`, `event-row2-middle` (eventInfo), optional last-activity span. Event info (date, "Event happened", "N attended") centers on narrow viewports.
+
+2. **Stats stacking (≤480px)**  
+   - `src/app/globals.css` @media (max-width: 480px): `.post-meta-title-row` → `flex-direction: column`, `align-items: flex-start`, `gap: 2px`.  
+   - PostMetaBar row 1 (`src/components/PostMetaBar.js`) uses `post-meta-title-row`; title and `statsInline` (views · replies · likes) stack; stats sit on second line, left-aligned, no lone right-aligned wrap.
+
+**Manual checks:** Feed at ~358px: event info centered in event row; stats below title, left-aligned. Feed at ~640px: event row stacked, event info centered; stats may still be on title row if width allows.
 
 ### Session notes (double-check)
 
 - **2026-02-16**: Verified all feed layout changes (event "by" alignment, attended spacing, row consolidation). Updated log section "Feed layout (consolidated)" to remove stale row 3 references. Updated PostMetaBar docstring. Double-check section above documents current behavior.
+- **2026-02-16**: Double-checked feed small-viewport fixes (event info center at 640px, stats stack at 480px); added "Double-check: feed small-viewport CSS" subsection with file/line references and manual check notes.
 
 ## Event post detail: tighter layout, hide Invite when past, reply connector (2026-02-16)
 
@@ -1145,3 +1161,22 @@ Summary of feed layout changes made this session:
 - **Threads route:** logUserActivity after notifyUsersOfNewForumThread; post_created, sectionKey 'lobby_general'.
 - **Shitposts route:** logUserActivity after notify; post_created, sectionKey 'lobby_shitposts', targetType forum_thread.
 - **Posts route:** logUserActivity inside existing try after notifyUsersOfNewContent; post_created, sectionKey: type, targetType: 'post'; logErr caught so outer catch still handles DB failures.
+
+## Home Explore Sections: full viewport latest-drip list, variable height, less gap (2026-02-16)
+
+**Request:** On full viewport, show up to three items under "Latest drip:" (like small viewport), variable card height by content, and reduce padding between section cards; apply on all viewports that can handle it.
+
+**Changes:**
+- **HomeSectionCard.js:** Non-compact (desktop) branch when `recentActivity` exists now renders the same structure as expanded compact: "Latest drip:" label, then `<ul class="home-section-card__recent-list">` with up to 3 items (recentItems already capped at 3), plus "Open section" link. Card uses `home-section-card home-section-card--full` for styling.
+- **globals.css:** `.home-sections-list` gets `align-items: start` (cards no longer stretch; sections with more drip items are taller) and `gap: 6px` (tighter than default `.list` 12px). Mobile media query still overrides gap to 2px. `.home-section-card--full` gets `padding: 8px 10px 10px` for the extra details block.
+
+**Double-check (same session):**
+- **recentItems:** Built at top of component as `[recentActivity, ...listItems].slice(0, 3)` when recentActivity exists; full card renders `recentItems.map` (no extra slice). Max 3 items confirmed.
+- **Variable height:** `.home-sections-list { align-items: start }` in globals.css (lines 6424-6427); grid items no longer stretch.
+- **Gap:** Base `.home-sections-list { gap: 6px }`; mobile `@media (max-width: 640px)` overrides to `gap: 2px` (lines 8281-8283).
+- **Empty state:** Full card only renders when `recentActivity` is truthy, so recentItems.length >= 1; the is-empty branch in details-head is defensive only.
+
+**Follow-up: description in same row as title (preserve height):**
+- **Request:** Put section descriptions in the same row as titles on full viewport (like small viewports) to save vertical space.
+- **HomeSectionCard.js:** Full viewport card top row changed from separate title row + `list-meta` description to single row using compact layout: `home-section-card__top` > `title-wrap` > `headline` (title + " - " + `headline-description`) and `count-wrap`. Reuses same classes as compact so description gets ellipsis (single line) and matches small viewport.
+- **globals.css:** `.home-section-card--full .home-section-card__top { justify-content: space-between; width: 100%; }` so the top row lays out without the compact toggle button.

@@ -141,7 +141,7 @@ export default function HomeSectionCard({
 
   return (
     <div
-      className="list-item"
+      className="list-item home-section-card home-section-card--full"
       style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}
       role="link"
       tabIndex={0}
@@ -153,21 +153,40 @@ export default function HomeSectionCard({
         }
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
-        <strong>{title}</strong>
-        <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
+      <div className="home-section-card__top">
+        <span className="home-section-card__title-wrap">
+          <span className="home-section-card__headline">
+            <span className="home-section-card__title">{title}</span>
+            <span className="home-section-card__headline-sep" aria-hidden="true"> - </span>
+            <span className="home-section-card__headline-description">{description}</span>
+          </span>
+        </span>
+        <span className="home-section-card__count-wrap">
+          <span className="section-card-count" suppressHydrationWarning title={countLabel}>{countLabel}</span>
+        </span>
       </div>
-      <div className="list-meta">{description}</div>
-      <div className="section-stats" suppressHydrationWarning>
-        <Link
-          href={recentActivity.href}
-          onClick={(event) => event.stopPropagation()}
-          onKeyDown={(event) => event.stopPropagation()}
-          style={{ color: 'inherit', textDecoration: 'none' }}
-        >
-          <span className="home-section-card__status-text">Latest drip:</span>{' '}
-          {renderActivityDescription(recentActivity)} · <span suppressHydrationWarning>{recentActivity.timeAgo || 'just now'}</span>
-        </Link>
+      <div className="home-section-card__details">
+        <div className={`home-section-card__details-head${recentItems.length === 0 ? ' is-empty' : ''}`}>
+          {recentItems.length > 0 ? (
+            <span className="home-section-card__status-text">Latest drip:</span>
+          ) : (
+            <span className="section-card-empty-cta">The goo is quiet here - head in and post something.</span>
+          )}
+          <Link href={href} className="home-section-card__section-link" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+            Open section
+          </Link>
+        </div>
+        {recentItems.length > 0 ? (
+          <ul className="home-section-card__recent-list">
+            {recentItems.map((item, idx) => (
+              <li key={`${item.href}-${idx}`} className="home-section-card__recent-item">
+                <Link href={item.href} className="home-section-card__recent-link" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} suppressHydrationWarning>
+                  {renderActivityDescription(item)} · <span suppressHydrationWarning>{item.timeAgo || 'just now'}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </div>
   );
