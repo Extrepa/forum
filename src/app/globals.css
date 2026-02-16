@@ -4769,16 +4769,7 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
-/* Row 2: left content + stats right; .post-meta-stats-right keeps stats right when row wraps */
-.post-meta-row2-with-stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
-}
-.post-meta-stats-right {
-  flex-shrink: 0;
-}
+/* Row 1: .post-meta-stats-top-right wraps stats; flex + justify-content: flex-end (inline) keeps them top right and right when wrapped */
 
 /* Feed event details: one line on large, stack on small */
 .event-details-row {
@@ -8491,12 +8482,19 @@ header::before {
   }
 
   .reply-top-row {
-    flex-wrap: wrap;
-    row-gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reply-meta-inline {
+    font-size: 11px;
+    min-width: 0;
   }
 
   .reply-actions-inline {
     margin-left: auto;
+    flex-shrink: 0;
   }
 
   input,
@@ -8936,15 +8934,34 @@ header::before {
 }
 
 @media (max-width: 600px) {
-  /* Stack meta above actions so desc has full width; prevents overlap on short descriptions */
+  /* Title + button same row; description wraps below to reduce card height */
   .section-intro {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
     align-items: start;
+    gap: 6px 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-intro__meta {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    grid-template-rows: auto auto;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .section-intro__desc {
+    /* Let description wrap to fit; stays in same rows area as title */
+    min-width: 0;
   }
 
   .section-intro__actions {
+    grid-column: 2;
+    grid-row: 1;
     justify-self: end;
+    align-self: start;
   }
 }
 

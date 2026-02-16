@@ -577,8 +577,8 @@ export default async function FeedPage() {
                     replies={item.replies}
                     likes={item.likes}
                     createdAt={item.createdAt}
-                    lastActivity={item.type === 'Event' ? undefined : item.lastActivity}
-                    lastActivityBy={item.type === 'Event' ? undefined : item.lastActivityBy}
+                    lastActivity={item.lastActivity}
+                    lastActivityBy={item.lastActivityBy}
                     lastActivityByColorIndex={item.lastActivityBy ? (usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })) : undefined}
                     lastActivityByPreferredColorIndex={item.lastActivityBy ? preferredColors.get(item.lastActivityBy) : undefined}
                     titleHref={item.href}
@@ -641,20 +641,11 @@ export default async function FeedPage() {
                           )}
                         </span>
                       );
-                      const hasEventLastActivity = item.lastActivity && item.replies > 0;
-                      const eventLastActivityEl = hasEventLastActivity && (
-                        <span className="post-meta-last-activity post-meta-last-activity-inline muted">
-                          Last activity{item.lastActivityBy ? (
-                            <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                          ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
-                        </span>
-                      );
                       return (
                         <>
-                          <div className={`event-row2${hasEventLastActivity ? ' event-row2-with-activity' : ''}`}>
+                          <div className="event-row2">
                             {byUser}
                             <span className="event-row2-middle">{eventInfo}</span>
-                            {eventLastActivityEl}
                           </div>
                         </>
                       );

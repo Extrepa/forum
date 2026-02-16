@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
-import { formatDateTime } from '../lib/dates';
+import { formatDateTimeShort } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import ReplyFormWrapper from './ReplyFormWrapper';
 import DeleteCommentButton from './DeleteCommentButton';
@@ -91,7 +91,7 @@ export default function ProjectRepliesSection({
             <span className="reply-meta-inline">
               <Username name={r.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
               {' · '}
-              {r.created_at ? <span suppressHydrationWarning>{formatDateTime(r.created_at)}</span> : ''}
+              {r.created_at ? <span suppressHydrationWarning>{formatDateTimeShort(r.created_at)}</span> : ''}
             </span>
             <div className="reply-actions-inline">
               <ReplyButton

@@ -4,7 +4,7 @@ import EditPostModal from '../../../components/EditPostModal';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
 import { getSessionUser } from '../../../lib/auth';
-import { formatDateTime } from '../../../lib/dates';
+import { formatDateTimeShort } from '../../../lib/dates';
 import PageTopRow from '../../../components/PageTopRow';
 import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
@@ -668,7 +668,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
       }
       
       const replyLink = `/lobby/${safeThreadId}?replyTo=${encodeURIComponent(r.id)}#reply-form`;
-      const formattedDate = r.created_at ? formatDateTime(r.created_at) : '';
+      const formattedDate = r.created_at ? formatDateTimeShort(r.created_at) : '';
       
       return (
         <div

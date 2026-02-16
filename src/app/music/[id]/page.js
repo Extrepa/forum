@@ -18,7 +18,7 @@ import LikeButton from '../../../components/LikeButton';
 import ThreadedCommentsSection from '../../../components/ThreadedCommentsSection';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import { formatDateTime } from '../../../lib/dates';
+import { formatDateTimeShort } from '../../../lib/dates';
 import { getSongProviderMeta } from '../../../lib/songProviders';
 
 export const dynamic = 'force-dynamic';
@@ -292,7 +292,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
             author_user_id: c.author_user_id != null ? String(c.author_user_id) : null,
             author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
-            formattedDate: c.created_at ? formatDateTime(c.created_at) : '',
+            formattedDate: c.created_at ? formatDateTimeShort(c.created_at) : '',
             reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
             like_count: c.like_count != null ? Number(c.like_count) : 0,
             liked: !!c.liked,

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getDb } from '../../../lib/db';
 import { renderMarkdown } from '../../../lib/markdown';
-import { formatDateTime } from '../../../lib/dates';
+import { formatDateTimeShort } from '../../../lib/dates';
 import { isAdminUser } from '../../../lib/admin';
 import { getSessionUser } from '../../../lib/auth';
 import PageTopRow from '../../../components/PageTopRow';
@@ -335,7 +335,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                 ? Number(c.author_color_preference)
                 : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
-            formattedDate: c.created_at ? formatDateTime(c.created_at) : '',
+            formattedDate: c.created_at ? formatDateTimeShort(c.created_at) : '',
             reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
           };
         })

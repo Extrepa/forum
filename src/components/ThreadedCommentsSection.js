@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
-import { formatDateTime } from '../lib/dates';
+import { formatDateTimeShort } from '../lib/dates';
 import ReplyButton from './ReplyButton';
 import DeleteCommentButton from './DeleteCommentButton';
 import LikeButton from './LikeButton';
@@ -103,7 +103,7 @@ export default function ThreadedCommentsSection({
                     <span className="reply-meta-inline">
                       <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
                       {' · '}
-                      <span suppressHydrationWarning>{formatDateTime(c.created_at)}</span>
+                      <span suppressHydrationWarning>{formatDateTimeShort(c.created_at)}</span>
                     </span>
                     <div className="reply-actions-inline">
                       <ReplyButton

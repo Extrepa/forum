@@ -1,5 +1,43 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Reply meta row: compact on mobile (2026-02-16)
+
+**Request:** On small viewports, threaded replies had unnecessary height because the Reply/Like buttons wrapped to a new row and the post time was too large. User wanted Reply/Like in top-right corner and smaller/condensed time.
+
+**Changes:**
+1. **`src/app/globals.css`** (inside `@media (max-width: 640px)`):
+   - `.reply-top-row`: `flex-wrap: nowrap` (was `wrap`) so actions stay on same row; `align-items: center`; `gap: 8px`.
+   - `.reply-meta-inline`: `font-size: 11px`; `min-width: 0` for shrink.
+   - `.reply-actions-inline`: `flex-shrink: 0` so Reply/Like stay anchored top-right.
+
+2. **Timestamp format:** Switched reply metadata from `formatDateTime` to `formatDateTimeShort` (e.g. "2/15 9:02 PM" vs "2/15/2026, 9:02 PM"):
+   - `EventCommentsSection.js`
+   - `ThreadedCommentsSection.js`
+   - `ProjectRepliesSection.js`
+   - `src/app/lobby/[id]/page.js`
+   - `src/app/devlog/[id]/page.js`
+   - `src/app/music/[id]/page.js` (formattedDate in serialized comments)
+
+**Scope:** All threaded reply/comment cards (events, lobby, devlog, projects, announcements, music, etc.).
+
+### Double-check / verification (2026-02-16)
+
+**CSS:** Confirmed `@media (max-width: 640px)` block (lines ~8484-8498) contains: `.reply-top-row` (flex-wrap: nowrap, align-items: center, gap: 8px), `.reply-meta-inline` (font-size: 11px, min-width: 0), `.reply-actions-inline` (margin-left: auto, flex-shrink: 0).
+
+**Timestamp format:** All reply/comment meta rows now use `formatDateTimeShort`:
+- EventCommentsSection.js (events)
+- ThreadedCommentsSection.js (announcements, music, lore, nomads, nostalgia, rant, bugs, art, memories, lore-memories)
+- ProjectRepliesSection.js (projects)
+- lobby/[id]/page.js (forum threads)
+- devlog/[id]/page.js (devlog comments)
+- music/[id]/page.js (music comments; formattedDate in serialized data; ThreadedCommentsSection formats c.created_at directly so both paths covered)
+
+**Reply structure (reply-top-row, reply-meta-inline, reply-actions-inline):** All 5 reply/comment renderers use the same structure, so the mobile CSS applies consistently.
+
+**Not changed (intentionally):** formatDateTime still used for PostHeader, AccountTabsClient, ProfileTabsClient, SearchClient, AdminConsole, EventsClient—those are not reply meta rows.
+
+---
+
 ## Section intro: description wrap and compact height (2026-02-16)
 
 **Request:** Section headers (e.g. Development, Bugs & Rants) should wrap the description onto multiple rows while keeping the action buttons on the right in the same band as the title and description, for a compact height.
@@ -14,6 +52,8 @@
 **Responsive behavior (unchanged):** At `max-width: 600px` the layout stacks (meta full width, actions below) so description has full width; at `max-width: 520px` only action button spacing/sizing is adjusted.
 
 **Verification:** On sections with long descriptions (e.g. Bugs & Rants: "Report issues, weirdness, and broken stuff. Or vent. Get it out. Be kind."), confirm the description wraps to multiple lines, the "Show hidden" and "New Post" (or section-specific) buttons remain on the right and top-aligned with the text block, and the header stays one compact block. At &lt;600px width, meta and actions should stack.
+
+**Update (same day):** At `max-width: 600px` the small-viewport behavior was changed: instead of stacking meta then actions on two full-width rows, the layout now puts **title and button on the same row** and **description on the row below** (same rows area, reduced card height). A **divider line** (`border-bottom` on `.section-intro`) was added between the header and the list. See `05-Logs/Daily/2026-02-16-section-intro-small-viewport-compact-and-divider.md` for full implementation and verification notes.
 
 ## Event post: reply and Attending padding (2026-02-16)
 
@@ -897,24 +937,66 @@ Summary of feed layout changes made this session:
 
 **Result:** Title on line 1; line 2 = “by user” / event info (left) and “X views · Y replies” (right). On wrap, stats move to their own line but remain right-aligned. “By”/event info is no longer below the view count.
 
+### Feed: stats top right, last activity bottom right (2026-02-16)
+
+**Request:** Stats (view/reply/like count) must always be **top right**; last activity must always be **bottom right** (was ending up left or mid when stacked on small viewports).
+
+**Changes:**
+
+- **`src/components/PostMetaBar.js`**
+  - Row 1: title (left) + stats in `.post-meta-stats-top-right` (top right). Stats wrapper uses `flex: 1 1 auto`, `justify-content: flex-end` so they stay right when row 1 wraps.
+  - Row 2: by user or `customRowsAfterTitle` only (no last activity in row 2).
+  - Row 3: last activity only, in `.post-meta-row3.post-meta-last-activity-row` (existing `.post-meta-row3` has `justify-content: flex-end` → bottom right).
+  - Docstring: "Row 1 = title + stats (top right). Row 2 = by/custom. Row 3 = last activity (bottom right)."
+
+- **`src/app/feed/page.js`**
+  - Events: pass `lastActivity` and `lastActivityBy` (no longer `undefined`) so PostMetaBar renders row 3 for events with replies.
+  - Event `customRowsAfterTitle`: only byUser + eventInfo (removed `eventLastActivityEl` from event row). Last activity now only in row 3.
+
+- **`src/app/globals.css`**
+  - Removed `.post-meta-row2-with-stats` / `.post-meta-stats-right` (stats no longer in row 2). Comment for `.post-meta-stats-top-right` (row 1 stats wrapper).
+
+**Result:** On all viewports: line 1 = title + stats (top right); line 2 = by/event info; line 3 = last activity (bottom right) when present.
+
 ### Double-check: feed small-viewport CSS (2026-02-16)
 
 **Verified:**
 
 1. **Event info centering (≤640px)**  
    - `src/app/globals.css` @media (max-width: 640px): `.event-row2` → column, `align-items: flex-start`; `.event-row2-middle` → `width: 100%`, `justify-content: center`.  
-   - Feed event row structure (`src/app/feed/page.js`): single `event-row2` with `byUser`, `event-row2-middle` (eventInfo), optional last-activity span. Event info (date, "Event happened", "N attended") centers on narrow viewports.
+   - Feed event row structure (`src/app/feed/page.js`): single `event-row2` with `byUser` and `event-row2-middle` (eventInfo) only; no last-activity in event row (last activity is in PostMetaBar row 3). Event info (date, "Event happened", "N attended") centers on narrow viewports.
 
-2. **Stats always right (all viewports)**  
-   - PostMetaBar: row 1 = title only; row 2 = `.post-meta-row2-left` (by/custom) + `.post-meta-stats-right` (stats with `justify-content: flex-end`). Stats stay right on one line; when row 2 wraps, stats sit on second line and remain right-aligned. No 480px title-row stacking.
+2. **Stats top right, last activity bottom right (all viewports)**  
+   - PostMetaBar: row 1 = title + `.post-meta-stats-top-right` (stats; wrapper keeps them right when row wraps). Row 2 = by/custom only. Row 3 = last activity in `.post-meta-row3` (justify-content: flex-end → bottom right). Events get last activity in row 3 via feed passing lastActivity/lastActivityBy; event custom row is by + event info only.
 
-**Manual checks:** Feed at ~358px: title line 1; line 2 has “by”/event info left, stats right (or stats alone on line 2, right-aligned). Event info centered in event row. No view count above “by” line.
+**Manual checks:** Feed at ~358px: row 1 = title + stats (top right); row 2 = by/event info; row 3 = last activity (bottom right). Event info centered in event row.
+
+### Double-check: full feed layout verification (2026-02-16)
+
+**PostMetaBar.js**
+- Row 1 (lines 81–104): `.post-meta-title-row` with title (flex 1 1 auto) and optional `.post-meta-stats-top-right` wrapper (flex 1 1 auto, justify-content: flex-end inline). Stats stay top right; when row wraps, wrapper takes full width and keeps stats right.
+- Row 2 (lines 106–109): `.post-meta-row2.post-meta-by-row` renders `row2Content` only (customRowsAfterTitle ?? byUserAtTime). No last activity here.
+- Row 3 (lines 111–116): When `lastActivityEl` (hasLastActivity = lastActivity && replies > 0), rendered in `.post-meta-row3.post-meta-last-activity-row`. CSS gives row 3 `justify-content: flex-end` → bottom right.
+
+**feed/page.js**
+- Lines 579–582: `lastActivity` and `lastActivityBy` passed for all items (including events); no longer undefined for events.
+- Lines 652–657: Event `customRowsAfterTitle` returns single `event-row2` with `byUser` and `event-row2-middle` (eventInfo) only. No `eventLastActivityEl` in event row; last activity comes from PostMetaBar row 3 when item has replies.
+
+**globals.css**
+- `.post-meta-row3` (ca. 4724–4728): `display: flex; justify-content: flex-end` → last activity row is bottom right.
+- `.post-meta-title-row`: no 480px stack; row 1 is flex wrap, stats in wrapper.
+- `.event-row2`, `.event-row2-middle` (ca. 4732–4748): event row layout; at 640px (ca. 4827–4841) event-row2 column, event-row2-middle full width, justify-content center for event info.
+- `.event-row2-with-activity` (ca. 4822–4824, 4834–4836): still defined but feed event row no longer uses this class; harmless if left for other consumers.
+
+**Summary:** Stats always top right (row 1). Last activity always bottom right (row 3). Event row is by + event info only; events with replies show last activity in row 3.
 
 ### Session notes (double-check)
 
 - **2026-02-16**: Verified all feed layout changes (event "by" alignment, attended spacing, row consolidation). Updated log section "Feed layout (consolidated)" to remove stale row 3 references. Updated PostMetaBar docstring. Double-check section above documents current behavior.
 - **2026-02-16**: Double-checked feed small-viewport fixes (event info center at 640px, stats stack at 480px); added "Double-check: feed small-viewport CSS" subsection with file/line references and manual check notes.
 - **2026-02-16**: Feed layout tweak: stats moved from title row to row 2 (with “by”/event), always right-aligned; reverted 480px title+stats stack. Logged in “Feed: stats always right, by above stats”.
+- **2026-02-16**: Feed layout: stats back to row 1 (top right), last activity to row 3 (bottom right). PostMetaBar row 2 = by/custom only. Events pass lastActivity so row 3 shows; event custom row is by + event info only. Logged in “Feed: stats top right, last activity bottom right”.
+- **2026-02-16**: Double-checked full feed layout: verified PostMetaBar.js (row 1/2/3), feed/page.js (lastActivity for events, event row without last activity), globals.css (row3 flex-end, event-row2 640px, no 480px title stack). Fixed stale “optional last-activity span” in event row description. Added “Double-check: full feed layout verification” with file/line refs.
 
 ## Event post detail: tighter layout, hide Invite when past, reply connector (2026-02-16)
 
