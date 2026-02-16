@@ -1,5 +1,40 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Section intro: description wrap and compact height (2026-02-16)
+
+**Request:** Section headers (e.g. Development, Bugs & Rants) should wrap the description onto multiple rows while keeping the action buttons on the right in the same band as the title and description, for a compact height.
+
+**Changes (`src/app/globals.css`):**
+- **Lines 2391–2397** (`.section-intro`): `grid-template-columns` set to `minmax(0, min(1fr, 72ch)) auto` so the meta column is capped at 72ch and the description wraps; `align-items: start` so buttons align with the top of the title+description block when the description wraps to multiple lines.
+- **Lines 2409–2416** (`.section-intro__desc`): added `overflow-wrap: break-word` and `word-wrap: break-word` so long words break and wrap within the meta column.
+- **Lines 8881–8885** (inside the `@media` block that overrides section-intro): same `grid-template-columns` and `align-items: start` so behavior is consistent at medium widths.
+
+**Scope:** Section intro is used on Feed, Music, Events, Art, Art & Nostalgia, Shitposts, Projects, Timeline (Announcements), Dev log, Memories, Lore, Lore Memories, Rant, Bugs & Rants, Bugs, and Forum (lobby) section headers. All share the same `.section-intro` / `__meta` / `__title` / `__desc` / `__actions` structure.
+
+**Responsive behavior (unchanged):** At `max-width: 600px` the layout stacks (meta full width, actions below) so description has full width; at `max-width: 520px` only action button spacing/sizing is adjusted.
+
+**Verification:** On sections with long descriptions (e.g. Bugs & Rants: "Report issues, weirdness, and broken stuff. Or vent. Get it out. Be kind."), confirm the description wraps to multiple lines, the "Show hidden" and "New Post" (or section-specific) buttons remain on the right and top-aligned with the text block, and the header stays one compact block. At &lt;600px width, meta and actions should stack.
+
+## Event post: reply and Attending padding (2026-02-16)
+
+**Request:** Adjust padding on event post page: (1) more top/left on reply cards for username and time, (2) less vertical padding above/below reply body text, (3) less bottom padding on Attending section.
+
+**Changes:**
+
+1. **Reply/comment cards** (`src/app/globals.css`, ~5901–5924)
+   - `.list-item.comment-card`: padding set to `14px 14px 8px 16px` (was inheriting `.list-item` 4px 10px 5px). Gives more top (14px) and left (16px), less bottom (8px).
+   - `.list-item.comment-card .reply-top-row`: `margin-bottom: 4px` (tighter gap between meta row and body; base `.reply-top-row` remains 8px elsewhere).
+   - `.list-item.comment-card .post-body`: `margin-top: 0`.
+   - `.list-item.comment-card .post-body p`: `margin: 0 0 4px`; `p:last-child` `margin-bottom: 0`. Reduces vertical bulk of the text block.
+
+2. **Attending section**
+   - `src/app/globals.css` (~2340–2342): added `.event-attending-section { padding-bottom: 8px; }` (card default is 12px).
+   - `src/components/EventEngagementSection.js`: section `className` updated from `"card"` to `"card event-attending-section"`.
+
+**Scope:** Comment cards use `list-item comment-card` on event replies, project replies, lobby thread replies, and devlog comments, so the new padding applies to all of those. Attending section is only the event RSVP block.
+
+**Verification:** Confirmed selectors are scoped so only comment cards and the Attending section are affected; no other `.list-item` or `.card` layouts changed.
+
 ## Errl Boombox (Additional Features – opt-in)
 
 ### Request
@@ -110,6 +145,13 @@
 - Sections with activity older than 24h: `hasRecentInLast24h` false → same as above.
 - Sections with activity within 24h: `hasRecentInLast24h` true → count + "(24h •)" with lit dot.
 - Non-compact modes (standard card, no-recent-activity card) are unchanged; they use `countLabel` and do not show the 24h badge.
+
+## Home Explore Sections (compact): post count + 24h badge for smallview/mobile
+
+- **Ask:** Tighten compact row for smallview/pores/mobile: show "number" + word "post"/"posts", 24h indicator smaller and clearer that it only lights up when there's been activity in last 24h.
+- **JS (HomeSectionCard.js):** Compact count now shows `countLabel` (e.g. "11 posts") instead of count only. 24h badge: removed parentheses; added `section-card-recent-badge__label` for "24h"; tooltip `title="Activity in last 24 hours"`. Removed unused `countShort`.
+- **CSS (globals.css):** `.section-card-recent-badge` – inline-flex, smaller font (10px), uppercase, tighter letter-spacing; dot inside badge scoped to 4px and reduced glow so it fits better on narrow viewports. Base `.home-section-card__status-dot` (6px, full glow) unchanged elsewhere.
+- **Verification:** Compact row displays e.g. "11 posts" then optional "24h" + dot only when `hasRecentInLast24h`; non-compact cards unchanged; scoped CSS only affects badge dot.
 
 ## Feed layout (consolidated – all changes)
 

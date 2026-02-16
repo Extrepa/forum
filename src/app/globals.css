@@ -2337,6 +2337,10 @@ main {
   height: 100%; /* Ensure card container fills height */
 }
 
+.event-attending-section {
+  padding-bottom: 8px;
+}
+
 /* Allow account/profile card to shrink with viewport; no inner scroll so only window (and Recent activity list) scroll */
 .account-card,
 .account-card.card {
@@ -2386,8 +2390,9 @@ main {
 
 .section-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  /* Cap meta width so description wraps; buttons stay right in same band */
+  grid-template-columns: minmax(0, min(1fr, 72ch)) auto;
+  align-items: start;
   gap: 8px;
 }
 
@@ -2406,6 +2411,8 @@ main {
   color: var(--muted);
   font-size: clamp(13px, 1.5vw, 16px);
   line-height: 1.28;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .section-intro__actions {
@@ -5894,6 +5901,27 @@ a.list-item:hover {
   font-size: 18px;
 }
 
+/* Comment/reply cards: more top/left padding for meta row, less vertical padding around body */
+.list-item.comment-card {
+  padding: 14px 14px 8px 16px;
+}
+
+.list-item.comment-card .reply-top-row {
+  margin-bottom: 4px;
+}
+
+.list-item.comment-card .post-body {
+  margin-top: 0;
+}
+
+.list-item.comment-card .post-body p {
+  margin: 0 0 4px;
+}
+
+.list-item.comment-card .post-body p:last-child {
+  margin-bottom: 0;
+}
+
 .comment-card {
   position: relative;
 }
@@ -6151,8 +6179,29 @@ span:has(.username) + .status-badge {
 }
 
 .section-card-recent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   color: #57ffbe;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  opacity: 0.95;
+}
+
+.section-card-recent-badge__label {
+  white-space: nowrap;
+}
+
+.section-card-recent-badge .home-section-card__status-dot {
+  width: 4px;
+  height: 4px;
+  margin-inline: 0;
+}
+
+.section-card-recent-badge .home-section-card__status-dot.is-recent {
+  box-shadow: 0 0 4px rgba(87, 255, 190, 0.6);
 }
 
 .section-card-empty-cta {
@@ -8830,8 +8879,8 @@ header::before {
   }
 
   .section-intro {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center; /* Changed from start to center for vertical alignment */
+    grid-template-columns: minmax(0, min(1fr, 72ch)) auto;
+    align-items: start;
     gap: 10px;
   }
 

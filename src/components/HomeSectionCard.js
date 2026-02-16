@@ -18,7 +18,6 @@ export default function HomeSectionCard({
   onToggle
 }) {
   const router = useRouter();
-  const countShort = String(count);
   const countLabel = `${count} ${count === 1 ? 'post' : 'posts'}`; /* for non-compact / a11y */
   const listItems = Array.isArray(recentActivities) ? recentActivities.filter(Boolean) : [];
   const recentItems = recentActivity
@@ -78,12 +77,12 @@ export default function HomeSectionCard({
             </span>
             <span className="home-section-card__count-wrap">
               <span className="section-card-count" suppressHydrationWarning title={countLabel}>
-                {countShort}
+                {countLabel}
                 {hasRecentInLast24h ? (
-                  <span className="section-card-recent-badge">
-                    {' '}(24h{' '}
-                    <span className="home-section-card__status-dot is-recent" aria-hidden="true" title="Recent activity" />
-                    )
+                  <span className="section-card-recent-badge" title="Activity in last 24 hours">
+                    {' '}
+                    <span className="section-card-recent-badge__label">24h</span>
+                    <span className="home-section-card__status-dot is-recent" aria-hidden="true" />
                   </span>
                 ) : null}
               </span>

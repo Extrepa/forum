@@ -124,7 +124,7 @@ export default function EventEngagementSection({
   };
 
   return (
-    <section className="card">
+    <section className="card event-attending-section">
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px 16px', marginBottom: attendees.length > 0 ? '12px' : 0 }}>
         <h3 className="section-title" style={{ marginTop: 0, marginBottom: 0 }}>Attending</h3>
         {attendees.length > 0 ? (
