@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   // Next.js 15: params is a Promise, must await
@@ -35,16 +36,26 @@ export async function POST(request, { params }) {
 
   // Soft delete post (set is_deleted = 1 if column exists, otherwise we might need a different approach)
   // For now, we'll try to update is_deleted, and if that fails, we could delete the row
+  const now = Date.now();
   try {
     await db
       .prepare('UPDATE posts SET is_deleted = 1, updated_at = ? WHERE id = ?')
-      .bind(Date.now(), id)
+      .bind(now, id)
       .run();
   } catch (e) {
     // If is_deleted column doesn't exist, we might need to actually delete
     // But for now, just return error - migration should add is_deleted
     return NextResponse.json({ error: 'notready' }, { status: 409 });
   }
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'post_deleted',
+    actorUser: user,
+    targetType: 'post',
+    targetId: id,
+    createdAt: now
+  });
 
   if (isAdmin) {
     await logAdminAction({

@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { normalizeUsername } from '../../../../../../lib/username';
 import { logAdminAction } from '../../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const user = await getSessionUser();
@@ -92,6 +93,15 @@ export async function POST(request, { params }) {
   } catch (e) {
     // Ignore if admin_sessions table doesn't exist yet
   }
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'user_deleted',
+    actorUser: user,
+    targetType: 'user',
+    targetId: id,
+    createdAt: now
+  });
 
   await logAdminAction({
     adminUserId: user.id,

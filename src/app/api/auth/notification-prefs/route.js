@@ -3,6 +3,7 @@ import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { ALL_NEW_CONTENT_KEYS } from '../../../../lib/notificationSections';
 import { ALL_ADMIN_EVENT_KEYS } from '../../../../lib/adminNotificationEvents';
+import { isDripNomadUser } from '../../../../lib/roles';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -26,7 +27,8 @@ export async function POST(request) {
   const replyEnabled = payload.replyEnabled !== undefined ? (payload.replyEnabled ? 1 : 0) : 1;
   const commentEnabled = payload.commentEnabled !== undefined ? (payload.commentEnabled ? 1 : 0) : 1;
   const newForumThreadsEnabled = payload.newForumThreadsEnabled !== undefined ? (payload.newForumThreadsEnabled ? 1 : 0) : 0;
-  const nomadActivityEnabled = payload.nomadActivityEnabled !== undefined ? (payload.nomadActivityEnabled ? 1 : 0) : 0;
+  const canUseNomadNotifs = isDripNomadUser(user); // only drip_nomad and admin can enable nomad notifications
+  const nomadActivityEnabled = canUseNomadNotifs && (payload.nomadActivityEnabled !== undefined ? (payload.nomadActivityEnabled ? 1 : 0) : 0);
   const adminNewUserEnabled = user.role === 'admin'
     ? (payload.adminNewUserEnabled ? 1 : 0)
     : null;
@@ -38,7 +40,7 @@ export async function POST(request) {
     : null;
 
   const rawSections = payload.newForumThreadSections;
-  const sectionsObj = typeof rawSections === 'object' && rawSections !== null
+  let sectionsObj = typeof rawSections === 'object' && rawSections !== null
     ? Object.fromEntries(
         ALL_NEW_CONTENT_KEYS.filter((k) => Object.prototype.hasOwnProperty.call(rawSections, k)).map((k) => [
           k,
@@ -46,6 +48,9 @@ export async function POST(request) {
         ])
       )
     : {};
+  if (!canUseNomadNotifs && Object.prototype.hasOwnProperty.call(sectionsObj, 'nomads')) {
+    sectionsObj = { ...sectionsObj, nomads: false };
+  }
   const newContentSectionsJson = JSON.stringify(sectionsObj);
 
   const rawAdminEvents = user.role === 'admin' ? payload.adminEvents : {};

@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 import { CONTENT_TYPE_KEYS, contentTypeTable, isValidPostType } from '../../../../../lib/contentTypes';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -108,6 +109,14 @@ export async function POST(request, { params }) {
       values.push(now, user.id);
       values.push(id);
       await db.prepare(`UPDATE ${table} SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run();
+      await notifyAdminsOfEvent({
+        db,
+        eventType: 'content_edited',
+        actorUser: user,
+        targetType: type,
+        targetId: id,
+        createdAt: now
+      });
     }
 
     const row = await db.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
@@ -139,10 +148,11 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
+    const now = Date.now();
     try {
       await db
         .prepare(`UPDATE ${table} SET is_deleted = 1, edited_at = ?, updated_by_user_id = ? WHERE id = ?`)
-        .bind(Date.now(), user.id, id)
+        .bind(now, user.id, id)
         .run();
     } catch (e) {
       // Older schemas may not have edited_at/updated_by_user_id yet.
@@ -151,6 +161,15 @@ export async function DELETE(request, { params }) {
         .bind(id)
         .run();
     }
+
+    await notifyAdminsOfEvent({
+      db,
+      eventType: 'post_deleted',
+      actorUser: user,
+      targetType: type,
+      targetId: id,
+      createdAt: now
+    });
 
     return NextResponse.json({ ok: true, id, type });
   } catch (e) {

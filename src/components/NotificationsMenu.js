@@ -292,6 +292,12 @@ export default function NotificationsMenu({
                 const resolvedTarget = n.target_type === 'post' ? (n.target_post_category || 'post') : n.target_type;
                 href = n.target_id ? resolveContentHref(resolvedTarget, n.target_id, n.target_post_category) : '/admin';
                 label = n.target_id ? `Moderation: ${resolveContentLabel(resolvedTarget, n.target_post_category)} updated` : 'Moderation activity';
+              } else if (n.type === 'new_forum_thread' && n.target_type === 'forum_thread') {
+                href = `/lobby/${n.target_id}`;
+                label = `${actor} started a new forum thread`;
+              } else if (n.type === 'new_content' && n.target_type === 'post') {
+                href = resolveContentHref('post', n.target_id, n.target_post_category);
+                label = `${actor} posted in ${postTypeLabel(n.target_post_category || 'post')}`;
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${actor} replied to a thread`;

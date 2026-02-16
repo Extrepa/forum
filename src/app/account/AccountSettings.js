@@ -18,6 +18,7 @@ import {
   parseAdminEventsJson,
   defaultAdminEvents
 } from '../../lib/adminNotificationEvents';
+import { isDripNomadUser } from '../../lib/roles';
 
 /* ---------------------------------------------
    UTILITIES
@@ -200,6 +201,39 @@ function EditSheet({ open, title, onClose, children, dirty = false }) {
           font-size: 13px;
           font-weight: 500;
         }
+        .collapsible-trigger-errl {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          width: 100%;
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(52, 225, 255, 0.2);
+          background: rgba(52, 225, 255, 0.06);
+          color: rgba(255, 255, 255, 0.92);
+          font: inherit;
+          font-size: 13px;
+          cursor: pointer;
+          transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .collapsible-trigger-errl:hover {
+          background: rgba(52, 225, 255, 0.1);
+          border-color: rgba(52, 225, 255, 0.3);
+        }
+        .collapsible-trigger-label {
+          flex: 1;
+          text-align: left;
+          font-weight: 500;
+        }
+        .collapsible-trigger-chevron {
+          flex-shrink: 0;
+          font-size: 10px;
+          opacity: 0.85;
+        }
+        .collapsible-trigger-content {
+          margin-top: 10px;
+        }
         @media (max-width: 640px) {
           .account-edit-modal {
             border-radius: 16px;
@@ -297,27 +331,19 @@ function ToggleLine({ label, checked, onChange, disabled }) {
 
 function CollapsibleSection({ label, expanded, onToggle, children }) {
   return (
-    <div style={{ marginTop: '4px' }}>
+    <div style={{ marginTop: '10px' }}>
       <button
         type="button"
+        className="collapsible-trigger-errl"
         onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '4px 0',
-          background: 'none',
-          border: 'none',
-          color: 'inherit',
-          cursor: 'pointer',
-          font: 'inherit',
-          fontSize: '12px'
-        }}
+        aria-expanded={expanded}
       >
-        <span className="muted">{label}</span>
-        <span style={{ opacity: 0.7 }}>{expanded ? '\u25B2' : '\u25BC'}</span>
+        <span className="collapsible-trigger-label">{label}</span>
+        <span className="collapsible-trigger-chevron" aria-hidden="true">
+          {expanded ? '\u25B2' : '\u25BC'}
+        </span>
       </button>
-      {expanded && children}
+      {expanded && <div className="collapsible-trigger-content">{children}</div>}
     </div>
   );
 }
@@ -326,6 +352,7 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
   const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
   const siteAny = anySiteNotifsEnabled(draft);
   const isAdmin = user.role === 'admin';
+  const canUseNomadNotifs = isDripNomadUser(user); // Nomad section options only for drip_nomad and admin
   const admin = draft.admin ?? { newUserSignups: false, newForumThreads: false, newForumReplies: false };
   const sectionPrefs = draft.newForumThreadSections || defaultNewContentSections();
   const setSection = (key, value) => setDraft((d) => ({
@@ -334,6 +361,9 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
   }));
   const [showForumSections, setShowForumSections] = useState(false);
   const [showAdminEvents, setShowAdminEvents] = useState(false);
+  const sectionKeysForSections = canUseNomadNotifs
+    ? NEW_CONTENT_SECTION_KEYS.sections
+    : NEW_CONTENT_SECTION_KEYS.sections.filter(({ key }) => key !== 'nomads');
 
   return (
     <div className="stack" style={{ gap: '16px' }}>
@@ -376,15 +406,19 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
                 <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
               ))}
               <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
-              {NEW_CONTENT_SECTION_KEYS.sections.map(({ key, label }) => (
+              {sectionKeysForSections.map(({ key, label }) => (
                 <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
               ))}
             </div>
           </CollapsibleSection>
-          <ToggleLine label="Nomad section activity" checked={draft.site.nomadActivity} onChange={(v) =>
-            setDraft(d => ({ ...d, site: { ...d.site, nomadActivity: v } }))
-          } />
-          <div className="muted" style={{ fontSize: '12px', marginTop: '2px' }}>When there&apos;s new content in the Nomad section.</div>
+          {canUseNomadNotifs && (
+            <>
+              <ToggleLine label="Nomad section activity" checked={draft.site.nomadActivity} onChange={(v) =>
+                setDraft(d => ({ ...d, site: { ...d.site, nomadActivity: v } }))
+              } />
+              <div className="muted" style={{ fontSize: '12px', marginTop: '2px' }}>When there&apos;s new content in the Nomad section.</div>
+            </>
+          )}
         </div>
 
         <div className="card notification-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>

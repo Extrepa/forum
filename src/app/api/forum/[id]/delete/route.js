@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -31,11 +32,19 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 403 });
   }
 
-  // Soft delete thread
+  const now = Date.now();
   await db
     .prepare('UPDATE forum_threads SET is_deleted = 1, updated_at = ? WHERE id = ?')
-    .bind(Date.now(), id)
+    .bind(now, id)
     .run();
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'post_deleted',
+    actorUser: user,
+    targetType: 'forum_thread',
+    targetId: id,
+    createdAt: now
+  });
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,

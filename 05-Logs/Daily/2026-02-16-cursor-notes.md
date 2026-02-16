@@ -1,5 +1,13 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Profile page: padding between profile card and tab switcher
+
+- **`src/app/globals.css`**: `.profile-tabs-wrapper` `margin-top` changed from `0` to `12px` so the tab switcher (Activity, Gallery, Notes, Socials, Stats) has spacing above it. Media queries still reduce to 8px/4px on smaller viewports.
+
+### Double-check
+- **Padding amount:** Stack uses `gap: 10px`; profile-card-bio uses `16px`. Using `12px` for the tab wrapper adds visible breathing room without over-spacing (avoids increasing things too much).
+- **Square glow on tab switcher:** The glow around the selected tab (Activity, etc.) can appear rectangular/square rather than smoothly rounded. Likely cause: `.tabs-pill-inner` has `overflow-y: hidden`, which clips the vertical extent of the sliding indicator’s `box-shadow` (`0 0 24px`). The indicator has `border-radius: 999px` but when the glow is clipped by the parent, it shows sharp horizontal cut-offs. Possible fix for later: add vertical padding to `.tabs-pill-inner` to give the glow room, or revisit overflow so the glow isn’t clipped.
+
 ## Edit notifications modal: collapsible sections to reduce height
 
 ### Request
@@ -353,3 +361,34 @@
 - **Box size**: No changes to padding, width, height, or grid; only display/alignment and label font-size.
 - **No other overrides**: Grep confirmed no other rules for `.header-library-list a` or `.header-library-item-label` that would conflict.
 - **Markup**: `SiteHeader.js` unchanged; list items remain `<a><span class="header-library-item-label">{item.label}</span></a>`.
+
+## Account / Edit Profile: title padding, centering, and sub-tab glow
+
+### Request
+- Equal padding above and below the "Account Settings" and "Edit Profile" title text on both tabs.
+- Center that title text on all viewports.
+- Reduce the glow on the yellow sub-tab section titles (Recent activity, Gallery, Notes, etc.) on the Edit Profile tab.
+
+### Implementation
+
+1. **`globals.css`**
+   - Added `.account-page-title-wrap`: `padding: 16px 0`, `text-align: center`; child `.section-title` margin set to 0 so padding defines vertical spacing.
+   - `.account-edit-panel .section-title`: reduced glow from `0 0 10px rgba(245, 255, 183, 0.6)` to `0 0 6px rgba(245, 255, 183, 0.35)`.
+
+2. **`AccountTabsClient.js`**
+   - Account tab: title wrapper uses `className="account-page-title-wrap"`; hr `marginTop` set to 0 so space below title equals wrapper bottom padding (16px).
+   - Edit Profile tab: same wrapper class and hr `marginTop: 0`.
+
+### Double-check / verification
+
+- **Scope of centered titles**: Only the two main page headings use `.account-page-title-wrap` (Account Settings at ~1058, Edit Profile at ~1073). All other `section-title` usages in this file (Username, Avatar, Mood & Song, Socials, Gallery, Notes, Stats, Recent activity) are inside content panels and are not wrapped, so they remain left-aligned as before.
+- **Equal padding**: Wrapper has `padding: 16px 0`; hr has `marginTop: 0`, so the gap below the title is only the wrapper’s 16px bottom padding. Net: 16px above title, 16px below title.
+- **Glow scope**: `.account-edit-panel .section-title` targets only headings inside `.account-edit-panel` (the sub-tab content). The main "Account Settings" and "Edit Profile" h2s are not inside `.account-edit-panel`, so they keep the default teal `.section-title` glow; only the yellow sub-tab titles (Recent activity, Gallery, Notes, etc.) get the reduced glow.
+- **Responsive**: Media queries that alter `.section-title` (e.g. font-size at 3115, 8037) do not override padding or text-align; the wrap’s 16px padding and centering apply at all viewports.
+- **Files touched**: `src/app/globals.css` (new class + one rule change), `src/app/account/AccountTabsClient.js` (two wrappers, two hr marginTop values). No other components (e.g. ProfileTabsClient, AccountSettings) use the new class.
+
+## Notification wiring verification (new notification changes)
+
+- **Prefs & UI (all users)**: Edit notifications modal has Site (New forum threads, forum sections collapsible, Nomad section activity), Delivery (email/SMS), and for admins Admin (New user/thread/reply + Post manipulation & user changes collapsible). All toggles save via `POST /api/auth/notification-prefs`; payload includes `newForumThreadsEnabled`, `nomadActivityEnabled`, `newForumThreadSections`, `adminEvents`. Auth/me and auth.js return the new columns; migrations 0067, 0068, 0069 add `notify_new_forum_threads_enabled`, `notify_nomad_activity_enabled`, `notify_new_content_sections`, `notify_admin_events`.
+- **Display**: NotificationsMenu handles `admin_event` (and other types); notifications GET uses JOIN on actor_user_id (broadcast/test use admin id so rows are returned).
+- **Wiring completed**: (1) **Site new forum threads**: `src/lib/siteNotifications.js` added with `notifyUsersOfNewForumThread()` (sectionKey lobby_general/lobby_shitposts) and `notifyUsersOfNewContent()` (section + nomad). Threads route and shitposts route call the former after create; posts route calls the latter so section toggles and nomad activity both fire. (2) **Admin events**: `notifyAdminsOfEvent()` now called from forum delete, posts delete, admin posts DELETE/POST (edit)/pin/restore, admin move, admin users delete/role, and all hide/lock routes (forum, posts, timeline, events, music, projects, devlog). (3) **Menu**: NotificationsMenu labels added for `new_forum_thread` and `new_content` (post section).

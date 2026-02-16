@@ -6,6 +6,7 @@ import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from
 import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
+import { notifyUsersOfNewForumThread } from '../../../lib/siteNotifications';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -76,6 +77,14 @@ export async function POST(request) {
     actorUser: user,
     targetType: 'forum_thread',
     targetId: threadId,
+    createdAt: now
+  });
+
+  await notifyUsersOfNewForumThread({
+    db,
+    actorUser: user,
+    threadId,
+    sectionKey: 'lobby_general',
     createdAt: now
   });
 

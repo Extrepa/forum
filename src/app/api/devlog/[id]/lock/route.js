@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUserWithRole, isAdminUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -15,12 +16,21 @@ export async function POST(request, { params }) {
 
   const formData = await request.formData();
   const locked = String(formData.get('locked') || '').trim() === '1' ? 1 : 0;
+  const now = Date.now();
 
   const db = await getDb();
   await db
     .prepare('UPDATE dev_logs SET is_locked = ?, updated_at = ? WHERE id = ?')
-    .bind(locked, Date.now(), id)
+    .bind(locked, now, id)
     .run();
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'content_locked',
+    actorUser: user,
+    targetType: 'dev_log',
+    targetId: id,
+    createdAt: now
+  });
   await logAdminAction({
     adminUserId: user.id,
     actionType: 'toggle_lock',

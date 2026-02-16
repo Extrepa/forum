@@ -3,6 +3,7 @@ import { getDb } from '../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { logAdminAction } from '../../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../../lib/adminNotifications';
 import { CONTENT_TYPE_KEYS, contentTypeTable } from '../../../../../../lib/contentTypes';
 
 export async function POST(request, { params }) {
@@ -51,6 +52,15 @@ export async function POST(request, { params }) {
       .bind(id)
       .run();
   }
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'content_restored',
+    actorUser: user,
+    targetType: type,
+    targetId: id,
+    createdAt: now
+  });
 
   await logAdminAction({
     adminUserId: user.id,

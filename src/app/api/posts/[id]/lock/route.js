@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -57,12 +58,20 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
-  // Rollout-safe: try to update is_locked, fall back gracefully if column doesn't exist
+  const now = Date.now();
   try {
     await db
       .prepare('UPDATE posts SET is_locked = ?, updated_at = ? WHERE id = ?')
-      .bind(locked, Date.now(), id)
+      .bind(locked, now, id)
       .run();
+    await notifyAdminsOfEvent({
+      db,
+      eventType: 'content_locked',
+      actorUser: user,
+      targetType: 'post',
+      targetId: id,
+      createdAt: now
+    });
     if (isAdmin) {
       await logAdminAction({
         adminUserId: user.id,

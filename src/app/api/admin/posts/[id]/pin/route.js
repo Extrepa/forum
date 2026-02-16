@@ -3,6 +3,7 @@ import { getDb } from '../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { logAdminAction } from '../../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../../lib/adminNotifications';
 import { CONTENT_TYPE_KEYS, contentTypeTable } from '../../../../../../lib/contentTypes';
 
 export async function POST(request, { params }) {
@@ -44,10 +45,20 @@ export async function POST(request, { params }) {
     }
 
     const nextPinned = row.is_pinned ? 0 : 1;
+    const now = Date.now();
     await db
       .prepare(`UPDATE ${table} SET is_pinned = ? WHERE id = ?`)
       .bind(nextPinned, id)
       .run();
+
+    await notifyAdminsOfEvent({
+      db,
+      eventType: 'content_pinned',
+      actorUser: user,
+      targetType: type,
+      targetId: id,
+      createdAt: now
+    });
 
     if (isAdminUser(user)) {
       await logAdminAction({

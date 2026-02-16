@@ -7,6 +7,7 @@ import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { isValidPostType, postTypeCollectionPath } from '../../../lib/contentTypes';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
+import { notifyUsersOfNewContent } from '../../../lib/siteNotifications';
 import { normalizeVisibilityScope } from '../../../lib/visibility';
 import { isDripNomadUser } from '../../../lib/roles';
 
@@ -177,6 +178,15 @@ export async function POST(request) {
       actorUser: user,
       targetType: 'post',
       targetId: postId,
+      createdAt: now
+    });
+
+    await notifyUsersOfNewContent({
+      db,
+      actorUser: user,
+      targetType: 'post',
+      targetId: postId,
+      sectionKey: type,
       createdAt: now
     });
 

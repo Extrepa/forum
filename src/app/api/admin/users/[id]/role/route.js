@@ -3,6 +3,7 @@ import { getDb } from '../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../lib/auth';
 import { isAdminUser } from '../../../../../../lib/admin';
 import { logAdminAction } from '../../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../../lib/adminNotifications';
 
 const VALID_ROLES = ['user', 'drip_nomad', 'mod', 'admin'];
 
@@ -53,6 +54,14 @@ export async function POST(request, { params }) {
   }
 
   await db.prepare('UPDATE users SET role = ? WHERE id = ?').bind(nextRole, id).run();
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'user_role_changed',
+    actorUser: user,
+    targetType: 'user',
+    targetId: id
+  });
 
   if (nextRole !== 'admin') {
     try {

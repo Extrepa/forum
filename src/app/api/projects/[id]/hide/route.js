@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -34,12 +35,21 @@ export async function POST(request, { params }) {
 
   const formData = await request.formData();
   const hidden = String(formData.get('hidden') || '').trim() === '1' ? 1 : 0;
+  const now = Date.now();
 
   try {
     await db
       .prepare('UPDATE projects SET is_hidden = ?, updated_at = ? WHERE id = ?')
-      .bind(hidden, Date.now(), id)
+      .bind(hidden, now, id)
       .run();
+    await notifyAdminsOfEvent({
+      db,
+      eventType: 'content_hidden',
+      actorUser: user,
+      targetType: 'project',
+      targetId: id,
+      createdAt: now
+    });
     if (isAdmin) {
       await logAdminAction({
         adminUserId: user.id,

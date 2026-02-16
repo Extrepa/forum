@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -35,10 +36,20 @@ export async function POST(request, { params }) {
     return NextResponse.redirect(redirectUrl, 303);
   }
 
+  const now = Date.now();
   await db
     .prepare('UPDATE forum_threads SET is_locked = ?, updated_at = ? WHERE id = ?')
-    .bind(locked, Date.now(), params.id)
+    .bind(locked, now, id)
     .run();
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'content_locked',
+    actorUser: user,
+    targetType: 'forum_thread',
+    targetId: id,
+    createdAt: now
+  });
 
   if (isAdmin) {
     await logAdminAction({

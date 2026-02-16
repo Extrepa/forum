@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { parseLocalDateTimeToUTC } from '../../../../lib/dates';
+import { notifyAdminsOfEvent } from '../../../../lib/adminNotifications';
 
 function destPathFor(type, id) {
   switch (type) {
@@ -562,13 +563,23 @@ export async function POST(request) {
 
   await migrateDiscussion(db, { sourceType, sourceId, destType, destId });
 
+  const now = Date.now();
   await markMoved(db, {
     sourceType,
     sourceId,
     destType,
     destId,
     movedByUserId: user.id,
-    movedAt: Date.now(),
+    movedAt: now,
+  });
+
+  await notifyAdminsOfEvent({
+    db,
+    eventType: 'content_moved',
+    actorUser: user,
+    targetType: sourceType,
+    targetId: sourceId,
+    createdAt: now
   });
 
   const to = await resolveDestinationPath(db, destType, destId);
