@@ -2152,6 +2152,12 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                             <>
                               <span className="activity-label">Replied to</span>
                               <span className="activity-title" title={item.title}>{item.title}</span>
+                              {item.section ? (
+                                <>
+                                  <span className="activity-label">in</span>
+                                  <span className="activity-section">{item.section}</span>
+                                </>
+                              ) : null}
                               <span className="activity-label">at</span>
                               <span className="activity-meta">{item.timeStr}</span>
                             </>

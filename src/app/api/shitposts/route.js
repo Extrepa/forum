@@ -6,6 +6,7 @@ import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 import { notifyUsersOfNewForumThread } from '../../../lib/siteNotifications';
+import { logUserActivity } from '../../../lib/audit';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -100,6 +101,21 @@ export async function POST(request) {
     sectionKey: 'lobby_shitposts',
     createdAt: now
   });
+
+  try {
+    await logUserActivity({
+      userId: user.id,
+      username: user.username || null,
+      actionType: 'post_created',
+      targetType: 'forum_thread',
+      targetId: threadId,
+      targetTitle: finalTitle,
+      sectionKey: 'lobby_shitposts',
+      source: 'forum',
+    });
+  } catch (e) {
+    // Do not fail the request if activity log fails
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }

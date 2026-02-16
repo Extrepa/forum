@@ -1118,3 +1118,30 @@ Summary of feed layout changes made this session:
 **Data flow**
 - User toggles off in Account Settings -> handleSaveNotifs sends conversationUpdatesEnabled -> notification-prefs POST -> DB.
 - Leave/delete routes read notify_conversation_updates_enabled from users; only insert notification when truthy.
+
+## Recent activity display and logging consistency (2026-02-16)
+
+**Request:** Profile "Recent activity" should show the same level of detail whether the user replied to the post itself or replied to a reply; and all such activity should be logged in a single, consistent way in system logs.
+
+**Done:**
+- Added spec: `docs/03-Features/RECENT_ACTIVITY_DISPLAY_AND_LOGGING.md`.
+- Spec defines: (1) Profile activity fields for every entry (action type, target content, context/section, timestamp); same detail for "Replied to post" vs "Replied to reply". (2) Unified system-log schema (actor, actionType, targetType, targetId, targetTitle, sectionKey, parentId when reply-to-reply, createdAt, source) so admin logs and exports stay consistent.
+- Verification checklist included for profile feed and system log filtering/export.
+
+**Implementation (same session):**
+- **Profile/Account Activity UI:** Reply rows now show "in [section]" so they have the same four pieces as "Posted" (action, target, context, timestamp). `ProfileTabsClient.js` and `AccountTabsClient.js`: for reply items render "in" + `item.section` when present before "at" + time.
+- **User activity log:** Migration `0078_user_activity_log.sql` adds table `user_activity_log` (id, created_at, user_id, username, action_type, target_type, target_id, target_title, section_key, parent_id, source) with indexes on created_at, user_id, action_type. `src/lib/audit.js`: added `logUserActivity({ userId, username, actionType, targetType, targetId, targetTitle, sectionKey, parentId, source })`.
+- **Call sites:** `logUserActivity` invoked from: (1) `api/forum/[id]/replies/route.js` after reply insert — actionType `reply_to_reply` or `reply_to_post`, parentId when replying to a reply, sectionKey from thread is_shitpost (lobby_shitposts vs lobby_general); (2) `api/threads/route.js` after thread create — actionType `post_created`, sectionKey `lobby_general`; (3) `api/shitposts/route.js` after thread create — actionType `post_created`, sectionKey `lobby_shitposts`; (4) `api/posts/route.js` after post create — actionType `post_created`, sectionKey = post type. All wrapped in try/catch so request does not fail if logging fails.
+- **Follow-up:** Admin console could fetch `user_activity_log` and merge into system log view / export (filter by user, actionType). Devlog, music, projects, events, timeline comment/reply routes can be wired to `logUserActivity` in a later pass for full coverage.
+
+**Double-check / Verification (complete):**
+- **ProfileTabsClient.js:** Reply branch renders "Replied to" + title + optional "in" + section + "at" + timeStr; `item.section` used only when truthy; same structure as AccountTabsClient.
+- **AccountTabsClient.js:** Same reply row structure; activityItems built from stats.recentActivity with getSectionLabel(postType, replyType), so section is always set for known reply types.
+- **Profile page:** activityItems map includes `section: getSectionLabel(postType, replyType)`; stats.recentActivity reply rows have replyType (and post_type for post_comment), so section is never missing for replies.
+- **stats.js:** recentForumReplies (and other reply queries) return thread_id, thread_title, reply_type; allReplies map adds type: 'reply', replyType; no code change needed for section — it is derived at display time.
+- **audit.js:** logUserActivity guards on userId, actionType, targetType, source; INSERT has 11 columns; bind order matches (id, created_at, user_id, username, action_type, target_type, target_id, target_title, section_key, parent_id, source).
+- **0078_user_activity_log.sql:** Table columns match audit INSERT; indexes on created_at DESC, user_id, action_type; IF NOT EXISTS used.
+- **Forum replies route:** thread still fetched as author_user_id, title; sectionKey from separate is_shitpost query (try/catch for pre-0061 DBs); logUserActivity called with effectiveReplyTo ? 'reply_to_reply' : 'reply_to_post', parentId when reply-to-reply; errors caught so request does not fail.
+- **Threads route:** logUserActivity after notifyUsersOfNewForumThread; post_created, sectionKey 'lobby_general'.
+- **Shitposts route:** logUserActivity after notify; post_created, sectionKey 'lobby_shitposts', targetType forum_thread.
+- **Posts route:** logUserActivity inside existing try after notifyUsersOfNewContent; post_created, sectionKey: type, targetType: 'post'; logErr caught so outer catch still handles DB failures.

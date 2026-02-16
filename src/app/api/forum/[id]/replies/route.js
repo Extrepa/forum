@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
+import { logUserActivity } from '../../../../../lib/audit';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -94,6 +95,27 @@ export async function POST(request, { params }) {
     .prepare('SELECT author_user_id, title FROM forum_threads WHERE id = ?')
     .bind(id)
     .first();
+  let sectionKey = 'lobby_general';
+  try {
+    const row = await db.prepare('SELECT is_shitpost FROM forum_threads WHERE id = ?').bind(id).first();
+    if (row?.is_shitpost) sectionKey = 'lobby_shitposts';
+  } catch (_) {}
+
+  try {
+    await logUserActivity({
+      userId: user.id,
+      username: user.username || null,
+      actionType: effectiveReplyTo ? 'reply_to_reply' : 'reply_to_post',
+      targetType: 'forum_thread',
+      targetId: id,
+      targetTitle: thread?.title || null,
+      sectionKey,
+      parentId: effectiveReplyTo || null,
+      source: 'forum',
+    });
+  } catch (e) {
+    // Do not fail the request if activity log fails
+  }
 
   // Create mention notifications
   await createMentionNotifications({

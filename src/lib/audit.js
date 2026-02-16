@@ -1,5 +1,22 @@
 import { getDb } from './db';
 
+/**
+ * Log user activity (post created, reply to post, reply to reply) with a single schema
+ * so profile recent activity and system/audit views stay consistent.
+ * @param {{ userId: string, username?: string, actionType: string, targetType: string, targetId?: string, targetTitle?: string, sectionKey?: string, parentId?: string, source: string }}
+ */
+export async function logUserActivity({ userId, username = null, actionType, targetType, targetId = null, targetTitle = null, sectionKey = null, parentId = null, source }) {
+  if (!userId || !actionType || !targetType || !source) return;
+  const db = await getDb();
+  await db
+    .prepare(
+      `INSERT INTO user_activity_log (id, created_at, user_id, username, action_type, target_type, target_id, target_title, section_key, parent_id, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(globalThis.crypto.randomUUID(), Date.now(), userId, username, actionType, targetType, targetId ?? null, targetTitle ?? null, sectionKey ?? null, parentId ?? null, source)
+    .run();
+}
+
 export async function logAdminAction({ adminUserId, actionType, targetType, targetId = null, metadata = null }) {
   if (!adminUserId || !actionType || !targetType) {
     return;

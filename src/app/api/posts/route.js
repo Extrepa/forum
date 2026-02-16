@@ -10,6 +10,7 @@ import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 import { notifyUsersOfNewContent } from '../../../lib/siteNotifications';
 import { normalizeVisibilityScope } from '../../../lib/visibility';
 import { isDripNomadUser } from '../../../lib/roles';
+import { logUserActivity } from '../../../lib/audit';
 
 function normalizeType(raw) {
   return String(raw || '').trim().toLowerCase();
@@ -189,6 +190,21 @@ export async function POST(request) {
       sectionKey: type,
       createdAt: now
     });
+
+    try {
+      await logUserActivity({
+        userId: user.id,
+        username: user.username || null,
+        actionType: 'post_created',
+        targetType: 'post',
+        targetId: postId,
+        targetTitle: finalTitle,
+        sectionKey: type,
+        source: 'posts',
+      });
+    } catch (logErr) {
+      // Do not fail the request if activity log fails
+    }
 
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');

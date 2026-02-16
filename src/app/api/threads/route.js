@@ -7,6 +7,7 @@ import { createMentionNotifications } from '../../../lib/mentions';
 import { isImageUploadsEnabled } from '../../../lib/settings';
 import { notifyAdminsOfNewPost } from '../../../lib/adminNotifications';
 import { notifyUsersOfNewForumThread } from '../../../lib/siteNotifications';
+import { logUserActivity } from '../../../lib/audit';
 
 export async function POST(request) {
   const user = await getSessionUser();
@@ -87,6 +88,21 @@ export async function POST(request) {
     sectionKey: 'lobby_general',
     createdAt: now
   });
+
+  try {
+    await logUserActivity({
+      userId: user.id,
+      username: user.username || null,
+      actionType: 'post_created',
+      targetType: 'forum_thread',
+      targetId: threadId,
+      targetTitle: title,
+      sectionKey: 'lobby_general',
+      source: 'forum',
+    });
+  } catch (e) {
+    // Do not fail the request if activity log fails
+  }
 
   return NextResponse.redirect(redirectUrl, 303);
 }
