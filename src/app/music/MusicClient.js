@@ -5,6 +5,7 @@ import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../lib/user
 import { useUiPrefs } from '../../components/UiPrefsProvider';
 import { getForumStrings } from '../../lib/forum-texts';
 import PostMetaBar from '../../components/PostMetaBar';
+import { getSongProviderMeta } from '../../lib/songProviders';
 
 export default function MusicClient({ posts, notice , headerActions}) {
   const { loreEnabled } = useUiPrefs();
@@ -80,21 +81,28 @@ export default function MusicClient({ posts, notice , headerActions}) {
                       <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
                     {!condensed && row.embed ? (
-                      <div 
-                        className={`embed-frame ${row.embed.aspect}`}
-                        style={{
-                          marginTop: '8px',
-                          marginBottom: '8px',
-                          ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
-                        }}
-                      >
-                        <iframe
-                          src={row.embed.src}
-                          title={row.title}
-                          allow={row.embed.allow}
-                          allowFullScreen={row.embed.allowFullScreen}
-                          style={{ height: '100%' }}
-                        />
+                      <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+                        <span
+                          className="muted"
+                          style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                        >
+                          {getSongProviderMeta(row.type).label}
+                        </span>
+                        <div
+                          className={`embed-frame ${row.embed.aspect}`}
+                          style={{
+                            marginTop: '4px',
+                            ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
+                          }}
+                        >
+                          <iframe
+                            src={row.embed.src}
+                            title={row.title}
+                            allow={row.embed.allow}
+                            allowFullScreen={row.embed.allowFullScreen}
+                            style={{ height: '100%' }}
+                          />
+                        </div>
                       </div>
                     ) : null}
                     {row.image_key && (!condensed || row.is_pinned) ? (

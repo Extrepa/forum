@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
-import { safeEmbedFromUrl } from '../lib/embeds';
+import { safeEmbedFromUrl, detectProviderFromUrl } from '../lib/embeds';
+import { getSongProviderMeta } from '../lib/songProviders';
 import MarkdownUploader from './MarkdownUploader';
 
 function wrapSelection(textarea, before, after = '') {
@@ -20,13 +21,18 @@ function wrapSelection(textarea, before, after = '') {
 export default function MusicPostForm({ allowImageUploads = true, allowMarkdownUpload = true }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
-  const [type, setType] = useState('youtube');
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
   const [embedStyle, setEmbedStyle] = useState('auto');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+
+  const detectedType = useMemo(() => {
+    const trimmed = String(url || '').trim();
+    return trimmed ? (detectProviderFromUrl(trimmed) || 'youtube') : 'youtube';
+  }, [url]);
+  const type = detectedType;
 
   useEffect(() => {
     if (!imageFile) {
@@ -66,30 +72,21 @@ export default function MusicPostForm({ allowImageUploads = true, allowMarkdownU
       </label>
 
       <label>
-        <div className="muted">Embed type</div>
-        <select
-          name="type"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          required
-        >
-          <option value="youtube">YouTube</option>
-          <option value="youtube-music">YouTube Music</option>
-          <option value="soundcloud">SoundCloud</option>
-          <option value="spotify">Spotify</option>
-        </select>
-      </label>
-
-      <label>
-        <div className="muted">URL</div>
+        <div className="muted">Song or embed URL</div>
         <input
           name="url"
-          placeholder="Paste the YouTube, YouTube Music, Spotify, or SoundCloud link"
+          placeholder="Paste a YouTube, YouTube Music, Spotify, or SoundCloud link"
           required
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
+        {url.trim() ? (
+          <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>
+            Detected: {getSongProviderMeta(type).label}
+          </div>
+        ) : null}
       </label>
+      <input type="hidden" name="type" value={type} />
 
       {type === 'soundcloud' && (
         <label>

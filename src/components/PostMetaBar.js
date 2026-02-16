@@ -50,7 +50,7 @@ export default function PostMetaBar({
   const titleProps = showTitleLink && titleHref ? { href: titleHref } : {};
 
   const byUserAtTime = (
-    <span className="post-meta-by-block muted" style={{ fontSize: '14px', whiteSpace: 'nowrap' }}>
+    <span className="post-meta-by-block muted" style={{ fontSize: '14px' }}>
       by <Username
         name={author}
         colorIndex={authorColorIndex}
@@ -69,7 +69,7 @@ export default function PostMetaBar({
   );
 
   return (
-    <div className={`${className} post-meta ${isCondensed ? 'post-meta--condensed' : ''}`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div className={`${className} post-meta ${isCondensed ? 'post-meta--condensed' : ''}`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {/* Row 1: Title only so it wraps cleanly */}
       <div className="post-meta-row1 post-meta-title-row" style={{ minWidth: 0 }}>
         <TitleElement
@@ -80,7 +80,7 @@ export default function PostMetaBar({
         </TitleElement>
       </div>
 
-      {/* Row 2: "by user at time" (one block) + stats column when no last activity */}
+      {/* Row 2: "by user at time" (left) + stats column (right, same row) */}
       <div
         className="post-meta-row2 post-meta-by-row"
         style={{
@@ -88,16 +88,15 @@ export default function PostMetaBar({
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '8px',
-          flexWrap: 'wrap',
-          rowGap: '4px',
+          flexWrap: 'nowrap',
           minWidth: 0
         }}
       >
-        <div style={{ minWidth: 0 }}>{byUserAtTime}</div>
+        <div style={{ flex: '1 1 auto', minWidth: 0 }}>{byUserAtTime}</div>
         {!hasLastActivity && statsColumn}
       </div>
 
-      {/* Row 3: Last activity (left), Stats column (right) */}
+      {/* Row 3: Last activity (left), Stats column (right, same row) */}
       {hasLastActivity && (
         <div
           className="post-meta-row3"
@@ -106,8 +105,7 @@ export default function PostMetaBar({
             justifyContent: 'space-between',
             alignItems: 'flex-start',
             gap: '8px',
-            flexWrap: 'wrap',
-            rowGap: '4px',
+            flexWrap: 'nowrap',
             fontSize: '12px',
             minWidth: 0
           }}

@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { getStatsForUser } from '../../../lib/stats';
@@ -410,18 +409,6 @@ export default async function ProfilePage({ params }) {
 
   return (
     <div className="stack">
-      <div className="page-top-row page-top-row--solo">
-        <div className="page-top-row-right">
-          {isOwnProfile && (
-            <Link
-              href="/account?tab=profile"
-              className="profile-edit-profile-link action-button"
-            >
-              Edit profile
-            </Link>
-          )}
-        </div>
-      </div>
       <section className="card profile-card neon-outline-card" style={{ paddingTop: '16px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Single card: header (avatar, username, role, mood/song) + optional headline/socials */}
         <div

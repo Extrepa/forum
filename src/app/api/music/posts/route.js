@@ -3,7 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../lib/uploads';
-import { safeEmbedFromUrl } from '../../../../lib/embeds';
+import { safeEmbedFromUrl, detectProviderFromUrl } from '../../../../lib/embeds';
 import { isImageUploadsEnabled } from '../../../../lib/settings';
 import { notifyAdminsOfNewPost } from '../../../../lib/adminNotifications';
 
@@ -22,13 +22,20 @@ export async function POST(request) {
   const formData = await request.formData();
   const title = String(formData.get('title') || '').trim();
   const url = String(formData.get('url') || '').trim();
-  const type = String(formData.get('type') || '').trim();
+  let type = String(formData.get('type') || '').trim();
   const tags = String(formData.get('tags') || '').trim();
   const body = String(formData.get('body') || '').trim();
   const embedStyle = String(formData.get('embed_style') || 'auto').trim();
 
-  if (!title || !url || !type) {
+  if (!title || !url) {
     redirectUrl.searchParams.set('error', 'missing');
+    return NextResponse.redirect(redirectUrl, 303);
+  }
+  if (!type) {
+    type = detectProviderFromUrl(url) || '';
+  }
+  if (!type) {
+    redirectUrl.searchParams.set('error', 'invalid');
     return NextResponse.redirect(redirectUrl, 303);
   }
 

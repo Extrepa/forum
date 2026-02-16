@@ -1,5 +1,31 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Account Settings: Custom Neon color picker
+
+### Issue
+- Color theme dropdown included "Custom Neon" but there was no UI to choose the neon color, so the option did nothing useful.
+
+### Implementation (`src/app/account/AccountSettings.js`)
+
+1. **Neon color row (only when Color theme = Custom Neon, value 2)**
+   - **Color picker:** `<input type="color">`; value is validated hex or fallback `#34e1ff`. On change: update local hex input state, `setUiBorderColor`, and `handleSaveSiteUi({ borderColor })` so choice persists and applies immediately.
+   - **Hex text input:** Controlled by `customNeonHexInput` (local state). User can type/paste with or without `#`. On blur: normalize to `#rrggbb`, revert to current saved or `#34e1ff` if invalid; if normalized value differs from saved, call `setUiBorderColor` and `handleSaveSiteUi({ borderColor })`.
+
+2. **State**
+   - `customNeonHexInput` keeps the hex field editable without saving on every keystroke. Synced from context via `useEffect` when `uiColorMode` or `uiBorderColor` changes so picker and context stay in sync.
+
+3. **Default when switching to Custom Neon**
+   - Color theme dropdown `onChange`: when `mode === 2` and current `uiBorderColor` is missing or not a valid 6-digit hex, set `payload.borderColor = '#34e1ff'` so the first time a user selects Custom Neon they get a default and it is persisted.
+
+4. **Save path**
+   - `handleSaveSiteUi(patch)` now supports `patch.borderColor`. Builds `newUi.borderColor` from patch or existing `uiBorderColor`, includes `borderColor` in `uiPrefsDirty` when present, sends `newUi` to `POST /api/auth/ui-prefs`. On success, calls `setUiBorderColor(patch.borderColor)` when provided. API and `UiPrefsProvider` already supported `borderColor` / `ui_border_color`; only the Account Settings UI was missing the controls.
+
+### Double-check (verification)
+- `useUiPrefs()` supplies `uiBorderColor` / `setUiBorderColor`; `/api/auth/ui-prefs` accepts `borderColor` and writes `ui_border_color`; `/api/auth/me` returns `uiBorderColor`; layout passes `initialBorderColor` into `UiPrefsProvider`. No API or provider changes required.
+- Color picker value is always a valid 6-digit hex (or fallback) so native input never receives invalid value.
+- Hex input onBlur normalizes and only saves when normalized !== current, avoiding redundant requests.
+- Lint: no new errors in `AccountSettings.js`.
+
 ## Account page pop-out modals: mobile glitch fix + same flow as create/edit posts
 
 ### Request
@@ -76,7 +102,7 @@
 ### Implementation
 
 1. **`src/components/PostMetaBar.js`**
-   - Restructured to three explicit rows. Row 1: title only (no inline author) so title wraps cleanly. Row 2: "by username at time" in a single block (`white-space: nowrap`) plus stats column on the right when there is no last activity. Row 3 (when last activity): last activity text on the left, stats as a column (one line per stat, `align-items: flex-end`) on the right.
+   - Restructured to three explicit rows. Row 1: title only (no inline author) so title wraps cleanly. Row 2: "by username at time" block plus stats column on the right when there is no last activity. Row 3 (when last activity): last activity text on the left, stats as a column (one line per stat, `align-items: flex-end`) on the right.
    - Stats rendered as a column of spans instead of one joined string.
    - Added `hideStats` prop so feed can hide stats in PostMetaBar for events and show them in the event block.
    - Removed condensed desktop/mobile variants and standalone date row; date lives inside "by user at time".
@@ -87,3 +113,194 @@
 
 3. **`src/app/globals.css`**
    - Replaced old PostMetaBar desktop/mobile media rules (condensed-author, stats-desktop/mobile, date-mobile-only, etc.) with minimal rules: `.post-meta-title-row`, `.post-meta-by-row`, `.post-meta-row3`, `.post-meta-stats-column` for min-width and alignment; smaller font for last-activity on mobile; event-info-row center.
+
+### Follow-up: no extra rows, tighter spacing
+
+- **Stats stay on same row:** Row 2 and row 3 use `flexWrap: 'nowrap'` so the stats column never wraps to an additional row; left side uses `flex: '1 1 auto', minWidth: 0` so it absorbs space and wraps internally. Same for feed event bottom row (`event-bottom-row`): `flexWrap: 'nowrap'` so views/replies stay on the right of the same row as attended/last activity.
+- **"By user at time" wrapping:** Removed `white-space: nowrap` from the by-block so it can wrap inside its cell on narrow viewports instead of forcing overflow; stats remain right-aligned on the same row.
+- **Tighter vertical gap:** PostMetaBar column gap reduced from 4px to 2px between title row, by-user row, and last-activity row (less space between title/section label and "by username at time").
+
+## Account / Edit Profile: header + remove breadcrumb buttons
+
+### Request
+- Add "Edit Profile" header and divider to the Edit Profile tab, mirroring the Account tab's "Account Settings" style.
+- Remove "View Public Profile" and "Edit profile" buttons from the breadcrumb row under the header (now available in kebab menu).
+
+### Implementation
+
+1. **`src/app/account/AccountTabsClient.js`**
+   - Added "Edit Profile" h2 with `section-title` class and matching hr divider above the Edit profile card content.
+   - Styling matches Account tab: `marginBottom: 16px` on header div, `hr` with `marginTop/Bottom: 16px`, `borderTop: 1px solid rgba(255, 255, 255, 0.1)`.
+
+2. **`src/app/account/page.js`**
+   - Removed `page-top-row` block that contained the "View Public Profile" link.
+   - Removed unused `Link` import.
+   - Page now renders stack > AccountTabsClient only.
+
+3. **`src/app/profile/[username]/page.js`**
+   - Removed `page-top-row` block that contained the "Edit profile" link (when `isOwnProfile`).
+   - Removed unused `Link` import.
+   - Page now renders stack > section.card.profile-card directly.
+
+### Verification (double-check)
+- **Account page**: No `page-top-row`, no "View Public Profile" link. `Link` import removed; `stack` wraps `AccountTabsClient` directly.
+- **Profile page**: No `page-top-row`, no "Edit profile" button. `Link` import removed; `stack` wraps `section.card.profile-card` directly. Profile page itself had no other `Link` usage; child components (e.g. ProfileTabsClient) import their own.
+- **AccountTabsClient**: Edit Profile tab content (when `activeTab === 'profile'`) has "Edit Profile" h2 + hr + account-edit-card, matching Account tab structure.
+- **page-top-row**: Still used by `PageTopRow.js` and other pages (e.g. projects, forum); only removed from account and profile pages.
+
+## Additional notification types (Edit notifications modal)
+
+### Request
+- User expected additional notification types in the Edit notifications modal; only the original set (RSVP, Like, Project update, Mention, Reply, Comment, Delivery, Admin) was visible.
+
+### Implementation
+
+1. **Migration `migrations/0067_add_forum_nomad_notification_prefs.sql`**
+   - Added `notify_new_forum_threads_enabled` and `notify_nomad_activity_enabled` (INTEGER NOT NULL DEFAULT 0) to `users`.
+
+2. **API and auth**
+   - **`src/app/api/auth/notification-prefs/route.js`**: Accept and persist `newForumThreadsEnabled`, `nomadActivityEnabled`; return them in the JSON response.
+   - **`src/lib/auth.js`**: Main and admin SELECTs include the new columns; fallback paths set both to 0 when columns are missing.
+   - **`src/app/api/auth/me/route.js`**: Return `notifyNewForumThreadsEnabled`, `notifyNomadActivityEnabled`.
+   - **`src/app/api/admin/users/[id]/delete/route.js`**: When anonymizing a user, set both new prefs to 0.
+
+3. **UI `src/app/account/AccountSettings.js`**
+   - **notifPrefs**: Added `site.newForumThreads` and `site.nomadActivity` (default false; support snake_case and camelCase from API).
+   - **handleSaveNotifs**: Payload includes `newForumThreadsEnabled`, `nomadActivityEnabled`.
+   - **NotificationsEditor**: In the Site notifications card, added:
+     - **New forum threads** with helper text: "When someone starts a new thread in the forum."
+     - **Nomad section activity** with helper text: "When there's new content in the Nomad section."
+
+### Deploy note
+- Run migration 0067 before or with deploy; notification-prefs UPDATE and auth SELECTs expect the new columns. Fallback auth path handles missing columns (defaults to 0).
+
+### Follow-up (not in this pass)
+- **Sending**: When a new forum thread is created, notify users with `notify_new_forum_threads_enabled = 1` (in addition to existing admin notifications). When nomad-scoped content is created, notify users with `notify_nomad_activity_enabled = 1`. Requires wiring in thread-creation and nomad-post creation APIs plus outbound (email/SMS) if desired.
+
+## New forum threads: per-section / per–thread-type toggles
+
+### Request
+- "New forum threads" should have additional toggles for specific thread types, section types, or whatever across the forum.
+
+### Implementation
+
+1. **`migrations/0068_add_notify_new_content_sections.sql`**
+   - Added `notify_new_content_sections` TEXT NOT NULL DEFAULT '{}' to `users`. JSON object keyed by section/thread type (e.g. `lobby_general`, `lobby_shitposts`, `art`, `rant`, `lore`, …).
+
+2. **`src/lib/notificationSections.js`**
+   - Central list of keys and labels: **Lobby** (General (Lobby), Shitposts), **Sections** (Art, Nostalgia, Bugs, Rant, Lore, Memories, About, Nomads). Helpers: `parseNewContentSectionsJson`, `defaultNewContentSections`, `ALL_NEW_CONTENT_KEYS`.
+
+3. **API and auth**
+   - **notification-prefs**: Accepts `newForumThreadSections` (object), sanitizes to allowed keys, saves as JSON. Returns `notifyNewContentSections` in response.
+   - **auth.js**: Main and admin SELECTs include `notify_new_content_sections`; fallbacks set to `'{}'` when column missing.
+   - **/api/auth/me**: Returns `notifyNewContentSections` (parsed object).
+   - **admin user delete**: Sets `notify_new_content_sections = '{}'` when anonymizing.
+
+4. **AccountSettings.js**
+   - **notifPrefs**: Added `newForumThreadSections` (parsed from user, merged with default keys).
+   - **anySiteNotifsEnabled(prefs)**: Now treats "site notifs on" when either any site toggle is on or (newForumThreads master on and any section toggle on).
+   - **handleSaveNotifs**: Payload includes `newForumThreadSections`.
+   - **NotificationsEditor**: Under "New forum threads" master toggle, added indented block "Lobby" (General (Lobby), Shitposts) and "Sections" (Art, Nostalgia, Bugs, Rant, Lore, Memories, About, Nomads) with a ToggleLine per key.
+
+### Deploy
+- Run migration 0068 with 0067; notification-prefs and auth expect `notify_new_content_sections`. Fallback auth path uses `'{}'` if column missing.
+
+## Admin notifications: post manipulation and user changes
+
+### Request
+- Add admin notification options for posts being deleted and other post manipulation (edit, hide, lock, move, pin, restore), plus user-related events (user deleted, user role changed).
+
+### Implementation
+
+1. **Migration `migrations/0069_add_notify_admin_events.sql`**
+   - Added `notify_admin_events` TEXT NOT NULL DEFAULT '{}' to `users`. JSON object keyed by event type.
+
+2. **`src/lib/adminNotificationEvents.js`**
+   - Event keys and labels: Post/content deleted, edited, hidden, locked, moved, pinned, restored; User deleted; User role changed. Helpers: `parseAdminEventsJson`, `defaultAdminEvents`, `ADMIN_EVENT_KEYS`, `ALL_ADMIN_EVENT_KEYS`.
+
+3. **API and auth**
+   - **notification-prefs**: For admins, accepts `adminEvents` (object), sanitizes to allowed keys, saves as JSON in `notify_admin_events`. Non-admins get `notify_admin_events = '{}'`. Response includes `notifyAdminEvents`.
+   - **auth.js**: Main and admin SELECTs include `notify_admin_events`; fallbacks set to `'{}'`.
+   - **/api/auth/me**: Returns `notifyAdminEvents` (parsed object).
+   - **admin user delete**: Sets `notify_admin_events = '{}'` when anonymizing.
+
+4. **AccountSettings.js**
+   - **notifPrefs**: Added `adminEvents` (parsed from user, merged with default keys).
+   - **handleSaveNotifs**: Payload includes `adminEvents` for admins.
+   - **Admin notifications card**: After the existing three toggles (New user signups, New forum threads, New forum replies), added subsection "Post manipulation & user changes" with a ToggleLine per event (post_deleted, content_edited, content_hidden, content_locked, content_moved, content_pinned, content_restored, user_deleted, user_role_changed).
+
+5. **`src/lib/adminNotifications.js`**
+   - **notifyAdminsOfEvent({ db, eventType, actorUser, targetType, targetId })**: Loads admins, filters by `notify_admin_events` JSON for the given `eventType`, inserts notifications with type `admin_event`. For use when wiring delete/edit/hide/lock/move/pin/restore/role routes.
+
+6. **`src/components/NotificationsMenu.js`**
+   - Added branch for `n.type === 'admin_event'`: resolve href from target_type/target_id, label "Moderation: [content type] updated" or "Moderation activity".
+
+### Follow-up (sending)
+- In each relevant route (e.g. post delete, forum delete, edit, hide, lock, move, pin, restore, user delete, user role change), call `notifyAdminsOfEvent({ db, eventType: 'post_deleted' | 'content_edited' | ... })` with the appropriate event type and target. No routes were wired in this pass; prefs and helper are in place.
+
+## Song links & music posts: auto-detect provider from URL
+
+### Request
+- Replace separate "URL" + "provider dropdown" with a single URL field that auto-detects provider (YouTube, YouTube Music, SoundCloud, Spotify).
+- Optionally improve how music posts display the embed (provider label).
+
+### Implementation
+
+1. **`src/lib/embeds.js`**
+   - **`detectProviderFromUrl(url)`**: Returns `'youtube' | 'youtube-music' | 'soundcloud' | 'spotify' | null` from URL host/path (spotify.com, music.youtube.com, youtube.com/youtu.be, soundcloud.com).
+
+2. **Music posts**
+   - **MusicPostForm.js**: Single "Song or embed URL" field; type is derived via `detectProviderFromUrl(url)` and shown as "Detected: [Provider]"; hidden `name="type"` for submit. SoundCloud player-style dropdown still shown when SoundCloud is detected.
+   - **POST /api/music/posts**: If `type` is missing, set `type = detectProviderFromUrl(url)`; if still missing, return `error=invalid`. Requires only title + url.
+
+3. **Profile song (account)**
+   - **AccountTabsClient.js**: Single Song URL field; on change, set `profileSongProvider` to `detectProviderFromUrl(url)`; removed provider dropdown; show "Detected: [Provider]" under the input when URL is present. `getProfileSongProviderLabel` now uses `getSongProviderMeta(value).label` (removed `PROFILE_SONG_PROVIDERS` list).
+   - **POST /api/account/profile-extras**: When `songUrl` is set and `songProvider` is empty, set `songProvider = detectProviderFromUrl(songUrl) || 'soundcloud'` (was hardcoded `'soundcloud'`).
+
+4. **Display on music posts**
+   - **music/[id]/page.js** and **MusicClient.js**: Show a small muted "PROVIDER" label (e.g. "YouTube", "SoundCloud") above the embed iframe on detail page and feed cards.
+
+5. **`src/lib/songProviders.js`**
+   - **getSongProviderMeta**: Prefer direct lookup by raw value so `'youtube-music'` returns "YouTube Music" label instead of being normalized to `'youtube'` for display.
+
+### Follow-up: URL and content-type coverage
+
+6. **`src/lib/embeds.js`** (second pass)
+   - **Spotify embed URL**: Fixed to use `/embed/{type}/{id}` (was `/embed/{id}`). **parseSpotifyEmbed(url)** returns `{ type, id }` for: track, album, playlist, artist, episode, show. **spotifyPlayerSrc(embedType, id, autoPlay)** builds correct URL.
+   - **Spotify detection**: **detectProviderFromUrl** now recognizes Spotify URLs with `/artist/`, `/episode/`, `/show/` in addition to track/album/playlist (SPOTIFY_EMBED_PATH_PREFIXES).
+   - **Spotify embed height by type**: track 152px, episode/show 232px, album/playlist/artist 380px (**spotifyEmbedHeight**).
+   - **YouTube video ID**: **parseYouTubeId** now also handles `/live/VIDEO_ID` and `/v/VIDEO_ID`; youtu.be path trimmed and first segment used so IDs with query params still work.
+
+### Verification & coverage checklist
+
+**Files touched (all verified):**
+
+| File | Role |
+|------|------|
+| `src/lib/embeds.js` | detectProviderFromUrl, parseYouTubeId/PlaylistId, parseSpotifyEmbed, safeEmbedFromUrl, Spotify/SoundCloud helpers; single source of truth for URL → embed. |
+| `src/lib/songProviders.js` | getSongProviderMeta (display labels); direct lookup so youtube-music shows "YouTube Music". |
+| `src/components/MusicPostForm.js` | Single URL field; type from detectProviderFromUrl; hidden type input; "Detected: [Provider]"; SoundCloud player-style when SoundCloud. |
+| `src/app/api/music/posts/route.js` | Infers type from URL when missing; validates with safeEmbedFromUrl. |
+| `src/app/api/account/profile-extras/route.js` | Infers songProvider from detectProviderFromUrl(songUrl) when URL set and provider empty. |
+| `src/app/account/AccountTabsClient.js` | Single Song URL field; provider set on change via detectProviderFromUrl; "Detected: [Provider]"; no provider dropdown. |
+| `src/app/music/page.js` | Feed: builds embed with safeEmbedFromUrl(row.type, row.url, row.embed_style). |
+| `src/app/music/MusicClient.js` | Feed cards: provider label above embed via getSongProviderMeta(row.type).label. |
+| `src/app/music/[id]/page.js` | Detail: safeEmbedFromUrl(post.type, post.url, post.embed_style); provider label above embed. |
+| `src/components/ProfileSongPlayer.js` | safeEmbedFromUrl(provider, songUrl, embedStyle, autoPlay) for profile player. |
+
+**URL / content-type coverage:**
+
+| Provider | Detection (host/path) | Single item | Playlist / album / show | Embed behaviour |
+|---------|------------------------|-------------|--------------------------|-----------------|
+| **YouTube** | youtu.be, *youtube.com | watch?v=, embed/, shorts/, live/, v/, youtu.be | list= or /playlist/ | video + optional list; playlist-only → videoseries. |
+| **YouTube Music** | music.youtube.com | same as YouTube | same | same embed logic as YouTube. |
+| **SoundCloud** | *soundcloud.com | any track URL | path contains /sets/ | isSoundCloudPlaylist → height 450 when auto; else compact/artwork by embed_style. |
+| **Spotify** | spotify.com + /track/, /album/, /playlist/, /artist/, /episode/, /show/ | track, episode | album, playlist, artist, show | parseSpotifyEmbed → /embed/{type}/{id}; height by type (152 / 232 / 380). |
+
+**Edge cases covered:**
+
+- Music post form: type required only from URL (or hidden input); API infers type if missing.
+- Profile song: provider optional in request; API infers from URL when URL present and provider empty.
+- Invalid or unsupported URL: detectProviderFromUrl returns null; safeEmbedFromUrl returns null → API returns error (music posts) or no embed (profile).
+- Existing posts: stored `type` and `url` unchanged; display uses post.type for label and safeEmbedFromUrl(type, url, embed_style) for iframe.
+- Edit music post: edit form still sends type (from existing post); no change required for edit flow.

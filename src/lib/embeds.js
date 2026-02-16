@@ -1,22 +1,52 @@
+/** Spotify path types we support for embed (track, album, playlist, artist, episode, show). */
+const SPOTIFY_EMBED_PATH_PREFIXES = ['/track/', '/album/', '/playlist/', '/artist/', '/episode/', '/show/'];
+
+/** Detect embed provider from URL. Returns 'youtube' | 'youtube-music' | 'soundcloud' | 'spotify' | null. */
+export function detectProviderFromUrl(url) {
+  const trimmed = typeof url === 'string' ? url.trim() : '';
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.toLowerCase();
+    const path = parsed.pathname || '';
+
+    if (host.includes('spotify.com') && SPOTIFY_EMBED_PATH_PREFIXES.some((p) => path.includes(p))) {
+      return 'spotify';
+    }
+    if (host.includes('music.youtube.com')) {
+      return 'youtube-music';
+    }
+    if (host === 'youtu.be' || host.endsWith('youtube.com')) {
+      return 'youtube';
+    }
+    if (host.endsWith('soundcloud.com')) {
+      return 'soundcloud';
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function parseYouTubeId(url) {
   try {
     const parsed = new URL(url);
     if (parsed.hostname === 'youtu.be') {
-      const id = parsed.pathname.replace('/', '').trim();
+      const id = parsed.pathname.replace(/^\/+|\/+$/g, '').split('/')[0] || '';
       return id || null;
     }
     if (parsed.hostname.endsWith('youtube.com')) {
       if (parsed.pathname === '/watch') {
-        return parsed.searchParams.get('v');
+        return parsed.searchParams.get('v') || null;
       }
-      const embedMatch = parsed.pathname.match(/\/embed\/([^/]+)/);
-      if (embedMatch?.[1]) {
-        return embedMatch[1];
-      }
-      const shortsMatch = parsed.pathname.match(/\/shorts\/([^/]+)/);
-      if (shortsMatch?.[1]) {
-        return shortsMatch[1];
-      }
+      const embedMatch = parsed.pathname.match(/\/embed\/([^/?]+)/);
+      if (embedMatch?.[1]) return embedMatch[1];
+      const shortsMatch = parsed.pathname.match(/\/shorts\/([^/?]+)/);
+      if (shortsMatch?.[1]) return shortsMatch[1];
+      const liveMatch = parsed.pathname.match(/\/live\/([^/?]+)/);
+      if (liveMatch?.[1]) return liveMatch[1];
+      const vMatch = parsed.pathname.match(/\/v\/([^/?]+)/);
+      if (vMatch?.[1]) return vMatch[1];
     }
     return null;
   } catch {
@@ -122,38 +152,38 @@ export function safeEmbedFromUrl(type, url, embedStyle = 'auto', autoPlay = fals
   }
 
   if (type === 'spotify') {
-    const id = parseSpotifyId(url);
-    if (!id) {
+    const parsed = parseSpotifyEmbed(url);
+    if (!parsed) {
       return null;
     }
-    const src = spotifyPlayerSrc(id, autoPlay); // Autoplay not directly in standard embed, but might be possible with API
+    const src = spotifyPlayerSrc(parsed.type, parsed.id, autoPlay);
+    const height = spotifyEmbedHeight(parsed.type);
     return {
       src,
       allow: 'encrypted-media',
       allowFullScreen: true,
-      aspect: 'spotify', // Custom aspect class for Spotify
-      height: 380 // Standard Spotify embed height for track
+      aspect: 'spotify',
+      height,
+      meta: { spotifyType: parsed.type },
     };
   }
 
   return null;
 }
 
-function parseSpotifyId(url) {
+/**
+ * Parse Spotify URL into embed type and id. Embed URL must be /embed/{type}/{id}.
+ * Supports: track, album, playlist, artist, episode, show.
+ * @returns {{ type: string, id: string } | null}
+ */
+function parseSpotifyEmbed(url) {
   try {
     const parsed = new URL(url);
-    const path = parsed.pathname;
-    const trackMatch = path.match(/\/track\/([a-zA-Z0-9]+)/);
-    if (trackMatch?.[1]) {
-      return trackMatch[1];
-    }
-    const albumMatch = path.match(/\/album\/([a-zA-Z0-9]+)/);
-    if (albumMatch?.[1]) {
-      return albumMatch[1];
-    }
-    const playlistMatch = path.match(/\/playlist\/([a-zA-Z0-9]+)/);
-    if (playlistMatch?.[1]) {
-      return playlistMatch[1];
+    const path = parsed.pathname || '';
+    const types = ['track', 'album', 'playlist', 'artist', 'episode', 'show'];
+    for (const t of types) {
+      const m = path.match(new RegExp(`/${t}/([a-zA-Z0-9]+)`));
+      if (m?.[1]) return { type: t, id: m[1] };
     }
     return null;
   } catch {
@@ -161,6 +191,20 @@ function parseSpotifyId(url) {
   }
 }
 
-function spotifyPlayerSrc(id, autoPlay = false) { // Autoplay not standard for embeds, but including param
-  return `https://open.spotify.com/embed/${id}?utm_source=generator${autoPlay ? '&autoplay=true' : ''}`;
+function spotifyEmbedHeight(spotifyType) {
+  switch (spotifyType) {
+    case 'track':
+      return 152;
+    case 'episode':
+    case 'show':
+      return 232;
+    default:
+      return 380; // album, playlist, artist
+  }
+}
+
+function spotifyPlayerSrc(embedType, id, autoPlay = false) {
+  const q = new URLSearchParams({ utm_source: 'generator' });
+  if (autoPlay) q.set('autoplay', 'true');
+  return `https://open.spotify.com/embed/${embedType}/${id}?${q.toString()}`;
 }

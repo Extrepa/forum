@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
+import { detectProviderFromUrl } from '../../../../lib/embeds';
 
 const ALLOWED_PROVIDERS = ['soundcloud', 'spotify', 'youtube', 'youtube-music'];
 
@@ -49,7 +50,7 @@ export async function POST(request) {
     songUrl = '';
   }
   if (songUrl && !songProvider) {
-    songProvider = 'soundcloud';
+    songProvider = detectProviderFromUrl(songUrl) || 'soundcloud';
   }
 
   let db;

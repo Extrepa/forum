@@ -21,6 +21,7 @@ import ViewTracker from '../../../components/ViewTracker';
 import ReplyButton from '../../../components/ReplyButton';
 import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import { formatDateTime } from '../../../lib/dates';
+import { getSongProviderMeta } from '../../../lib/songProviders';
 
 export const dynamic = 'force-dynamic';
 
@@ -425,19 +426,32 @@ export default async function MusicDetailPage({ params, searchParams }) {
           </span>
         ) : null}
         {embed ? (
-          <div 
-            className={`embed-frame ${embed.aspect}`}
-            style={{
-              ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px` } : {})
-            }}
-          >
-            <iframe
-              src={embed.src}
-              title={post.title}
-              allow={embed.allow}
-              allowFullScreen={embed.allowFullScreen}
-              style={{ height: '100%' }}
-            />
+          <div style={{ marginBottom: '4px' }}>
+            <span
+              className="muted"
+              style={{
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {getSongProviderMeta(post.type).label}
+            </span>
+            <div
+              className={`embed-frame ${embed.aspect}`}
+              style={{
+                marginTop: '4px',
+                ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px` } : {})
+              }}
+            >
+              <iframe
+                src={embed.src}
+                title={post.title}
+                allow={embed.allow}
+                allowFullScreen={embed.allowFullScreen}
+                style={{ height: '100%' }}
+              />
+            </div>
           </div>
         ) : null}
         {post.image_key ? (

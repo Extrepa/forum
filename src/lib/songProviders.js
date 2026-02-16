@@ -15,6 +15,10 @@ const normalizeSongProvider = (value) => {
 };
 
 export function getSongProviderMeta(value, options = {}) {
+  const raw = value ? String(value).toLowerCase().trim() : '';
+  if (raw && SONG_PROVIDER_META[raw]) {
+    return SONG_PROVIDER_META[raw];
+  }
   const key = normalizeSongProvider(value);
   const base = SONG_PROVIDER_META[key];
   if (base) {

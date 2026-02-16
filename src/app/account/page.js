@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { getDb } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 import { getStatsForUser } from '../../lib/stats';
@@ -22,15 +21,6 @@ export default async function AccountPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <div className="page-top-row page-top-row--solo">
-        <div className="page-top-row-right">
-          {user?.username && (
-            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="action-button">
-              View Public Profile
-            </Link>
-          )}
-        </div>
-      </div>
       <AccountTabsClient 
         activeTab={activeTab}
         user={user}

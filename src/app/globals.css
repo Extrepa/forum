@@ -2722,12 +2722,6 @@ main {
   flex: 1 1 auto;
 }
 
-.account-profile-preview-autoplay-note {
-  font-size: 11px;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
 /* Tablet breakpoint: allow the sections to stack when space is limited */
 @media (max-width: 900px) {
   .account-profile-preview {

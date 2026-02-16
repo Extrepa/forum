@@ -14,6 +14,7 @@ import { getAvatarUrl } from '../../lib/media';
 import AvatarImage from '../../components/AvatarImage';
 import { getMoodChipStyle, MOOD_OPTIONS } from '../../lib/moodThemes';
 import { getSongProviderMeta } from '../../lib/songProviders';
+import { detectProviderFromUrl } from '../../lib/embeds';
 import ErrlTabSwitcher from '../../components/ErrlTabSwitcher';
 import CreatePostModal from '../../components/CreatePostModal';
 import { contentTypeLabel, contentTypeViewPath, postTypeLabel, postTypePath } from '../../lib/contentTypes';
@@ -26,17 +27,9 @@ function getRarityColor(value) {
   return '#b794f6';
 }
 
-const PROFILE_SONG_PROVIDERS = [
-  { value: 'soundcloud', label: 'SoundCloud' },
-  { value: 'spotify', label: 'Spotify' },
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'youtube-music', label: 'YouTube Music' },
-];
-
 const getProfileSongProviderLabel = (value) => {
   if (!value) return '';
-  const match = PROFILE_SONG_PROVIDERS.find((provider) => provider.value === value);
-  return match ? match.label : value;
+  return getSongProviderMeta(value).label;
 };
 
 const getSongDescriptor = (sourceUrl) => {
@@ -1077,6 +1070,10 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
 
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Edit Profile</h2>
+          </div>
+          <hr style={{ marginTop: '16px', marginBottom: '16px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
             <div
@@ -1166,9 +1163,6 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                         <span className="account-profile-preview-song-pill-separator" aria-hidden="true" />
                         <span className="account-profile-preview-song-pill-text">{descriptor}</span>
                       </SongPillWrapper>
-                      {stats.profileSongAutoplayEnabled && (
-                        <span className="account-profile-preview-autoplay-note">(autoplay on)</span>
-                      )}
                     </div>
                   );
                 })()}
@@ -1438,7 +1432,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
                     {(profileMoodText || profileMoodEmoji) && <div><span style={{ color: 'var(--muted)' }}>Mood:</span> <span>{profileMoodEmoji}{profileMoodEmoji ? ' ' : ''}{profileMoodText}</span></div>}
                     {profileHeadline && <div><span style={{ color: 'var(--muted)' }}>Status:</span> <span>{profileHeadline}</span></div>}
-                    {(profileSongUrl || profileSongProvider) && <div><span style={{ color: 'var(--muted)' }}>Song:</span> <span>{profileSongProvider ? profileSongProviderLabelText : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span> {profileSongAutoplay && <span style={{ color: 'var(--muted)', fontSize: '11px' }}> (autoplay on)</span>}</div>}
+                    {(profileSongUrl || profileSongProvider) && <div><span style={{ color: 'var(--muted)' }}>Song:</span> <span>{profileSongProvider ? profileSongProviderLabelText : ''} {profileSongUrl ? <a href={profileSongUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{profileSongUrl}</a> : ''}</span></div>}
                     {!profileMoodText && !profileMoodEmoji && !profileHeadline && !profileSongUrl && <div className="muted" style={{ fontSize: '12px' }}>No mood or song set. Click Edit to add.</div>}
                   </div>
                 ) : (
@@ -1463,21 +1457,24 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       </select>
                     </div>
                     <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Status (optional)</label><input type="text" value={profileHeadline} onChange={(e) => setProfileHeadline(e.target.value)} placeholder="Short tagline" maxLength={300} style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
-                    <div><label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label><input type="url" value={profileSongUrl} onChange={(e) => setProfileSongUrl(e.target.value)} placeholder="https://soundcloud.com/..." style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }} /></div>
                     <div>
-                      <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song provider</label>
-                      <select
-                        className="account-basic-select"
-                        value={profileSongProvider || ''}
-                        onChange={(e) => setProfileSongProvider(e.target.value)}
-                      >
-                        <option value="">—</option>
-                        {PROFILE_SONG_PROVIDERS.map((provider) => (
-                          <option key={provider.value} value={provider.value}>
-                            {provider.label}
-                          </option>
-                        ))}
-                      </select>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Song URL</label>
+                      <input
+                        type="url"
+                        value={profileSongUrl}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setProfileSongUrl(v);
+                          setProfileSongProvider(detectProviderFromUrl(v) || '');
+                        }}
+                        placeholder="https://soundcloud.com/... or YouTube, Spotify, etc."
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(52, 225, 255, 0.3)', background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', fontSize: '13px' }}
+                      />
+                      {profileSongUrl.trim() ? (
+                        <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>
+                          Detected: {getSongProviderMeta(profileSongProvider || detectProviderFromUrl(profileSongUrl)).label}
+                        </div>
+                      ) : null}
                     </div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}><input type="checkbox" checked={profileSongAutoplay} onChange={(e) => setProfileSongAutoplay(e.target.checked)} /><span>Autoplay song on profile (off by default)</span></label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>

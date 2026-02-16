@@ -6,6 +6,18 @@ import { useUiPrefs } from '../../components/UiPrefsProvider';
 import Username from '../../components/Username';
 import CreatePostModal from '../../components/CreatePostModal';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
+import {
+  NEW_CONTENT_SECTION_KEYS,
+  ALL_NEW_CONTENT_KEYS,
+  parseNewContentSectionsJson,
+  defaultNewContentSections
+} from '../../lib/notificationSections';
+import {
+  ADMIN_EVENT_KEYS,
+  ALL_ADMIN_EVENT_KEYS,
+  parseAdminEventsJson,
+  defaultAdminEvents
+} from '../../lib/adminNotificationEvents';
 
 /* ---------------------------------------------
    UTILITIES
@@ -15,8 +27,12 @@ function countEnabledSiteNotifs(site) {
   return Object.values(site).filter(Boolean).length;
 }
 
-function anySiteNotifsEnabled(site) {
-  return Object.values(site).some(Boolean);
+function anySiteNotifsEnabled(prefs) {
+  const site = prefs.site || {};
+  if (Object.values(site).some(Boolean)) return true;
+  const sections = prefs.newForumThreadSections || {};
+  if (site.newForumThreads && Object.values(sections).some(Boolean)) return true;
+  return false;
 }
 
 function deliverySummary(delivery, hasPhone) {
@@ -28,7 +44,7 @@ function deliverySummary(delivery, hasPhone) {
 }
 
 function validateNotificationPrefs({ prefs, hasPhone }) {
-  const siteAny = anySiteNotifsEnabled(prefs.site);
+  const siteAny = anySiteNotifsEnabled(prefs);
 
   if (prefs.delivery.sms && !hasPhone) {
     return { ok: false, message: "Add a phone number before enabling SMS notifications." };
@@ -281,9 +297,14 @@ function ToggleLine({ label, checked, onChange, disabled }) {
 
 function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave }) {
   const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
-  const siteAny = anySiteNotifsEnabled(draft.site);
+  const siteAny = anySiteNotifsEnabled(draft);
   const isAdmin = user.role === 'admin';
   const admin = draft.admin ?? { newUserSignups: false, newForumThreads: false, newForumReplies: false };
+  const sectionPrefs = draft.newForumThreadSections || defaultNewContentSections();
+  const setSection = (key, value) => setDraft((d) => ({
+    ...d,
+    newForumThreadSections: { ...(d.newForumThreadSections || defaultNewContentSections()), [key]: value }
+  }));
 
   return (
     <div className="stack" style={{ gap: '16px' }}>
@@ -311,6 +332,24 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
           <ToggleLine label="Comment notifications" checked={draft.site.comments} onChange={(v) =>
             setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
           } />
+          <ToggleLine label="New forum threads" checked={draft.site.newForumThreads} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, newForumThreads: v } }))
+          } />
+          <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '8px' }}>Get notified when new threads or posts are created. Choose which types below.</div>
+          <div style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '2px solid rgba(52, 225, 255, 0.25)', marginBottom: '8px' }}>
+            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Lobby</div>
+            {NEW_CONTENT_SECTION_KEYS.lobby.map(({ key, label }) => (
+              <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+            ))}
+            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
+            {NEW_CONTENT_SECTION_KEYS.sections.map(({ key, label }) => (
+              <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+            ))}
+          </div>
+          <ToggleLine label="Nomad section activity" checked={draft.site.nomadActivity} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, nomadActivity: v } }))
+          } />
+          <div className="muted" style={{ fontSize: '12px', marginTop: '2px' }}>When there&apos;s new content in the Nomad section.</div>
         </div>
 
         <div className="card notification-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.2)' }}>
@@ -351,6 +390,21 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
             <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
               setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
             } />
+            <div className="muted" style={{ fontSize: '12px', marginTop: '10px', marginBottom: '6px' }}>Post manipulation &amp; user changes</div>
+            {ADMIN_EVENT_KEYS.map(({ key, label }) => {
+              const adminEv = draft.adminEvents || defaultAdminEvents();
+              return (
+                <ToggleLine
+                  key={key}
+                  label={label}
+                  checked={!!adminEv[key]}
+                  onChange={(v) => setDraft((d) => ({
+                    ...d,
+                    adminEvents: { ...(d.adminEvents || defaultAdminEvents()), [key]: v }
+                  }))}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -398,7 +452,14 @@ export default function AccountSettings({ user: initialUser }) {
   }, [initialUser]);
 
   // Derived state for preferences
-  const notifPrefs = useMemo(() => ({
+  const notifPrefs = useMemo(() => {
+    const rawSections = user?.notify_new_content_sections ?? user?.notifyNewContentSections;
+    const parsed = parseNewContentSectionsJson(rawSections);
+    const defaultSections = defaultNewContentSections();
+    const newForumThreadSections = Object.fromEntries(
+      ALL_NEW_CONTENT_KEYS.map((k) => [k, Object.prototype.hasOwnProperty.call(parsed, k) ? !!parsed[k] : defaultSections[k]])
+    );
+    return {
     site: {
       rsvp: user?.notify_rsvp_enabled !== undefined
         ? Boolean(user.notify_rsvp_enabled)
@@ -418,7 +479,14 @@ export default function AccountSettings({ user: initialUser }) {
       comments: user?.notify_comment_enabled !== undefined
         ? Boolean(user.notify_comment_enabled)
         : (user?.notifyCommentEnabled !== undefined ? Boolean(user.notifyCommentEnabled) : true),
+      newForumThreads: user?.notify_new_forum_threads_enabled !== undefined
+        ? Boolean(user.notify_new_forum_threads_enabled)
+        : (user?.notifyNewForumThreadsEnabled !== undefined ? Boolean(user.notifyNewForumThreadsEnabled) : false),
+      nomadActivity: user?.notify_nomad_activity_enabled !== undefined
+        ? Boolean(user.notify_nomad_activity_enabled)
+        : (user?.notifyNomadActivityEnabled !== undefined ? Boolean(user.notifyNomadActivityEnabled) : false),
     },
+    newForumThreadSections,
     delivery: {
       email: user?.notify_email_enabled !== undefined
         ? Boolean(user.notify_email_enabled)
@@ -437,8 +505,17 @@ export default function AccountSettings({ user: initialUser }) {
       newForumReplies: user?.notify_admin_new_reply_enabled !== undefined
         ? Boolean(user.notify_admin_new_reply_enabled)
         : Boolean(user?.notifyAdminNewReplyEnabled),
-    }
-  }), [user]);
+    },
+    adminEvents: (() => {
+      const raw = user?.notify_admin_events ?? user?.notifyAdminEvents;
+      const parsed = parseAdminEventsJson(raw);
+      const def = defaultAdminEvents();
+      return Object.fromEntries(
+        ALL_ADMIN_EVENT_KEYS.map((k) => [k, Object.prototype.hasOwnProperty.call(parsed, k) ? !!parsed[k] : def[k]])
+      );
+    })()
+    };
+  }, [user]);
 
   const siteUi = {
     defaultLandingPage: user?.defaultLandingPage || 'feed',
@@ -451,6 +528,7 @@ export default function AccountSettings({ user: initialUser }) {
   const [contactDraft, setContactDraft] = useState({ email: '', phone: '' });
   const [pwDraft, setPwDraft] = useState({ oldPassword: '', newPassword: '' });
   const [notifDraft, setNotifDraft] = useState(notifPrefs);
+  const [customNeonHexInput, setCustomNeonHexInput] = useState(uiBorderColor || '#34e1ff');
 
   // Sync drafts when opening panels
   useEffect(() => {
@@ -464,6 +542,12 @@ export default function AccountSettings({ user: initialUser }) {
       setNotifDraft(notifPrefs);
     }
   }, [openPanel, user, notifPrefs]);
+
+  // Keep custom neon hex input in sync with context when theme is Custom Neon
+  useEffect(() => {
+    const resolved = (uiBorderColor && /^#[0-9A-Fa-f]{6}$/.test(uiBorderColor)) ? uiBorderColor : '#34e1ff';
+    setCustomNeonHexInput(resolved);
+  }, [uiColorMode, uiBorderColor]);
 
   const refreshUser = async () => {
     try {
@@ -545,10 +629,14 @@ export default function AccountSettings({ user: initialUser }) {
         mentionEnabled: notifDraft.site.mentions,
         replyEnabled: notifDraft.site.replies,
         commentEnabled: notifDraft.site.comments,
+        newForumThreadsEnabled: notifDraft.site.newForumThreads,
+        nomadActivityEnabled: notifDraft.site.nomadActivity,
+        newForumThreadSections: notifDraft.newForumThreadSections || {},
         // Admin prefs included here
         adminNewUserEnabled: notifDraft.admin?.newUserSignups,
         adminNewPostEnabled: notifDraft.admin?.newForumThreads,
         adminNewReplyEnabled: notifDraft.admin?.newForumReplies,
+        adminEvents: notifDraft.adminEvents || {},
       };
 
       const res = await fetch('/api/auth/notification-prefs', {
@@ -587,14 +675,21 @@ export default function AccountSettings({ user: initialUser }) {
     }
 
     // If updating UI prefs
-    const newUi = { 
+    const newBorderColor = patch.borderColor !== undefined ? patch.borderColor : uiBorderColor;
+    const newUi = {
       loreEnabled: patch.loreMode !== undefined ? patch.loreMode : siteUi.loreMode,
       colorMode: patch.colorTheme !== undefined ? patch.colorTheme : siteUi.colorTheme,
-      borderColor: uiBorderColor, // keep existing
+      borderColor: newBorderColor,
       invertColors: patch.invertColors !== undefined ? patch.invertColors : siteUi.invertColors
     };
 
-    if (patch.loreMode !== undefined || patch.colorTheme !== undefined || patch.invertColors !== undefined) {
+    const uiPrefsDirty =
+      patch.loreMode !== undefined ||
+      patch.colorTheme !== undefined ||
+      patch.invertColors !== undefined ||
+      patch.borderColor !== undefined;
+
+    if (uiPrefsDirty) {
       const envLore = process.env.NEXT_PUBLIC_ERRL_USE_LORE === 'true';
       if (envLore && patch.loreMode !== undefined) return; // Locked
 
@@ -604,10 +699,10 @@ export default function AccountSettings({ user: initialUser }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newUi)
         });
-        // Update context
         if (patch.loreMode !== undefined) setLoreEnabled(patch.loreMode);
         if (patch.colorTheme !== undefined) setUiColorMode(patch.colorTheme);
         if (patch.invertColors !== undefined) setUiInvertColors(patch.invertColors);
+        if (patch.borderColor !== undefined) setUiBorderColor(patch.borderColor);
         setStatus({ type: 'success', message: 'Display settings saved.', context: 'ui' });
       } catch (err) {
         setStatus({ type: 'error', message: err.message, context: 'ui' });
@@ -731,7 +826,14 @@ export default function AccountSettings({ user: initialUser }) {
                     <select 
                       className="account-native-select"
                       value={siteUi.colorTheme}
-                      onChange={(e) => handleSaveSiteUi({ colorTheme: parseInt(e.target.value) })}
+                      onChange={(e) => {
+                      const mode = parseInt(e.target.value);
+                      const payload = { colorTheme: mode };
+                      if (mode === 2 && !(uiBorderColor && /^#[0-9A-Fa-f]{6}$/.test(uiBorderColor))) {
+                        payload.borderColor = '#34e1ff';
+                      }
+                      handleSaveSiteUi(payload);
+                    }}
                     >
                     <option value="0">Rainbow (Default)</option>
                     <option value="1">Black & White</option>
@@ -739,6 +841,62 @@ export default function AccountSettings({ user: initialUser }) {
                   </select>
                 }
               />
+              {siteUi.colorTheme === 2 && (
+                <Row
+                  label="Neon color"
+                  description="Border and glow color for Custom Neon theme."
+                  right={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="color"
+                        value={(uiBorderColor && /^#[0-9A-Fa-f]{6}$/.test(uiBorderColor)) ? uiBorderColor : '#34e1ff'}
+                        onChange={(e) => {
+                          const hex = e.target.value;
+                          setCustomNeonHexInput(hex);
+                          setUiBorderColor(hex);
+                          handleSaveSiteUi({ borderColor: hex });
+                        }}
+                        style={{
+                          padding: 0,
+                          width: 32,
+                          height: 32,
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: 6,
+                          background: 'transparent',
+                          cursor: 'pointer'
+                        }}
+                        title="Pick neon color"
+                      />
+                      <input
+                        type="text"
+                        value={customNeonHexInput}
+                        onChange={(e) => setCustomNeonHexInput(e.target.value)}
+                        onBlur={() => {
+                          const v = customNeonHexInput.trim();
+                          const withHash = v.startsWith('#') ? v : v ? '#' + v : '';
+                          const normalized = /^#[0-9A-Fa-f]{6}$/.test(withHash) ? withHash : (uiBorderColor && /^#[0-9A-Fa-f]{6}$/.test(uiBorderColor) ? uiBorderColor : '#34e1ff');
+                          setCustomNeonHexInput(normalized);
+                          if (normalized !== (uiBorderColor || '#34e1ff')) {
+                            setUiBorderColor(normalized);
+                            handleSaveSiteUi({ borderColor: normalized });
+                          }
+                        }}
+                        placeholder="#34e1ff"
+                        style={{
+                          padding: '4px 8px',
+                          width: 80,
+                          fontSize: 12,
+                          minHeight: 0,
+                          borderRadius: 6,
+                          border: '1px solid rgba(255,255,255,0.25)',
+                          background: 'rgba(255,255,255,0.05)',
+                          color: 'inherit'
+                        }}
+                      />
+                    </div>
+                  }
+                />
+              )}
               <Row 
                 label="Invert colors" 
                 right={

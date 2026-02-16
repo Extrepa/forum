@@ -288,6 +288,10 @@ export default function NotificationsMenu({
                   : n.target_type;
                 href = resolveContentHref(resolvedTarget, n.target_id, n.target_post_category);
                 label = `New ${adminPostTypeLabel(n.target_type, n.target_post_category)} by ${actor}`;
+              } else if (n.type === 'admin_event') {
+                const resolvedTarget = n.target_type === 'post' ? (n.target_post_category || 'post') : n.target_type;
+                href = n.target_id ? resolveContentHref(resolvedTarget, n.target_id, n.target_post_category) : '/admin';
+                label = n.target_id ? `Moderation: ${resolveContentLabel(resolvedTarget, n.target_post_category)} updated` : 'Moderation activity';
               } else if (n.type === 'reply' && n.target_type === 'forum_thread') {
                 href = `/lobby/${n.target_id}`;
                 label = `${actor} replied to a thread`;

@@ -643,14 +643,13 @@ export default async function FeedPage() {
                         </div>
                       </div>
                       {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0) || eventStatLines.length > 0) && (
-                        /* Bottom: attended + last activity (left, stacked), views/replies (right, stacked) */
+                        /* Bottom: attended + last activity (left), views/replies (right, same row) */
                         <div className="event-bottom-row" style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'flex-start',
                           gap: '8px',
-                          flexWrap: 'wrap',
-                          rowGap: '4px',
+                          flexWrap: 'nowrap',
                           fontSize: '12px',
                           marginTop: '8px',
                           minWidth: 0
