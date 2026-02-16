@@ -4855,6 +4855,18 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
+/* Stats in row 2 (by-line): push right on same line; when wrapped to own line, take full width and align right */
+.post-meta-stats-in-row2 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+@media (max-width: 480px) {
+  .post-meta-stats-in-row2 {
+    flex-basis: 100%;
+    text-align: right;
+  }
+}
+
 /* Row 1: .post-meta-stats-top-right wraps stats; flex + justify-content: flex-end (inline) keeps them top right and right when wrapped */
 
 /* Feed event details: one line on large, stack on small */
@@ -9028,7 +9040,6 @@ header::before {
     align-items: start;
     gap: 6px 10px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
   }
 
   .section-intro__meta {

@@ -51,3 +51,7 @@ The existing `@media (max-width: 520px)` block only adjusts `.section-intro__act
 | Theme border variable | Yes — var(--border) |
 | 520px button rules still apply | Yes — only action button styling; grid unchanged |
 | Scope (all section-intro pages) | Yes — single class set, no page-specific overrides |
+
+## Later change (2026-02-16)
+
+The divider line was removed per user request. See `05-Logs/Daily/2026-02-16-cursor-notes.md` — "Section intro: remove blue divider line". The layout (title + button same row, description below) and padding are unchanged; only `border-bottom` was removed from `.section-intro`.

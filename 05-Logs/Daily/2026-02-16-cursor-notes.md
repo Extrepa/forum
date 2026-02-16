@@ -1,5 +1,39 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Section intro: remove blue divider line (2026-02-16)
+
+**Request:** Remove the blue line divider below section headers (Art & Nostalgia, Bugs & Rants, etc.).
+
+**Change:** Removed `border-bottom: 1px solid var(--border);` from `.section-intro` in `@media (max-width: 600px)` block in `src/app/globals.css`. The divider had been added in the small-viewport compact layout pass (see `05-Logs/Daily/2026-02-16-section-intro-small-viewport-compact-and-divider.md`).
+
+**Scope:** All section-intro pages (Feed, Music, Events, Art, Art & Nostalgia, Shitposts, Projects, Timeline, Dev log, Memories, Lore, Lore Memories, Rant, Bugs & Rants, Bugs, Forum)—single shared class, so removal applied to all.
+
+---
+
+## Feed: small viewport gap between title and "by" line (2026-02-16)
+
+**Request:** Fix layout on smallest viewport where a row/space appeared between the "by [author] at [date]" line and the post title on feed cards.
+
+**Change:**
+
+1. **PostMetaBar** (`src/components/PostMetaBar.js`): For non-event items, stats (views/replies/likes) moved from row 1 into row 2. Row 1 = title only; row 2 = "by" line + stats (stats in `.post-meta-stats-in-row2` with `marginLeft: 'auto'`). Events (custom row 2) unchanged: title + stats stay on row 1.
+2. **CSS** (`src/app/globals.css`): `.post-meta-stats-in-row2` added; at `max-width: 480px` that block gets `flex-basis: 100%` and `text-align: right` so wrapped stats sit on their own line, right-aligned.
+
+**Result:** On narrow viewports order is title → by line → stats (no row between title and "by"). Wide viewports: "by" and stats on one line with stats right-aligned.
+
+### Verification (double-check)
+
+| Item | Check |
+|------|--------|
+| **statsInRow1 / statsInRow2** | `statsInRow1 = hasCustomRow2 && hasStats`; `statsInRow2 = !hasCustomRow2 && hasStats` so events keep current behavior. |
+| **Row 1** | Title only when `!hasCustomRow2`; title `flex` only when `statsInRow1` so no extra flex when title is solo. |
+| **Row 2** | `row2Content` (by + optional last-activity second line) then `statsInRow2` span; stats after content so order is by → stats on same line, last-activity still gets full-width line when `row2HasActivity`. |
+| **CSS** | `.post-meta-stats-in-row2` at 480px forces own line + right align; no conflict with `.post-meta-last-activity-second-line` (both can wrap in row 2). |
+
+**Lint:** No linter errors on modified files.
+
+---
+
 ## Keyboard controls across forum (2026-02-16)
 
 **Request:** Add keyboard controls wherever appropriate for adaptability/accessibility.
@@ -207,6 +241,8 @@ Existing keyboard support kept/unchanged: NotificationsMenu items (Enter/Space),
 **Verification:** On sections with long descriptions (e.g. Bugs & Rants: "Report issues, weirdness, and broken stuff. Or vent. Get it out. Be kind."), confirm the description wraps to multiple lines, the "Show hidden" and "New Post" (or section-specific) buttons remain on the right and top-aligned with the text block, and the header stays one compact block. At &lt;600px width, meta and actions should stack.
 
 **Update (same day):** At `max-width: 600px` the small-viewport behavior was changed: instead of stacking meta then actions on two full-width rows, the layout now puts **title and button on the same row** and **description on the row below** (same rows area, reduced card height). A **divider line** (`border-bottom` on `.section-intro`) was added between the header and the list. See `05-Logs/Daily/2026-02-16-section-intro-small-viewport-compact-and-divider.md` for full implementation and verification notes.
+
+**Update (same day, later):** The divider line was removed per user request. See "Section intro: remove blue divider line" above.
 
 ## Event post: reply and Attending padding (2026-02-16)
 

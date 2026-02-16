@@ -88,9 +88,13 @@ export default function PostMetaBar({
         </>
       ) : byUserAtTime);
 
+  /* With custom rows (e.g. events): keep title + stats on row 1. Otherwise: title only on row 1, by + stats on row 2 so by sits directly under title on narrow viewports. */
+  const statsInRow1 = hasCustomRow2 && hasStats;
+  const statsInRow2 = !hasCustomRow2 && hasStats;
+
   return (
     <div className={`${className} post-meta`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-      {/* Row 1: Title (left) + stats (top right); stats wrapper keeps them right when row wraps */}
+      {/* Row 1: Title (left); for custom/events also stats (top right). Otherwise stats go in row 2 so title and by stay adjacent when narrow. */}
       <div
         className="post-meta-row1 post-meta-title-row"
         style={{
@@ -103,20 +107,25 @@ export default function PostMetaBar({
       >
         <TitleElement
           {...titleProps}
-          style={{ ...(showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}), minWidth: 0, flex: '1 1 auto' }}
+          style={{ ...(showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}), minWidth: 0, flex: statsInRow1 ? '1 1 auto' : undefined }}
         >
           <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
-        {statsInline && (
+        {statsInRow1 && statsInline && (
           <div className="post-meta-stats-top-right" style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
             {statsInline}
           </div>
         )}
       </div>
 
-      {/* Row 2: by user / custom; when not custom and has last activity, last activity wraps to second line */}
+      {/* Row 2: by user (+ stats when not custom) / custom; when not custom and has last activity, last activity wraps to second line */}
       <div className={`post-meta-row2 post-meta-by-row${row2HasActivity ? ' post-meta-row2-with-activity' : ''}`}>
         {row2Content}
+        {statsInRow2 && statsInline && (
+          <span className="post-meta-stats-in-row2" style={{ marginLeft: 'auto', flexShrink: 0 }}>
+            {statsInline}
+          </span>
+        )}
       </div>
     </div>
   );
