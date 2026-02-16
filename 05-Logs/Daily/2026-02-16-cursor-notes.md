@@ -14,6 +14,11 @@
 - **Events (feed):** Events use `hideStats` on PostMetaBar. Event block has its own `event-bottom-row`: left = attended + last activity (column), right = `eventStatLines` (views, replies) as column; `flexWrap: 'nowrap'`, stats container `flexDirection: 'column', alignItems: 'flex-end'`. One row, two columns; stats stay a column on the right. No row-splitting for events (only one bottom row).
 - **CSS:** `.post-meta-stats-column` in globals has `white-space: nowrap`; inline styles in component set flex layout. No conflict.
 
+### Follow-up: events still messy (stats at bottom)
+
+- **Issue:** Event cards still showed stats (views, replies) only in the event-bottom-row, so they appeared at the very bottom after title, by user, and "Starts..." row, creating unnecessary height and a messy look.
+- **Change:** Events now show stats in PostMetaBar like other types: `hideStats={false}` for all items. PostMetaBar row 2 shows "by user at time" | full stats column for events (no last activity in PostMetaBar for events). Removed duplicate stats from the event block: event-bottom-row now only renders when `attendeeCount > 0 || (lastActivity && replies > 0)` and has no right-side stats column (stats live in PostMetaBar row 2). Removed `eventStatLines` from the event block.
+
 ## Profile page: padding between profile card and tab switcher
 
 - **`src/app/globals.css`**: `.profile-tabs-wrapper` `margin-top` changed from `0` to `12px` so the tab switcher (Activity, Gallery, Notes, Socials, Stats) has spacing above it. Media queries still reduce to 8px/4px on smaller viewports.

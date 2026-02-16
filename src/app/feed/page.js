@@ -585,7 +585,7 @@ export default async function FeedPage() {
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
                     authorDateInline={item.type === 'Event'}
-                    hideStats={item.type === 'Event'}
+                    hideStats={false}
                   />
                   {item.type === 'Event' ? (
                     <>
@@ -593,10 +593,6 @@ export default async function FeedPage() {
                         const eventEndAt = item.endsAt || item.startsAt;
                         const completionAt = getEventDayCompletionTimestamp(eventEndAt);
                         const hasPassed = completionAt > 0 && Date.now() > completionAt;
-                        const eventStatLines = [
-                          (item.views || 0) > 0 && `${item.views} ${item.views === 1 ? 'view' : 'views'}`,
-                          (item.replies || 0) > 0 && `${item.replies} ${item.replies === 1 ? 'reply' : 'replies'}`
-                        ].filter(Boolean);
                         return (
                           <>
                       {/* Event info centered */}
@@ -642,8 +638,8 @@ export default async function FeedPage() {
                           </span>
                         </div>
                       </div>
-                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0) || eventStatLines.length > 0) && (
-                        /* Bottom: attended + last activity (left), views/replies (right, same row) */
+                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0)) && (
+                        /* Bottom: attended + last activity only; stats live in PostMetaBar row 2 */
                         <div className="event-bottom-row" style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -677,13 +673,6 @@ export default async function FeedPage() {
                               </span>
                             )}
                           </div>
-                          {eventStatLines.length > 0 && (
-                            <div className="muted post-meta-stats-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 }}>
-                              {eventStatLines.map((line) => (
-                                <span key={line}>{line}</span>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       )}
                           </>
