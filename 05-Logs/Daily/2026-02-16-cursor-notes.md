@@ -4,10 +4,11 @@
 
 Summary of feed layout changes made this session:
 
-### Current structure
+### Current structure (after follow-up: three-row, last activity bottom right)
 
 - **Row 1:** Title (left) + stats inline on right (e.g. "21 views · 1 reply · 1 like").
-- **Row 2:** "by [user] at [date]" + (optional) " · Last activity by X at [date]" for non-events, or " · [event details]" for events. On viewports ≥640px, row 2 uses `flex-wrap: nowrap` so it stays on one line (two-row layout when there is room).
+- **Row 2:** "by [user] at [date]" only (non-events). For events: by user + event info + attended, centered.
+- **Row 3:** Last activity, right-aligned (bottom right), when present. Same for events and non-events.
 
 ### Files changed
 
@@ -16,34 +17,45 @@ Summary of feed layout changes made this session:
 
 **`src/components/PostMetaBar.js`**
 - Row 1: title + `statsInline` (statLines joined with middot).
-- Row 2: `byUserAtTime` + optional middot + last activity (when `hasLastActivity`), or middot + `row2Suffix` (for events). No separate row 3.
+- Row 2: `byUserAtTime` only. Row 3: last activity, right-aligned, when `hasLastActivity`.
 - Uses `formatDateTimeShort` for createdAt and lastActivity.
-- New `row2Suffix` prop for custom row-2 content.
+- `customRowsAfterTitle` prop overrides rows 2 and 3 (used for events).
 
 **`src/app/feed/page.js`**
-- Non-events: passes `lastActivity`, `lastActivityBy`, etc.; PostMetaBar renders last activity in row 2.
-- Events: passes `lastActivity=undefined` and `row2Suffix` with event content (calendar icon, date/time, attended/attending, last activity). Event details live in PostMetaBar row 2.
+- Non-events: passes `lastActivity`, etc.; PostMetaBar renders row 2 (by user) and row 3 (last activity right).
+- Events: passes `customRowsAfterTitle` with event-row2 (by user + centered event info) and event-row3 (last activity right).
 - Completed events (`hasPassed`): "Yesterday 6:00 PM (Event happened) · N attended" (no "Starts"); "N attended" has `title={attendeeNames}` so names show on hover; class `event-attendee-count--hover-only` for cursor.
 - Upcoming events: "Starts ... (relative) · N attending: name1, name2".
 - All timestamps use `formatDateTimeShort`.
 - `item.meta` still rendered for non-events when present.
 
 **`src/app/globals.css`**
-- `.list-item h3`: margin 0 (was 0 0 2px) to reduce title-to-by spacing.
-- `.post-meta-row2`: flex, flex-wrap wrap, gap 4px 10px; `@media (min-width: 640px)` sets `flex-wrap: nowrap`.
-- `.post-meta-row2-sep`: flex-shrink 0 for middot separators.
-- `.event-details-inline`: inline-flex for event block in row 2; `.event-details-icon` color and spacing.
+- `.list-item h3`: margin 0 to reduce title-to-by spacing.
+- `.post-meta-row2`: flex, flex-wrap wrap, gap 4px 10px (no nowrap; allows wrapping).
+- `.post-meta-row3`: flex, justify-content flex-end, min-width 0.
+- `.event-row2`, `.event-row2-centered`, `.event-row2-middle`, `.event-row3`: event three-row layout.
+- `.event-details-inline`: inline-flex for event info; `.event-details-icon` color and spacing.
 - `.event-attendee-count--hover-only`: cursor help for completed-event attendee count.
-- `.event-last-activity-right`: margin-left auto (kept for potential reuse; currently event last activity is inline in row2Suffix).
-- `.event-details-row`, `.event-details-inner`, `.event-details-item`: retained for possible use elsewhere (e.g. EventsClient); feed uses `event-details-inline`.
+- overflow-wrap and word-break on post-meta-row2, post-meta-row3, event-row2 to prevent overlap.
+- At 640px: event-row2 stacks as column, align-items center.
 
 ### Double-check (verification)
 
-- **PostMetaBar:** Two rows only. Row 1 = title + statsInline. Row 2 = byUserAtTime, then hasLastActivity ? (sep + last activity) : null, then row2Suffix ? (sep + row2Suffix) : null. Events pass row2Suffix and lastActivity=undefined, so row 2 shows byUser + sep + event content.
-- **formatDateTimeShort:** Handles falsy/invalid; dateStr + " " + timeStr; FORUM_TIME_ZONE; no locale quirks.
-- **Events row2Suffix:** Icon + (hasPassed ? "date time (Event happened) · N attended" : "Starts date time (relative) · N attending: names") + (lastActivity && replies ? " · Last activity by X at time" : null). All dates via formatDateTimeShort or formatEventDate/formatEventTime.
-- **Responsive:** At 640px+, row 2 nowrap = two-row layout. Below 640px, row 2 wraps so content can stack.
-- **Dead code:** `.event-last-activity-right` and `.event-details-row` / `-inner` / `-item` may be unused by feed; left in place for compatibility.
+- **PostMetaBar:** Row 1 = title + statsInline. When `customRowsAfterTitle` is null: row 2 = byUserAtTime only, row 3 = last activity (flex, justify-content flex-end) when `hasLastActivity`. When `customRowsAfterTitle` provided (events): replaces rows 2 and 3 entirely.
+- **Non-events:** lastActivity passed; hasLastActivity = lastActivity && replies > 0; row 3 renders with right-aligned "Last activity by X at [time]".
+- **Events:** lastActivity=undefined to PostMetaBar; customRowsAfterTitle returns fragment: event-row2 div (byUser + event-row2-middle with eventInfo) and optionally event-row3 div (last activity right) when item.lastActivity && item.replies > 0.
+- **Event row 2 content:** hasPassed ? "date time (Event happened) · N attended" : "Starts date time (relative) · N attending: names". Completed: "N attended" has title=names, event-attendee-count--hover-only.
+- **formatDateTimeShort:** Used for createdAt, lastActivity in PostMetaBar and feed; formatEventDate/formatEventTime for event dates.
+- **CSS:** post-meta-row2 has flex-wrap wrap (no nowrap media query). post-meta-row3 and event-row3 use justify-content flex-end. event-row2-centered uses justify-content center. At max-width 640px, event-row2 becomes flex-direction column, align-items center.
+- **Overlap prevention:** overflow-wrap: break-word, word-break: break-word on row2, row3, event-row2.
+
+### Follow-up: three-row layout, last activity bottom right, responsive cleanup
+
+- **Request:** Events stay three rows; event info and attended list centered in row 2; last activity in bottom right for all items; fix overlap when viewport narrows.
+- **PostMetaBar:** Reverted to three-row structure. Row 2 = by user only. Row 3 = last activity, right-aligned (justify-content: flex-end). Replaced `row2Suffix` with `customRowsAfterTitle` – when provided, replaces rows 2 and 3 (used for events).
+- **Events:** Use `customRowsAfterTitle` with three-row layout: event-row2 (by user + event info centered), event-row3 (last activity right). Event info includes icon, date/time, attended/attending. Row 2 uses `event-row2-centered` and `event-row2-middle` for centered layout.
+- **CSS:** Added `.post-meta-row3` with justify-content: flex-end. Added `.event-row2`, `.event-row2-centered`, `.event-row2-middle`, `.event-row3`. Removed the `nowrap` media query that forced row 2 onto one line. Added `overflow-wrap: break-word` and `word-break: break-word` to prevent overlap. At 640px, event-row2 stacks as column with centered content.
+- **Responsive:** event-row2 uses flex-wrap; on narrow viewports it becomes flex-direction: column so by user and event info stack without overlapping.
 
 ## Profile page: padding between profile card and tab switcher
 
@@ -621,3 +633,46 @@ Summary of feed layout changes made this session:
 - Adding a new **comment/reply type** that can be deleted: (1) when creating the notification use `insertNotificationWithOptionalSubId` with `target_sub_id: commentIdOrReplyId`; (2) in the delete route call `deleteNotificationsForTargetSubId(db, commentIdOrReplyId)`.
 - If you add **event invite revoke**: delete notifications with `type = 'event_invite'`, `target_type = 'event'`, `target_id = eventId`, and the invited user (e.g. by `user_id` or a new column). Consider adding a small helper in `notificationCleanup.js` if reused.
 - If you want **mentions** to disappear when the containing comment is deleted: pass an optional `targetSubId` (comment/reply id) into `createMentionNotifications` and have it insert with `target_sub_id`; then existing comment/reply delete routes will already remove those notifications via `deleteNotificationsForTargetSubId`.
+
+## Edit notifications: dirty state and Save button highlight
+
+### Issue
+- In the Edit notifications sheet, making changes did not visually indicate that save was needed; the Save button did not highlight when there were unsaved changes.
+
+### Implementation (`src/app/account/AccountSettings.js`)
+
+1. **Stable dirty comparison**  
+   Replaced `notifDirty = JSON.stringify(notifDraft) !== JSON.stringify(notifPrefs)` with a normalized snapshot so key order in nested objects (e.g. `newForumThreadSections`, `adminEvents`) does not affect the result. Added `notifPrefsSnapshot(prefs)` that builds a comparable string from `site`, `newForumThreadSections`, `delivery`, `admin`, and `adminEvents` with sorted keys so draft vs saved prefs are compared consistently.
+
+2. **Pass `dirty` into NotificationsEditor**  
+   `EditSheet` already received `dirty={notifDirty}` for close confirmation. Now `NotificationsEditor` also receives `dirty={notifDirty}` so the Save button can reflect unsaved state.
+
+3. **Save button when dirty**  
+   - `title={dirty ? 'You have unsaved changes' : undefined}` for accessibility.  
+   - When `dirty`, the Save button gets a cyan outline/glow (`boxShadow`, `outline`) and the label switches to "Save preferences (unsaved changes)" so it’s clear that changes need to be saved.
+
+### Verification
+- Toggling any notification option (site, delivery, admin, forum sections, admin events) sets `notifDirty` to true and the Save button shows the highlight and updated label. After save, `notifDirty` is false and the button returns to normal.
+- `notifPrefsSnapshot` includes all editable fields: `site`, `newForumThreadSections`, `delivery`, `admin`, `adminEvents`, with sorted keys so key order does not affect the comparison.
+- `PrimaryButton` in this file merges `props.style` last, so the dirty-state `boxShadow` and `outline` are applied when `dirty` is true.
+
+### Files touched
+- `src/app/account/AccountSettings.js`: added `notifPrefsSnapshot()`, `notifDirty` now uses it; `NotificationsEditor` accepts `dirty` and passes it to the Save `PrimaryButton` (title, style, label); `EditSheet` for notifications passes `dirty={notifDirty}` into `NotificationsEditor`.
+
+---
+
+## Session notes (double-check – feed layout)
+
+**Date:** 2026-02-16
+
+**Scope:** Feed layout (three-row, last activity bottom right, responsive). Verification of implementation and log accuracy.
+
+**Actions taken:**
+- Removed stale CSS references from the feed section: no `flex-wrap: nowrap` on post-meta-row2; no `row2Suffix` (replaced by `customRowsAfterTitle`).
+- Expanded "Double-check (verification)" in the feed layout section with detailed behavior for PostMetaBar, non-events vs events, customRowsAfterTitle, formatDateTimeShort, and overlap prevention.
+- Confirmed: non-events use row2 + row3; events use customRowsAfterTitle with event-row2 and event-row3; last activity is right-aligned in row 3.
+
+**Recommended manual checks (when convenient):**
+- Feed at narrow width: event-row2 should stack vertically; no overlap between by-user and event info.
+- Completed events: "N attended" shows names on hover; no "Starts yesterday" wording.
+- Last activity appears bottom-right when replies > 0.

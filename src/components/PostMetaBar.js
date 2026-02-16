@@ -6,9 +6,10 @@ import { formatDateTimeShort } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout: Row 1 = title (left) + stats inline on right (e.g. "21 views · 1 reply · 1 like").
- * Row 2 = "by user at time" + (optional) last activity or row2Suffix; on wide viewports (min 640px)
- * stays on one line for a compact two-row layout; wraps when narrow.
+ * Layout: Row 1 = title (left) + stats inline on right.
+ * Row 2 = "by user at time".
+ * Row 3 = last activity, right-aligned (bottom right).
+ * Pass customRowsAfterTitle to override rows 2+ (e.g. for events with centered event info).
  * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
@@ -30,7 +31,7 @@ export default function PostMetaBar({
   hideDateOnDesktop = false,
   authorDateInline = false,
   hideStats = false,
-  row2Suffix = null
+  customRowsAfterTitle = null
 }) {
   const formatCount = (count) => {
     if (count === 0) return null;
@@ -89,26 +90,24 @@ export default function PostMetaBar({
         {statsInline}
       </div>
 
-      {/* Row 2: by user + last activity or row2Suffix; stays on one line when wide */}
-      <div className="post-meta-row2 post-meta-by-row">
-        {byUserAtTime}
-        {hasLastActivity && (
-          <>
-            <span className="post-meta-row2-sep muted">{' \u00B7 '}</span>
-            <span className="post-meta-last-activity muted">
-              Last activity{lastActivityBy ? (
-                <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
-              ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
-            </span>
-          </>
-        )}
-        {row2Suffix && (
-          <>
-            <span className="post-meta-row2-sep muted">{' \u00B7 '}</span>
-            {row2Suffix}
-          </>
-        )}
-      </div>
+      {customRowsAfterTitle ?? (
+        <>
+          {/* Row 2: by user only */}
+          <div className="post-meta-row2 post-meta-by-row">
+            {byUserAtTime}
+          </div>
+          {/* Row 3: last activity in bottom right */}
+          {hasLastActivity && (
+            <div className="post-meta-row3 post-meta-last-activity-row" style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0, fontSize: '12px' }}>
+              <span className="post-meta-last-activity muted">
+                Last activity{lastActivityBy ? (
+                  <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+                ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
+              </span>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

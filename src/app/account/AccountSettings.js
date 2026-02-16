@@ -59,6 +59,27 @@ function validateNotificationPrefs({ prefs, hasPhone }) {
   return { ok: true };
 }
 
+/** Normalize notif prefs for stable dirty comparison (key order can differ after edits). */
+function notifPrefsSnapshot(prefs) {
+  if (!prefs) return '{}';
+  const site = prefs.site && typeof prefs.site === 'object'
+    ? Object.keys(prefs.site).sort().map((k) => `${k}:${!!prefs.site[k]}`).join(',')
+    : '';
+  const sections = prefs.newForumThreadSections && typeof prefs.newForumThreadSections === 'object'
+    ? JSON.stringify(Object.keys(prefs.newForumThreadSections).sort().map((k) => ({ k, v: !!prefs.newForumThreadSections[k] })))
+    : '{}';
+  const delivery = prefs.delivery && typeof prefs.delivery === 'object'
+    ? `email:${!!prefs.delivery.email},sms:${!!prefs.delivery.sms}`
+    : '';
+  const admin = prefs.admin && typeof prefs.admin === 'object'
+    ? Object.keys(prefs.admin).sort().map((k) => `${k}:${!!prefs.admin[k]}`).join(',')
+    : '';
+  const adminEvents = prefs.adminEvents && typeof prefs.adminEvents === 'object'
+    ? JSON.stringify(Object.keys(prefs.adminEvents).sort().map((k) => ({ k, v: !!prefs.adminEvents[k] })))
+    : '{}';
+  return JSON.stringify({ site, sections, delivery, admin, adminEvents });
+}
+
 /* ---------------------------------------------
    COMPONENTS
 --------------------------------------------- */
@@ -349,7 +370,7 @@ function CollapsibleSection({ label, expanded, onToggle, children }) {
   );
 }
 
-function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave }) {
+function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave, dirty = false }) {
   const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
   const siteAny = anySiteNotifsEnabled(draft);
   const isAdmin = user.role === 'admin';
@@ -506,8 +527,13 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
         Enable email and the triggers you want to get reminded about activity across the forum (replies, mentions, likes, etc.). Add a phone number to also get SMS.
       </p>
 
-      <PrimaryButton disabled={saving || !validation.ok} onClick={onSave}>
-        {saving ? 'Saving...' : 'Save preferences'}
+      <PrimaryButton
+        disabled={saving || !validation.ok}
+        onClick={onSave}
+        title={dirty ? 'You have unsaved changes' : undefined}
+        style={dirty ? { boxShadow: '0 0 16px rgba(52, 225, 255, 0.5)', outline: '2px solid rgba(52, 225, 255, 0.6)' } : undefined}
+      >
+        {saving ? 'Saving...' : dirty ? 'Save preferences (unsaved changes)' : 'Save preferences'}
       </PrimaryButton>
     </div>
   );
@@ -808,7 +834,7 @@ export default function AccountSettings({ user: initialUser }) {
 
   const contactDirty = contactDraft.email !== (user?.email || '') || (contactDraft.phone || '') !== (user?.phone || '');
   const passwordDirty = Boolean(pwDraft.oldPassword || pwDraft.newPassword);
-  const notifDirty = JSON.stringify(notifDraft) !== JSON.stringify(notifPrefs);
+  const notifDirty = notifPrefsSnapshot(notifDraft) !== notifPrefsSnapshot(notifPrefs);
 
   const enabledCount = countEnabledSiteNotifs(notifPrefs.site);
   const delivery = deliverySummary(notifPrefs.delivery, Boolean(user.phone));
@@ -1044,7 +1070,7 @@ export default function AccountSettings({ user: initialUser }) {
       </EditSheet>
 
       <EditSheet open={openPanel === 'editNotifications'} title="Edit notifications" onClose={() => setOpenPanel('none')} dirty={notifDirty}>
-        <NotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} validation={notifValidation} saving={saving} onSave={handleSaveNotifs} />
+        <NotificationsEditor user={user} draft={notifDraft} setDraft={setNotifDraft} validation={notifValidation} saving={saving} onSave={handleSaveNotifs} dirty={notifDirty} />
       </EditSheet>
 
       <style jsx>{`

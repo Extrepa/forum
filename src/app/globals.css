@@ -4704,14 +4704,44 @@ button.ghost:hover,
   font-size: 12px;
 }
 
-.post-meta-row2-sep {
-  flex-shrink: 0;
+.post-meta-row3 {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  font-size: 12px;
 }
 
-@media (min-width: 640px) {
-  .post-meta-row2 {
-    flex-wrap: nowrap;
-  }
+/* Event three-row layout: row 2 = by user + centered event info, row 3 = last activity right */
+.event-row2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.event-row2-centered {
+  justify-content: center;
+}
+
+.event-row2-middle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.event-row3 {
+  justify-content: flex-end;
+}
+
+/* Prevent overlap on narrow viewports */
+.post-meta-row2,
+.post-meta-row3,
+.event-row2 {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .post-meta-stats-inline {
@@ -4767,6 +4797,17 @@ button.ghost:hover,
 }
 
 @media (max-width: 640px) {
+  .event-row2 {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .event-row2-middle {
+    width: 100%;
+  }
+
   .event-details-inner {
     flex-direction: column;
     align-items: center;
