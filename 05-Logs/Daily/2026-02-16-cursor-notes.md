@@ -1,5 +1,19 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Feed: stats column aligned to same rows as left (two-column layout)
+
+- **Issue:** The stats column on the right was not aligned to the same rows as the left (title, by user, last activity), creating unnecessary height.
+- **Desired layout:** Two columns, same rows. Left = title, by user at time, last activity. Right = stats still a vertical column; row 2 right = first stat (same row as "by user"); row 3 right = remaining stats stacked (same row as "Last activity").
+- **`src/components/PostMetaBar.js`:** Stats stay a column. When there is last activity: row 2 right = first stat only; row 3 right = remaining stats as a column. When no last activity: row 2 right = full stats column. Row 3 uses `alignItems: 'flex-start'`.
+- **`src/app/feed/page.js`:** Event bottom-row keeps stats as a column on the right of that row.
+
+### Double-check (feed stats layout)
+
+- **PostMetaBar logic:** `statLines` = views, replies, likes (zeros filtered out). `firstStat` = `statLines[0]`, `restStats` = `statLines.slice(1)`. When `!hasLastActivity`: row 2 right = full stats column (all lines). When `hasLastActivity`: row 2 right = first stat only; row 3 right = `restStats` as column (only rendered if `restStats.length > 0`). Row 2 uses `alignItems: 'center'`; row 3 uses `alignItems: 'flex-start'` so multi-line right column aligns to top.
+- **Edge cases:** One stat + last activity: row 2 shows that stat, row 3 shows only "Last activity" (no right content). No stats: neither row 2 nor row 3 right render. No last activity + multiple stats: single row 2 with full stats column on right.
+- **Events (feed):** Events use `hideStats` on PostMetaBar. Event block has its own `event-bottom-row`: left = attended + last activity (column), right = `eventStatLines` (views, replies) as column; `flexWrap: 'nowrap'`, stats container `flexDirection: 'column', alignItems: 'flex-end'`. One row, two columns; stats stay a column on the right. No row-splitting for events (only one bottom row).
+- **CSS:** `.post-meta-stats-column` in globals has `white-space: nowrap`; inline styles in component set flex layout. No conflict.
+
 ## Profile page: padding between profile card and tab switcher
 
 - **`src/app/globals.css`**: `.profile-tabs-wrapper` `margin-top` changed from `0` to `12px` so the tab switcher (Activity, Gallery, Notes, Socials, Stats) has spacing above it. Media queries still reduce to 8px/4px on smaller viewports.

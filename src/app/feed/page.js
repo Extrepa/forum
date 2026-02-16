@@ -678,7 +678,7 @@ export default async function FeedPage() {
                             )}
                           </div>
                           {eventStatLines.length > 0 && (
-                            <div className="muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 }}>
+                            <div className="muted post-meta-stats-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 }}>
                               {eventStatLines.map((line) => (
                                 <span key={line}>{line}</span>
                               ))}

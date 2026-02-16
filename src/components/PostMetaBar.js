@@ -6,10 +6,11 @@ import { formatDateTime } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout (all viewports):
- * Row 1: Title only (wraps cleanly).
- * Row 2: "by username at time" as one block (never splits); stats column on right when no row 3.
- * Row 3 (when last activity): Last activity (left), stats column (right, stacked).
+ * Layout: two columns, same rows. Left column = title, by user, last activity.
+ * Right column = stats (still a vertical column), aligned to the same rows:
+ * Row 1: Title only (left).
+ * Row 2: "by username at time" (left) | first stat or full stats column (right).
+ * Row 3 (when last activity): Last activity (left) | remaining stats stacked (right).
  */
 export default function PostMetaBar({
   title,
@@ -60,9 +61,29 @@ export default function PostMetaBar({
     </span>
   );
 
-  const statsColumn = hasStats && (
-    <div className="post-meta-stats-column muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 }}>
-      {statLines.map((line) => (
+  const statsColumnStyle = { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 };
+  const firstStat = hasStats ? statLines[0] : null;
+  const restStats = hasStats && statLines.length > 1 ? statLines.slice(1) : [];
+
+  const row2Right = hasStats && (
+    !hasLastActivity
+      ? (
+          <div className="post-meta-stats-column muted" style={statsColumnStyle}>
+            {statLines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </div>
+        )
+      : firstStat != null && (
+          <div className="post-meta-stats-column muted" style={statsColumnStyle}>
+            <span>{firstStat}</span>
+          </div>
+        )
+  );
+
+  const row3Right = hasLastActivity && restStats.length > 0 && (
+    <div className="post-meta-stats-column muted" style={statsColumnStyle}>
+      {restStats.map((line) => (
         <span key={line}>{line}</span>
       ))}
     </div>
@@ -80,7 +101,7 @@ export default function PostMetaBar({
         </TitleElement>
       </div>
 
-      {/* Row 2: "by user at time" (left) + stats column (right, same row) */}
+      {/* Row 2: "by user at time" (left) | first stat or full stats column (right) */}
       <div
         className="post-meta-row2 post-meta-by-row"
         style={{
@@ -93,10 +114,10 @@ export default function PostMetaBar({
         }}
       >
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>{byUserAtTime}</div>
-        {!hasLastActivity && statsColumn}
+        {row2Right}
       </div>
 
-      {/* Row 3: Last activity (left), Stats column (right, same row) */}
+      {/* Row 3: Last activity (left) | remaining stats column (right) */}
       {hasLastActivity && (
         <div
           className="post-meta-row3"
@@ -117,7 +138,7 @@ export default function PostMetaBar({
               ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
             </span>
           </div>
-          {hasLastActivity && statsColumn}
+          {row3Right}
         </div>
       )}
     </div>
