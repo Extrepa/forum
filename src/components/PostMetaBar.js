@@ -6,9 +6,9 @@ import { formatDateTimeShort } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout: Row 1 = title (left) + stats inline on right.
- * Row 2 = "by user at time" (left) + last activity (right) when present; single row, wraps on narrow.
- * Pass customRowsAfterTitle to override rows 2+ (e.g. for events).
+ * Layout: Row 1 = title only. Row 2 = "by user" / custom (left) + stats (right always); last activity inline when present.
+ * Stats stay on the right on all viewports; row 2 wraps on narrow with stats right-aligned when on own line.
+ * Pass customRowsAfterTitle to override the left part of row 2 (e.g. for events).
  * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
@@ -66,17 +66,27 @@ export default function PostMetaBar({
     </span>
   ) : null;
 
+  const row2Left = customRowsAfterTitle ?? (
+    <>
+      {byUserAtTime}
+      {hasLastActivity && (
+        <span className="post-meta-last-activity post-meta-last-activity-inline muted" style={{ fontSize: '12px' }}>
+          Last activity{lastActivityBy ? (
+            <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+          ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
+        </span>
+      )}
+    </>
+  );
+
   return (
     <div className={`${className} post-meta`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-      {/* Row 1: Title (left, can wrap) + stats (right, one line) */}
+      {/* Row 1: Title only */}
       <div
         className="post-meta-row1 post-meta-title-row"
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'flex-start',
-          gap: '8px',
-          flexWrap: 'wrap',
           minWidth: 0
         }}
       >
@@ -86,24 +96,19 @@ export default function PostMetaBar({
         >
           <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
-        {statsInline}
       </div>
 
-      {customRowsAfterTitle ?? (
-        <>
-          {/* Row 2: by user (left) + last activity (right) on same row when room; wraps on narrow */}
-          <div className={`post-meta-row2 post-meta-by-row${hasLastActivity ? ' post-meta-row2-with-activity' : ''}`}>
-            {byUserAtTime}
-            {hasLastActivity && (
-              <span className="post-meta-last-activity post-meta-last-activity-inline muted" style={{ fontSize: '12px' }}>
-                Last activity{lastActivityBy ? (
-                  <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
-                ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
-              </span>
-            )}
+      {/* Row 2: by/custom (left) + stats (right always); wraps on narrow, stats stay right */}
+      <div className={`post-meta-row2 post-meta-by-row post-meta-row2-with-stats${hasLastActivity && !customRowsAfterTitle ? ' post-meta-row2-with-activity' : ''}`}>
+        <div className="post-meta-row2-left" style={{ flex: '1 1 auto', minWidth: 0 }}>
+          {row2Left}
+        </div>
+        {statsInline && (
+          <div className="post-meta-stats-right" style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
+            {statsInline}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

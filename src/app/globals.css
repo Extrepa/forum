@@ -4769,6 +4769,17 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
+/* Row 2: left content + stats right; .post-meta-stats-right keeps stats right when row wraps */
+.post-meta-row2-with-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.post-meta-stats-right {
+  flex-shrink: 0;
+}
+
 /* Feed event details: one line on large, stack on small */
 .event-details-row {
   margin-top: 2px;
@@ -4848,15 +4859,6 @@ button.ghost:hover,
   .event-details-item {
     white-space: normal;
     justify-content: flex-start;
-  }
-}
-
-/* Super small viewports: stack title and stats so stats don't wrap to a lone right-aligned line */
-@media (max-width: 480px) {
-  .post-meta-title-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
   }
 }
 

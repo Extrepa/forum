@@ -878,8 +878,24 @@ Summary of feed layout changes made this session:
 - **Non-events row consolidation**: PostMetaBar row 2 has `post-meta-row2-with-activity` when `hasLastActivity`. Single div contains `byUserAtTime` and `post-meta-last-activity-inline`; `justify-content: space-between` + `margin-left: auto` on last activity pushes it right. When viewport narrows and row wraps, last activity goes below (flex-wrap).
 - **Events row consolidation**: Events use `customRowsAfterTitle`; single `event-row2` div with `byUser`, `event-row2-middle` (eventInfo), and `eventLastActivityEl`. `event-row2-with-activity` when `hasEventLastActivity`. Last activity has `margin-left: auto` for right alignment. No separate row 3 for events.
 - **Narrow viewport (640px)**: event-row2 becomes `flex-direction: column`, `align-items: flex-start`; by-user left-aligned; event info centered via event-row2-middle `justify-content: center`. Last activity `align-self: flex-end` when stacked.
-- **Super small viewport (480px)**: `.post-meta-title-row` uses `flex-direction: column`, `align-items: flex-start` so title and stats stack; stats (views · replies · likes) sit on their own line below the title, left-aligned, instead of wrapping to a lone right-aligned line.
 - **Dead CSS**: `.post-meta-row3` and `.event-row3` rules remain (used in overflow-wrap selector); separate row3 divs no longer rendered. `.event-row2-centered` removed.
+
+### Feed: stats always right, “by” above stats (2026-02-16)
+
+**Request:** On small viewports, view count (and stats) should stay on the right; stats were ending up above the “by”/event line and looked messy.
+
+**Changes:**
+
+- **`src/components/PostMetaBar.js`**
+  - Row 1: title only (stats removed from title row).
+  - Row 2: left block (by user + last activity, or `customRowsAfterTitle` for events) + stats block (right). Stats rendered in `.post-meta-stats-right` with `flex: 1 1 auto`, `justify-content: flex-end` so they stay right on one line and stay right when they wrap to their own line.
+  - Docstring updated: “Row 1 = title only. Row 2 = by/custom (left) + stats (right always).”
+
+- **`src/app/globals.css`**
+  - Removed 480px media block that stacked `.post-meta-title-row` (title + stats) into a column (stats were left-aligned below title).
+  - Added `.post-meta-row2-with-stats` (flex, wrap, gap) and `.post-meta-stats-right` (flex-shrink: 0) so row 2 lays out left content + stats and stats stay right when wrapped.
+
+**Result:** Title on line 1; line 2 = “by user” / event info (left) and “X views · Y replies” (right). On wrap, stats move to their own line but remain right-aligned. “By”/event info is no longer below the view count.
 
 ### Double-check: feed small-viewport CSS (2026-02-16)
 
@@ -889,16 +905,16 @@ Summary of feed layout changes made this session:
    - `src/app/globals.css` @media (max-width: 640px): `.event-row2` → column, `align-items: flex-start`; `.event-row2-middle` → `width: 100%`, `justify-content: center`.  
    - Feed event row structure (`src/app/feed/page.js`): single `event-row2` with `byUser`, `event-row2-middle` (eventInfo), optional last-activity span. Event info (date, "Event happened", "N attended") centers on narrow viewports.
 
-2. **Stats stacking (≤480px)**  
-   - `src/app/globals.css` @media (max-width: 480px): `.post-meta-title-row` → `flex-direction: column`, `align-items: flex-start`, `gap: 2px`.  
-   - PostMetaBar row 1 (`src/components/PostMetaBar.js`) uses `post-meta-title-row`; title and `statsInline` (views · replies · likes) stack; stats sit on second line, left-aligned, no lone right-aligned wrap.
+2. **Stats always right (all viewports)**  
+   - PostMetaBar: row 1 = title only; row 2 = `.post-meta-row2-left` (by/custom) + `.post-meta-stats-right` (stats with `justify-content: flex-end`). Stats stay right on one line; when row 2 wraps, stats sit on second line and remain right-aligned. No 480px title-row stacking.
 
-**Manual checks:** Feed at ~358px: event info centered in event row; stats below title, left-aligned. Feed at ~640px: event row stacked, event info centered; stats may still be on title row if width allows.
+**Manual checks:** Feed at ~358px: title line 1; line 2 has “by”/event info left, stats right (or stats alone on line 2, right-aligned). Event info centered in event row. No view count above “by” line.
 
 ### Session notes (double-check)
 
 - **2026-02-16**: Verified all feed layout changes (event "by" alignment, attended spacing, row consolidation). Updated log section "Feed layout (consolidated)" to remove stale row 3 references. Updated PostMetaBar docstring. Double-check section above documents current behavior.
 - **2026-02-16**: Double-checked feed small-viewport fixes (event info center at 640px, stats stack at 480px); added "Double-check: feed small-viewport CSS" subsection with file/line references and manual check notes.
+- **2026-02-16**: Feed layout tweak: stats moved from title row to row 2 (with “by”/event), always right-aligned; reverted 480px title+stats stack. Logged in “Feed: stats always right, by above stats”.
 
 ## Event post detail: tighter layout, hide Invite when past, reply connector (2026-02-16)
 
