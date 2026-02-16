@@ -4650,9 +4650,6 @@ button.ghost:hover,
     display: inline !important;
     white-space: nowrap;
   }
-  .post-meta-last-activity-mobile {
-    display: none !important;
-  }
   .post-meta-date-mobile-only {
     display: none !important;
   }
@@ -4682,19 +4679,13 @@ button.ghost:hover,
   }
   .post-meta-stats-mobile {
     display: inline !important;
+    font-size: 11px !important;
   }
   .post-meta-last-activity {
-    display: none !important;
-  }
-  .post-meta-last-activity-mobile {
-    display: block !important;
-  }
-  /* Allow last activity and stats to wrap on mobile */
-  .post-meta-last-activity-text {
-    display: block;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-word;
+    display: inline !important;
+    font-size: 11px !important;
+    margin-left: 0 !important;
+    max-width: 100%;
   }
   .post-meta-stats-mobile,
   .post-meta-stats-condensed-row1 {
@@ -4708,6 +4699,11 @@ button.ghost:hover,
     min-width: 0;
     overflow-wrap: break-word;
   }
+  .post-meta-row2 {
+    align-items: flex-start !important;
+    gap: 6px !important;
+    row-gap: 2px !important;
+  }
   .post-meta-date-mobile-only {
     display: inline !important;
   }
@@ -4718,6 +4714,10 @@ button.ghost:hover,
   .event-info-row {
     justify-content: center !important;
   }
+}
+
+.post-meta-title-wrap {
+  min-width: 0;
 }
 
 .post-body-scrollable {

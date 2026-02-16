@@ -58,18 +58,18 @@ export default function PostMetaBar({
   const shouldRenderRow2 = hasDateRow || hasMobileStatsRow || hasLastActivity;
 
   return (
-    <div className={`${className} ${isCondensed ? 'post-meta post-meta--condensed' : ''}`.trim()} style={isCondensed ? { display: 'flex', flexDirection: 'column' } : {}}>
+    <div className={`${className} post-meta ${isCondensed ? 'post-meta--condensed' : ''}`.trim()} style={isCondensed ? { display: 'flex', flexDirection: 'column' } : {}}>
       {/* Row 1: Title/Author on left, Views/Replies/Likes on top right (desktop) */}
       <div className="post-meta-row1" style={{ 
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         alignItems: 'baseline',
         marginBottom: shouldRenderRow2 ? '8px' : '0',
         flexWrap: 'wrap',
         gap: '8px',
         rowGap: '4px'
       }}>
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+        <div className="post-meta-title-wrap" style={{ flex: isCondensed ? '0 1 auto' : '1 1 auto', minWidth: 0 }}>
           <TitleElement 
             {...titleProps}
             style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}}
@@ -101,7 +101,7 @@ export default function PostMetaBar({
         </div>
         {/* Desktop: stats on right (both condensed and non-condensed) */}
         {topRight && (
-          <span className="post-meta-stats-desktop muted" style={{ fontSize: '12px', flexShrink: 0 }}>
+          <span className="post-meta-stats-desktop muted" style={{ fontSize: '12px', flexShrink: 0, marginLeft: 'auto' }}>
             {topRight}
           </span>
         )}
@@ -156,22 +156,6 @@ export default function PostMetaBar({
               ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
             </span>
           )}
-        </div>
-      )}
-      {/* Mobile: Last Activity on separate row - hide when no replies (avoids duplicating author) */}
-      {hasLastActivity && (
-        <div className="post-meta-last-activity-mobile" style={{ 
-          display: 'block',
-          fontSize: '12px',
-          marginTop: '6px',
-          width: '100%',
-          minWidth: 0
-        }}>
-          <span className="muted post-meta-last-activity-text">
-            Last activity{lastActivityBy ? (
-              <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
-            ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
-          </span>
         </div>
       )}
     </div>
