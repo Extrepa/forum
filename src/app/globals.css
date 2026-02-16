@@ -2337,7 +2337,8 @@ main {
   height: 100%; /* Ensure card container fills height */
 }
 
-.event-attending-section {
+/* Shared reduced bottom padding for Attending / Replies / Comments sections (all post types) */
+.engagement-section {
   padding-bottom: 8px;
 }
 

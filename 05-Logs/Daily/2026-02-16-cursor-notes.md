@@ -35,6 +35,22 @@
 
 **Verification:** Confirmed selectors are scoped so only comment cards and the Attending section are affected; no other `.list-item` or `.card` layouts changed.
 
+### Engagement section parity (all post types)
+
+**Request:** Apply the same engagement updates (reduced bottom padding on the section card) to all post types, not just events.
+
+**Changes:**
+- Renamed `.event-attending-section` to `.engagement-section` in `src/app/globals.css` (same rule: `padding-bottom: 8px`). Comment updated to: "Shared reduced bottom padding for Attending / Replies / Comments sections (all post types)".
+- Added `engagement-section` to the section card in:
+  - `EventEngagementSection.js` (Attending) — replaced `event-attending-section` with `engagement-section`
+  - `EventCommentsSection.js` (Replies — events)
+  - `ThreadedCommentsSection.js` (Comments — used by announcements, music, nomads, lore-memories, nostalgia, rant, bugs, art, memories, lore)
+  - `ProjectRepliesSection.js` (Replies — projects)
+  - `src/app/lobby/[id]/page.js` (Replies — forum threads)
+  - `src/app/devlog/[id]/page.js` (Replies — devlog)
+
+**Result:** Every Attending, Replies, or Comments block now uses `card engagement-section` and gets the same reduced bottom padding (8px).
+
 ## Errl Boombox (Additional Features – opt-in)
 
 ### Request

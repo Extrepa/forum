@@ -516,7 +516,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      <section className="card">
+      <section className="card engagement-section">
         <h3 className="section-title">Replies</h3>
         {commentNotice ? <div className="notice">{commentNotice}</div> : null}
         <div className="list">

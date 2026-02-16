@@ -59,7 +59,7 @@ export default function EventCommentsSection({
   };
 
   return (
-    <section className="card">
+    <section className="card engagement-section">
       <h3 className="section-title" style={{ marginTop: 0 }}>Replies</h3>
 
       {commentNotice ? <div className="notice">{commentNotice}</div> : null}

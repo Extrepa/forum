@@ -849,7 +849,7 @@ export default async function LobbyThreadPage({ params, searchParams }) {
         )}
       </section>
 
-      <section className="card">
+      <section className="card engagement-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <h3 className="section-title" style={{ margin: 0 }}>Replies ({totalReplies})</h3>
           {firstUnreadId ? (

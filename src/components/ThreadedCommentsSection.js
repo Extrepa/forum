@@ -74,7 +74,7 @@ export default function ThreadedCommentsSection({
   };
 
   return (
-    <section className="card">
+    <section className="card engagement-section">
       <h3 className="section-title" style={{ marginTop: 0 }}>{sectionTitle}</h3>
 
       {commentNotice ? <div className="notice">{commentNotice}</div> : null}
