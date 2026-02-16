@@ -2367,7 +2367,7 @@ main {
 
 /* Account / Edit Profile main page title: equal padding above/below, centered on all viewports */
 .account-page-title-wrap {
-  padding: 16px 0;
+  padding: 8px 0;
   text-align: center;
 }
 

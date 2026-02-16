@@ -1020,7 +1020,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
           gap: '12px',
-          marginBottom: activeTab === 'profile' ? '8px' : '16px',
+          marginBottom: activeTab === 'profile' ? '4px' : '8px',
           width: '100%',
           minWidth: 0
         }}
@@ -1058,8 +1058,8 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-page-title-wrap">
             <h2 className="section-title">Account Settings</h2>
           </div>
-          <hr style={{ marginTop: 0, marginBottom: '16px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
-          
+<hr style={{ marginTop: 0, marginBottom: '10px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
+
           {user ? (
             <AccountSettings user={user} />
           ) : (
@@ -1073,7 +1073,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
           <div className="account-page-title-wrap">
             <h2 className="section-title">Edit Profile</h2>
           </div>
-          <hr style={{ marginTop: 0, marginBottom: '16px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
+          <hr style={{ marginTop: 0, marginBottom: '10px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">
             {/* Layout: Row 1 = avatar + mini preview + Edit Avatar (right). Row 2 = username + Edit Username (right). Then role, mood, song, headline. */}
             <div

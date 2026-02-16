@@ -43,3 +43,8 @@ export function parseNewContentSectionsJson(value) {
 export function defaultNewContentSections() {
   return Object.fromEntries(ALL_NEW_CONTENT_KEYS.map((k) => [k, false]));
 }
+
+/** All sections enabled (used when user first turns on "New forum threads" – they can then uncheck the ones they don't want). */
+export function defaultNewContentSectionsAllTrue() {
+  return Object.fromEntries(ALL_NEW_CONTENT_KEYS.map((k) => [k, true]));
+}

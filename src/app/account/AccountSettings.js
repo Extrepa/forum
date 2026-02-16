@@ -10,7 +10,8 @@ import {
   NEW_CONTENT_SECTION_KEYS,
   ALL_NEW_CONTENT_KEYS,
   parseNewContentSectionsJson,
-  defaultNewContentSections
+  defaultNewContentSections,
+  defaultNewContentSectionsAllTrue
 } from '../../lib/notificationSections';
 import {
   ADMIN_EVENT_KEYS,
@@ -392,25 +393,31 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
             setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
           } />
           <ToggleLine label="New forum threads" checked={draft.site.newForumThreads} onChange={(v) =>
-            setDraft(d => ({ ...d, site: { ...d.site, newForumThreads: v } }))
+            setDraft(d => ({
+              ...d,
+              site: { ...d.site, newForumThreads: v },
+              ...(v ? { newForumThreadSections: defaultNewContentSectionsAllTrue() } : {})
+            }))
           } />
           <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '4px' }}>Get notified when new threads or posts are created.</div>
-          <CollapsibleSection
-            label={showForumSections ? 'Hide forum sections' : 'Choose which forum sections...'}
-            expanded={showForumSections}
-            onToggle={() => setShowForumSections((v) => !v)}
-          >
-            <div style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '2px solid rgba(52, 225, 255, 0.25)', marginTop: '6px', marginBottom: '8px' }}>
-              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Lobby</div>
-              {NEW_CONTENT_SECTION_KEYS.lobby.map(({ key, label }) => (
-                <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
-              ))}
-              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
-              {sectionKeysForSections.map(({ key, label }) => (
-                <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
-              ))}
-            </div>
-          </CollapsibleSection>
+          {draft.site.newForumThreads && (
+            <CollapsibleSection
+              label={showForumSections ? 'Hide forum sections' : 'Choose which forum sections...'}
+              expanded={showForumSections}
+              onToggle={() => setShowForumSections((v) => !v)}
+            >
+              <div style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '2px solid rgba(52, 225, 255, 0.25)', marginTop: '6px', marginBottom: '8px' }}>
+                <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Lobby</div>
+                {NEW_CONTENT_SECTION_KEYS.lobby.map(({ key, label }) => (
+                  <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+                ))}
+                <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
+                {sectionKeysForSections.map(({ key, label }) => (
+                  <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+                ))}
+              </div>
+            </CollapsibleSection>
+          )}
           {canUseNomadNotifs && (
             <>
               <ToggleLine label="Nomad section activity" checked={draft.site.nomadActivity} onChange={(v) =>
