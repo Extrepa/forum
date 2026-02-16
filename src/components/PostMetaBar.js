@@ -61,7 +61,15 @@ export default function PostMetaBar({
     </span>
   );
 
-  const statsColumnStyle = { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 };
+  const statsColumnStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '1px',
+    lineHeight: 1.25,
+    fontSize: '12px',
+    flexShrink: 0
+  };
   const firstStat = hasStats ? statLines[0] : null;
   const restStats = hasStats && statLines.length > 1 ? statLines.slice(1) : [];
 
@@ -70,13 +78,13 @@ export default function PostMetaBar({
       ? (
           <div className="post-meta-stats-column muted" style={statsColumnStyle}>
             {statLines.map((line) => (
-              <span key={line}>{line}</span>
+              <span key={line} className="post-meta-stat-line">{line}</span>
             ))}
           </div>
         )
       : firstStat != null && (
           <div className="post-meta-stats-column muted" style={statsColumnStyle}>
-            <span>{firstStat}</span>
+            <span className="post-meta-stat-line">{firstStat}</span>
           </div>
         )
   );
@@ -84,7 +92,7 @@ export default function PostMetaBar({
   const row3Right = hasLastActivity && restStats.length > 0 && (
     <div className="post-meta-stats-column muted" style={statsColumnStyle}>
       {restStats.map((line) => (
-        <span key={line}>{line}</span>
+        <span key={line} className="post-meta-stat-line">{line}</span>
       ))}
     </div>
   );

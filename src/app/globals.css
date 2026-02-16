@@ -4697,6 +4697,15 @@ button.ghost:hover,
 
 .post-meta-stats-column {
   white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(52, 225, 255, 0.06);
+  border: 1px solid rgba(52, 225, 255, 0.12);
+}
+
+.post-meta-stat-line {
+  display: block;
+  line-height: 1.25;
 }
 
 @media (max-width: 767px) {
@@ -5746,7 +5755,7 @@ a.list-item:hover {
 }
 
 .list-item h3 {
-  margin: 0 0 2px;
+  margin: 0;
   font-size: 18px;
 }
 

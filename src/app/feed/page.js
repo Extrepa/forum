@@ -593,20 +593,18 @@ export default async function FeedPage() {
                         const eventEndAt = item.endsAt || item.startsAt;
                         const completionAt = getEventDayCompletionTimestamp(eventEndAt);
                         const hasPassed = completionAt > 0 && Date.now() > completionAt;
+                        const hasAttendedOrActivity = item.attendeeCount > 0 || (item.lastActivity && item.replies > 0);
                         return (
                           <>
-                      {/* Event info centered */}
-                      <div className="event-info-row" style={{
+                      {/* Event row 3: Starts + (optional) attended/last activity in one block */}
+                      <div className="event-details-row" style={{
                         display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                        rowGap: '4px',
-                        marginTop: '6px'
+                        flexDirection: 'column',
+                        gap: '2px',
+                        marginTop: '4px',
+                        fontSize: '12px'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <svg
                             width="14"
                             height="14"
@@ -637,20 +635,8 @@ export default async function FeedPage() {
                             ) : null}
                           </span>
                         </div>
-                      </div>
-                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0)) && (
-                        /* Bottom: attended + last activity only; stats live in PostMetaBar row 2 */
-                        <div className="event-bottom-row" style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: '8px',
-                          flexWrap: 'nowrap',
-                          fontSize: '12px',
-                          marginTop: '8px',
-                          minWidth: 0
-                        }}>
-                          <div style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {hasAttendedOrActivity && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingLeft: '20px' }}>
                             {item.attendeeCount > 0 && (
                               <span className="muted" title={item.attendeeNames.join(', ')}>
                                 {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
@@ -673,8 +659,8 @@ export default async function FeedPage() {
                               </span>
                             )}
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                           </>
                         );
                       })()}
