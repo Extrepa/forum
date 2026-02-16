@@ -597,11 +597,13 @@ export default async function FeedPage() {
                       {/* Second Row: Post time on left, Event Information on right */}
                       <div className="event-info-row" style={{
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center',
                         alignItems: 'center',
+                        textAlign: 'center',
                         flexWrap: 'wrap',
                         gap: '8px',
-                        rowGap: '4px'
+                        rowGap: '4px',
+                        marginTop: '6px'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                           <svg

@@ -174,14 +174,15 @@ export function formatEventTime(timestamp) {
 }
 
 /**
- * Parse a datetime-local string (YYYY-MM-DDTHH:mm) as local time and convert to UTC timestamp.
- * datetime-local inputs send local time strings, but Date.parse() interprets them as UTC.
- * This function explicitly parses as local time and returns UTC timestamp for storage.
- * 
- * @param {string} localDateTimeString - String in format "YYYY-MM-DDTHH:mm" (local time)
+ * Parse a datetime-local string and convert it to UTC milliseconds.
+ * Inputs are interpreted in the forum timezone (America/Los_Angeles),
+ * so event day boundaries stay consistent with display/completion rules.
+ *
+ * @param {string} localDateTimeString - String in format "YYYY-MM-DDTHH:mm"
+ * @param {string} timeZone - IANA timezone, defaults to forum timezone
  * @returns {number|null} - UTC timestamp in milliseconds, or null if invalid
  */
-export function parseLocalDateTimeToUTC(localDateTimeString) {
+export function parseLocalDateTimeToUTC(localDateTimeString, timeZone = 'America/Los_Angeles') {
   if (!localDateTimeString || typeof localDateTimeString !== 'string') {
     return null;
   }
@@ -206,17 +207,30 @@ export function parseLocalDateTimeToUTC(localDateTimeString) {
     return null;
   }
   
-  // Create date in local timezone
-  // Note: month is 0-indexed in Date constructor
-  const localDate = new Date(year, month - 1, day, hours, minutes || 0, 0, 0);
-  
-  // Validate the date is valid
-  if (Number.isNaN(localDate.getTime())) {
+  // Basic range checks before timezone conversion
+  if (
+    month < 1 || month > 12 ||
+    day < 1 || day > 31 ||
+    hours < 0 || hours > 23 ||
+    minutes < 0 || minutes > 59
+  ) {
     return null;
   }
-  
-  // Return UTC timestamp (milliseconds since epoch)
-  return localDate.getTime();
+
+  const utcMs = zonedDateTimeToUtcMs(
+    {
+      year,
+      month,
+      day,
+      hour: hours,
+      minute: minutes,
+      second: 0,
+      millisecond: 0,
+    },
+    timeZone
+  );
+
+  return Number.isFinite(utcMs) ? utcMs : null;
 }
 
 function partsToNumberMap(parts) {

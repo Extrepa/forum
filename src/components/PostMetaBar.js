@@ -51,6 +51,10 @@ export default function PostMetaBar({
   const titleProps = showTitleLink && titleHref ? { href: titleHref } : {};
 
   const isCondensed = replies === 0;
+  const hasDateRow = Boolean(createdAt && replies > 0 && !authorDateInline);
+  const hasMobileStatsRow = Boolean(topRight && !isCondensed);
+  const hasLastActivity = Boolean(lastActivity && replies > 0);
+  const shouldRenderRow2 = hasDateRow || hasMobileStatsRow || hasLastActivity;
 
   return (
     <div className={`${className} ${isCondensed ? 'post-meta post-meta--condensed' : ''}`.trim()} style={isCondensed ? { display: 'flex', flexDirection: 'column' } : {}}>
@@ -59,7 +63,7 @@ export default function PostMetaBar({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'baseline',
-        marginBottom: '8px',
+        marginBottom: shouldRenderRow2 ? '8px' : '0',
         flexWrap: 'wrap',
         gap: '8px',
         rowGap: '4px'
@@ -78,7 +82,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
-              {authorDateInline && createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+              {authorDateInline && createdAt ? <> at <span className="post-meta-inline-date" style={{ fontSize: '12px', whiteSpace: 'nowrap' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
           )}
           {/* Condensed desktop: by author at time next to title (left side) */}
@@ -89,7 +93,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
-              {createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+              {createdAt ? <> at <span className="post-meta-inline-date" style={{ fontSize: '12px', whiteSpace: 'nowrap' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
           )}
         </div>
@@ -108,7 +112,7 @@ export default function PostMetaBar({
                 colorIndex={authorColorIndex}
                 preferredColorIndex={authorPreferredColorIndex}
               />
-              {createdAt ? <> at <span style={{ fontSize: '12px' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
+              {createdAt ? <> at <span className="post-meta-inline-date" style={{ fontSize: '12px', whiteSpace: 'nowrap' }} suppressHydrationWarning>{formatDateTime(createdAt)}</span></> : null}
             </span>
             {topRight && (
               <span className="post-meta-stats-condensed-row1 muted" style={{ fontSize: '12px', flexShrink: 0 }}>
@@ -120,38 +124,40 @@ export default function PostMetaBar({
       </div>
 
       {/* Row 2: Date/time on left, Views/Replies/Likes on right (mobile), Last Activity on right (desktop) */}
-      <div className="post-meta-row2" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        fontSize: '12px',
-        flexWrap: 'wrap',
-        gap: '8px',
-        rowGap: '4px',
-        minWidth: 0
-      }}>
-        {createdAt && replies > 0 && !authorDateInline && (
-          <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
-            {formatDateTime(createdAt)}
-          </span>
-        )}
-        {/* Mobile: Views/Replies/Likes on right (row 2; hidden when condensed - stats are in row 1 instead) */}
-        {topRight && !isCondensed && (
-          <span className="post-meta-stats-mobile muted" style={{ fontSize: '12px', marginLeft: 'auto' }}>
-            {topRight}
-          </span>
-        )}
-        {/* Desktop: Last Activity on bottom right - hide when no replies (avoids duplicating author) */}
-        {lastActivity && replies > 0 && (
-          <span className="post-meta-last-activity muted" style={{ marginLeft: 'auto' }}>
-            Last activity{lastActivityBy ? (
-              <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
-            ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
-          </span>
-        )}
-      </div>
+      {shouldRenderRow2 && (
+        <div className="post-meta-row2" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          fontSize: '12px',
+          flexWrap: 'wrap',
+          gap: '8px',
+          rowGap: '4px',
+          minWidth: 0
+        }}>
+          {hasDateRow && (
+            <span className={`muted ${hideDateOnDesktop ? 'post-meta-date-mobile-only' : ''}`} suppressHydrationWarning>
+              {formatDateTime(createdAt)}
+            </span>
+          )}
+          {/* Mobile: Views/Replies/Likes on right (row 2; hidden when condensed - stats are in row 1 instead) */}
+          {hasMobileStatsRow && (
+            <span className="post-meta-stats-mobile muted" style={{ fontSize: '12px', marginLeft: 'auto' }}>
+              {topRight}
+            </span>
+          )}
+          {/* Desktop: Last Activity on bottom right - hide when no replies (avoids duplicating author) */}
+          {hasLastActivity && (
+            <span className="post-meta-last-activity muted" style={{ marginLeft: 'auto' }}>
+              Last activity{lastActivityBy ? (
+                <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+              ) : null} at <span suppressHydrationWarning>{formatDateTime(lastActivity)}</span>
+            </span>
+          )}
+        </div>
+      )}
       {/* Mobile: Last Activity on separate row - hide when no replies (avoids duplicating author) */}
-      {lastActivity && replies > 0 && (
+      {hasLastActivity && (
         <div className="post-meta-last-activity-mobile" style={{ 
           display: 'block',
           fontSize: '12px',

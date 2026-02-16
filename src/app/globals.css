@@ -4616,6 +4616,11 @@ button.ghost:hover,
   gap: 4px;
 }
 
+.post-meta-inline-date {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 /* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
 @media (min-width: 768px) {
   /* Condensed desktop: author next to title (left), stats on right; hide mobile meta row */
@@ -4702,7 +4707,7 @@ button.ghost:hover,
   }
 
   .event-info-row {
-    justify-content: flex-start !important;
+    justify-content: center !important;
   }
 }
 
@@ -6114,7 +6119,7 @@ span:has(.username) + .status-badge {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: var(--errl-accent-3);
+  color: var(--errl-accent);
   text-transform: uppercase;
 }
 
