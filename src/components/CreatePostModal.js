@@ -176,7 +176,7 @@ export default function CreatePostModal({
         aria-modal="true"
         aria-label={title || 'Dialog'}
         style={{
-          backgroundColor: 'var(--card)',
+          backgroundColor: isMobile ? 'rgba(7, 27, 37, 0.98)' : 'var(--card)',
           borderRadius: 'var(--radius)',
           padding: isMobile ? '18px' : '24px',
           maxWidth: contentMaxWidth,
@@ -190,7 +190,8 @@ export default function CreatePostModal({
           boxSizing: 'border-box',
           position: 'relative',
           isolation: 'isolate',
-          backdropFilter: 'blur(12px)',
+          // Avoid backdrop-filter on mobile: can cause recursive viewport capture glitch on Android Chrome
+          backdropFilter: isMobile ? 'none' : 'blur(12px)',
           minHeight: 0,
         }}
       >

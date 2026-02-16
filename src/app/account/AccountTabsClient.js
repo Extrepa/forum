@@ -1359,28 +1359,19 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                   <h2 className="section-title" style={{ margin: 0 }}>Avatar</h2>
                   <span className="muted" style={{ fontSize: '12px' }}>Customize your avatar shown across the forum.</span>
                 </div>
-                <div
-                  style={{
-                    border: '1px solid rgba(52, 225, 255, 0.2)',
-                    borderRadius: '10px',
-                    background: 'rgba(2, 7, 10, 0.35)',
-                    padding: '10px 12px',
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1fr) auto',
-                    gap: '10px',
-                    alignItems: 'center'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    {user.avatar_key ? (
-                      <>
-                        <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Avatar preview" size={72} loading="eager" />
-                        <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Mini avatar preview" size={36} loading="eager" />
-                      </>
-                    ) : (
-                      <div className="no-avatar-placeholder" style={{ width: '72px', height: '72px' }}>No avatar</div>
-                    )}
-                    <div style={{ minWidth: 0 }}>
+                <div className="account-avatar-summary">
+                  <div className="account-avatar-summary__content">
+                    <div className="account-avatar-summary__previews">
+                      {user.avatar_key ? (
+                        <>
+                          <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Avatar preview" size={72} loading="eager" />
+                          <AvatarImage src={getAvatarUrl(user.avatar_key)} alt="Mini avatar preview" size={36} loading="eager" />
+                        </>
+                      ) : (
+                        <div className="no-avatar-placeholder" style={{ width: '72px', height: '72px' }}>No avatar</div>
+                      )}
+                    </div>
+                    <div className="account-avatar-summary__meta">
                       <div style={{ fontSize: '13px' }}>Main preview + mini preview</div>
                       <div className="muted" style={{ fontSize: '12px' }}>Open the editor when you need changes.</div>
                       {isEditingAvatar && (
@@ -1390,7 +1381,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', alignSelf: 'stretch' }}>
+                  <div className="account-avatar-summary__action">
                     <button
                       type="button"
                       onClick={toggleAvatarEditor}

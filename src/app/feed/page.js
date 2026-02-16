@@ -585,6 +585,7 @@ export default async function FeedPage() {
                     showTitleLink={false}
                     hideDateOnDesktop={item.type === 'Event'}
                     authorDateInline={item.type === 'Event'}
+                    hideStats={item.type === 'Event'}
                   />
                   {item.type === 'Event' ? (
                     <>
@@ -592,9 +593,13 @@ export default async function FeedPage() {
                         const eventEndAt = item.endsAt || item.startsAt;
                         const completionAt = getEventDayCompletionTimestamp(eventEndAt);
                         const hasPassed = completionAt > 0 && Date.now() > completionAt;
+                        const eventStatLines = [
+                          (item.views || 0) > 0 && `${item.views} ${item.views === 1 ? 'view' : 'views'}`,
+                          (item.replies || 0) > 0 && `${item.replies} ${item.replies === 1 ? 'reply' : 'replies'}`
+                        ].filter(Boolean);
                         return (
                           <>
-                      {/* Second Row: Post time on left, Event Information on right */}
+                      {/* Event info centered */}
                       <div className="event-info-row" style={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -637,40 +642,48 @@ export default async function FeedPage() {
                           </span>
                         </div>
                       </div>
-                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0)) && (
-                        /* Bottom Row: Attending List on left, Last Activity on right */
-                        <div style={{ 
+                      {(item.attendeeCount > 0 || (item.lastActivity && item.replies > 0) || eventStatLines.length > 0) && (
+                        /* Bottom: attended + last activity (left, stacked), views/replies (right, stacked) */
+                        <div className="event-bottom-row" style={{
                           display: 'flex',
                           justifyContent: 'space-between',
-                          alignItems: 'center',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          rowGap: '4px',
                           fontSize: '12px',
                           marginTop: '8px',
-                          flexWrap: 'wrap',
-                          gap: '8px',
-                          rowGap: '4px'
+                          minWidth: 0
                         }}>
-                          {/* Bottom Left: Attending List */}
-                          {item.attendeeCount > 0 && (
-                            <span style={{ color: 'var(--muted)' }} title={item.attendeeNames.join(', ')}>
-                              {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
-                                <span key={name}>
-                                  {i > 0 ? ', ' : ''}
-                                  <Username 
-                                    name={name}
-                                    colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
-                                    preferredColorIndex={preferredColors.get(name)}
-                                  />
-                                </span>
+                          <div style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            {item.attendeeCount > 0 && (
+                              <span className="muted" title={item.attendeeNames.join(', ')}>
+                                {item.attendeeCount} {hasPassed ? 'attended' : 'attending'}: {item.attendeeNames.map((name, i) => (
+                                  <span key={name}>
+                                    {i > 0 ? ', ' : ''}
+                                    <Username
+                                      name={name}
+                                      colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
+                                      preferredColorIndex={preferredColors.get(name)}
+                                    />
+                                  </span>
+                                ))}
+                              </span>
+                            )}
+                            {item.lastActivity && item.replies > 0 && (
+                              <span className="muted">
+                                Last activity{item.lastActivityBy ? (
+                                  <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
+                                ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
+                              </span>
+                            )}
+                          </div>
+                          {eventStatLines.length > 0 && (
+                            <div className="muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '12px', flexShrink: 0 }}>
+                              {eventStatLines.map((line) => (
+                                <span key={line}>{line}</span>
                               ))}
-                            </span>
-                          )}
-                          {/* Bottom Right: Last Activity - hide when no replies (avoids duplicating author) */}
-                          {item.lastActivity && item.replies > 0 && (
-                            <span className="muted" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-                              Last activity{item.lastActivityBy ? (
-                                <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                              ) : null} at <span suppressHydrationWarning>{formatDateTime(item.lastActivity)}</span>
-                            </span>
+                            </div>
                           )}
                         </div>
                       )}

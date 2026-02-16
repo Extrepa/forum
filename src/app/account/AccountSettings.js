@@ -363,6 +363,10 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
         </div>
       )}
 
+      <p className="muted" style={{ fontSize: '12px', marginTop: '4px', marginBottom: '12px' }}>
+        Enable email and the triggers you want to get reminded about activity across the forum (replies, mentions, likes, etc.). Add a phone number to also get SMS.
+      </p>
+
       <PrimaryButton disabled={saving || !validation.ok} onClick={onSave}>
         {saving ? 'Saving...' : 'Save preferences'}
       </PrimaryButton>

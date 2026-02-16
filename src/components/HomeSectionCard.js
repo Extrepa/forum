@@ -18,7 +18,8 @@ export default function HomeSectionCard({
   onToggle
 }) {
   const router = useRouter();
-  const countLabel = `${count} ${count === 1 ? 'post' : 'posts'}`;
+  const countShort = String(count);
+  const countLabel = `${count} ${count === 1 ? 'post' : 'posts'}`; /* for non-compact / a11y */
   const listItems = Array.isArray(recentActivities) ? recentActivities.filter(Boolean) : [];
   const recentItems = recentActivity
     ? [recentActivity, ...listItems.filter((item) => item.href !== recentActivity.href || item.timeAgo !== recentActivity.timeAgo)].slice(0, 3)
@@ -76,8 +77,10 @@ export default function HomeSectionCard({
               </span>
             </span>
             <span className="home-section-card__count-wrap">
-              <span className="section-card-count" suppressHydrationWarning>{countLabel}</span>
-              <span className={`home-section-card__status-dot${hasRecentInLast24h ? ' is-recent' : ''}`} aria-hidden="true" />
+              <span className="section-card-count" suppressHydrationWarning title={countLabel}>
+                {countShort}{hasRecentInLast24h ? <span className="section-card-recent-badge"> (24h)</span> : ''}
+              </span>
+              <span className={`home-section-card__status-dot${hasRecentInLast24h ? ' is-recent' : ''}`} aria-hidden="true" title={hasRecentInLast24h ? 'Recent activity' : ''} />
               <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '-' : '+'}</span>
             </span>
           </button>
@@ -88,7 +91,9 @@ export default function HomeSectionCard({
             <div className={`home-section-card__details-head${recentItems.length === 0 ? ' is-empty' : ''}`}>
               {recentItems.length > 0 ? (
                 <span className="home-section-card__status-text">Latest drip:</span>
-              ) : null}
+              ) : (
+                <span className="section-card-empty-cta">The goo is quiet here - head in and post something.</span>
+              )}
               <Link href={href} className="home-section-card__section-link">
                 Open section
               </Link>
@@ -103,9 +108,7 @@ export default function HomeSectionCard({
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="section-card-empty-cta">The goo is quiet here - head in and post something.</p>
-            )}
+            ) : null}
           </div>
         )}
       </article>

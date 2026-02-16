@@ -2990,6 +2990,42 @@ main {
   box-sizing: border-box;
 }
 
+.account-avatar-summary {
+  border: 1px solid rgba(52, 225, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(2, 7, 10, 0.35);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.account-avatar-summary__content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.account-avatar-summary__previews {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.account-avatar-summary__meta {
+  min-width: 0;
+}
+
+.account-avatar-summary__action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: stretch;
+}
+
 .color-picker-btn {
   position: relative;
   aspect-ratio: 1 / 1 !important;
@@ -3080,6 +3116,27 @@ main {
 
   .account-edit-card {
     padding: 12px 14px;
+  }
+
+  .account-avatar-summary {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .account-avatar-summary__content {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .account-avatar-summary__meta {
+    flex-basis: 100%;
+    padding-top: 2px;
+  }
+
+  .account-avatar-summary__action {
+    width: 100%;
+    justify-content: flex-start;
+    align-self: auto;
   }
 
   /* Make edit button smaller on mobile */
@@ -4616,108 +4673,33 @@ button.ghost:hover,
   gap: 4px;
 }
 
+/* PostMetaBar: title row, by-user row (block never splits), last-activity + stats column */
 .post-meta-inline-date {
   display: inline-block;
   white-space: nowrap;
 }
 
-/* PostMetaBar: Desktop shows stats on top right, mobile shows stats on bottom right with date */
-@media (min-width: 768px) {
-  .post-meta-inline-date-mobile-only {
-    display: none !important;
-  }
-  /* Condensed desktop: author next to title (left), stats on right; hide mobile meta row */
-  .post-meta-condensed-author-desktop {
-    display: inline !important;
-  }
-  .post-meta-condensed-author-mobile {
-    display: none !important;
-  }
-  .post-meta-condensed-meta-row {
-    display: none !important;
-  }
-  .post-meta--condensed .post-meta-row1 {
-    flex-wrap: nowrap !important;
-  }
-  .post-meta-stats-desktop {
-    display: inline !important;
-    white-space: nowrap;
-  }
-  .post-meta-stats-mobile {
-    display: none !important;
-  }
-  .post-meta-last-activity {
-    display: inline !important;
-    white-space: nowrap;
-  }
-  .post-meta-date-mobile-only {
-    display: none !important;
-  }
-  .event-post-time-desktop {
-    display: inline !important;
-  }
+.post-meta-title-wrap,
+.post-meta-title-row {
+  min-width: 0;
+}
+
+.post-meta-by-row,
+.post-meta-row3 {
+  min-width: 0;
+}
+
+.post-meta-stats-column {
+  white-space: nowrap;
 }
 
 @media (max-width: 767px) {
-  .post-meta-inline-date-mobile-only {
-    display: inline !important;
-  }
-  .post-meta-date-desktop-only {
-    display: none !important;
-  }
-  .post-meta-condensed-author-desktop {
-    display: none !important;
-  }
-  .post-meta-condensed-author-mobile {
-    display: inline !important;
-  }
-  .post-meta-condensed-meta-row {
-    display: flex !important;
-  }
-  .post-meta-stats-desktop {
-    display: none !important;
-  }
-  .post-meta-stats-mobile {
-    display: inline !important;
-    font-size: 11px !important;
-  }
   .post-meta-last-activity {
-    display: inline !important;
-    font-size: 11px !important;
-    margin-left: 0 !important;
-    max-width: 100%;
+    font-size: 11px;
   }
-  .post-meta-stats-mobile,
-  .post-meta-stats-condensed-row1 {
-    white-space: nowrap;
-    overflow-wrap: normal;
-  }
-  .post-meta-row2 {
-    min-width: 0;
-  }
-  .post-meta-row2 > span {
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-  .post-meta-row2 {
-    align-items: flex-start !important;
-    gap: 6px !important;
-    row-gap: 2px !important;
-  }
-  .post-meta-date-mobile-only {
-    display: inline !important;
-  }
-  .event-post-time-desktop {
-    display: none !important;
-  }
-
   .event-info-row {
-    justify-content: center !important;
+    justify-content: center;
   }
-}
-
-.post-meta-title-wrap {
-  min-width: 0;
 }
 
 .post-body-scrollable {
@@ -6005,6 +5987,11 @@ span:has(.username) + .status-badge {
   color: var(--muted);
 }
 
+.section-card-recent-badge {
+  color: #57ffbe;
+  font-weight: 500;
+}
+
 .section-card-empty-cta {
   margin: 10px 0 0;
   font-size: 13px;
@@ -6067,6 +6054,13 @@ span:has(.username) + .status-badge {
   opacity: 0.9;
 }
 
+/* When expanded, show full description wrapped */
+.home-section-card.is-expanded .home-section-card__headline-description {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
 .home-section-card__count-wrap {
   display: inline-flex;
   align-items: center;
@@ -6124,6 +6118,33 @@ span:has(.username) + .status-badge {
   margin-bottom: 2px;
 }
 
+.home-section-card__details-head.is-empty .section-card-empty-cta {
+  margin: 0;
+  font-size: inherit;
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .home-section-card--compact .home-section-card__details-head.is-empty {
+    flex-wrap: nowrap;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .home-section-card--compact .home-section-card__details-head.is-empty .section-card-empty-cta {
+    font-size: 10px;
+    line-height: 1.3;
+    order: -1;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+  }
+  .home-section-card--compact .home-section-card__details-head.is-empty .home-section-card__section-link {
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+}
+
 .home-section-card__status-text {
   font-size: 12px;
   font-weight: 700;
@@ -6144,9 +6165,15 @@ span:has(.username) + .status-badge {
   text-decoration: none;
 }
 
+/* No hover/focus glow on section cards - user preference */
+.home-section-card::after {
+  opacity: 0;
+  box-shadow: none;
+}
 .home-section-card:hover::after,
 .home-section-card:focus-within::after {
-  box-shadow: 0 0 24px rgba(52, 225, 255, 0.22);
+  opacity: 0;
+  box-shadow: none;
 }
 
 .home-section-card__recent-list {
@@ -6171,6 +6198,10 @@ span:has(.username) + .status-badge {
 
 .home-section-card__details .section-card-empty-cta {
   margin-top: 6px;
+}
+
+.home-section-card__details-head .section-card-empty-cta {
+  margin-top: 0;
 }
 
 /* Homepage Stats: 3 cards on desktop */
@@ -8662,6 +8693,19 @@ header::before {
   }
 }
 
+@media (max-width: 600px) {
+  /* Stack meta above actions so desc has full width; prevents overlap on short descriptions */
+  .section-intro {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  .section-intro__actions {
+    justify-self: end;
+  }
+}
+
 @media (max-width: 520px) {
   .section-intro__actions {
     gap: 5px;
@@ -8771,9 +8815,10 @@ header::before {
   box-shadow: 0 0 16px rgba(255, 52, 245, 0.55) !important;
 }
 
-/* Edit/create modal content is often provided as a card; flatten it to avoid card-within-card and duplicate title. */
+/* Edit/create/account modal: single gradient border, no neon pseudo-elements (avoids mobile compositing glitches). */
 .edit-post-modal,
-.create-post-modal {
+.create-post-modal,
+.account-edit-modal {
   border: 1px solid transparent;
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
@@ -8795,13 +8840,16 @@ header::before {
 .edit-post-modal::before,
 .edit-post-modal::after,
 .create-post-modal::before,
-.create-post-modal::after {
+.create-post-modal::after,
+.account-edit-modal::before,
+.account-edit-modal::after {
   content: none !important;
   display: none !important;
 }
 
 .edit-post-modal > .card,
-.create-post-modal > .card {
+.create-post-modal > .card,
+.account-edit-modal .card {
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -8818,7 +8866,9 @@ header::before {
 .edit-post-modal > .card::before,
 .edit-post-modal > .card::after,
 .create-post-modal > .card::before,
-.create-post-modal > .card::after {
+.create-post-modal > .card::after,
+.account-edit-modal .card::before,
+.account-edit-modal .card::after {
   content: none;
   display: none;
 }
