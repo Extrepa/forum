@@ -19,6 +19,7 @@ import ViewTracker from '../../../components/ViewTracker';
 import ProjectRepliesSection from '../../../components/ProjectRepliesSection';
 import ProjectUpdateForm from '../../../components/ProjectUpdateForm';
 import { isImageUploadsEnabled } from '../../../lib/settings';
+import { formatDate } from '../../../lib/dates';
 
 export const dynamic = 'force-dynamic';
 
@@ -621,7 +622,7 @@ export default async function ProjectDetailPage({ params, searchParams }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
                     <h4 style={{ margin: 0 }}>{update.title}</h4>
                     <span className="muted" style={{ fontSize: '12px' }}>
-                      {new Date(update.created_at).toLocaleDateString()}
+                      {formatDate(update.created_at)}
                     </span>
                   </div>
                   {update.image_key && (

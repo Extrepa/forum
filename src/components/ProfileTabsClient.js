@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ErrlTabSwitcher from './ErrlTabSwitcher';
 import CreatePostModal from './CreatePostModal';
+import { formatDateTime } from '../lib/dates';
 
 const GALLERY_MAX = 10;
 const GALLERY_COLS = 5;
@@ -31,8 +32,9 @@ function getRarityColor(value) {
 
 function formatGuestbookDate(ts) {
   if (ts == null) return '';
-  const d = new Date(typeof ts === 'number' ? ts : parseInt(ts, 10));
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { dateStyle: 'short' }) + ' ' + d.toLocaleTimeString(undefined, { timeStyle: 'short' });
+  const timestamp = typeof ts === 'number' ? ts : parseInt(ts, 10);
+  if (!Number.isFinite(timestamp)) return '';
+  return formatDateTime(timestamp);
 }
 
 const VALID_TAB_IDS = ['stats', 'activity', 'socials', 'gallery', 'guestbook'];

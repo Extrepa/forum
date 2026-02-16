@@ -1,3 +1,6 @@
+export const FORUM_TIME_ZONE = 'America/Los_Angeles';
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
 /**
  * Format a timestamp to a localized date/time string
  * Uses the user's browser timezone when rendered client-side,
@@ -25,7 +28,7 @@ export function formatDateTime(timestamp) {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'America/Los_Angeles' // PST/PDT timezone
+    timeZone: FORUM_TIME_ZONE
   });
 }
 
@@ -50,7 +53,7 @@ export function formatDate(timestamp) {
     month: 'numeric',
     day: 'numeric',
     year: 'numeric',
-    timeZone: 'America/Los_Angeles' // PST/PDT timezone
+    timeZone: FORUM_TIME_ZONE
   });
 }
 
@@ -95,21 +98,29 @@ export function isEventUpcoming(timestamp) {
  */
 export function formatEventDate(timestamp) {
   const date = new Date(timestamp);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const eventDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diffDays = Math.floor((eventDate - today) / (1000 * 60 * 60 * 24));
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
+  const nowTs = Date.now();
+  const eventParts = getDateTimePartsInTimeZone(date.getTime(), FORUM_TIME_ZONE);
+  const nowParts = getDateTimePartsInTimeZone(nowTs, FORUM_TIME_ZONE);
+  const eventDay = getDayIndexInTimeZone(date.getTime(), FORUM_TIME_ZONE);
+  const todayDay = getDayIndexInTimeZone(nowTs, FORUM_TIME_ZONE);
+  const diffDays = eventDay === null || todayDay === null ? null : eventDay - todayDay;
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  if (diffDays === -1) return 'Yesterday';
-  if (diffDays > 0 && diffDays <= 7) return `In ${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
-  if (diffDays < 0 && diffDays >= -7) return `${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'day' : 'days'} ago`;
+  if (diffDays !== null) {
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays === -1) return 'Yesterday';
+    if (diffDays > 0 && diffDays <= 7) return `In ${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+    if (diffDays < 0 && diffDays >= -7) return `${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'day' : 'days'} ago`;
+  }
 
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    year: eventParts?.year !== nowParts?.year ? 'numeric' : undefined,
+    timeZone: FORUM_TIME_ZONE
   });
 }
 
@@ -118,10 +129,14 @@ export function formatEventDate(timestamp) {
  */
 export function formatEventDateLarge(timestamp) {
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
   return date.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
+    timeZone: FORUM_TIME_ZONE
   });
 }
 
@@ -129,35 +144,39 @@ export function formatEventDateLarge(timestamp) {
  * Format relative event date (for upcoming events)
  */
 export function formatRelativeEventDate(timestamp) {
-  const now = Date.now();
-  const diff = timestamp - now;
-  
-  if (diff < 0) {
-    // Past event
-    const absDiff = Math.abs(diff);
-    const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
-    const weeks = Math.floor(days / 7);
-    const months = Math.floor(days / 30);
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  const eventTs = Number(timestamp);
+  if (!Number.isFinite(eventTs) || eventTs <= 0) {
+    return 'Unknown';
+  }
+
+  const nowTs = Date.now();
+  const eventDay = getDayIndexInTimeZone(eventTs, FORUM_TIME_ZONE);
+  const todayDay = getDayIndexInTimeZone(nowTs, FORUM_TIME_ZONE);
+  const dayDiff = eventDay === null || todayDay === null ? null : eventDay - todayDay;
+
+  if (dayDiff === null) {
+    return 'Unknown';
+  }
+
+  const absDays = Math.abs(dayDiff);
+  const weeks = Math.floor(absDays / 7);
+  const months = Math.floor(absDays / 30);
+
+  if (dayDiff === 0) return 'Today';
+  if (dayDiff === 1) return 'Tomorrow';
+  if (dayDiff === -1) return 'Yesterday';
+
+  if (dayDiff < 0) {
+    if (absDays < 7) return `${absDays} ${absDays === 1 ? 'day' : 'days'} ago`;
     if (weeks < 4) return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
     if (months < 12) return `${months} ${months === 1 ? 'month' : 'months'} ago`;
     return 'Over a year ago';
-  } else {
-    // Upcoming event
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const weeks = Math.floor(days / 7);
-    const months = Math.floor(days / 30);
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Tomorrow';
-    if (days < 14) return `In ${days} ${days === 1 ? 'day' : 'days'}`;
-    if (weeks < 4) return `In ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
-    if (months < 12) return `In ${months} ${months === 1 ? 'month' : 'months'}`;
-    return 'Over a year away';
   }
+
+  if (absDays < 14) return `In ${absDays} ${absDays === 1 ? 'day' : 'days'}`;
+  if (weeks < 4) return `In ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+  if (months < 12) return `In ${months} ${months === 1 ? 'month' : 'months'}`;
+  return 'Over a year away';
 }
 
 /**
@@ -165,12 +184,28 @@ export function formatRelativeEventDate(timestamp) {
  */
 export function formatEventTime(timestamp) {
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    return 'Unknown';
+  }
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'America/Los_Angeles'
+    timeZone: FORUM_TIME_ZONE
   });
+}
+
+export function formatDateTimeLocalInputInForumTime(timestamp, timeZone = FORUM_TIME_ZONE) {
+  if (!timestamp && timestamp !== 0) {
+    return '';
+  }
+  const parts = getDateTimePartsInTimeZone(Number(timestamp), timeZone);
+  return partsToDateTimeLocalValue(parts);
+}
+
+export function getCurrentDateTimeLocalInputInForumTime(timeZone = FORUM_TIME_ZONE) {
+  const parts = getDateTimePartsInTimeZone(Date.now(), timeZone);
+  return partsToDateTimeLocalValue(parts);
 }
 
 /**
@@ -182,7 +217,7 @@ export function formatEventTime(timestamp) {
  * @param {string} timeZone - IANA timezone, defaults to forum timezone
  * @returns {number|null} - UTC timestamp in milliseconds, or null if invalid
  */
-export function parseLocalDateTimeToUTC(localDateTimeString, timeZone = 'America/Los_Angeles') {
+export function parseLocalDateTimeToUTC(localDateTimeString, timeZone = FORUM_TIME_ZONE) {
   if (!localDateTimeString || typeof localDateTimeString !== 'string') {
     return null;
   }
@@ -282,7 +317,7 @@ function zonedDateTimeToUtcMs({ year, month, day, hour = 0, minute = 0, second =
  * Returns the UTC timestamp for the end of the calendar day of an event in the forum timezone.
  * This keeps events "open" through 11:59:59 PM local forum time.
  */
-export function getEventDayCompletionTimestamp(timestamp, timeZone = 'America/Los_Angeles') {
+export function getEventDayCompletionTimestamp(timestamp, timeZone = FORUM_TIME_ZONE) {
   const ts = Number(timestamp);
   if (!Number.isFinite(ts) || ts <= 0) {
     return 0;
@@ -315,4 +350,53 @@ export function getEventDayCompletionTimestamp(timestamp, timeZone = 'America/Lo
     },
     timeZone
   );
+}
+
+function getDateTimePartsInTimeZone(timestamp, timeZone = FORUM_TIME_ZONE) {
+  if (!Number.isFinite(timestamp)) {
+    return null;
+  }
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const parts = partsToNumberMap(dtf.formatToParts(date));
+  if (!parts.year || !parts.month || !parts.day) {
+    return null;
+  }
+
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+    hour: (parts.hour || 0) % 24,
+    minute: parts.minute || 0,
+  };
+}
+
+function partsToDateTimeLocalValue(parts) {
+  if (!parts) {
+    return '';
+  }
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}T${pad(parts.hour)}:${pad(parts.minute)}`;
+}
+
+function getDayIndexInTimeZone(timestamp, timeZone = FORUM_TIME_ZONE) {
+  const parts = getDateTimePartsInTimeZone(timestamp, timeZone);
+  if (!parts) {
+    return null;
+  }
+  return Math.floor(Date.UTC(parts.year, parts.month - 1, parts.day) / MS_PER_DAY);
 }

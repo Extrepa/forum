@@ -2,6 +2,10 @@
 
 import { useRef, useState } from 'react';
 import MarkdownUploader from './MarkdownUploader';
+import {
+  formatDateTimeLocalInputInForumTime,
+  getCurrentDateTimeLocalInputInForumTime
+} from '../lib/dates';
 
 function wrapSelection(textarea, before, after = '') {
   const start = textarea.selectionStart || 0;
@@ -13,30 +17,6 @@ function wrapSelection(textarea, before, after = '') {
   const cursor = start + before.length + selected.length + after.length;
   textarea.focus();
   textarea.setSelectionRange(cursor, cursor);
-}
-
-// Helper function to convert UTC timestamp to local datetime-local format
-// The Date constructor interprets the timestamp as UTC, and getHours/getMinutes
-// return local time values, which is what we want for datetime-local input
-function toLocalDateTimeString(utcTimestamp) {
-  if (!utcTimestamp) return '';
-  const date = new Date(utcTimestamp); // Date constructor interprets timestamp as UTC
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0'); // Local time
-  const minutes = String(date.getMinutes()).padStart(2, '0'); // Local time
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-function getCurrentLocalDateTimeString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export default function PostForm({
@@ -83,7 +63,7 @@ export default function PostForm({
               name="starts_at"
               type="datetime-local"
               required
-              defaultValue={initialData?.starts_at ? toLocalDateTimeString(initialData.starts_at) : getCurrentLocalDateTimeString()}
+              defaultValue={initialData?.starts_at ? formatDateTimeLocalInputInForumTime(initialData.starts_at) : getCurrentDateTimeLocalInputInForumTime()}
             />
           </label>
           {showOptionalEndDate ? (
@@ -102,7 +82,7 @@ export default function PostForm({
                   <input
                     name="ends_at"
                     type="datetime-local"
-                    defaultValue={initialData?.ends_at ? toLocalDateTimeString(initialData.ends_at) : ''}
+                    defaultValue={initialData?.ends_at ? formatDateTimeLocalInputInForumTime(initialData.ends_at) : ''}
                   />
                 </label>
               ) : null}

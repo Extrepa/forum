@@ -5,6 +5,11 @@ import AdminStatCard from './AdminStatCard';
 import ErrlTabSwitcher from './ErrlTabSwitcher';
 import CreatePostModal from './CreatePostModal';
 import { roleDisplayLabel } from '../lib/roles';
+import {
+  FORUM_TIME_ZONE,
+  formatDateTime,
+  formatDateTimeLocalInputInForumTime
+} from '../lib/dates';
 
 const TAB_LIST = ['Overview', 'System Log', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
 const ADMIN_TABS = TAB_LIST.map((tab) => ({ id: tab, label: tab }));
@@ -77,28 +82,23 @@ const POST_SUBTYPE_PATHS = {
 };
 
 function formatTime(timestamp) {
-  if (!timestamp) return '—';
-  const date = new Date(timestamp);
-  return date.toLocaleString();
+  if (!timestamp && timestamp !== 0) return '—';
+  return formatDateTime(timestamp);
 }
 
 function formatDateInput(timestamp) {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  const pad = (value) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return formatDateTimeLocalInputInForumTime(timestamp);
 }
 
 function formatLogClock(timestamp) {
   if (!timestamp) return '--:--:--';
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour12: false });
+  return date.toLocaleTimeString('en-US', { hour12: false, timeZone: FORUM_TIME_ZONE });
 }
 
 function formatLogDateTime(timestamp) {
-  if (!timestamp) return 'unknown';
-  const date = new Date(timestamp);
-  return date.toLocaleString();
+  if (!timestamp && timestamp !== 0) return 'unknown';
+  return formatDateTime(timestamp);
 }
 
 function formatActionLabel(value) {
@@ -130,7 +130,7 @@ function buildSystemLogMarkdown(entries = [], title = 'System log export') {
   const lines = [
     `# ${title}`,
     '',
-    `Generated: ${new Date().toLocaleString()}`,
+    `Generated: ${formatDateTime(Date.now())}`,
     `Entries: ${sorted.length}`,
     ''
   ];
@@ -1919,7 +1919,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </label>
                 {drawerPost.type === 'event' ? (
                   <label>
-                    <div className="muted">Starts at (local time)</div>
+                    <div className="muted">Starts at (forum time)</div>
                     <input name="starts_at" type="datetime-local" defaultValue={formatDateInput(drawerPost.startsAt)} required />
                   </label>
                 ) : null}
@@ -2053,7 +2053,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             </label>
             {movePost.type !== 'post' && moveDestination === 'event' ? (
               <label>
-                <div className="muted">Event start (local time)</div>
+                <div className="muted">Event start (forum time)</div>
                 <input
                   type="datetime-local"
                   value={moveStartsAt}

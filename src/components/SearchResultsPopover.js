@@ -3,6 +3,7 @@
 import { useRef, useEffect } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
+import { formatDate } from '../lib/dates';
 
 export default function SearchResultsPopover({ results, query, onClose, onResultClick, excludeRef }) {
   const popoverRef = useRef(null);
@@ -119,7 +120,7 @@ export default function SearchResultsPopover({ results, query, onClose, onResult
                   />
                 </span>
                 <span className="search-result-date" suppressHydrationWarning>
-                  {new Date(result.created_at).toLocaleDateString()}
+                  {formatDate(result.created_at)}
                 </span>
               </div>
             </div>
