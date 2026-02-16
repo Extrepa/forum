@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -37,6 +38,7 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'notready' }, { status: 409 });
   }
 
+  await deleteNotificationsForTarget(db, 'project', id);
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,

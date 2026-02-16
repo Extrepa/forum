@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
 import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -37,6 +38,7 @@ export async function POST(request, { params }) {
     .prepare('UPDATE forum_threads SET is_deleted = 1, updated_at = ? WHERE id = ?')
     .bind(now, id)
     .run();
+  await deleteNotificationsForTarget(db, 'forum_thread', id);
   await notifyAdminsOfEvent({
     db,
     eventType: 'post_deleted',

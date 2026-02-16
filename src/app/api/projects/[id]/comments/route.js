@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -56,11 +57,12 @@ export async function POST(request, { params }) {
   }
   
   const now = Date.now();
+  const commentId = crypto.randomUUID();
   await db
     .prepare(
       'INSERT INTO project_comments (id, project_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
     )
-    .bind(crypto.randomUUID(), id, user.id, body, now)
+    .bind(commentId, id, user.id, body, now)
     .run();
 
   // Create in-app notifications for project author + participants (excluding the commenter).
@@ -103,22 +105,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          'project',
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: 'project',
+        target_id: id,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {

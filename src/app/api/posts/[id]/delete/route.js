@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
 import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   // Next.js 15: params is a Promise, must await
@@ -48,6 +49,7 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'notready' }, { status: 409 });
   }
 
+  await deleteNotificationsForTarget(db, 'post', id);
   await notifyAdminsOfEvent({
     db,
     eventType: 'post_deleted',

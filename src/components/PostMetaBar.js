@@ -7,8 +7,8 @@ import { formatDateTimeShort } from '../lib/dates';
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
  * Layout: Row 1 = title (left) + stats inline on right (e.g. "21 views · 1 reply · 1 like").
- * Row 2 = "by user at time" only.
- * Row 3 (when last activity) = "Last activity by ... at [time]" right-aligned (bottom right when stretched).
+ * Row 2 = "by user at time" + (optional) last activity or row2Suffix; on wide viewports (min 640px)
+ * stays on one line for a compact two-row layout; wraps when narrow.
  * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
@@ -29,7 +29,8 @@ export default function PostMetaBar({
   showTitleLink = true,
   hideDateOnDesktop = false,
   authorDateInline = false,
-  hideStats = false
+  hideStats = false,
+  row2Suffix = null
 }) {
   const formatCount = (count) => {
     if (count === 0) return null;
@@ -88,39 +89,26 @@ export default function PostMetaBar({
         {statsInline}
       </div>
 
-      {/* Row 2: by user at time only */}
-      <div
-        className="post-meta-row2 post-meta-by-row"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '4px 10px',
-          minWidth: 0,
-          fontSize: '12px'
-        }}
-      >
+      {/* Row 2: by user + last activity or row2Suffix; stays on one line when wide */}
+      <div className="post-meta-row2 post-meta-by-row">
         {byUserAtTime}
+        {hasLastActivity && (
+          <>
+            <span className="post-meta-row2-sep muted">{' \u00B7 '}</span>
+            <span className="post-meta-last-activity muted">
+              Last activity{lastActivityBy ? (
+                <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
+              ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
+            </span>
+          </>
+        )}
+        {row2Suffix && (
+          <>
+            <span className="post-meta-row2-sep muted">{' \u00B7 '}</span>
+            {row2Suffix}
+          </>
+        )}
       </div>
-
-      {/* Row 3: last activity in bottom right when stretched */}
-      {hasLastActivity && (
-        <div
-          className="post-meta-row3 post-meta-last-activity-row"
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            minWidth: 0,
-            fontSize: '12px'
-          }}
-        >
-          <span className="post-meta-last-activity muted">
-            Last activity{lastActivityBy ? (
-              <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
-            ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
-          </span>
-        </div>
-      )}
     </div>
   );
 }

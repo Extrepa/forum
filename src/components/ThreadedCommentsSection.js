@@ -8,14 +8,29 @@ import ReplyButton from './ReplyButton';
 import DeleteCommentButton from './DeleteCommentButton';
 import LikeButton from './LikeButton';
 
-export default function EventCommentsSection({
-  eventId,
-  comments,
+/**
+ * Shared threaded comments UI for sections that use post_comments, timeline_comments, or music_comments.
+ * Renders comments in a one-level thread (byParent), form with optional reply_to_id and "Replying to X".
+ * Props: comments, replyLinkPrefix (e.g. `/lore/${id}`), action, hiddenFields, buttonLabel, placeholder, labelText,
+ * likePostType, deleteType, parentId, user, isAdmin, commentNotice, usernameColorMap, isLocked, sectionTitle.
+ */
+export default function ThreadedCommentsSection({
+  comments = [],
+  replyLinkPrefix,
+  action,
+  hiddenFields = {},
+  buttonLabel = 'Post comment',
+  placeholder = 'Drop your thoughts into the goo...',
+  labelText = 'What would you like to say?',
+  likePostType,
+  deleteType,
+  parentId,
   user,
   isAdmin = false,
   commentNotice,
   usernameColorMap = new Map(),
   isLocked = false,
+  sectionTitle = 'Comments',
 }) {
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -44,7 +59,7 @@ export default function EventCommentsSection({
     if (!replyToId) return;
     const comment = comments.find((c) => c.id === replyToId);
     if (!comment) return;
-    setReplyingTo({ id: comment.id, author_name: comment.author_name, body: comment.body });
+    setReplyingTo({ id: comment.id, author_name: comment.author_name, body: comment.body || '' });
     setShowCommentBox(true);
   }, [comments]);
 
@@ -60,7 +75,7 @@ export default function EventCommentsSection({
 
   return (
     <section className="card">
-      <h3 className="section-title" style={{ marginTop: 0 }}>Replies</h3>
+      <h3 className="section-title" style={{ marginTop: 0 }}>{sectionTitle}</h3>
 
       {commentNotice ? <div className="notice">{commentNotice}</div> : null}
 
@@ -81,7 +96,7 @@ export default function EventCommentsSection({
             const renderComment = (c, { isChild }) => {
               const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
               const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
-              const replyLink = `/events/${eventId}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
+              const replyLink = `${replyLinkPrefix}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
               return (
                 <div key={c.id} className={`list-item comment-card${isChild ? ' reply-item--child' : ''}`} style={{ position: 'relative' }}>
                   <div className="reply-top-row">
@@ -96,19 +111,19 @@ export default function EventCommentsSection({
                         replyAuthor={c.author_name}
                         replyHref={replyLink}
                       />
-                      <LikeButton postType="event_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
+                      <LikeButton postType={likePostType} postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
                       <DeleteCommentButton
                         inline
                         commentId={c.id}
-                        parentId={eventId}
-                        type="event"
+                        parentId={parentId}
+                        type={deleteType}
                         authorUserId={c.author_user_id}
                         currentUserId={user?.id}
                         isAdmin={!!isAdmin}
                       />
                     </div>
                   </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body }} />
+                  <div className="post-body" dangerouslySetInnerHTML={{ __html: c.body_html || c.body || '' }} />
                 </div>
               );
             };
@@ -128,10 +143,13 @@ export default function EventCommentsSection({
       </div>
 
       {isLocked ? (
-        <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this event.</p>
+        <p className="muted" style={{ marginTop: '12px' }}>Comments are locked.</p>
       ) : user ? (
         showCommentBox ? (
-          <form id="comment-form" action={`/api/events/${eventId}/comments`} method="post" style={{ marginTop: '12px' }}>
+          <form id="comment-form" action={action} method="post" style={{ marginTop: '12px' }}>
+            {Object.entries(hiddenFields).map(([name, value]) => (
+              <input key={name} type="hidden" name={name} value={value ?? ''} />
+            ))}
             {replyingTo ? (
               <input
                 ref={hiddenReplyToRef}
@@ -142,23 +160,23 @@ export default function EventCommentsSection({
             ) : null}
             <label>
               <div className="muted">
-                {replyingTo ? `Replying to ${replyingTo.author_name}` : 'What would you like to say?'}
+                {replyingTo ? `Replying to ${replyingTo.author_name}` : labelText}
               </div>
               <textarea
                 ref={textareaRef}
                 name="body"
-                placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
+                placeholder={replyingTo ? 'Write your reply…' : placeholder}
                 required
               />
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="submit">Post comment</button>
+              <button type="submit">{buttonLabel}</button>
               <button type="button" onClick={handleCancelComment}>Cancel</button>
             </div>
           </form>
         ) : (
           <button id="comment-form" type="button" onClick={() => setShowCommentBox(true)} style={{ marginTop: '12px' }}>
-            Post comment
+            {buttonLabel}
           </button>
         )
       ) : (

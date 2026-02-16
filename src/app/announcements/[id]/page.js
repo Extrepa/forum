@@ -9,17 +9,13 @@ import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
-import CommentFormWrapper from '../../../components/CommentFormWrapper';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import ReplyButton from '../../../components/ReplyButton';
-import DeleteCommentButton from '../../../components/DeleteCommentButton';
+import ThreadedCommentsSection from '../../../components/ThreadedCommentsSection';
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostForm from '../../../components/PostForm';
 import HidePostButton from '../../../components/HidePostButton';
 import PinPostButton from '../../../components/PinPostButton';
-import { formatDateTime } from '../../../lib/dates';
-
 export const dynamic = 'force-dynamic';
 
 function destUrlFor(type, id) {
@@ -141,21 +137,47 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
     );
   }
 
-  const { results: comments } = await db
-    .prepare(
-      `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
-              timeline_comments.author_user_id,
-              users.username AS author_name,
-              users.preferred_username_color_index AS author_color_preference,
-              (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id) AS like_count,
-              (SELECT 1 FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id AND user_id = ? LIMIT 1) AS liked
-       FROM timeline_comments
-       JOIN users ON users.id = timeline_comments.author_user_id
-       WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
-       ORDER BY timeline_comments.created_at ASC`
-    )
-    .bind(user?.id || '', id)
-    .all();
+  let commentsRaw = [];
+  try {
+    const out = await db
+      .prepare(
+        `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at, timeline_comments.reply_to_id,
+                timeline_comments.author_user_id,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id AND user_id = ? LIMIT 1) AS liked
+         FROM timeline_comments
+         JOIN users ON users.id = timeline_comments.author_user_id
+         WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
+         ORDER BY timeline_comments.created_at ASC`
+      )
+      .bind(user?.id || '', id)
+      .all();
+    commentsRaw = out?.results || [];
+  } catch (e) {
+    const out = await db
+      .prepare(
+        `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
+                timeline_comments.author_user_id,
+                users.username AS author_name,
+                users.preferred_username_color_index AS author_color_preference,
+                (SELECT COUNT(*) FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id) AS like_count,
+                (SELECT 1 FROM post_likes WHERE post_type = 'timeline_comment' AND post_id = timeline_comments.id AND user_id = ? LIMIT 1) AS liked
+         FROM timeline_comments
+         JOIN users ON users.id = timeline_comments.author_user_id
+         WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
+         ORDER BY timeline_comments.created_at ASC`
+      )
+      .bind(user?.id || '', id)
+      .all();
+    commentsRaw = out?.results || [];
+  }
+  const comments = commentsRaw.map((c) => ({
+    ...c,
+    body_html: c.body ? renderMarkdown(c.body) : '',
+    reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
+  }));
 
   // Check if current user has liked this update
   let userLiked = false;
@@ -344,63 +366,24 @@ export default async function AnnouncementDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      <section className="card">
-        <h3 className="section-title">Comments</h3>
-        {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <div className="list">
-          {comments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
-          ) : (
-            comments.map((c) => {
-              const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
-              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
-              const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
-              const replyLink = `/announcements/${update.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
-              return (
-                <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="reply-top-row">
-                    <span className="reply-meta-inline">
-                    <Username name={c.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
-                    {' · '}
-                    <span suppressHydrationWarning>{formattedDate}</span>
-                    </span>
-                    <div className="reply-actions-inline">
-                      <ReplyButton
-                        replyId={c.id}
-                        replyAuthor={c.author_name}
-                        replyHref={replyLink}
-                      />
-                      <LikeButton postType="timeline_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                      <DeleteCommentButton
-                        inline
-                        commentId={c.id}
-                        parentId={update.id}
-                        type="timeline"
-                        authorUserId={c.author_user_id}
-                        currentUserId={user?.id}
-                        isAdmin={!!isAdmin}
-                      />
-                    </div>
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                </div>
-              );
-            })
-          )}
-        </div>
-        {isLocked ? (
-          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
-            Comments are locked for this update.
-          </div>
-        ) : (
-          <CommentFormWrapper
-            action={`/api/timeline/${update.id}/comments`}
-            buttonLabel="Post comment"
-            placeholder="Drop your thoughts into the goo..."
-            labelText="What would you like to say?"
-          />
-        )}
-      </section>
+      <ThreadedCommentsSection
+        comments={comments}
+        replyLinkPrefix={`/announcements/${id}`}
+        action={`/api/timeline/${id}/comments`}
+        hiddenFields={{}}
+        buttonLabel="Post comment"
+        placeholder="Drop your thoughts into the goo..."
+        labelText="What would you like to say?"
+        likePostType="timeline_comment"
+        deleteType="timeline"
+        parentId={id}
+        user={user}
+        isAdmin={!!isAdmin}
+        commentNotice={commentNotice}
+        usernameColorMap={usernameColorMap}
+        isLocked={!!isLocked}
+        sectionTitle="Comments"
+      />
     </div>
   );
 }

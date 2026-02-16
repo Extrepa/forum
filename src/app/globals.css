@@ -4695,6 +4695,25 @@ button.ghost:hover,
   min-width: 0;
 }
 
+.post-meta-row2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.post-meta-row2-sep {
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .post-meta-row2 {
+    flex-wrap: nowrap;
+  }
+}
+
 .post-meta-stats-inline {
   white-space: nowrap;
 }
@@ -4733,6 +4752,18 @@ button.ghost:hover,
 /* Completed events: attendee names only on hover */
 .event-attendee-count--hover-only {
   cursor: help;
+}
+
+/* Event details inline in PostMetaBar row 2 */
+.event-details-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.event-details-inline .event-details-icon {
+  margin-right: 4px;
+  vertical-align: middle;
 }
 
 @media (max-width: 640px) {

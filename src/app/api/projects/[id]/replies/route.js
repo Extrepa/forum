@@ -5,6 +5,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { buildImageKey, canUploadImages, getUploadsBucket, isAllowedImage } from '../../../../../lib/uploads';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 import { isImageUploadsEnabled } from '../../../../../lib/settings';
 
 export async function POST(request, { params }) {
@@ -129,10 +130,10 @@ export async function POST(request, { params }) {
 
   // Safe: API routes are server-only, Date.now() does not cause hydration mismatches
   const now = Date.now();
+  const replyId = crypto.randomUUID();
   try {
     // Try with image_key first (if migration is applied)
     try {
-      const replyId = crypto.randomUUID();
       const result = await db
         .prepare(
           `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id, image_key)
@@ -147,7 +148,6 @@ export async function POST(request, { params }) {
         // If we have an image but the column doesn't exist, log error but still try to insert without image
         console.error('Image key provided but image_key column may not exist, inserting without image', e);
       }
-      const replyId = crypto.randomUUID();
       const result = await db
         .prepare(
           `INSERT INTO project_replies (id, project_id, author_user_id, body, created_at, reply_to_id)
@@ -204,22 +204,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'reply',
-          'project',
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'reply',
+        target_type: 'project',
+        target_id: id,
+        created_at: now,
+        target_sub_id: replyId
+      });
 
       // Send outbound notification
       try {

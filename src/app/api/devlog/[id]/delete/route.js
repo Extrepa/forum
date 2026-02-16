@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   // Next.js 15: params is a Promise, must await
@@ -38,6 +39,7 @@ export async function POST(request, { params }) {
     .prepare('UPDATE dev_logs SET is_deleted = 1, updated_at = ? WHERE id = ?')
     .bind(Date.now(), id)
     .run();
+  await deleteNotificationsForTarget(db, 'dev_log', id);
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,

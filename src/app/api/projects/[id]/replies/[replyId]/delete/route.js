@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../../../lib/admin';
+import { deleteNotificationsForTargetSubId } from '../../../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id, replyId } = await params;
@@ -35,6 +36,7 @@ export async function POST(request, { params }) {
     .prepare('UPDATE project_replies SET is_deleted = 1 WHERE id = ?')
     .bind(replyId)
     .run();
+  await deleteNotificationsForTargetSubId(db, replyId);
 
   return NextResponse.json({ ok: true });
 }

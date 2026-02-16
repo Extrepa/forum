@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -32,6 +33,7 @@ export async function POST(request, { params }) {
     .prepare('UPDATE timeline_updates SET is_deleted = 1, updated_at = ? WHERE id = ?')
     .bind(Date.now(), id)
     .run();
+  await deleteNotificationsForTarget(db, 'timeline_update', id);
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,

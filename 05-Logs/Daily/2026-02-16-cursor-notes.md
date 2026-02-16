@@ -1,44 +1,49 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
-## Feed: stats column aligned to same rows as left (two-column layout)
+## Feed layout (consolidated – all changes)
 
-- **Issue:** The stats column on the right was not aligned to the same rows as the left (title, by user, last activity), creating unnecessary height.
-- **Desired layout:** Two columns, same rows. Left = title, by user at time, last activity. Right = stats still a vertical column; row 2 right = first stat (same row as "by user"); row 3 right = remaining stats stacked (same row as "Last activity").
-- **`src/components/PostMetaBar.js`:** Stats stay a column. When there is last activity: row 2 right = first stat only; row 3 right = remaining stats as a column. When no last activity: row 2 right = full stats column. Row 3 uses `alignItems: 'flex-start'`.
-- **`src/app/feed/page.js`:** Event bottom-row keeps stats as a column on the right of that row.
+Summary of feed layout changes made this session:
 
-### Double-check (feed stats layout)
+### Current structure
 
-- **PostMetaBar logic:** `statLines` = views, replies, likes (zeros filtered out). `firstStat` = `statLines[0]`, `restStats` = `statLines.slice(1)`. When `!hasLastActivity`: row 2 right = full stats column (all lines). When `hasLastActivity`: row 2 right = first stat only; row 3 right = `restStats` as column (only rendered if `restStats.length > 0`). Row 2 uses `alignItems: 'center'`; row 3 uses `alignItems: 'flex-start'` so multi-line right column aligns to top.
-- **Edge cases:** One stat + last activity: row 2 shows that stat, row 3 shows only "Last activity" (no right content). No stats: neither row 2 nor row 3 right render. No last activity + multiple stats: single row 2 with full stats column on right.
-- **Events (feed):** Events use `hideStats` on PostMetaBar. Event block has its own `event-bottom-row`: left = attended + last activity (column), right = `eventStatLines` (views, replies) as column; `flexWrap: 'nowrap'`, stats container `flexDirection: 'column', alignItems: 'flex-end'`. One row, two columns; stats stay a column on the right. No row-splitting for events (only one bottom row).
-- **CSS:** `.post-meta-stats-column` in globals has `white-space: nowrap`; inline styles in component set flex layout. No conflict.
+- **Row 1:** Title (left) + stats inline on right (e.g. "21 views · 1 reply · 1 like").
+- **Row 2:** "by [user] at [date]" + (optional) " · Last activity by X at [date]" for non-events, or " · [event details]" for events. On viewports ≥640px, row 2 uses `flex-wrap: nowrap` so it stays on one line (two-row layout when there is room).
 
-### Follow-up: events still messy (stats at bottom)
+### Files changed
 
-- **Issue:** Event cards still showed stats (views, replies) only in the event-bottom-row, so they appeared at the very bottom after title, by user, and "Starts..." row, creating unnecessary height and a messy look.
-- **Change:** Events now show stats in PostMetaBar like other types: `hideStats={false}` for all items. PostMetaBar row 2 shows "by user at time" | full stats column for events (no last activity in PostMetaBar for events). Removed duplicate stats from the event block: event-bottom-row now only renders when `attendeeCount > 0 || (lastActivity && replies > 0)` and has no right-side stats column (stats live in PostMetaBar row 2). Removed `eventStatLines` from the event block.
+**`src/lib/dates.js`**
+- Added `formatDateTimeShort(timestamp)` for compact date/time in feed/meta. Uses `toLocaleDateString` + `toLocaleTimeString` (en-US, FORUM_TIME_ZONE). Omits year when same as current year; uses 2-digit year when different. Joins with a single space (e.g. "2/15 9:02 PM") to avoid locale odd characters.
 
-## Feed: last activity bottom right, attendee hover, short date/time
+**`src/components/PostMetaBar.js`**
+- Row 1: title + `statsInline` (statLines joined with middot).
+- Row 2: `byUserAtTime` + optional middot + last activity (when `hasLastActivity`), or middot + `row2Suffix` (for events). No separate row 3.
+- Uses `formatDateTimeShort` for createdAt and lastActivity.
+- New `row2Suffix` prop for custom row-2 content.
 
-- **Request:** When layout is stretched, put "Last activity" in the bottom right to condense; for completed events hide the list of who attended unless hovering over "N attended"; shorten date/time and remove weird text.
-- **`src/lib/dates.js`:** Added `formatDateTimeShort(timestamp)`: compact format for feed/meta. Uses `toLocaleDateString` + `toLocaleTimeString` (en-US, FORUM_TIME_ZONE), omits year when same as current year (else 2-digit year), joins with a single space (e.g. "2/15 9:02 PM", "2/15/26 9:02 PM") to avoid locale odd characters.
-- **`src/components/PostMetaBar.js`:** Row 2 is "by user at time" only. Row 3 (when `hasLastActivity`) added: "Last activity by ... at [time]" in a div with `justifyContent: 'flex-end'` so it sits in the bottom right. Switched to `formatDateTimeShort` for createdAt and lastActivity.
-- **`src/app/feed/page.js`:** Events use `formatDateTimeShort(item.lastActivity)` for the "at" time. Attendees: when `hasPassed` (event completed), render only "{attendeeCount} attended" with `title={item.attendeeNames.join(', ')}` so names show on hover; add class `event-attendee-count--hover-only` for that case. When !hasPassed, still show "attending: name1, name2". Last activity span has class `event-last-activity-right`.
-- **`src/app/globals.css`:** `.event-last-activity-right { margin-left: auto; }` so in the event-details flex row, last activity aligns to the right when stretched. `.event-attendee-count--hover-only { cursor: help; }` so completed-event attendee count indicates hover.
+**`src/app/feed/page.js`**
+- Non-events: passes `lastActivity`, `lastActivityBy`, etc.; PostMetaBar renders last activity in row 2.
+- Events: passes `lastActivity=undefined` and `row2Suffix` with event content (calendar icon, date/time, attended/attending, last activity). Event details live in PostMetaBar row 2.
+- Completed events (`hasPassed`): "Yesterday 6:00 PM (Event happened) · N attended" (no "Starts"); "N attended" has `title={attendeeNames}` so names show on hover; class `event-attendee-count--hover-only` for cursor.
+- Upcoming events: "Starts ... (relative) · N attending: name1, name2".
+- All timestamps use `formatDateTimeShort`.
+- `item.meta` still rendered for non-events when present.
 
-### Double-check (last activity, attendee hover, short date)
+**`src/app/globals.css`**
+- `.list-item h3`: margin 0 (was 0 0 2px) to reduce title-to-by spacing.
+- `.post-meta-row2`: flex, flex-wrap wrap, gap 4px 10px; `@media (min-width: 640px)` sets `flex-wrap: nowrap`.
+- `.post-meta-row2-sep`: flex-shrink 0 for middot separators.
+- `.event-details-inline`: inline-flex for event block in row 2; `.event-details-icon` color and spacing.
+- `.event-attendee-count--hover-only`: cursor help for completed-event attendee count.
+- `.event-last-activity-right`: margin-left auto (kept for potential reuse; currently event last activity is inline in row2Suffix).
+- `.event-details-row`, `.event-details-inner`, `.event-details-item`: retained for possible use elsewhere (e.g. EventsClient); feed uses `event-details-inline`.
 
-- **PostMetaBar:** Row 1 = title + statsInline (middot-separated). Row 2 = byUserAtTime only. Row 3 only when `lastActivity && replies > 0`, flex row with `justifyContent: 'flex-end'`; single child is the "Last activity..." span. All date/time in PostMetaBar use `formatDateTimeShort`.
-- **formatDateTimeShort:** Returns "Unknown" for falsy/invalid; builds dateStr (month, day, year only if different year) and timeStr (hour, minute, hour12) with normal space; no toLocaleString single-call so no narrow no-break space or other locale quirks.
-- **Events (feed):** Attendee block: `hasPassed` => only "N attended" + title with names; `!hasPassed` => "N attending: " + Username list. Last activity uses formatDateTimeShort. event-last-activity-right pushes that item to the end of the flex row.
-- **CSS:** margin-left: auto on event-last-activity-right works in both flex row (wide) and column (narrow) layouts.
+### Double-check (verification)
 
-## Feed: completed events – no "Starts", same row as attended, centered on small
-
-- **Request:** For completed events, don't say "Starts yesterday"; show when the event was and that it's completed. Keep that line centered on small viewports. Put the attended list in the same row to save space.
-- **`src/app/feed/page.js`:** When `hasPassed`: first event-details-item shows `{formatEventDate(startsAt)} {formatEventTime(startsAt)} (Event happened)` (no "Starts"). If `attendeeCount > 0`, append ` · N attended` in the same span (hover-only span with title=names). When !hasPassed: keep "Starts ..." and optional relative date; attendee list stays a separate span ("N attending: name1, name2").
-- **`src/app/globals.css`:** In the 640px media query for `.event-details-inner`: `align-items: center` and `text-align: center` so event details stay centered on small viewports; `.event-details-item` gets `justify-content: center` so the inline content is centered.
+- **PostMetaBar:** Two rows only. Row 1 = title + statsInline. Row 2 = byUserAtTime, then hasLastActivity ? (sep + last activity) : null, then row2Suffix ? (sep + row2Suffix) : null. Events pass row2Suffix and lastActivity=undefined, so row 2 shows byUser + sep + event content.
+- **formatDateTimeShort:** Handles falsy/invalid; dateStr + " " + timeStr; FORUM_TIME_ZONE; no locale quirks.
+- **Events row2Suffix:** Icon + (hasPassed ? "date time (Event happened) · N attended" : "Starts date time (relative) · N attending: names") + (lastActivity && replies ? " · Last activity by X at time" : null). All dates via formatDateTimeShort or formatEventDate/formatEventTime.
+- **Responsive:** At 640px+, row 2 nowrap = two-row layout. Below 640px, row 2 wraps so content can stack.
+- **Dead code:** `.event-last-activity-right` and `.event-details-row` / `-inner` / `-item` may be unused by feed; left in place for compatibility.
 
 ## Profile page: padding between profile card and tab switcher
 
@@ -432,3 +437,187 @@
 - **Prefs & UI (all users)**: Edit notifications modal has Site (New forum threads, forum sections collapsible, Nomad section activity), Delivery (email/SMS), and for admins Admin (New user/thread/reply + Post manipulation & user changes collapsible). All toggles save via `POST /api/auth/notification-prefs`; payload includes `newForumThreadsEnabled`, `nomadActivityEnabled`, `newForumThreadSections`, `adminEvents`. Auth/me and auth.js return the new columns; migrations 0067, 0068, 0069 add `notify_new_forum_threads_enabled`, `notify_nomad_activity_enabled`, `notify_new_content_sections`, `notify_admin_events`.
 - **Display**: NotificationsMenu handles `admin_event` (and other types); notifications GET uses JOIN on actor_user_id (broadcast/test use admin id so rows are returned).
 - **Wiring completed**: (1) **Site new forum threads**: `src/lib/siteNotifications.js` added with `notifyUsersOfNewForumThread()` (sectionKey lobby_general/lobby_shitposts) and `notifyUsersOfNewContent()` (section + nomad). Threads route and shitposts route call the former after create; posts route calls the latter so section toggles and nomad activity both fire. (2) **Admin events**: `notifyAdminsOfEvent()` now called from forum delete, posts delete, admin posts DELETE/POST (edit)/pin/restore, admin move, admin users delete/role, and all hide/lock routes (forum, posts, timeline, events, music, projects, devlog). (3) **Menu**: NotificationsMenu labels added for `new_forum_thread` and `new_content` (post section).
+
+## Event comments: nested (threaded) replies
+
+### Issue
+- Event reply form showed "Replying to [username]" and submitted a hidden `reply_to_id`, but the API did not read or store it. Replies always appeared as top-level; no visual threading.
+
+### Implementation (file-by-file)
+
+1. **`migrations/0070_event_comments_threading.sql`** (new file)
+   - `ALTER TABLE event_comments ADD COLUMN reply_to_id TEXT;`
+   - `CREATE INDEX IF NOT EXISTS idx_event_comments_reply_to ON event_comments(reply_to_id);`
+   - Pattern matches 0015 (devlog), 0014 (project_replies), 0029 (forum_replies).
+
+2. **`src/app/api/events/[id]/comments/route.js`**
+   - **GET**: SELECT now includes `event_comments.reply_to_id` so API consumers get threading data. If migration not applied, this GET will throw (no such column); event detail page does not use this GET (it uses server-side query in page.js).
+   - **POST**:
+     - Read `reply_to_id`: `formData.get('reply_to_id')`, trimmed; empty string → `null`.
+     - **effectiveReplyTo**: If `replyToId` set, load parent with `SELECT id, reply_to_id FROM event_comments WHERE id = ? AND event_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)`. If no row → `effectiveReplyTo = null`. If `parent.reply_to_id` is set (parent is already a child) → `effectiveReplyTo = parent.reply_to_id` (one-level clamp). On any DB error in this block → `effectiveReplyTo = null`.
+     - **INSERT**: First try `INSERT ... (id, event_id, author_user_id, body, created_at, reply_to_id) VALUES (..., effectiveReplyTo)`. On failure (e.g. column missing), fallback `INSERT ... (id, event_id, author_user_id, body, created_at)` with no reply_to_id (comment created as top-level).
+
+3. **`src/app/events/[id]/page.js`**
+   - **Main comments query** (around line 177): Adds `event_comments.reply_to_id` to the SELECT. Used when `is_deleted` column exists and migration 0070 is applied.
+   - **Fallback comments query** (around line 196): Does **not** include `reply_to_id`. Used when first query fails (e.g. older DB without is_deleted). Comments from fallback have no `reply_to_id` so EventCommentsSection treats all as top-level.
+   - **commentsWithHtml**: `return { ...c, ... }` preserves `reply_to_id` from `c`; no change needed. EventCommentsSection receives `comments={commentsWithHtml}`.
+
+4. **`src/components/EventCommentsSection.js`**
+   - **Data shape**: Expects each comment to have `id`, optional `reply_to_id`, and existing fields (author_name, body, body_html, created_at, etc.).
+   - **byParent map**: `validReplyIds = Set(comments.map(c => c.id).filter(Boolean))`. For each comment, `key = (c.reply_to_id && validReplyIds.has(c.reply_to_id)) ? c.reply_to_id : null` so orphaned or invalid `reply_to_id` → top-level.
+   - **Render**: Top-level = `byParent.get(null)`; for each top-level comment, children = `byParent.get(c.id)`. Each thread: wrapper `div.stack` with `key={thread-${c.id}}`, then `renderComment(c, { isChild: false })`, then if children exist `<div className="reply-children">` with `renderComment(child, { isChild: true })` for each. Child divs get class `reply-item--child` in addition to `list-item comment-card`.
+   - **Form**: Unchanged; already had hidden `name="reply_to_id"` and "Replying to {author_name}" label. No change to ReplyButton, URL `?replyTo=`, or cancel behavior.
+
+### Double-check / verification
+- **Migration**: Single new migration file; no other migrations reference event_comments.reply_to_id.
+- **API POST**: Parent check uses same event `id` (event_id) so cross-event reply_to_id is impossible; one-level clamp prevents deep threads.
+- **API fallback INSERT**: Does not pass effectiveReplyTo; comment is stored without reply_to_id when column missing.
+- **Event page**: Only the primary SELECT (with is_deleted filter) includes reply_to_id; fallback SELECT omits it so DBs without the column still load comments.
+- **EventCommentsSection**: Orphan handling (validReplyIds) matches ProjectRepliesSection; CSS classes `reply-item--child` and `reply-children` already exist in globals.css and are used by project replies and lobby/devlog.
+- **Ordering**: Comments remain ordered by created_at ASC from the query; byParent groups by parent but does not reorder—top-level order is query order; children under a parent are in query order.
+
+### Edge cases
+- **Pre-migration DB**: POST fallback creates comment without reply_to_id; event page fallback query returns comments without reply_to_id; UI shows all as top-level. After migration, new replies can be nested.
+- **Existing comments**: No backfill; existing rows have no reply_to_id, so they all render as top-level.
+- **Deleted parent**: If reply_to_id points to a deleted (or missing) comment, validReplyIds excludes it so that reply is shown as top-level.
+- **GET /api/events/[id]/comments**: If migration not applied, GET fails when selecting reply_to_id. Event detail page does not use this endpoint; only server-side query in page.js is used. If any client fetches comments via this GET, run migration before deploy.
+
+### Files touched (summary)
+| File | Change |
+|------|--------|
+| `migrations/0070_event_comments_threading.sql` | New: add reply_to_id + index on event_comments. |
+| `src/app/api/events/[id]/comments/route.js` | GET: select reply_to_id. POST: read reply_to_id, validate/clamp parent, INSERT with reply_to_id and fallback INSERT without. |
+| `src/app/events/[id]/page.js` | Main comments SELECT: add event_comments.reply_to_id. Fallback SELECT: unchanged (no reply_to_id). |
+| `src/components/EventCommentsSection.js` | Build byParent from reply_to_id, render top-level then reply-children with reply-item--child. |
+| `05-Logs/Daily/2026-02-16-cursor-notes.md` | This log entry. |
+
+### Deploy
+- Run migration **0070** before or with deploy so event_comments has reply_to_id. Then new "Reply" submissions store the parent and display as nested under the correct comment.
+
+## Threading for all post and reply types (audit and implementation)
+
+### Audit summary
+| Type | Table | reply_to_id (DB) | API read/save + clamp | UI threading |
+|------|--------|------------------|------------------------|--------------|
+| Events | event_comments | Yes (0070) | Yes | EventCommentsSection |
+| Projects | project_replies | Yes (0014) | Yes | ProjectRepliesSection |
+| Forum/Lobby | forum_replies | Yes (0029) | Yes | lobby/[id] inline |
+| Devlog | dev_log_comments | Yes (0015) | Yes | devlog/[id] inline |
+| Post comments (sections) | post_comments | Yes (0017) | Saved but no clamp; UI flat | **Fixed** |
+| Timeline/Announcements | timeline_comments | No | No | **Fixed** |
+| Music | music_comments | No | No | **Fixed** |
+
+### Changes made
+
+1. **post_comments (sections: lore, memories, art, bugs, rant, nostalgia, lore-memories, nomads)**
+   - **API** `src/app/api/posts/[id]/comments/route.js`: Added one-level clamp (effectiveReplyTo from parent lookup; if parent is already a child, use parent.reply_to_id). INSERT already had reply_to_id; now passes effectiveReplyTo.
+   - **Shared component** `src/components/ThreadedCommentsSection.js`: New client component. Takes comments (with reply_to_id), replyLinkPrefix, action, hiddenFields, likePostType, deleteType, parentId, user, isAdmin, commentNotice, usernameColorMap, isLocked, sectionTitle. Builds byParent map, renders top-level then reply-children with reply-item--child; form with reply_to_id and "Replying to X"; listens to replyToChanged and URL replyTo.
+   - **Section pages** (lore, memories, art, bugs, rant, nostalgia, lore-memories, nomads) `[id]/page.js`: Comments query now selects `post_comments.reply_to_id`; comments mapped to add body_html and reply_to_id string; inline comment list + CollapsibleCommentForm replaced with ThreadedCommentsSection. Unused imports (ReplyButton, DeleteCommentButton, CollapsibleCommentForm/CommentFormWrapper, formatDateTime) removed.
+
+2. **timeline_comments (announcements)**
+   - **Migration** `migrations/0073_timeline_comments_threading.sql`: Added reply_to_id TEXT and index on timeline_comments. (0071 was already used by notification_target_sub_id.)
+   - **API** `src/app/api/timeline/[id]/comments/route.js`: GET selects reply_to_id, author_user_id, author_color_preference. POST reads reply_to_id; effectiveReplyTo with parent lookup and one-level clamp; INSERT with reply_to_id, fallback INSERT without.
+   - **Page** `src/app/announcements/[id]/page.js`: Comments query with reply_to_id (try/catch fallback query without for rollout); comments mapped to body_html and reply_to_id; comment section replaced with ThreadedCommentsSection (replyLinkPrefix `/announcements/${id}`, action `/api/timeline/${id}/comments`, likePostType timeline_comment, deleteType timeline). Unused imports removed.
+
+3. **music_comments**
+   - **Migration** `migrations/0074_music_comments_threading.sql`: Added reply_to_id TEXT and index on music_comments.
+   - **API** `src/app/api/music/comments/route.js`: POST reads reply_to_id; effectiveReplyTo with parent lookup and one-level clamp; INSERT with reply_to_id, fallback INSERT without.
+   - **Page** `src/app/music/[id]/page.js`: First comments query selects music_comments.reply_to_id (fallback query unchanged for rollout); safeComments map includes reply_to_id, like_count, liked; comment section replaced with ThreadedCommentsSection (hiddenFields post_id, likePostType music_comment, deleteType music). Unused imports removed.
+
+### Double-check / verification (threading)
+- **Migrations**: 0070 (event_comments), 0073 (timeline_comments), 0074 (music_comments). No duplicate migration numbers (0071 = notification_target_sub_id, 0072 unused).
+- **APIs**: All four comment/reply types that support threading now use effectiveReplyTo: events, posts (post_comments), timeline, music. Parent lookup scoped to same parent (event_id, post_id, update_id, post_id). One-level clamp (if parent.reply_to_id set, use it). Timeline and music have try/catch fallback INSERT without reply_to_id for pre-migration DBs. Post_comments has no fallback INSERT (0017 assumed applied).
+- **ThreadedCommentsSection**: Used in 10 places: lore, memories, art, bugs, rant, nostalgia, lore-memories, nomads, announcements, music. byParent key = (reply_to_id && validReplyIds.has(reply_to_id)) ? reply_to_id : null. Renders top then reply-children with reply-item--child. Form has hidden reply_to_id when replyingTo set; replyToChanged and URL replyTo open form and set replyingTo.
+- **Section pages**: All 8 post_comments sections select post_comments.reply_to_id and map comments to body_html and reply_to_id. Announcements: try/catch with fallback query without reply_to_id. Music: first query has reply_to_id, fallback (in existing catch) does not; safeComments includes reply_to_id, like_count, liked.
+- **No leftover UI**: Grep confirms no section or announcements or music [id] page still uses CollapsibleCommentForm or CommentFormWrapper for the comments block.
+
+### Deploy (threading)
+- Run **0073** for timeline_comments and **0074** for music_comments if not already applied. Post_comments already had reply_to_id (0017); no new migration. Section and announcements pages will show flat comments if reply_to_id column is missing (fallback queries); after migrations, new nested replies will display correctly.
+
+## Notification cleanup on undo (like/unlike, delete, un-RSVP, comment/reply delete)
+
+### Goal
+- Keep notifications in sync with actions: when an action is undone (unlike, un-RSVP, post/thread/event/… deleted, comment/reply deleted), remove the corresponding notification so there are no broken links.
+
+### Implementation
+
+1. **`src/lib/notificationCleanup.js`** (new)
+   - `deleteNotificationsForLike(db, postType, postId, actorUserId)` – remove like notification when user unlikes.
+   - `deleteNotificationsForRsvp(db, eventId, actorUserId)` – remove RSVP notification when user un-RSVPs.
+   - `deleteNotificationsForTarget(db, targetType, targetId)` – remove all notifications for a content (post, forum_thread, event, music_post, project, timeline_update, dev_log) when that content is soft-deleted.
+   - `deleteNotificationsForTargetSubId(db, targetSubId)` – remove notifications for a specific comment/reply when that comment/reply is deleted (uses `target_sub_id`).
+   - `insertNotificationWithOptionalSubId(db, row)` – insert notification with optional `target_sub_id`; if column missing, retries without it (rollout-safe).
+
+2. **`migrations/0071_notification_target_sub_id.sql`**
+   - `ALTER TABLE notifications ADD COLUMN target_sub_id TEXT;`
+   - Index on `target_sub_id` for deletes.
+
+3. **Undo wiring**
+   - **Unlike**: `src/app/api/likes/route.js` – in the “existing like” branch, after `DELETE FROM post_likes`, call `deleteNotificationsForLike(db, postType, postId, user.id)`.
+   - **Un-RSVP**: `src/app/api/events/[id]/rsvp/route.js` – when removing attendee, call `deleteNotificationsForRsvp(db, id, user.id)`.
+   - **Content delete**: Call `deleteNotificationsForTarget(db, type, id)` in: `posts/[id]/delete`, `forum/[id]/delete`, `admin/posts/[id]` DELETE, `music/[id]/delete`, `events/[id]/delete`, `projects/[id]/delete`, `timeline/[id]/delete`, `devlog/[id]/delete`.
+   - **Comment/reply delete**: Call `deleteNotificationsForTargetSubId(db, commentId|replyId)` in: `posts/…/comments/[commentId]/delete`, `events/…/comments/[commentId]/delete`, `forum/…/replies/[replyId]/delete`, `music/comments/[commentId]/delete`, `timeline/…/comments/[commentId]/delete`, `projects/…/replies/[replyId]/delete`, `devlog/…/comments/[commentId]/delete`.
+
+4. **Setting `target_sub_id` on create**
+   - Comment/reply notification INSERTs now use `insertNotificationWithOptionalSubId` with `target_sub_id: commentId|replyId` in: event comments, post comments, forum replies, timeline comments, music comments, project comments, project replies, devlog comments. This allows precise removal when that comment/reply is later deleted.
+
+### Double-check (verification)
+
+**Undo paths – all wired:**
+
+| Action undone | Cleanup | Where |
+|---------------|---------|--------|
+| Unlike | `deleteNotificationsForLike(db, postType, postId, user.id)` | `api/likes/route.js` (existing-like branch) |
+| Un-RSVP | `deleteNotificationsForRsvp(db, id, user.id)` | `api/events/[id]/rsvp/route.js` (existing-attendee branch) |
+| Post deleted | `deleteNotificationsForTarget(db, 'post', id)` | `api/posts/[id]/delete/route.js` |
+| Forum thread deleted | `deleteNotificationsForTarget(db, 'forum_thread', id)` | `api/forum/[id]/delete/route.js` |
+| Admin soft-delete (any type) | `deleteNotificationsForTarget(db, type, id)` | `api/admin/posts/[id]/route.js` DELETE |
+| Music post deleted | `deleteNotificationsForTarget(db, 'music_post', id)` | `api/music/[id]/delete/route.js` |
+| Event deleted | `deleteNotificationsForTarget(db, 'event', id)` | `api/events/[id]/delete/route.js` |
+| Project deleted | `deleteNotificationsForTarget(db, 'project', id)` | `api/projects/[id]/delete/route.js` |
+| Timeline update deleted | `deleteNotificationsForTarget(db, 'timeline_update', id)` | `api/timeline/[id]/delete/route.js` |
+| Dev log deleted | `deleteNotificationsForTarget(db, 'dev_log', id)` | `api/devlog/[id]/delete/route.js` |
+| Post comment deleted | `deleteNotificationsForTargetSubId(db, commentId)` | `api/posts/[id]/comments/[commentId]/delete/route.js` |
+| Event comment deleted | `deleteNotificationsForTargetSubId(db, commentId)` | `api/events/[id]/comments/[commentId]/delete/route.js` |
+| Forum reply deleted | `deleteNotificationsForTargetSubId(db, replyId)` | `api/forum/[id]/replies/[replyId]/delete/route.js` |
+| Music comment deleted | `deleteNotificationsForTargetSubId(db, commentId)` | `api/music/comments/[commentId]/delete/route.js` |
+| Timeline comment deleted | `deleteNotificationsForTargetSubId(db, commentId)` | `api/timeline/[id]/comments/[commentId]/delete/route.js` |
+| Project reply deleted | `deleteNotificationsForTargetSubId(db, replyId)` | `api/projects/[id]/replies/[replyId]/delete/route.js` |
+| Dev log comment deleted | `deleteNotificationsForTargetSubId(db, commentId)` | `api/devlog/[id]/comments/[commentId]/delete/route.js` |
+
+**Comment/reply creates using `target_sub_id`:** Event comments, post comments, forum replies (user-facing only), timeline comments, music comments, project comments, project replies, devlog comments. Forum **admin_reply** notifications still use a direct 7-column INSERT (no `target_sub_id`); when that reply is deleted, the admin notification remains but the link goes to the thread, which is still valid.
+
+**Notification INSERTs not changed (no undo or already covered):** Likes and RSVP create then cleanup on undo. Site notifications (new thread, new content), admin notifications, signup/welcome, test/broadcast, mentions, project updates, event invites – either no undo in scope or the target is the parent content (deleted via `deleteNotificationsForTarget` when that content is deleted).
+
+**Edge cases / notes:**
+- **Mentions:** Created with `target_type`/`target_id` = parent (e.g. event, post). We do not set `target_sub_id` on mention notifications. If the specific comment containing the mention is deleted, the mention notification stays; link still goes to the parent. Optional future: pass optional `target_sub_id` into `createMentionNotifications` and set it so mention can be removed when that comment is deleted.
+- **Event invite:** No “revoke invite” flow wired; if one is added later, remove notifications with `type = 'event_invite'` and `target_type = 'event'` and `target_id = eventId` and `user_id = invitedUserId` (or similar).
+- **Project comments:** We set `target_sub_id` on project **comment** notifications, but there is no project comment delete route in this codebase (only project **replies** have a delete). So project comment cleanup is future-proofing only until a delete route is added.
+
+### Files touched (summary)
+
+| File | Change |
+|------|--------|
+| `src/lib/notificationCleanup.js` | New: like/RSVP/target/targetSubId delete helpers + insertNotificationWithOptionalSubId. |
+| `migrations/0071_notification_target_sub_id.sql` | New: add target_sub_id column + index. |
+| `src/app/api/likes/route.js` | Import cleanup; call deleteNotificationsForLike on unlike. |
+| `src/app/api/events/[id]/rsvp/route.js` | Import cleanup; call deleteNotificationsForRsvp on un-RSVP. |
+| `src/app/api/posts/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('post', id). |
+| `src/app/api/forum/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('forum_thread', id). |
+| `src/app/api/admin/posts/[id]/route.js` | Import cleanup; call deleteNotificationsForTarget(type, id) on DELETE. |
+| `src/app/api/music/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('music_post', id). |
+| `src/app/api/events/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('event', id). |
+| `src/app/api/projects/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('project', id). |
+| `src/app/api/timeline/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('timeline_update', id). |
+| `src/app/api/devlog/[id]/delete/route.js` | Import cleanup; call deleteNotificationsForTarget('dev_log', id). |
+| 7× comment/reply delete routes | Import cleanup; call deleteNotificationsForTargetSubId(commentId\|replyId). |
+| 8× comment/reply create routes | Use insertNotificationWithOptionalSubId with target_sub_id (event/post/forum/timeline/music/project comments & project+forum replies, devlog comments). |
+
+### Deploy
+- Run migration **0071** with deploy so new comment/reply notifications get `target_sub_id` and comment/reply delete can remove them. Without 0071, `deleteNotificationsForTargetSubId` no-ops (column missing), and new notifications are inserted without `target_sub_id` (helper fallback).
+
+### Notes for maintainers
+- Adding a new **content type** that can be deleted: in that delete route call `deleteNotificationsForTarget(db, targetType, id)` after soft-delete (use the same `target_type` string as in notification creation).
+- Adding a new **comment/reply type** that can be deleted: (1) when creating the notification use `insertNotificationWithOptionalSubId` with `target_sub_id: commentIdOrReplyId`; (2) in the delete route call `deleteNotificationsForTargetSubId(db, commentIdOrReplyId)`.
+- If you add **event invite revoke**: delete notifications with `type = 'event_invite'`, `target_type = 'event'`, `target_id = eventId`, and the invited user (e.g. by `user_id` or a new column). Consider adding a small helper in `notificationCleanup.js` if reused.
+- If you want **mentions** to disappear when the containing comment is deleted: pass an optional `targetSubId` (comment/reply id) into `createMentionNotifications` and have it insert with `target_sub_id`; then existing comment/reply delete routes will already remove those notifications via `deleteNotificationsForTargetSubId`.

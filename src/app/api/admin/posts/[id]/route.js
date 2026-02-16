@@ -4,6 +4,7 @@ import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser } from '../../../../../lib/admin';
 import { CONTENT_TYPE_KEYS, contentTypeTable, isValidPostType } from '../../../../../lib/contentTypes';
 import { notifyAdminsOfEvent } from '../../../../../lib/adminNotifications';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function GET(request, { params }) {
   const user = await getSessionUser();
@@ -162,6 +163,7 @@ export async function DELETE(request, { params }) {
         .run();
     }
 
+    await deleteNotificationsForTarget(db, type, id);
     await notifyAdminsOfEvent({
       db,
       eventType: 'post_deleted',

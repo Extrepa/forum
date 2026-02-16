@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
 import { createMentionNotifications } from '../../../../../lib/mentions';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -64,13 +65,14 @@ export async function POST(request, { params }) {
   }
 
   const now = Date.now();
+  const replyId = crypto.randomUUID();
   try {
     await db
       .prepare(
         `INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at, reply_to_id)
          VALUES (?, ?, ?, ?, ?, ?)`
       )
-      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
+      .bind(replyId, id, user.id, body, now, effectiveReplyTo)
       .run();
   } catch (e) {
     // Migration not applied yet - try without reply_to_id
@@ -79,7 +81,7 @@ export async function POST(request, { params }) {
         .prepare(
           'INSERT INTO forum_replies (id, thread_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
         )
-        .bind(crypto.randomUUID(), id, user.id, body, now)
+        .bind(replyId, id, user.id, body, now)
         .run();
     } catch (e2) {
       redirectUrl.searchParams.set('error', 'notready');
@@ -138,22 +140,16 @@ export async function POST(request, { params }) {
   }
 
   for (const [recipientUserId, recipient] of recipients) {
-    await db
-      .prepare(
-        `INSERT INTO notifications
-          (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        crypto.randomUUID(),
-        recipientUserId,
-        user.id,
-        'reply',
-        'forum_thread',
-        id,
-        now
-      )
-      .run();
+    await insertNotificationWithOptionalSubId(db, {
+      id: crypto.randomUUID(),
+      user_id: recipientUserId,
+      actor_user_id: user.id,
+      type: 'reply',
+      target_type: 'forum_thread',
+      target_id: id,
+      created_at: now,
+      target_sub_id: replyId
+    });
 
     // Optional outbound delivery
     try {

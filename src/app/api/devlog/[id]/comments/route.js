@@ -4,6 +4,7 @@ import { getSessionUserWithRole } from '../../../../../lib/admin';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -87,12 +88,13 @@ export async function POST(request, { params }) {
 
   // Safe: API routes are server-only, Date.now() does not cause hydration mismatches
   const now = Date.now();
+  const commentId = crypto.randomUUID();
   try {
     await db
       .prepare(
         'INSERT INTO dev_log_comments (id, log_id, author_user_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?, ?)'
       )
-      .bind(crypto.randomUUID(), id, user.id, body, now, effectiveReplyTo)
+      .bind(commentId, id, user.id, body, now, effectiveReplyTo)
       .run();
   } catch (e) {
     // Migration not applied yet (reply_to_id column missing).
@@ -140,22 +142,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          'dev_log',
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: 'dev_log',
+        target_id: id,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {

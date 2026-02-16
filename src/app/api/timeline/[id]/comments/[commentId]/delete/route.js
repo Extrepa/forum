@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../../../lib/db';
 import { getSessionUser } from '../../../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../../../lib/admin';
+import { deleteNotificationsForTargetSubId } from '../../../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id, commentId } = await params;
@@ -37,6 +38,7 @@ export async function POST(request, { params }) {
     )
     .bind(Date.now(), commentId)
     .run();
+  await deleteNotificationsForTargetSubId(db, commentId);
 
   return NextResponse.json({ ok: true });
 }

@@ -15,11 +15,9 @@ import PinPostButton from '../../../components/PinPostButton';
 import Username from '../../../components/Username';
 import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/usernameColor';
 import LikeButton from '../../../components/LikeButton';
-import CommentFormWrapper from '../../../components/CommentFormWrapper';
+import ThreadedCommentsSection from '../../../components/ThreadedCommentsSection';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import ReplyButton from '../../../components/ReplyButton';
-import DeleteCommentButton from '../../../components/DeleteCommentButton';
 import { formatDateTime } from '../../../lib/dates';
 import { getSongProviderMeta } from '../../../lib/songProviders';
 
@@ -177,7 +175,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
   try {
     const result = await db
       .prepare(
-        `SELECT music_comments.id, music_comments.body, music_comments.created_at,
+        `SELECT music_comments.id, music_comments.body, music_comments.created_at, music_comments.reply_to_id,
                 music_comments.author_user_id,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,
@@ -295,6 +293,9 @@ export default async function MusicDetailPage({ params, searchParams }) {
             author_color_preference: c.author_color_preference != null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null,
             created_at: c.created_at != null ? Number(c.created_at) : 0,
             formattedDate: c.created_at ? formatDateTime(c.created_at) : '',
+            reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
+            like_count: c.like_count != null ? Number(c.like_count) : 0,
+            liked: !!c.liked,
           };
         })
     : [];
@@ -516,64 +517,24 @@ export default async function MusicDetailPage({ params, searchParams }) {
         </form>
       </section>
 
-      {/* Comments Section */}
-      <section className="card">
-        <h3 className="section-title" style={{ marginBottom: '12px' }}>Comments</h3>
-        <div className="list">
-          {safeComments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
-          ) : (
-            safeComments.map((comment) => {
-              const preferredColor = comment.author_color_preference != null ? Number(comment.author_color_preference) : null;
-              const colorIndex = usernameColorMap.get(comment.author_name) ?? getUsernameColorIndex(comment.author_name, { preferredColorIndex: preferredColor });
-              const replyLink = `/music/${id}?replyTo=${encodeURIComponent(comment.id)}#comment-form`;
-              return (
-                <div key={comment.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="reply-top-row">
-                    <span className="reply-meta-inline">
-                      <Username name={comment.author_name} colorIndex={colorIndex} preferredColorIndex={preferredColor} />
-                      {' · '}
-                      <span suppressHydrationWarning>{comment.formattedDate || ''}</span>
-                    </span>
-                    <div className="reply-actions-inline">
-                      <ReplyButton
-                        replyId={comment.id}
-                        replyAuthor={comment.author_name}
-                        replyHref={replyLink}
-                      />
-                      <LikeButton postType="music_comment" postId={comment.id} initialLiked={!!comment.liked} initialCount={comment.like_count || 0} size="sm" />
-                      <DeleteCommentButton
-                        inline
-                        commentId={comment.id}
-                        parentId={id}
-                        type="music"
-                        authorUserId={comment.author_user_id}
-                        currentUserId={user?.id}
-                        isAdmin={!!isAdmin}
-                      />
-                    </div>
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: comment.body_html || '' }} />
-                </div>
-              );
-            })
-          )}
-        </div>
-        {isLocked ? (
-          <p className="muted" style={{ marginTop: '12px' }}>Comments are locked for this post.</p>
-        ) : (
-          <div style={{ marginTop: '12px' }}>
-            <CommentFormWrapper
-              action="/api/music/comments"
-              buttonLabel="Post comment"
-              placeholder="Drop your thoughts into the goo..."
-              labelText="What would you like to say?"
-              hiddenFields={{ post_id: id }}
-              notice={notice}
-            />
-          </div>
-        )}
-      </section>
+      <ThreadedCommentsSection
+        comments={safeComments}
+        replyLinkPrefix={`/music/${id}`}
+        action="/api/music/comments"
+        hiddenFields={{ post_id: id }}
+        buttonLabel="Post comment"
+        placeholder="Drop your thoughts into the goo..."
+        labelText="What would you like to say?"
+        likePostType="music_comment"
+        deleteType="music"
+        parentId={id}
+        user={user}
+        isAdmin={!!isAdmin}
+        commentNotice={notice}
+        usernameColorMap={usernameColorMap}
+        isLocked={!!isLocked}
+        sectionTitle="Comments"
+      />
     </div>
   );
 }

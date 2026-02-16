@@ -2,7 +2,6 @@ import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { isAdminUser, isDripNomad } from '../../../lib/admin';
 import { renderMarkdown } from '../../../lib/markdown';
-import { formatDateTime } from '../../../lib/dates';
 import PageTopRow from '../../../components/PageTopRow';
 import PostActionMenu from '../../../components/PostActionMenu';
 import Username from '../../../components/Username';
@@ -10,9 +9,7 @@ import { getUsernameColorIndex, assignUniqueColorsForPage } from '../../../lib/u
 import LikeButton from '../../../components/LikeButton';
 import PostHeader from '../../../components/PostHeader';
 import ViewTracker from '../../../components/ViewTracker';
-import ReplyButton from '../../../components/ReplyButton';
-import DeleteCommentButton from '../../../components/DeleteCommentButton';
-import CollapsibleCommentForm from '../../../components/CollapsibleCommentForm';
+import ThreadedCommentsSection from '../../../components/ThreadedCommentsSection';
 import DeletePostButton from '../../../components/DeletePostButton';
 import PostEditForm from '../../../components/PostEditForm';
 import HidePostButton from '../../../components/HidePostButton';
@@ -64,7 +61,7 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
     if (post) {
       const out = await db
         .prepare(
-          `SELECT post_comments.id, post_comments.body, post_comments.created_at,
+          `SELECT post_comments.id, post_comments.body, post_comments.created_at, post_comments.reply_to_id,
                   post_comments.author_user_id,
                   users.username AS author_name,
                   users.preferred_username_color_index AS author_color_preference,
@@ -78,7 +75,11 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
         )
         .bind(user?.id || '', id)
         .all();
-      comments = out?.results || [];
+      comments = (out?.results || []).map((c) => ({
+        ...c,
+        body_html: c.body ? renderMarkdown(c.body) : '',
+        reply_to_id: c.reply_to_id ? String(c.reply_to_id) : null,
+      }));
     }
   } catch (e) {
     dbUnavailable = true;
@@ -313,69 +314,24 @@ export default async function NostalgiaDetailPage({ params, searchParams }) {
         )}
       </section>
 
-      <section className="card">
-        <h3 className="section-title">Comments</h3>
-        {commentNotice ? <div className="notice">{commentNotice}</div> : null}
-        <div className="list">
-          {comments.length === 0 ? (
-            <p className="muted">No comments yet.</p>
-          ) : (
-            comments.map((c) => {
-              const preferredColor = c.author_color_preference !== null && c.author_color_preference !== undefined ? Number(c.author_color_preference) : null;
-              const colorIndex = usernameColorMap.get(c.author_name) ?? getUsernameColorIndex(c.author_name, { preferredColorIndex: preferredColor });
-              const replyLink = `/nostalgia/${post.id}?replyTo=${encodeURIComponent(c.id)}#comment-form`;
-              const formattedDate = c.created_at ? formatDateTime(c.created_at) : '';
-              return (
-                <div key={c.id} className="list-item comment-card" style={{ position: 'relative' }}>
-                  <div className="reply-top-row">
-                    <span className="reply-meta-inline">
-                      <Username 
-                        name={c.author_name} 
-                        colorIndex={colorIndex}
-                        preferredColorIndex={preferredColor}
-                      />
-                      {' · '}
-                      <span suppressHydrationWarning>{formattedDate}</span>
-                    </span>
-                    <div className="reply-actions-inline">
-                      <ReplyButton
-                        replyId={c.id}
-                        replyAuthor={c.author_name}
-                        replyHref={replyLink}
-                      />
-                      <LikeButton postType="post_comment" postId={c.id} initialLiked={!!c.liked} initialCount={c.like_count || 0} size="sm" />
-                      <DeleteCommentButton
-                        inline
-                        commentId={c.id}
-                        parentId={post.id}
-                        type="post"
-                        authorUserId={c.author_user_id}
-                        currentUserId={user?.id}
-                        isAdmin={!!isAdmin}
-                      />
-                    </div>
-                  </div>
-                  <div className="post-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
-                </div>
-              );
-            })
-          )}
-        </div>
-        {isLocked ? (
-          <div className="muted" style={{ fontSize: 13, marginTop: '12px' }}>
-            Comments are locked for this post.
-          </div>
-        ) : isSignedIn ? (
-          <CollapsibleCommentForm
-            action={`/api/posts/${post.id}/comments`}
-            buttonLabel="Post comment"
-            placeholder="Leave a comment"
-            labelText="Say something"
-          />
-        ) : (
-          <p className="muted">Sign in to comment.</p>
-        )}
-      </section>
+      <ThreadedCommentsSection
+        comments={comments}
+        replyLinkPrefix={`/nostalgia/${id}`}
+        action={`/api/posts/${id}/comments`}
+        hiddenFields={{}}
+        buttonLabel="Post comment"
+        placeholder="Leave a comment"
+        labelText="Say something"
+        likePostType="post_comment"
+        deleteType="post"
+        parentId={id}
+        user={user}
+        isAdmin={!!isAdmin}
+        commentNotice={commentNotice}
+        usernameColorMap={usernameColorMap}
+        isLocked={!!isLocked}
+        sectionTitle="Comments"
+      />
     </div>
   );
 }

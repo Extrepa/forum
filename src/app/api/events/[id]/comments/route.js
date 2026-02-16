@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 import { getEventDayCompletionTimestamp } from '../../../../../lib/dates';
 
 export async function GET(request, { params }) {
@@ -10,7 +11,7 @@ export async function GET(request, { params }) {
   const db = await getDb();
   const { results } = await db
     .prepare(
-      `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+      `SELECT event_comments.id, event_comments.body, event_comments.created_at, event_comments.reply_to_id,
               users.username AS author_name,
               users.preferred_username_color_index AS author_color_preference
        FROM event_comments
@@ -29,6 +30,8 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
+  const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
+  const replyToId = replyToIdRaw || null;
   const attending = formData.get('attending') === 'on' || formData.get('attending') === 'true';
   const redirectUrl = new URL(`/events/${id}`, request.url);
 
@@ -62,14 +65,44 @@ export async function POST(request, { params }) {
     // Column might not exist yet, that's okay - allow posting
   }
   
+  // One-level threading: only allow replying to a top-level comment (clamp if replying to a child).
+  let effectiveReplyTo = replyToId;
+  if (replyToId) {
+    try {
+      const parent = await db
+        .prepare(
+          'SELECT id, reply_to_id FROM event_comments WHERE id = ? AND event_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)'
+        )
+        .bind(replyToId, id)
+        .first();
+      if (!parent) {
+        effectiveReplyTo = null;
+      } else if (parent.reply_to_id) {
+        effectiveReplyTo = parent.reply_to_id;
+      }
+    } catch (e) {
+      effectiveReplyTo = null;
+    }
+  }
+
   // Create comment
   const now = Date.now();
-  await db
-    .prepare(
-      'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
-    )
-    .bind(crypto.randomUUID(), id, user.id, body, now)
-    .run();
+  const commentId = crypto.randomUUID();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, id, user.id, body, now, effectiveReplyTo)
+      .run();
+  } catch (e) {
+    await db
+      .prepare(
+        'INSERT INTO event_comments (id, event_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, id, user.id, body, now)
+      .run();
+  }
 
   // Create in-app notifications for event author + participants (excluding the commenter).
   try {
@@ -111,22 +144,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          'event',
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: 'event',
+        target_id: id,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { deleteNotificationsForRsvp } from '../../../../../lib/notificationCleanup';
 import { getEventDayCompletionTimestamp } from '../../../../../lib/dates';
 
 export async function POST(request, { params }) {
@@ -46,11 +47,12 @@ export async function POST(request, { params }) {
     .first();
 
   if (existing) {
-    // Remove RSVP
+    // Remove RSVP and the notification it created
     await db
       .prepare('DELETE FROM event_attendees WHERE event_id = ? AND user_id = ?')
       .bind(id, user.id)
       .run();
+    await deleteNotificationsForRsvp(db, id, user.id);
     return NextResponse.json({ attending: false });
   } else {
     // Add RSVP

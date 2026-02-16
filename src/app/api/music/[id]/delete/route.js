@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { isAdminUser, isModUser } from '../../../../../lib/admin';
 import { logAdminAction } from '../../../../../lib/audit';
+import { deleteNotificationsForTarget } from '../../../../../lib/notificationCleanup';
 
 export async function POST(request, { params }) {
   const { id } = await params;
@@ -46,6 +47,7 @@ export async function POST(request, { params }) {
     }
   }
 
+  await deleteNotificationsForTarget(db, 'music_post', id);
   if (isAdmin) {
     await logAdminAction({
       adminUserId: user.id,

@@ -586,77 +586,66 @@ export default async function FeedPage() {
                     hideDateOnDesktop={item.type === 'Event'}
                     authorDateInline={item.type === 'Event'}
                     hideStats={false}
+                    row2Suffix={item.type === 'Event' ? (() => {
+                      const eventEndAt = item.endsAt || item.startsAt;
+                      const completionAt = getEventDayCompletionTimestamp(eventEndAt);
+                      const hasPassed = completionAt > 0 && Date.now() > completionAt;
+                      return (
+                        <span className="event-details-inline muted">
+                          <svg className="event-details-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                          </svg>
+                          {hasPassed ? (
+                            <>
+                              {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)} (Event happened)
+                              {item.attendeeCount > 0 && (
+                                <>
+                                  {' \u00B7 '}
+                                  <span className="event-attendee-count event-attendee-count--hover-only" title={item.attendeeNames.join(', ')}>
+                                    {item.attendeeCount} attended
+                                  </span>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
+                              {isEventUpcoming(item.startsAt) ? ` (${formatRelativeEventDate(item.startsAt)})` : null}
+                              {item.attendeeCount > 0 && (
+                                <>
+                                  {' \u00B7 '}
+                                  <span className="event-attendee-count" title={item.attendeeNames.join(', ')}>
+                                    {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
+                                      <span key={name}>
+                                        {i > 0 ? ', ' : ''}
+                                        <Username
+                                          name={name}
+                                          colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
+                                          preferredColorIndex={preferredColors.get(name)}
+                                        />
+                                      </span>
+                                    ))}
+                                  </span>
+                                </>
+                              )}
+                            </>
+                          )}
+                          {item.lastActivity && item.replies > 0 && (
+                            <>
+                              {' \u00B7 '}
+                              Last activity{item.lastActivityBy ? (
+                                <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
+                              ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
+                            </>
+                          )}
+                        </span>
+                      );
+                    })() : null}
                   />
-                  {item.type === 'Event' ? (
-                    <>
-                      {(() => {
-                        const eventEndAt = item.endsAt || item.startsAt;
-                        const completionAt = getEventDayCompletionTimestamp(eventEndAt);
-                        const hasPassed = completionAt > 0 && Date.now() > completionAt;
-                        const hasAttendedOrActivity = item.attendeeCount > 0 || (item.lastActivity && item.replies > 0);
-                        return (
-                          <div className="event-details-row">
-                            <div className="event-details-inner">
-                              <span className="event-details-item">
-                                <svg className="event-details-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                  <line x1="16" y1="2" x2="16" y2="6" />
-                                  <line x1="8" y1="2" x2="8" y2="6" />
-                                  <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
-                                <span className="muted">
-                                  {hasPassed ? (
-                                    <>
-                                      {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)} (Event happened)
-                                      {item.attendeeCount > 0 && (
-                                        <>
-                                          {' \u00B7 '}
-                                          <span
-                                            className="event-attendee-count event-attendee-count--hover-only"
-                                            title={item.attendeeNames.join(', ')}
-                                          >
-                                            {item.attendeeCount} attended
-                                          </span>
-                                        </>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <>
-                                      Starts {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)}
-                                      {isEventUpcoming(item.startsAt) ? (
-                                        <span className="muted"> ({formatRelativeEventDate(item.startsAt)})</span>
-                                      ) : null}
-                                    </>
-                                  )}
-                                </span>
-                              </span>
-                              {!hasPassed && item.attendeeCount > 0 && (
-                                <span className="event-details-item muted event-attendee-count" title={item.attendeeNames.join(', ')}>
-                                  {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
-                                    <span key={name}>
-                                      {i > 0 ? ', ' : ''}
-                                      <Username
-                                        name={name}
-                                        colorIndex={usernameColorMap.get(name) ?? getUsernameColorIndex(name, { preferredColorIndex: preferredColors.get(name) })}
-                                        preferredColorIndex={preferredColors.get(name)}
-                                      />
-                                    </span>
-                                  ))}
-                                </span>
-                              )}
-                              {item.lastActivity && item.replies > 0 && (
-                                <span className="event-details-item muted event-last-activity-right">
-                                  Last activity{item.lastActivityBy ? (
-                                    <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                                  ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </>
-                  ) : item.meta ? (
+                  {item.type !== 'Event' && item.meta ? (
                     <span className="muted" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
                       {item.meta}
                     </span>

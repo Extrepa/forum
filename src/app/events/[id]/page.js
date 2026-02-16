@@ -174,7 +174,7 @@ export default async function EventDetailPage({ params, searchParams }) {
   try {
     const result = await db
       .prepare(
-        `SELECT event_comments.id, event_comments.body, event_comments.created_at,
+        `SELECT event_comments.id, event_comments.body, event_comments.created_at, event_comments.reply_to_id,
                 event_comments.author_user_id,
                 users.username AS author_name,
                 users.preferred_username_color_index AS author_color_preference,

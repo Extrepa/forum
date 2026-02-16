@@ -3,14 +3,17 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 
 export async function GET(request, { params }) {
   const { id } = await params;
   const db = await getDb();
   const { results } = await db
     .prepare(
-      `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at,
-              users.username AS author_name
+      `SELECT timeline_comments.id, timeline_comments.body, timeline_comments.created_at, timeline_comments.reply_to_id,
+              timeline_comments.author_user_id,
+              users.username AS author_name,
+              users.preferred_username_color_index AS author_color_preference
        FROM timeline_comments
        JOIN users ON users.id = timeline_comments.author_user_id
        WHERE timeline_comments.update_id = ? AND timeline_comments.is_deleted = 0
@@ -27,6 +30,8 @@ export async function POST(request, { params }) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const body = String(formData.get('body') || '').trim();
+  const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
+  const replyToId = replyToIdRaw || null;
   const redirectUrl = new URL(`/timeline/${id}`, request.url);
 
   if (!user || !user.password_hash) {
@@ -56,13 +61,42 @@ export async function POST(request, { params }) {
     // Column might not exist yet, continue
   }
 
+  let effectiveReplyTo = replyToId;
+  if (replyToId) {
+    try {
+      const parent = await db
+        .prepare(
+          'SELECT id, reply_to_id FROM timeline_comments WHERE id = ? AND update_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)'
+        )
+        .bind(replyToId, id)
+        .first();
+      if (!parent) {
+        effectiveReplyTo = null;
+      } else if (parent.reply_to_id) {
+        effectiveReplyTo = parent.reply_to_id;
+      }
+    } catch (e) {
+      effectiveReplyTo = null;
+    }
+  }
+
   const now = Date.now();
-  await db
-    .prepare(
-      'INSERT INTO timeline_comments (id, update_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
-    )
-    .bind(crypto.randomUUID(), id, user.id, body, now)
-    .run();
+  const commentId = crypto.randomUUID();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO timeline_comments (id, update_id, author_user_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, id, user.id, body, now, effectiveReplyTo)
+      .run();
+  } catch (e) {
+    await db
+      .prepare(
+        'INSERT INTO timeline_comments (id, update_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, id, user.id, body, now)
+      .run();
+  }
 
   // Create in-app notifications for timeline update author + participants (excluding the commenter).
   try {
@@ -104,22 +138,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          'timeline_update',
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: 'timeline_update',
+        target_id: id,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {

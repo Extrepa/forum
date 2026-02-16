@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { sendOutboundNotification } from '../../../lib/outboundNotifications';
+import { deleteNotificationsForLike } from '../../../lib/notificationCleanup';
 import { LIKE_TARGET_TYPES, likeTargetTable } from '../../../lib/contentTypes';
 
 function normalizePostType(raw) {
@@ -36,12 +37,13 @@ export async function POST(request) {
       .first();
 
     if (existing) {
-      // Unlike: delete the like
+      // Unlike: delete the like and remove the notification it created
       await db
         .prepare('DELETE FROM post_likes WHERE post_type = ? AND post_id = ? AND user_id = ?')
         .bind(postType, postId, user.id)
         .run();
-      
+      await deleteNotificationsForLike(db, postType, postId, user.id);
+
       // Get updated count
       const countResult = await db
         .prepare('SELECT COUNT(*) AS count FROM post_likes WHERE post_type = ? AND post_id = ?')

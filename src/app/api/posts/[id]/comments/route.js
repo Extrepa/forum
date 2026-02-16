@@ -3,6 +3,7 @@ import { getDb } from '../../../../../lib/db';
 import { getSessionUser } from '../../../../../lib/auth';
 import { createMentionNotifications } from '../../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../../lib/notificationCleanup';
 import { canViewScope } from '../../../../../lib/visibility';
 
 export async function GET(request, { params }) {
@@ -93,12 +94,33 @@ export async function POST(request, { params }) {
   // Member-only/private posts are visible to signed-in users, so no extra check here.
   // Lore/Memories section read-visibility is enforced in the page layer.
 
+  // One-level threading: only allow replying to a top-level comment (clamp if replying to a child).
+  let effectiveReplyTo = replyToId;
+  if (replyToId) {
+    try {
+      const parent = await db
+        .prepare(
+          'SELECT id, reply_to_id FROM post_comments WHERE id = ? AND post_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)'
+        )
+        .bind(replyToId, id)
+        .first();
+      if (!parent) {
+        effectiveReplyTo = null;
+      } else if (parent.reply_to_id) {
+        effectiveReplyTo = parent.reply_to_id;
+      }
+    } catch (e) {
+      effectiveReplyTo = null;
+    }
+  }
+
   // Safe: API routes are server-only, Date.now() does not cause hydration mismatches
   const now = Date.now();
+  const commentId = crypto.randomUUID();
   try {
     await db
       .prepare('INSERT INTO post_comments (id, post_id, author_user_id, body, reply_to_id, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), id, user.id, body, replyToId, now)
+      .bind(commentId, id, user.id, body, effectiveReplyTo, now)
       .run();
   } catch (e) {
     redirectUrl.searchParams.set('error', 'notready');
@@ -146,22 +168,16 @@ export async function POST(request, { params }) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          targetType,
-          id,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: targetType,
+        target_id: id,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {

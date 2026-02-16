@@ -3,12 +3,15 @@ import { getDb } from '../../../../lib/db';
 import { getSessionUser } from '../../../../lib/auth';
 import { createMentionNotifications } from '../../../../lib/mentions';
 import { sendOutboundNotification } from '../../../../lib/outboundNotifications';
+import { insertNotificationWithOptionalSubId } from '../../../../lib/notificationCleanup';
 
 export async function POST(request) {
   const user = await getSessionUser();
   const formData = await request.formData();
   const postId = String(formData.get('post_id') || '').trim();
   const body = String(formData.get('body') || '').trim();
+  const replyToIdRaw = String(formData.get('reply_to_id') || '').trim();
+  const replyToId = replyToIdRaw || null;
   const redirectUrl = new URL(`/music/${postId}`, request.url);
 
   if (!user || !user.password_hash) {
@@ -36,14 +39,43 @@ export async function POST(request) {
   } catch (e) {
     // Column might not exist yet, that's okay - allow posting
   }
+
+  let effectiveReplyTo = replyToId;
+  if (replyToId) {
+    try {
+      const parent = await db
+        .prepare(
+          'SELECT id, reply_to_id FROM music_comments WHERE id = ? AND post_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)'
+        )
+        .bind(replyToId, postId)
+        .first();
+      if (!parent) {
+        effectiveReplyTo = null;
+      } else if (parent.reply_to_id) {
+        effectiveReplyTo = parent.reply_to_id;
+      }
+    } catch (e) {
+      effectiveReplyTo = null;
+    }
+  }
   
   const now = Date.now();
-  await db
-    .prepare(
-      'INSERT INTO music_comments (id, post_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
-    )
-    .bind(crypto.randomUUID(), postId, user.id, body, now)
-    .run();
+  const commentId = crypto.randomUUID();
+  try {
+    await db
+      .prepare(
+        'INSERT INTO music_comments (id, post_id, author_user_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, postId, user.id, body, now, effectiveReplyTo)
+      .run();
+  } catch (e) {
+    await db
+      .prepare(
+        'INSERT INTO music_comments (id, post_id, author_user_id, body, created_at) VALUES (?, ?, ?, ?, ?)'
+      )
+      .bind(commentId, postId, user.id, body, now)
+      .run();
+  }
 
   // Create in-app notifications for music post author + participants (excluding the commenter).
   try {
@@ -85,22 +117,16 @@ export async function POST(request) {
     const actorUsername = user.username || 'Someone';
 
     for (const [recipientUserId, recipient] of recipients) {
-      await db
-        .prepare(
-          `INSERT INTO notifications
-            (id, user_id, actor_user_id, type, target_type, target_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          crypto.randomUUID(),
-          recipientUserId,
-          user.id,
-          'comment',
-          'music_post',
-          postId,
-          now
-        )
-        .run();
+      await insertNotificationWithOptionalSubId(db, {
+        id: crypto.randomUUID(),
+        user_id: recipientUserId,
+        actor_user_id: user.id,
+        type: 'comment',
+        target_type: 'music_post',
+        target_id: postId,
+        created_at: now,
+        target_sub_id: commentId
+      });
 
       // Send outbound notification
       try {
