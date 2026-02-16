@@ -295,6 +295,33 @@ function ToggleLine({ label, checked, onChange, disabled }) {
   );
 }
 
+function CollapsibleSection({ label, expanded, onToggle, children }) {
+  return (
+    <div style={{ marginTop: '4px' }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '4px 0',
+          background: 'none',
+          border: 'none',
+          color: 'inherit',
+          cursor: 'pointer',
+          font: 'inherit',
+          fontSize: '12px'
+        }}
+      >
+        <span className="muted">{label}</span>
+        <span style={{ opacity: 0.7 }}>{expanded ? '\u25B2' : '\u25BC'}</span>
+      </button>
+      {expanded && children}
+    </div>
+  );
+}
+
 function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave }) {
   const hasPhone = Boolean(user.phone && user.phone.trim().length > 0);
   const siteAny = anySiteNotifsEnabled(draft);
@@ -305,6 +332,8 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
     ...d,
     newForumThreadSections: { ...(d.newForumThreadSections || defaultNewContentSections()), [key]: value }
   }));
+  const [showForumSections, setShowForumSections] = useState(false);
+  const [showAdminEvents, setShowAdminEvents] = useState(false);
 
   return (
     <div className="stack" style={{ gap: '16px' }}>
@@ -335,17 +364,23 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
           <ToggleLine label="New forum threads" checked={draft.site.newForumThreads} onChange={(v) =>
             setDraft(d => ({ ...d, site: { ...d.site, newForumThreads: v } }))
           } />
-          <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '8px' }}>Get notified when new threads or posts are created. Choose which types below.</div>
-          <div style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '2px solid rgba(52, 225, 255, 0.25)', marginBottom: '8px' }}>
-            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Lobby</div>
-            {NEW_CONTENT_SECTION_KEYS.lobby.map(({ key, label }) => (
-              <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
-            ))}
-            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
-            {NEW_CONTENT_SECTION_KEYS.sections.map(({ key, label }) => (
-              <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
-            ))}
-          </div>
+          <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '4px' }}>Get notified when new threads or posts are created.</div>
+          <CollapsibleSection
+            label={showForumSections ? 'Hide forum sections' : 'Choose which forum sections...'}
+            expanded={showForumSections}
+            onToggle={() => setShowForumSections((v) => !v)}
+          >
+            <div style={{ marginLeft: '8px', paddingLeft: '12px', borderLeft: '2px solid rgba(52, 225, 255, 0.25)', marginTop: '6px', marginBottom: '8px' }}>
+              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Lobby</div>
+              {NEW_CONTENT_SECTION_KEYS.lobby.map(({ key, label }) => (
+                <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+              ))}
+              <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px', marginBottom: '6px' }}>Sections</div>
+              {NEW_CONTENT_SECTION_KEYS.sections.map(({ key, label }) => (
+                <ToggleLine key={key} label={label} checked={!!sectionPrefs[key]} onChange={(v) => setSection(key, v)} />
+              ))}
+            </div>
+          </CollapsibleSection>
           <ToggleLine label="Nomad section activity" checked={draft.site.nomadActivity} onChange={(v) =>
             setDraft(d => ({ ...d, site: { ...d.site, nomadActivity: v } }))
           } />
@@ -390,21 +425,30 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
             <ToggleLine label="New forum replies" checked={admin.newForumReplies} onChange={(v) =>
               setDraft(d => ({ ...d, admin: { ...(d.admin ?? admin), newForumReplies: v } }))
             } />
-            <div className="muted" style={{ fontSize: '12px', marginTop: '10px', marginBottom: '6px' }}>Post manipulation &amp; user changes</div>
-            {ADMIN_EVENT_KEYS.map(({ key, label }) => {
-              const adminEv = draft.adminEvents || defaultAdminEvents();
-              return (
-                <ToggleLine
-                  key={key}
-                  label={label}
-                  checked={!!adminEv[key]}
-                  onChange={(v) => setDraft((d) => ({
-                    ...d,
-                    adminEvents: { ...(d.adminEvents || defaultAdminEvents()), [key]: v }
-                  }))}
-                />
-              );
-            })}
+            <div style={{ marginTop: '10px' }}>
+              <CollapsibleSection
+                label={showAdminEvents ? 'Hide post/user alerts' : 'Post manipulation & user changes...'}
+                expanded={showAdminEvents}
+                onToggle={() => setShowAdminEvents((v) => !v)}
+              >
+                <div style={{ marginTop: '6px' }}>
+                {ADMIN_EVENT_KEYS.map(({ key, label }) => {
+                  const adminEv = draft.adminEvents || defaultAdminEvents();
+                  return (
+                    <ToggleLine
+                      key={key}
+                      label={label}
+                      checked={!!adminEv[key]}
+                      onChange={(v) => setDraft((d) => ({
+                        ...d,
+                        adminEvents: { ...(d.adminEvents || defaultAdminEvents()), [key]: v }
+                      }))}
+                    />
+                  );
+                })}
+                </div>
+              </CollapsibleSection>
+            </div>
           </div>
         )}
       </div>

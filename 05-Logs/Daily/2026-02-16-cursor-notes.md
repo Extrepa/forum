@@ -1,5 +1,27 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Edit notifications modal: collapsible sections to reduce height
+
+### Request
+- Tighten up the Edit notifications modal; many options made it long. Hide some content behind a click to reduce height.
+
+### Implementation (`src/app/account/AccountSettings.js`)
+
+1. **`CollapsibleSection` component**
+   - Reusable control: clickable label + chevron (▲/▼). When expanded, renders children. Used for two long blocks.
+
+2. **Forum thread sections (Site notifications)**
+   - "Choose which types below" (Lobby + Sections toggles) is now behind a collapsible: "Choose which forum sections..." / "Hide forum sections". Collapsed by default so the modal is shorter; user can expand to pick sections.
+
+3. **Post manipulation & user changes (Admin notifications)**
+   - The list of admin event toggles (deleted, edited, hidden, locked, moved, pinned, restored, user deleted, user role changed) is now behind a collapsible: "Post manipulation & user changes..." / "Hide post/user alerts". Collapsed by default.
+
+4. **State**
+   - `showForumSections` and `showAdminEvents` (useState, default false) in `NotificationsEditor` control expansion.
+
+### Verification
+- No new linter errors. Modal shows fewer lines by default; expanding each section reveals the same toggles as before.
+
 ## Account Settings: Custom Neon color picker
 
 ### Issue
@@ -304,3 +326,30 @@
 - Invalid or unsupported URL: detectProviderFromUrl returns null; safeEmbedFromUrl returns null → API returns error (music posts) or no embed (profile).
 - Existing posts: stored `type` and `url` unchanged; display uses post.type for label and safeEmbedFromUrl(type, url, embed_style) for iframe.
 - Edit music post: edit form still sends type (from existing post); no change required for edit flow.
+
+## Library dropdown: center list item text and increase font size
+
+### Request
+- Library dropdown list items (Announcements, Art & Nostalgia, Bugs & Rants, etc.): text was top-left aligned and small. Center the text in each choice box and make the text a bit bigger. Do not change the size of the option boxes.
+
+### Implementation (`src/app/globals.css`)
+
+1. **`.header-library-list a`**
+   - Changed `display: block` to `display: flex; align-items: center; justify-content: center` so the label is centered horizontally and vertically inside each row.
+   - Kept `width: 100%`, padding (4px 6px), border-radius, and all other properties; box dimensions unchanged.
+
+2. **`.header-library-item-label`**
+   - Increased `font-size` from `10.5px` to `12px`.
+   - Added `text-align: center` so the label text is centered (and any future wrap would center).
+
+3. **Desktop override `@media (min-width: 901px)`**
+   - `.header-library-list a`: removed redundant `font-size: 10.5px`; left only `padding: 5px 7px` so row size is unchanged.
+
+4. **Small-viewport override** (inside existing nav media block)
+   - `.header-library-item-label`: updated from `font-size: 11px` to `12px` to match the new base.
+
+### Double-check
+- **Centering**: Parent anchor is flex with `align-items: center` and `justify-content: center`; the inner span (label) is block with `text-align: center`. Text is centered in the box.
+- **Box size**: No changes to padding, width, height, or grid; only display/alignment and label font-size.
+- **No other overrides**: Grep confirmed no other rules for `.header-library-list a` or `.header-library-item-label` that would conflict.
+- **Markup**: `SiteHeader.js` unchanged; list items remain `<a><span class="header-library-item-label">{item.label}</span></a>`.

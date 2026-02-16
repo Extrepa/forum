@@ -456,7 +456,9 @@ a {
 }
 
 .header-library-list a {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   box-sizing: border-box;
   padding: 4px 6px;
@@ -480,12 +482,13 @@ a {
 
 .header-library-item-label {
   display: block;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .header-library-empty {
@@ -503,7 +506,6 @@ a {
 
   .header-library-list a {
     padding: 5px 7px;
-    font-size: 10.5px;
   }
 }
 
@@ -1160,7 +1162,7 @@ a {
   }
 
   .header-library-item-label {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .site-header--guest .forum-logo-header .forum-logo-face-wrapper {
