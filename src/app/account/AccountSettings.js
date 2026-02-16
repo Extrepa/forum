@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUiPrefs } from '../../components/UiPrefsProvider';
+import { useBoomboxPrefs } from '../../components/BoomboxPrefsProvider';
 import Username from '../../components/Username';
 import CreatePostModal from '../../components/CreatePostModal';
 import { getUsernameColorIndex } from '../../lib/usernameColor';
@@ -413,6 +414,14 @@ function NotificationsEditor({ user, draft, setDraft, validation, saving, onSave
           <ToggleLine label="Comment notifications" checked={draft.site.comments} onChange={(v) =>
             setDraft(d => ({ ...d, site: { ...d.site, comments: v } }))
           } />
+          <ToggleLine label="Private messages" checked={draft.site.privateMessages} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, privateMessages: v } }))
+          } />
+          <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '4px' }}>Get notified via email/SMS when someone sends you a DM.</div>
+          <ToggleLine label="Conversation updates" checked={draft.site.conversationUpdates} onChange={(v) =>
+            setDraft(d => ({ ...d, site: { ...d.site, conversationUpdates: v } }))
+          } />
+          <div className="muted" style={{ fontSize: '12px', marginTop: '2px', marginBottom: '4px' }}>When someone leaves a conversation or a conversation is deleted.</div>
           <ToggleLine label="New forum threads" checked={draft.site.newForumThreads} onChange={(v) =>
             setDraft(d => ({
               ...d,
@@ -551,6 +560,7 @@ export default function AccountSettings({ user: initialUser }) {
     uiBorderColor, setUiBorderColor,
     uiInvertColors, setUiInvertColors
   } = useUiPrefs();
+  const { boomboxEnabled, setBoomboxEnabled } = useBoomboxPrefs();
 
   const [user, setUser] = useState(initialUser);
   const [openPanel, setOpenPanel] = useState('none');
@@ -590,6 +600,12 @@ export default function AccountSettings({ user: initialUser }) {
       comments: user?.notify_comment_enabled !== undefined
         ? Boolean(user.notify_comment_enabled)
         : (user?.notifyCommentEnabled !== undefined ? Boolean(user.notifyCommentEnabled) : true),
+      privateMessages: user?.notify_private_message_enabled !== undefined
+        ? Boolean(user.notify_private_message_enabled)
+        : (user?.notifyPrivateMessageEnabled !== undefined ? Boolean(user.notifyPrivateMessageEnabled) : false),
+      conversationUpdates: user?.notify_conversation_updates_enabled !== undefined
+        ? Boolean(user.notify_conversation_updates_enabled)
+        : (user?.notifyConversationUpdatesEnabled !== undefined ? Boolean(user.notifyConversationUpdatesEnabled) : true),
       newForumThreads: user?.notify_new_forum_threads_enabled !== undefined
         ? Boolean(user.notify_new_forum_threads_enabled)
         : (user?.notifyNewForumThreadsEnabled !== undefined ? Boolean(user.notifyNewForumThreadsEnabled) : false),
@@ -740,6 +756,8 @@ export default function AccountSettings({ user: initialUser }) {
         mentionEnabled: notifDraft.site.mentions,
         replyEnabled: notifDraft.site.replies,
         commentEnabled: notifDraft.site.comments,
+        privateMessageEnabled: notifDraft.site.privateMessages,
+        conversationUpdatesEnabled: notifDraft.site.conversationUpdates,
         newForumThreadsEnabled: notifDraft.site.newForumThreads,
         nomadActivityEnabled: notifDraft.site.nomadActivity,
         newForumThreadSections: notifDraft.newForumThreadSections || {},
@@ -1015,6 +1033,25 @@ export default function AccountSettings({ user: initialUser }) {
                     type="checkbox" 
                     checked={siteUi.invertColors} 
                     onChange={(e) => handleSaveSiteUi({ invertColors: e.target.checked })}
+                  />
+                }
+              />
+            </div>
+          </SettingsCard>
+
+          <SettingsCard
+            title="Additional Features"
+            subtitle="Opt-in experiments."
+          >
+            <div className="stack" style={{ gap: '0' }}>
+              <Row 
+                label="Errl Boombox" 
+                description="Draggable music player for YouTube, SoundCloud, and Spotify links. Off by default."
+                right={
+                  <input 
+                    type="checkbox" 
+                    checked={boomboxEnabled} 
+                    onChange={(e) => setBoomboxEnabled(e.target.checked)}
                   />
                 }
               />

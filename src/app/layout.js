@@ -1,5 +1,6 @@
 import './globals.css';
 import { UiPrefsProvider } from '../components/UiPrefsProvider';
+import { BoomboxPrefsProvider } from '../components/BoomboxPrefsProvider';
 import SiteHeader from '../components/SiteHeader';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import { getSessionUserWithRole, isAdminUser } from '../lib/admin';
@@ -72,6 +73,7 @@ export default async function RootLayout({ children }) {
           initialBorderColor={user?.ui_border_color ?? null}
           initialInvertColors={!!user?.ui_invert_colors}
         >
+          <BoomboxPrefsProvider>
           <div className="site">
             <SiteHeader subtitle={strings.header.subtitle} isAdmin={isAdmin} isSignedIn={isSignedIn} user={user} />
             <ActiveTimeTracker enabled={isSignedIn} />
@@ -235,6 +237,7 @@ export default async function RootLayout({ children }) {
             </footer>
             <ScrollToTopButton />
           </div>
+          </BoomboxPrefsProvider>
         </UiPrefsProvider>
       </body>
     </html>

@@ -345,6 +345,15 @@ export default function NotificationsMenu({
                 href = resolveContentHref(resolvedTarget, n.target_id, n.target_post_category);
                 const displayType = resolveContentLabel(resolvedTarget, n.target_post_category);
                 label = `${actor} mentioned you in a ${displayType}`;
+              } else if (n.type === 'private_message' && n.target_type === 'dm_conversation') {
+                href = `/messages?conversation=${encodeURIComponent(n.target_id)}`;
+                label = `${actor} sent you a message`;
+              } else if (n.type === 'conversation_participant_left' && n.target_type === 'dm_conversation') {
+                href = `/messages?conversation=${encodeURIComponent(n.target_id)}`;
+                label = `${actor} left the conversation`;
+              } else if (n.type === 'conversation_deleted' && n.target_type === 'dm_conversation_deleted') {
+                href = '/messages';
+                label = `A conversation you were in was deleted by ${actor}`;
               }
               
               const baseBackground = isUnread ? 'var(--bg-accent)' : 'var(--card)';

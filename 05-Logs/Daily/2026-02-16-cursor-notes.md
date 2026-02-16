@@ -1,5 +1,116 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Errl Boombox (Additional Features – opt-in)
+
+### Request
+- Add an "Additional Features" card in account settings for opt-in experiments.
+- First feature: Errl Boombox – draggable music player for YouTube, SoundCloud, and Spotify links.
+- Checkbox in settings (unchecked by default); when checked, Boombox widget appears.
+- Lets early adopters test and report bugs before making it default.
+
+### Implementation
+
+1. **`src/components/boombox/`** (new)
+   - `storage.js` – localStorage load/save/clear for boombox state (pos, queue, activeIndex, minimized)
+   - `BoomboxWidget.css` – panel styles aligned with forum design (neon-outline-card, var(--radius), rgba(7, 27, 37))
+   - `BoomboxWidget.js` – draggable fixed widget; add tracks via URL; queue + iframe player; Min/Open
+
+2. **`src/components/BoomboxPrefsProvider.js`** (new)
+   - Client context for `boomboxEnabled` / `setBoomboxEnabled`; persists to `errl_boombox_enabled` in localStorage.
+   - Renders `BoomboxWidget` only when enabled; uses `dynamic(..., { ssr: false })`.
+
+3. **`src/app/layout.js`**
+   - Import `BoomboxPrefsProvider`; wrap site content inside `UiPrefsProvider` with `BoomboxPrefsProvider`.
+
+4. **`src/app/account/AccountSettings.js`**
+   - Import `useBoomboxPrefs`.
+   - New "Additional Features" card with checkbox for "Errl Boombox" (description: draggable music player, off by default).
+
+### Refactor: reuse forum code and align design (follow-up)
+
+**Audit of existing music features:**
+- `src/lib/embeds.js`: `detectProviderFromUrl(url)` and `safeEmbedFromUrl(type, url, embedStyle, autoPlay)` – single source of truth for URL → embed. Used by MusicPostForm, ProfileSongPlayer, music pages, profile song.
+- `src/lib/songProviders.js`: `getSongProviderMeta(value)` – provider labels, colors, icons. Used by MusicClient, ProfileMoodSongBlock, ProfileSongPlayer.
+- Forum design: `neon-outline-card`, `--radius`, `rgba(7, 27, 37, 0.96)`, `rgba(22, 58, 74, 0.6)` (notifications-popover-errl), `var(--errl-text)`, `var(--muted)`.
+
+**Changes made:**
+- **Replaced custom boombox/providers/** – Removed `youtube.js`, `soundcloud.js`, `spotify.js`, `providers/index.js`. Boombox now uses `detectProviderFromUrl` + `safeEmbedFromUrl` from `embeds.js`; `parseTrackUrl` is a small local helper (~15 lines) that delegates to these.
+- **Replaced custom providerLabel** – Uses `getSongProviderMeta(provider).label` from `songProviders.js`.
+- **Removed clamp.js** – Inlined `Math.max(min, Math.min(max, n))` in BoomboxWidget (clamp is only used there).
+- **CSS aligned with forum** – Panel uses `neon-outline-card`; background `rgba(7, 27, 37, 0.96)`; border `rgba(22, 58, 74, 0.6)`; `backdrop-filter: blur(14px)`; `var(--radius)`, `var(--errl-text)`, `var(--muted)`; input focus/placeholder match forum form styling; active track outline uses accent `rgba(52, 225, 255, 0.3)`.
+- **Minor cleanup** – ASCII chars for middot (&#x2022;), × (&#xD7;); `aria-hidden` on emoji; `providerLabel` helper uses getSongProviderMeta.
+
+**Files removed:** `boombox/clamp.js`, `boombox/providers/index.js`, `boombox/providers/youtube.js`, `boombox/providers/soundcloud.js`, `boombox/providers/spotify.js`.
+
+### Double-check verification (2026-02-16)
+
+**Data flow**
+- BoomboxPrefsProvider: `errl_boombox_enabled` in localStorage; default false; reads on mount.
+- BoomboxWidget: loads `errl_boombox_v1` state on mount; persists on state change; dynamic import with ssr: false.
+- Layout: UiPrefsProvider > BoomboxPrefsProvider > site content; Account page is under main, so useBoomboxPrefs works.
+
+**Load validation**
+- On load, saved state is merged with defaults: `pos` validated as numbers; `queue` filtered to items with `embedUrl` and `provider`; `activeIndex` clamped to queue bounds; `minimized` coerced to boolean. Avoids crashes from corrupted or old localStorage.
+
+**Imports and deps**
+- BoomboxWidget: embeds.js (detectProviderFromUrl, safeEmbedFromUrl), songProviders.js (getSongProviderMeta), storage.js.
+- AccountSettings: useBoomboxPrefs from BoomboxPrefsProvider.
+- Layout: BoomboxPrefsProvider imported and wraps content.
+
+**Drag**
+- Pointer capture on dragbar; only left button or touch; pos clamped to viewport; resize handler re-clamps pos.
+
+**Files verified**
+- `src/components/boombox/BoomboxWidget.js`, `storage.js`, `BoomboxWidget.css`
+- `src/components/BoomboxPrefsProvider.js`
+- `src/app/layout.js`, `src/app/account/AccountSettings.js`
+
+### Verification
+- Unchecked by default; checkbox persists across sessions via localStorage.
+- When checked, Boombox widget appears (fixed, draggable); paste YouTube/SoundCloud/Spotify link → Add → Play.
+- Min/Open collapses/expands the body; queue and position persist in localStorage.
+- URL parsing and embed URLs match forum music posts and profile song (same embeds.js logic).
+- Panel styling matches notifications popover and forum card aesthetic.
+- Load validation guards against corrupted localStorage.
+- Lint passes.
+
+### Files touched
+- `src/components/boombox/BoomboxWidget.js` (refactored; uses embeds.js, songProviders.js; load validation for saved state)
+- `src/components/boombox/BoomboxWidget.css` (refactored; forum design tokens)
+- `src/components/boombox/storage.js` (kept; boombox-specific)
+- `src/components/BoomboxPrefsProvider.js` (new)
+- `src/app/layout.js` (BoomboxPrefsProvider wrap)
+- `src/app/account/AccountSettings.js` (Additional Features card + Boombox checkbox)
+
+---
+
+## Home section cards – 24h dot behavior
+
+- **Desired:** Post count always shown; dot only when there has been a post in the last 24 hours.
+- **Format:** `11 (24h •)` – dot integrated inside the "(24h)" badge.
+- **No dot** on sections without recent (24h) activity.
+
+### Files changed
+
+**`src/components/HomeSectionCard.js`** (compact mode only)
+- Removed standalone `home-section-card__status-dot` span that was always rendered (dim when no recent, lit when recent).
+- Badge and dot are now conditional: only render when `hasRecentInLast24h` is true.
+- Structure: `{countShort}` then `{hasRecentInLast24h ? <span className="section-card-recent-badge"> (24h <span className="home-section-card__status-dot is-recent" />)</span> : null}`.
+- Dot is nested inside the badge so it reads "11 (24h •)" with the green dot.
+- Chevron (+/-) remains after the count-wrap.
+- Logic unchanged: `hasRecentInLast24h` = `latestActivityTs` from `recentItems[0]?.createdAt` or `recentActivity?.createdAt`, and within 24h.
+
+**`src/app/globals.css`**
+- `.home-section-card__status-dot`: added `display: inline-block`, `vertical-align: middle`, `margin-inline: 2px` so the dot renders correctly when inline inside the badge text.
+- `.home-section-card__status-dot.is-recent` unchanged (green #57ffbe, glow).
+
+### Verification
+
+- Sections with no activity: `latestActivityTs` is 0 → `hasRecentInLast24h` false → only count shown (e.g. "0", "1"), no "(24h)" or dot.
+- Sections with activity older than 24h: `hasRecentInLast24h` false → same as above.
+- Sections with activity within 24h: `hasRecentInLast24h` true → count + "(24h •)" with lit dot.
+- Non-compact modes (standard card, no-recent-activity card) are unchanged; they use `countLabel` and do not show the 24h badge.
+
 ## Feed layout (consolidated – all changes)
 
 Summary of feed layout changes made this session:
@@ -7,8 +118,7 @@ Summary of feed layout changes made this session:
 ### Current structure (after follow-up: three-row, last activity bottom right)
 
 - **Row 1:** Title (left) + stats inline on right (e.g. "21 views · 1 reply · 1 like").
-- **Row 2:** "by [user] at [date]" only (non-events). For events: by user + event info + attended, centered.
-- **Row 3:** Last activity, right-aligned (bottom right), when present. Same for events and non-events.
+- **Row 2:** Non-events: by user (left) + last activity (right) when present; single row, wraps on narrow. Events: by user (left) + event info (centered in remaining space) + last activity (right) when present.
 
 ### Files changed
 
@@ -23,7 +133,7 @@ Summary of feed layout changes made this session:
 
 **`src/app/feed/page.js`**
 - Non-events: passes `lastActivity`, etc.; PostMetaBar renders row 2 (by user) and row 3 (last activity right).
-- Events: passes `customRowsAfterTitle` with event-row2 (by user + centered event info) and event-row3 (last activity right).
+- Events: passes `customRowsAfterTitle` with single event-row2 (by user left + event info centered + last activity right when present).
 - Completed events (`hasPassed`): "Yesterday 6:00 PM (Event happened) · N attended" (no "Starts"); "N attended" has `title={attendeeNames}` so names show on hover; class `event-attendee-count--hover-only` for cursor.
 - Upcoming events: "Starts ... (relative) · N attending: name1, name2".
 - All timestamps use `formatDateTimeShort`.
@@ -33,7 +143,7 @@ Summary of feed layout changes made this session:
 - `.list-item h3`: margin 0 to reduce title-to-by spacing.
 - `.post-meta-row2`: flex, flex-wrap wrap, gap 4px 10px (no nowrap; allows wrapping).
 - `.post-meta-row3`: flex, justify-content flex-end, min-width 0.
-- `.event-row2`, `.event-row2-centered`, `.event-row2-middle`, `.event-row3`: event three-row layout.
+- `.event-row2`, `.event-row2-middle`: event row layout (event-row2-centered and event-row3 removed).
 - `.event-details-inline`: inline-flex for event info; `.event-details-icon` color and spacing.
 - `.event-attendee-count--hover-only`: cursor help for completed-event attendee count.
 - overflow-wrap and word-break on post-meta-row2, post-meta-row3, event-row2 to prevent overlap.
@@ -43,18 +153,18 @@ Summary of feed layout changes made this session:
 
 - **PostMetaBar:** Row 1 = title + statsInline. When `customRowsAfterTitle` is null: row 2 = byUserAtTime only, row 3 = last activity (flex, justify-content flex-end) when `hasLastActivity`. When `customRowsAfterTitle` provided (events): replaces rows 2 and 3 entirely.
 - **Non-events:** lastActivity passed; hasLastActivity = lastActivity && replies > 0; row 3 renders with right-aligned "Last activity by X at [time]".
-- **Events:** lastActivity=undefined to PostMetaBar; customRowsAfterTitle returns fragment: event-row2 div (byUser + event-row2-middle with eventInfo) and optionally event-row3 div (last activity right) when item.lastActivity && item.replies > 0.
+- **Events:** lastActivity=undefined to PostMetaBar; customRowsAfterTitle returns single event-row2 div (byUser + event-row2-middle with eventInfo + last activity when item.lastActivity && item.replies > 0).
 - **Event row 2 content:** hasPassed ? "date time (Event happened) · N attended" : "Starts date time (relative) · N attending: names". Completed: "N attended" has title=names, event-attendee-count--hover-only.
 - **formatDateTimeShort:** Used for createdAt, lastActivity in PostMetaBar and feed; formatEventDate/formatEventTime for event dates.
-- **CSS:** post-meta-row2 has flex-wrap wrap (no nowrap media query). post-meta-row3 and event-row3 use justify-content flex-end. event-row2-centered uses justify-content center. At max-width 640px, event-row2 becomes flex-direction column, align-items center.
+- **CSS:** post-meta-row2 has flex-wrap wrap. post-meta-row2-with-activity uses justify-content space-between; post-meta-last-activity-inline has margin-left auto. event-row2 uses justify-content flex-start; event-row2-middle centers event info in remaining space. At max-width 640px, event-row2 becomes flex-direction column, align-items flex-start.
 - **Overlap prevention:** overflow-wrap: break-word, word-break: break-word on row2, row3, event-row2.
 
 ### Follow-up: three-row layout, last activity bottom right, responsive cleanup
 
 - **Request:** Events stay three rows; event info and attended list centered in row 2; last activity in bottom right for all items; fix overlap when viewport narrows.
 - **PostMetaBar:** Reverted to three-row structure. Row 2 = by user only. Row 3 = last activity, right-aligned (justify-content: flex-end). Replaced `row2Suffix` with `customRowsAfterTitle` – when provided, replaces rows 2 and 3 (used for events).
-- **Events:** Use `customRowsAfterTitle` with three-row layout: event-row2 (by user + event info centered), event-row3 (last activity right). Event info includes icon, date/time, attended/attending. Row 2 uses `event-row2-centered` and `event-row2-middle` for centered layout.
-- **CSS:** Added `.post-meta-row3` with justify-content: flex-end. Added `.event-row2`, `.event-row2-centered`, `.event-row2-middle`, `.event-row3`. Removed the `nowrap` media query that forced row 2 onto one line. Added `overflow-wrap: break-word` and `word-break: break-word` to prevent overlap. At 640px, event-row2 stacks as column with centered content.
+- **Events:** Use `customRowsAfterTitle` with event-row2 (by user left + event info centered via event-row2-middle + last activity right when present). Event info includes icon, date/time, attended/attending.
+- **CSS:** `.event-row2` with justify-content flex-start; `.event-row2-middle` flex: 1 1 auto for centered event info. Removed `event-row2-centered`. At 640px, event-row2 stacks as column with align-items flex-start.
 - **Responsive:** event-row2 uses flex-wrap; on narrow viewports it becomes flex-direction: column so by user and event info stack without overlapping.
 
 ## Profile page: padding between profile card and tab switcher
@@ -676,3 +786,277 @@ Summary of feed layout changes made this session:
 - Feed at narrow width: event-row2 should stack vertically; no overlap between by-user and event info.
 - Completed events: "N attended" shows names on hover; no "Starts yesterday" wording.
 - Last activity appears bottom-right when replies > 0.
+
+---
+
+## Feed layout: event "by" alignment, attended spacing, row consolidation (2026-02-16)
+
+### Issues addressed
+1. **Event "by" text**: Was centered with event info; should stay left-aligned like non-events.
+2. **Attended spacing**: No space between "(Event happened)" and "2 attended" around the middot.
+3. **Row consolidation**: On larger viewports, "by user" and "last activity" should share a row when there's room.
+
+### Changes
+
+**`src/app/feed/page.js`**
+- Removed `event-row2-centered` so by-user stays left; event info centered in remaining space via `event-row2-middle` flex.
+- Wrapped middot separators in `<span className="event-details-sep">` for consistent spacing (prevents collapse).
+- Events: merged row 3 into row 2; last activity now in same row as by-user + event info when present, with `margin-left: auto` for right alignment.
+
+**`src/components/PostMetaBar.js`**
+- Non-events: merged row 2 and row 3; by-user (left) and last activity (right) share one row with `post-meta-row2-with-activity` and `post-meta-last-activity-inline`.
+
+**`src/app/globals.css`**
+- `.event-row2`: `justify-content: flex-start`; `.event-row2-middle`: `flex: 1 1 auto` to center event info in remaining space.
+- `.event-details-sep`: `margin: 0 2px; white-space: pre` for middot spacing.
+- `.post-meta-row2-with-activity`, `.post-meta-last-activity-inline`: consolidate by + last activity on one row.
+- `.event-row2-with-activity .post-meta-last-activity-inline`: last activity right in event row 2.
+- At 640px: event-row2 `align-items: flex-start`; last activity `align-self: flex-end` when stacked.
+
+### Double-check (verification)
+
+- **Event "by" alignment**: `event-row2-centered` removed; `event-row2` uses `justify-content: flex-start`. `byUser` is first child, left-aligned. `event-row2-middle` has `flex: 1 1 auto` and `justify-content: center` – event info (icon, date, attended) centered in remaining space.
+- **Attended spacing**: `event-details-sep` wraps `{' \u00B7 '}` with `margin: 0 2px` and `white-space: pre`; applied to both hasPassed and upcoming branches. Prevents collapse; visible gap before "N attended"/"N attending".
+- **Non-events row consolidation**: PostMetaBar row 2 has `post-meta-row2-with-activity` when `hasLastActivity`. Single div contains `byUserAtTime` and `post-meta-last-activity-inline`; `justify-content: space-between` + `margin-left: auto` on last activity pushes it right. When viewport narrows and row wraps, last activity goes below (flex-wrap).
+- **Events row consolidation**: Events use `customRowsAfterTitle`; single `event-row2` div with `byUser`, `event-row2-middle` (eventInfo), and `eventLastActivityEl`. `event-row2-with-activity` when `hasEventLastActivity`. Last activity has `margin-left: auto` for right alignment. No separate row 3 for events.
+- **Narrow viewport (640px)**: event-row2 becomes `flex-direction: column`, `align-items: flex-start`; by-user and event info left-aligned. Last activity `align-self: flex-end` when stacked. event-row2-middle `justify-content: flex-start`.
+- **Dead CSS**: `.post-meta-row3` and `.event-row3` rules remain (used in overflow-wrap selector); separate row3 divs no longer rendered. `.event-row2-centered` removed.
+
+### Session notes (double-check)
+
+- **2026-02-16**: Verified all feed layout changes (event "by" alignment, attended spacing, row consolidation). Updated log section "Feed layout (consolidated)" to remove stale row 3 references. Updated PostMetaBar docstring. Double-check section above documents current behavior.
+
+## Event post detail: tighter layout, hide Invite when past, reply connector (2026-02-16)
+
+### Request
+- Put "Event happened" and event date/time on same row with similar styling.
+- Put "Attending" heading and attendee list on same row (list on right).
+- Hide "Invite People" when event has passed (RSVP closed).
+- Add a visual connector line for nested replies.
+
+### Changes
+
+**`src/app/events/[id]/page.js`**
+- Removed separate "Event happened" block. Event date row now: when `eventHasPassed`, shows calendar icon + "Event happened" (and optional "Attendance reopened") + " · " + formatted date/time in same row and style. When upcoming, unchanged (date/time + relative).
+
+**`src/components/EventEngagementSection.js`**
+- Attending: single flex row with `justify-content: space-between`; "Attending" (left), attendee list on right (same line when space allows, wraps with gap). No attendees: "No one has marked attending yet." below.
+- Invite People block only rendered when `canInvite && !eventHasPassed` (hidden after event).
+
+**`src/app/globals.css`**
+- `.reply-children`: border-left 2px with `var(--border)`; `position: relative`.
+- `.reply-children::before`: horizontal connector line (14px left, 2px tall at top) so nested replies have a visible branch from parent.
+
+## Private messaging (DMs) – full implementation (2026-02-16)
+
+### Request
+- Wire out the Messages page (currently a placeholder). Enable private messaging between users with:
+  - Individual DMs and group conversations
+  - Admin: send to role (all users, Driplets, Drip Nomads, Mods, Admins)
+  - In-app notifications when someone sends a DM; NotificationsMenu links to the conversation
+
+### Implementation
+
+1. **Migration `migrations/0075_dm_tables.sql`**
+   - `dm_conversations`: id, type ('direct'|'group'), subject (nullable), created_at, updated_at
+   - `dm_participants`: conversation_id, user_id, joined_at, left_at; composite PK
+   - `dm_messages`: id, conversation_id, author_user_id, body, created_at, is_deleted
+   - Indexes on dm_participants(user_id), dm_messages(conversation_id, created_at)
+
+2. **API routes**
+   - **GET /api/messages/conversations**: List conversations for current user (last message preview, participants, display name)
+   - **GET /api/messages/conversations/[id]**: Get conversation + messages (paginated via ?before=&limit=)
+   - **POST /api/messages/conversations/[id]**: Send message; create notification for other participants
+   - **POST /api/messages/conversations/create**: Create conversation. Body: participantIds, subject?, body?, broadcastRole? (admin only)
+   - **GET /api/messages/users?q=**: Search users for compose (excludes self, min 2 chars)
+
+3. **Messages page and client**
+   - **`src/app/messages/page.js`**: Renders MessagesClient with user and isAdmin; Suspense fallback
+   - **`src/components/MessagesClient.js`**: Two-pane layout (sidebar inbox + main conversation). Sidebar: conversation list with last preview and time; main: selected conversation with messages + reply form. Compose modal: user search, add multiple for group, optional subject, message body; admins get "Send to role" dropdown (all, user, drip_nomad, mod, admin). Deep-link via ?conversation=id from notifications.
+
+4. **Notifications**
+   - **NotificationsMenu.js**: Added branch for `type === 'private_message'` and `target_type === 'dm_conversation'`: href `/messages?conversation=${target_id}`, label "${actor} sent you a message"
+   - **Create/send flows**: Use `insertNotificationWithOptionalSubId` with type `private_message`, target_type `dm_conversation`, target_id conversation id, target_sub_id message id
+
+5. **Create flow logic**
+   - Direct (1 recipient, no subject): Reuse existing 1:1 conversation if present
+   - Group (2+ recipients or subject): New conversation
+   - Admin broadcast: Resolve role to user IDs, create group conversation with all matching users
+
+### Deploy
+- Run migration **0075** before or with deploy.
+
+### Files touched
+- `migrations/0075_dm_tables.sql` (new)
+- `src/app/api/messages/conversations/route.js` (new)
+- `src/app/api/messages/conversations/[id]/route.js` (new)
+- `src/app/api/messages/conversations/create/route.js` (new)
+- `src/app/api/messages/users/route.js` (new)
+- `src/app/messages/page.js` (updated)
+- `src/components/MessagesClient.js` (new)
+- `src/components/NotificationsMenu.js` (private_message branch)
+
+### Role-based messaging restrictions (2026-02-16)
+
+- **Driplets (user)**: Can only message other Driplets.
+- **Drip Nomads**: Can message Driplets and other Nomads.
+- **Mods**: Can message Driplets, Nomads, and Mods.
+- **Admins**: Can message everyone.
+
+**Implementation:**
+- **`src/lib/roles.js`**: Added `canMessageByRole(senderRole, recipientRole)` and `MESSAGEABLE_ROLES` map.
+- **`api/messages/conversations/create`**: Validates each recipient's role before creating; returns 403 if any recipient is not messageable. Also validates when reusing existing direct conversation. Rejects if any recipient ID is invalid/deleted (400).
+- **`api/messages/users`**: Search results filtered to only include users the sender can message (`role IN (allowed roles)`).
+
+### Double-check / verification (private messaging)
+
+**Migration 0075**
+- Tables: dm_conversations, dm_participants, dm_messages. PKs and FKs correct. Indexes for participants by user, messages by conversation+created_at. CASCADE on conversation delete.
+
+**API routes – auth and validation**
+- All routes require `getSessionUser()`; 401 if not logged in.
+- **conversations GET**: Returns only conversations where user is participant (left_at IS NULL). Enriched with display_name, participants, last_message_preview.
+- **conversations/[id] GET**: Participant check; 404 if not in conversation. Messages paginated via ?before=&limit= (default 50, max 100).
+- **conversations/[id] POST**: Participant check; body required. Creates notification for each other participant with target_sub_id=messageId.
+- **conversations/create POST**: Admin broadcast only when isAdminUser; broadcastRole resolves to user IDs. Role check on all recipients. Rejects invalid/deleted recipient IDs (validRecipientIds.size < uniqueRecipients.length → 400). Existing direct-conv reuse also runs role check.
+- **users GET**: role IN (allowed for sender); excludes self; min 2 chars for q.
+
+**Role matrix (canMessageByRole)**
+| Sender   | Can message                 |
+|----------|-----------------------------|
+| user     | user                        |
+| drip_nomad | user, drip_nomad         |
+| mod      | user, drip_nomad, mod       |
+| admin    | user, drip_nomad, mod, admin |
+
+**Notifications**
+- NotificationsMenu: private_message + dm_conversation → href /messages?conversation=id, label "{actor} sent you a message".
+- create/send flows use insertNotificationWithOptionalSubId with target_sub_id for precise cleanup if message deletion is added later.
+
+**Edge cases**
+- Non-admin sending broadcastRole: block skipped; participantIds stays empty → 400 "At least one recipient required".
+- Invalid/deleted recipient ID: 400 "One or more recipients could not be found."
+- Role change after conversation created: validated on create and on reuse of existing direct; no re-check when sending in existing conv (user already participant).
+- User with unknown role: canMessageByRole uses MESSAGEABLE_ROLES[senderRole]; unknown sender → false. recipientRole null/undefined → treated as ROLE_DRIPLET.
+
+**Follow-up / not implemented**
+- ~~No "delete conversation" or "leave conversation" API~~ (implemented below)
+- ~~No notify_private_message pref for email/SMS~~ (implemented below)
+
+### Private messaging – completion (leave, delete, outbound, pref) (2026-02-16)
+
+1. **Leave conversation**
+   - **POST /api/messages/conversations/[id]/leave**: Sets left_at for current user. User is removed from conversation list.
+   - **MessagesClient**: "Leave" button in conversation header; on success, clears selection and refetches.
+
+2. **Admin delete conversation**
+   - **DELETE /api/messages/conversations/[id]**: Admin only. Hard-deletes conversation, participants, messages; calls deleteNotificationsForTarget(db, 'dm_conversation', id).
+   - **MessagesClient**: "Delete" button (admin only) with confirm; red styling.
+
+3. **notify_private_message pref**
+   - **Migration 0076**: notify_private_message_enabled INTEGER NOT NULL DEFAULT 0.
+   - **auth.js**: Main and admin SELECTs include column; fallbacks set to 0.
+   - **notification-prefs**: Accepts privateMessageEnabled; saves to notify_private_message_enabled.
+   - **auth/me**: Returns notifyPrivateMessageEnabled.
+   - **AccountSettings**: "Private messages" toggle in Site notifications; helper text: "Get notified via email/SMS when someone sends you a DM."
+   - **admin user delete**: Sets notify_private_message_enabled = 0 when anonymizing.
+
+4. **Outbound email/SMS for DMs**
+   - **outboundNotifications.js**: Added typeEnabled parameter; when false, skips send. Added targetType dm_conversation path `/messages?conversation=id`. Added type private_message label "sent you a message".
+   - **conversations/[id] POST**: Fetches recipient email, phone, notify_*; calls sendOutboundNotification with typeEnabled: !!notify_private_message_enabled.
+   - **conversations/create**: Same for existing-conv first message and new-conv first message.
+
+### Files touched (completion)
+- `migrations/0076_add_notify_private_message.sql` (new)
+- `src/app/api/messages/conversations/[id]/leave/route.js` (new)
+- `src/app/api/messages/conversations/[id]/route.js` (DELETE handler, outbound wiring)
+- `src/app/api/messages/conversations/create/route.js` (outbound wiring)
+- `src/lib/outboundNotifications.js` (typeEnabled, dm_conversation, private_message)
+- `src/lib/auth.js` (notify_private_message_enabled)
+- `src/app/api/auth/notification-prefs/route.js` (privateMessageEnabled)
+- `src/app/api/auth/me/route.js` (notifyPrivateMessageEnabled)
+- `src/app/account/AccountSettings.js` (Private messages toggle)
+- `src/app/api/admin/users/[id]/delete/route.js` (notify_private_message_enabled = 0)
+- `src/components/MessagesClient.js` (Leave, Admin Delete buttons)
+
+### Conversation updates notifications (2026-02-16)
+
+**Request**: Ensure notifications for all DM features and settings in Account Settings.
+
+**What was added**:
+
+1. **Leave conversation in-app notifications**
+   - **leave/route.js**: When a user leaves, fetches other participants; inserts `conversation_participant_left` notification for each with `notify_conversation_updates_enabled`. Fallback if column missing: notify all.
+
+2. **Admin delete in-app notifications**
+   - **conversations/[id] DELETE**: Before deleting, fetches participants; inserts `conversation_deleted` notification (target_type `dm_conversation_deleted`, href `/messages`) for each with pref on. Fallback if column missing: notify all.
+
+3. **notify_conversation_updates pref**
+   - **Migration 0077**: notify_conversation_updates_enabled INTEGER NOT NULL DEFAULT 1.
+   - **auth.js**: Main and admin SELECTs include column; fallbacks set 1.
+   - **notification-prefs**: Accepts conversationUpdatesEnabled; saves to notify_conversation_updates_enabled.
+   - **auth/me**: Returns notifyConversationUpdatesEnabled.
+   - **AccountSettings**: "Conversation updates" toggle; helper: "When someone leaves a conversation or a conversation is deleted."
+   - **admin user delete**: Sets notify_conversation_updates_enabled = 0 when anonymizing.
+
+4. **NotificationsMenu**
+   - `conversation_participant_left` + `dm_conversation`: label "{actor} left the conversation"; href `/messages?conversation=id`.
+   - `conversation_deleted` + `dm_conversation_deleted`: label "A conversation you were in was deleted by {actor}"; href `/messages`.
+
+**Files touched**
+- `migrations/0077_add_notify_conversation_updates.sql` (new)
+- `src/app/api/messages/conversations/[id]/leave/route.js` (notifications)
+- `src/app/api/messages/conversations/[id]/route.js` (delete notifications)
+- `src/lib/auth.js` (notify_conversation_updates_enabled)
+- `src/app/api/auth/notification-prefs/route.js` (conversationUpdatesEnabled)
+- `src/app/api/auth/me/route.js` (notifyConversationUpdatesEnabled)
+- `src/app/account/AccountSettings.js` (Conversation updates toggle)
+- `src/app/api/admin/users/[id]/delete/route.js` (notify_conversation_updates_enabled = 0)
+- `src/components/NotificationsMenu.js` (conversation_participant_left, conversation_deleted handlers)
+
+### Double-check verification (2026-02-16)
+
+**Leave route (`leave/route.js`)**
+- Fetches other participants (excluding current user, left_at IS NULL) with `notify_conversation_updates_enabled`.
+- Fallback: if column missing, SELECT only `user_id` and treat all as enabled (notify_conversation_updates_enabled: 1).
+- Updates `dm_participants SET left_at` for current user.
+- Inserts `conversation_participant_left` for each recipient with pref on (type, target_type `dm_conversation`, target_id conv id).
+- Uses `insertNotificationWithOptionalSubId`, `randomUUID`.
+
+**Delete route (`conversations/[id]/route.js`)**
+- Fetches all participants with `notify_conversation_updates_enabled`.
+- Fallback: if column missing, SELECT only `user_id` and treat all as enabled.
+- Inserts `conversation_deleted` for each with pref on (target_type `dm_conversation_deleted`, target_id conv id; link goes to /messages since conv is deleted).
+- Then deletes messages, participants, conversation; calls `deleteNotificationsForTarget(db, 'dm_conversation', id)` (cleans up private_message notifications; conversation_deleted uses different target_type so not affected).
+
+**Migration 0077**
+- Adds `notify_conversation_updates_enabled INTEGER NOT NULL DEFAULT 1`.
+- Must run before deploy; leave/delete routes fall back if column missing.
+
+**Auth (`auth.js`)**
+- Main and admin SELECTs include `notify_conversation_updates_enabled`.
+- Fallbacks (minimal-column paths) set to 1.
+
+**notification-prefs API**
+- Accepts `conversationUpdatesEnabled`; default 1 when omitted.
+- Params and SET clause order: ... privateMessageEnabled, conversationUpdatesEnabled, newForumThreadsEnabled ...
+- Returns `notifyConversationUpdatesEnabled`.
+
+**auth/me**
+- Returns `notifyConversationUpdatesEnabled: (user.notify_conversation_updates_enabled ?? 1) !== 0`.
+
+**AccountSettings**
+- `notifPrefs.site.conversationUpdates` from user; default true when undefined.
+- Toggle between Private messages and New forum threads; helper: "When someone leaves a conversation or a conversation is deleted."
+- Save payload includes `conversationUpdatesEnabled: notifDraft.site.conversationUpdates`.
+
+**NotificationsMenu**
+- `conversation_participant_left` + `dm_conversation`: href `/messages?conversation=${n.target_id}`, label "{actor} left the conversation".
+- `conversation_deleted` + `dm_conversation_deleted`: href `/messages`, label "A conversation you were in was deleted by {actor}".
+
+**Admin user delete**
+- Anonymization UPDATE sets `notify_conversation_updates_enabled = 0`.
+
+**Data flow**
+- User toggles off in Account Settings -> handleSaveNotifs sends conversationUpdatesEnabled -> notification-prefs POST -> DB.
+- Leave/delete routes read notify_conversation_updates_enabled from users; only insert notification when truthy.

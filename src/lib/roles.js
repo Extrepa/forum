@@ -21,3 +21,17 @@ export function roleDisplayLabel(role) {
   if (role === ROLE_DRIP_NOMAD) return 'Drip Nomad';
   return 'Driplet';
 }
+
+/** Roles a sender can message. Driplets: only other Driplets. Nomads: Driplets + Nomads. Mods: up to Mods. Admins: all. */
+const MESSAGEABLE_ROLES = {
+  [ROLE_DRIPLET]: [ROLE_DRIPLET],
+  [ROLE_DRIP_NOMAD]: [ROLE_DRIPLET, ROLE_DRIP_NOMAD],
+  [ROLE_MOD]: [ROLE_DRIPLET, ROLE_DRIP_NOMAD, ROLE_MOD],
+  [ROLE_ADMIN]: [ROLE_DRIPLET, ROLE_DRIP_NOMAD, ROLE_MOD, ROLE_ADMIN],
+};
+
+export function canMessageByRole(senderRole, recipientRole) {
+  const allowed = MESSAGEABLE_ROLES[senderRole];
+  if (!allowed) return false;
+  return allowed.includes(recipientRole || ROLE_DRIPLET);
+}

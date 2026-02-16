@@ -609,7 +609,7 @@ export default async function FeedPage() {
                               {formatEventDate(item.startsAt)} {formatEventTime(item.startsAt)} (Event happened)
                               {item.attendeeCount > 0 && (
                                 <>
-                                  {' \u00B7 '}
+                                  <span className="event-details-sep">{' \u00B7 '}</span>
                                   <span className="event-attendee-count event-attendee-count--hover-only" title={item.attendeeNames.join(', ')}>
                                     {item.attendeeCount} attended
                                   </span>
@@ -622,7 +622,7 @@ export default async function FeedPage() {
                               {isEventUpcoming(item.startsAt) ? ` (${formatRelativeEventDate(item.startsAt)})` : null}
                               {item.attendeeCount > 0 && (
                                 <>
-                                  {' \u00B7 '}
+                                  <span className="event-details-sep">{' \u00B7 '}</span>
                                   <span className="event-attendee-count" title={item.attendeeNames.join(', ')}>
                                     {item.attendeeCount} attending: {item.attendeeNames.map((name, i) => (
                                       <span key={name}>
@@ -641,21 +641,21 @@ export default async function FeedPage() {
                           )}
                         </span>
                       );
+                      const hasEventLastActivity = item.lastActivity && item.replies > 0;
+                      const eventLastActivityEl = hasEventLastActivity && (
+                        <span className="post-meta-last-activity post-meta-last-activity-inline muted">
+                          Last activity{item.lastActivityBy ? (
+                            <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
+                          ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
+                        </span>
+                      );
                       return (
                         <>
-                          <div className="event-row2 event-row2-centered">
+                          <div className={`event-row2${hasEventLastActivity ? ' event-row2-with-activity' : ''}`}>
                             {byUser}
                             <span className="event-row2-middle">{eventInfo}</span>
+                            {eventLastActivityEl}
                           </div>
-                          {item.lastActivity && item.replies > 0 && (
-                            <div className="post-meta-row3 post-meta-last-activity-row event-row3">
-                              <span className="post-meta-last-activity muted">
-                                Last activity{item.lastActivityBy ? (
-                                  <> by <Username name={item.lastActivityBy} colorIndex={usernameColorMap.get(item.lastActivityBy) ?? getUsernameColorIndex(item.lastActivityBy, { preferredColorIndex: preferredColors.get(item.lastActivityBy) })} preferredColorIndex={preferredColors.get(item.lastActivityBy)} /></>
-                                ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(item.lastActivity)}</span>
-                              </span>
-                            </div>
-                          )}
                         </>
                       );
                     })() : null}

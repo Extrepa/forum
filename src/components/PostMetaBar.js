@@ -7,9 +7,8 @@ import { formatDateTimeShort } from '../lib/dates';
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
  * Layout: Row 1 = title (left) + stats inline on right.
- * Row 2 = "by user at time".
- * Row 3 = last activity, right-aligned (bottom right).
- * Pass customRowsAfterTitle to override rows 2+ (e.g. for events with centered event info).
+ * Row 2 = "by user at time" (left) + last activity (right) when present; single row, wraps on narrow.
+ * Pass customRowsAfterTitle to override rows 2+ (e.g. for events).
  * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
@@ -92,20 +91,17 @@ export default function PostMetaBar({
 
       {customRowsAfterTitle ?? (
         <>
-          {/* Row 2: by user only */}
-          <div className="post-meta-row2 post-meta-by-row">
+          {/* Row 2: by user (left) + last activity (right) on same row when room; wraps on narrow */}
+          <div className={`post-meta-row2 post-meta-by-row${hasLastActivity ? ' post-meta-row2-with-activity' : ''}`}>
             {byUserAtTime}
-          </div>
-          {/* Row 3: last activity in bottom right */}
-          {hasLastActivity && (
-            <div className="post-meta-row3 post-meta-last-activity-row" style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0, fontSize: '12px' }}>
-              <span className="post-meta-last-activity muted">
+            {hasLastActivity && (
+              <span className="post-meta-last-activity post-meta-last-activity-inline muted" style={{ fontSize: '12px' }}>
                 Last activity{lastActivityBy ? (
                   <> by <Username name={lastActivityBy} colorIndex={lastActivityByColorIndex} preferredColorIndex={lastActivityByPreferredColorIndex} /></>
                 ) : null} at <span suppressHydrationWarning>{formatDateTimeShort(lastActivity)}</span>
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>

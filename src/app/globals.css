@@ -4704,6 +4704,15 @@ button.ghost:hover,
   font-size: 12px;
 }
 
+.post-meta-row2-with-activity {
+  justify-content: space-between;
+}
+
+.post-meta-last-activity-inline {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .post-meta-row3 {
   display: flex;
   justify-content: flex-end;
@@ -4711,25 +4720,29 @@ button.ghost:hover,
   font-size: 12px;
 }
 
-/* Event three-row layout: row 2 = by user + centered event info, row 3 = last activity right */
+/* Event three-row layout: row 2 = by user (left) + event info (centered in remaining space), row 3 = last activity right */
 .event-row2 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px 12px;
   min-width: 0;
   font-size: 12px;
 }
 
-.event-row2-centered {
-  justify-content: center;
-}
-
 .event-row2-middle {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
+}
+
+/* Spacing around middot before attendee count (prevents collapse) */
+.event-details-sep {
+  margin: 0 2px;
+  white-space: pre;
 }
 
 .event-row3 {
@@ -4796,28 +4809,37 @@ button.ghost:hover,
   vertical-align: middle;
 }
 
+.event-row2-with-activity .post-meta-last-activity-inline {
+  margin-left: auto;
+}
+
 @media (max-width: 640px) {
   .event-row2 {
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     gap: 4px;
+  }
+
+  .event-row2.event-row2-with-activity .post-meta-last-activity-inline {
+    align-self: flex-end;
   }
 
   .event-row2-middle {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .event-details-inner {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 2px;
-    text-align: center;
+    text-align: left;
   }
 
   .event-details-item {
     white-space: normal;
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
@@ -5954,7 +5976,20 @@ a.list-item:hover {
   gap: 10px;
   margin-left: 14px;
   padding-left: 12px;
-  border-left: 1px solid rgba(22, 58, 74, 0.35);
+  border-left: 2px solid var(--border);
+  position: relative;
+}
+
+/* Horizontal connector from parent reply down to nested replies */
+.reply-children::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 0;
+  width: 14px;
+  height: 2px;
+  background: var(--border);
+  transform: translateY(-1px);
 }
 
 .reply-item--child {
@@ -6197,8 +6232,11 @@ span:has(.username) + .status-badge {
 }
 
 .home-section-card__status-dot {
+  display: inline-block;
   width: 6px;
   height: 6px;
+  margin-inline: 2px;
+  vertical-align: middle;
   border-radius: 999px;
   background: rgba(160, 173, 187, 0.7);
 }

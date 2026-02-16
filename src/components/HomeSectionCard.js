@@ -78,9 +78,15 @@ export default function HomeSectionCard({
             </span>
             <span className="home-section-card__count-wrap">
               <span className="section-card-count" suppressHydrationWarning title={countLabel}>
-                {countShort}{hasRecentInLast24h ? <span className="section-card-recent-badge"> (24h)</span> : ''}
+                {countShort}
+                {hasRecentInLast24h ? (
+                  <span className="section-card-recent-badge">
+                    {' '}(24h{' '}
+                    <span className="home-section-card__status-dot is-recent" aria-hidden="true" title="Recent activity" />
+                    )
+                  </span>
+                ) : null}
               </span>
-              <span className={`home-section-card__status-dot${hasRecentInLast24h ? ' is-recent' : ''}`} aria-hidden="true" title={hasRecentInLast24h ? 'Recent activity' : ''} />
               <span className="home-section-card__chevron" aria-hidden="true">{isExpanded ? '-' : '+'}</span>
             </span>
           </button>

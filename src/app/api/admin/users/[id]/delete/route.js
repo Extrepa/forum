@@ -72,6 +72,8 @@ export async function POST(request, { params }) {
             notify_nomad_activity_enabled = 0,
             notify_new_content_sections = '{}',
             notify_admin_events = '{}',
+            notify_private_message_enabled = 0,
+            notify_conversation_updates_enabled = 0,
             notify_admin_new_user_enabled = 0,
             notify_admin_new_post_enabled = 0,
             notify_admin_new_reply_enabled = 0,

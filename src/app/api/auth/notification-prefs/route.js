@@ -26,6 +26,8 @@ export async function POST(request) {
   const mentionEnabled = payload.mentionEnabled !== undefined ? (payload.mentionEnabled ? 1 : 0) : 1;
   const replyEnabled = payload.replyEnabled !== undefined ? (payload.replyEnabled ? 1 : 0) : 1;
   const commentEnabled = payload.commentEnabled !== undefined ? (payload.commentEnabled ? 1 : 0) : 1;
+  const privateMessageEnabled = payload.privateMessageEnabled !== undefined ? (payload.privateMessageEnabled ? 1 : 0) : 0;
+  const conversationUpdatesEnabled = payload.conversationUpdatesEnabled !== undefined ? (payload.conversationUpdatesEnabled ? 1 : 0) : 1;
   const newForumThreadsEnabled = payload.newForumThreadsEnabled !== undefined ? (payload.newForumThreadsEnabled ? 1 : 0) : 0;
   const canUseNomadNotifs = isDripNomadUser(user); // only drip_nomad and admin can enable nomad notifications
   const nomadActivityEnabled = canUseNomadNotifs && (payload.nomadActivityEnabled !== undefined ? (payload.nomadActivityEnabled ? 1 : 0) : 0);
@@ -85,6 +87,8 @@ export async function POST(request) {
     mentionEnabled,
     replyEnabled,
     commentEnabled,
+    privateMessageEnabled,
+    conversationUpdatesEnabled,
     newForumThreadsEnabled,
     nomadActivityEnabled,
     newContentSectionsJson
@@ -108,6 +112,8 @@ export async function POST(request) {
           notify_mention_enabled = ?,
           notify_reply_enabled = ?,
           notify_comment_enabled = ?,
+          notify_private_message_enabled = ?,
+          notify_conversation_updates_enabled = ?,
           notify_new_forum_threads_enabled = ?,
           notify_nomad_activity_enabled = ?,
           notify_new_content_sections = ?${adminUpdateSql}
@@ -126,6 +132,8 @@ export async function POST(request) {
     notifyMentionEnabled: !!mentionEnabled,
     notifyReplyEnabled: !!replyEnabled,
     notifyCommentEnabled: !!commentEnabled,
+    notifyPrivateMessageEnabled: !!privateMessageEnabled,
+    notifyConversationUpdatesEnabled: !!conversationUpdatesEnabled,
     notifyNewForumThreadsEnabled: !!newForumThreadsEnabled,
     notifyNomadActivityEnabled: !!nomadActivityEnabled,
     notifyNewContentSections: sectionsObj,

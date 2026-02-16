@@ -35,6 +35,8 @@ export async function GET(request) {
       notifyMentionEnabled: user.notify_mention_enabled !== 0,
       notifyReplyEnabled: user.notify_reply_enabled !== 0,
       notifyCommentEnabled: user.notify_comment_enabled !== 0,
+      notifyPrivateMessageEnabled: user.notify_private_message_enabled !== 0,
+      notifyConversationUpdatesEnabled: (user.notify_conversation_updates_enabled ?? 1) !== 0,
       notifyNewForumThreadsEnabled: user.notify_new_forum_threads_enabled !== 0,
       notifyNomadActivityEnabled: user.notify_nomad_activity_enabled !== 0,
       notifyNewContentSections: parseNewContentSectionsJson(user.notify_new_content_sections),

@@ -525,11 +525,6 @@ export default async function EventDetailPage({ params, searchParams }) {
             Comments locked
           </span>
         ) : null}
-        {eventHasPassed ? (
-          <span className="muted" style={{ fontSize: '12px', marginTop: '8px', display: 'block' }}>
-            Event happened{attendanceReopened ? ' · Attendance reopened by admin' : ''}
-          </span>
-        ) : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>
           <svg
             width="24"
@@ -548,18 +543,31 @@ export default async function EventDetailPage({ params, searchParams }) {
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
           <span>
-            {formatEventDateLarge(event.starts_at)} {formatEventTime(event.starts_at)}
-            {event.ends_at ? (
-              <span style={{ fontSize: '15px', fontWeight: 'normal', marginLeft: '8px' }}>
-                - {formatEventTime(event.ends_at)}
-              </span>
-            ) : null}
+            {eventHasPassed ? (
+              <>
+                Event happened{attendanceReopened ? ' · Attendance reopened by admin' : ''}
+                {' · '}
+                {formatEventDateLarge(event.starts_at)} {formatEventTime(event.starts_at)}
+                {event.ends_at ? (
+                  <span style={{ fontSize: '15px', fontWeight: 'normal', marginLeft: '8px' }}>
+                    - {formatEventTime(event.ends_at)}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {formatEventDateLarge(event.starts_at)} {formatEventTime(event.starts_at)}
+                {event.ends_at ? (
+                  <span style={{ fontSize: '15px', fontWeight: 'normal', marginLeft: '8px' }}>
+                    - {formatEventTime(event.ends_at)}
+                  </span>
+                ) : null}
+                <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: '8px' }}>
+                  ({formatRelativeEventDate(event.starts_at)})
+                </span>
+              </>
+            )}
           </span>
-          {!eventHasPassed ? (
-            <span className="muted" style={{ fontSize: '14px', fontWeight: 'normal' }}>
-              ({formatRelativeEventDate(event.starts_at)})
-            </span>
-          ) : null}
         </div>
         {event.image_key ? (
           <Image

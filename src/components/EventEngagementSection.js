@@ -125,32 +125,34 @@ export default function EventEngagementSection({
 
   return (
     <section className="card">
-      <h3 className="section-title" style={{ marginTop: 0 }}>Attending</h3>
-
-      {attendees.length > 0 ? (
-        <div style={{ marginBottom: '12px', fontSize: '13px', color: 'var(--muted)' }}>
-          <strong style={{ color: 'var(--ink)' }} title={attendeeTitle}>
-            {attendees.length} {attendees.length === 1 ? 'person' : 'people'} {attendeeLabel}:
-          </strong>{' '}
-          {attendees.slice(0, 5).map((a, i) => (
-            <span key={a.id}>
-              <Username
-                name={a.username}
-                colorIndex={getUsernameColorIndex(a.username, {
-                  preferredColorIndex:
-                    a.preferred_username_color_index !== null && a.preferred_username_color_index !== undefined
-                      ? Number(a.preferred_username_color_index)
-                      : null,
-                })}
-              />
-              {i < Math.min(attendees.length, 5) - 1 ? ', ' : ''}
-            </span>
-          ))}
-          {attendees.length > 5 ? <span className="muted"> and {attendees.length - 5} more</span> : null}
-        </div>
-      ) : (
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px 16px', marginBottom: attendees.length > 0 ? '12px' : 0 }}>
+        <h3 className="section-title" style={{ marginTop: 0, marginBottom: 0 }}>Attending</h3>
+        {attendees.length > 0 ? (
+          <span style={{ fontSize: '13px', color: 'var(--muted)' }} title={attendeeTitle}>
+            <strong style={{ color: 'var(--ink)' }}>
+              {attendees.length} {attendees.length === 1 ? 'person' : 'people'} {attendeeLabel}:
+            </strong>{' '}
+            {attendees.slice(0, 5).map((a, i) => (
+              <span key={a.id}>
+                <Username
+                  name={a.username}
+                  colorIndex={getUsernameColorIndex(a.username, {
+                    preferredColorIndex:
+                      a.preferred_username_color_index !== null && a.preferred_username_color_index !== undefined
+                        ? Number(a.preferred_username_color_index)
+                        : null,
+                  })}
+                />
+                {i < Math.min(attendees.length, 5) - 1 ? ', ' : ''}
+              </span>
+            ))}
+            {attendees.length > 5 ? <span className="muted"> and {attendees.length - 5} more</span> : null}
+          </span>
+        ) : null}
+      </div>
+      {attendees.length === 0 ? (
         <p className="muted" style={{ marginTop: 0 }}>No one has marked attending yet.</p>
-      )}
+      ) : null}
 
       {user && !eventHasPassed ? (
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -172,7 +174,7 @@ export default function EventEngagementSection({
         </p>
       ) : null}
 
-      {canInvite ? (
+      {canInvite && !eventHasPassed ? (
         <>
           <div className="list-divider" style={{ margin: '12px 0' }} />
           <button type="button" onClick={() => setShowInvitePanel((v) => !v)}>

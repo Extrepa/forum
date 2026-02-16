@@ -130,23 +130,31 @@ export async function sendOutboundNotification({
   requestUrl,
   recipient,
   actorUsername,
-  type, // 'rsvp', 'like', 'update', 'mention', 'reply', 'comment'
-  targetType, // 'event', 'post', 'project', 'forum_thread', 'dev_log', etc.
+  type, // 'rsvp', 'like', 'update', 'mention', 'reply', 'comment', 'private_message'
+  targetType, // 'event', 'post', 'project', 'forum_thread', 'dev_log', 'dm_conversation', etc.
   targetId,
   targetTitle,
-  bodySnippet
+  bodySnippet,
+  typeEnabled // when false, skip send (e.g. recipient has notify_private_message_enabled off)
 }) {
+  if (typeEnabled === false) return;
+
   const env = await getEnv();
   const baseUrl = String(env.SITE_URL || new URL(requestUrl).origin);
-  
+
   // Build the link based on targetType
-  let path = contentTypeViewPath(targetType, { id: targetId }) || `/${targetType}/${targetId}`;
-  if (targetType === 'post' && (!path || path === '/posts')) {
-    path = `/posts/${targetId}`;
+  let path;
+  if (targetType === 'dm_conversation') {
+    path = `/messages?conversation=${encodeURIComponent(targetId)}`;
+  } else {
+    path = contentTypeViewPath(targetType, { id: targetId }) || `/${targetType}/${targetId}`;
+    if (targetType === 'post' && (!path || path === '/posts')) {
+      path = `/posts/${targetId}`;
+    }
   }
-  
+
   const link = `${baseUrl}${path}`;
-  
+
   // Build labels
   const typeLabels = {
     rsvp: 'is attending your event',
@@ -154,7 +162,8 @@ export async function sendOutboundNotification({
     update: 'posted an update to a project',
     mention: 'mentioned you',
     reply: 'replied to you',
-    comment: 'commented on your post'
+    comment: 'commented on your post',
+    private_message: 'sent you a message'
   };
   
   const label = typeLabels[type] || 'sent you a notification';
