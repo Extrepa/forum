@@ -2,27 +2,14 @@
 
 import { useRef, useState } from 'react';
 import MarkdownUploader from './MarkdownUploader';
-
-function wrapSelection(textarea, before, after = '') {
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const value = textarea.value;
-  const selected = value.slice(start, end);
-  const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
-  textarea.value = nextValue;
-  const cursor = start + before.length + selected.length + after.length;
-  textarea.focus();
-  textarea.setSelectionRange(cursor, cursor);
-}
+import MentionableTextarea from './MentionableTextarea';
+import { wrapSelection } from '../lib/formatting';
 
 export default function ProjectUpdateForm({ projectId, allowImageUploads = true, allowMarkdownUpload = true }) {
   const bodyRef = useRef(null);
   const [colorsOpen, setColorsOpen] = useState(false);
 
   const apply = (before, after) => {
-    if (!bodyRef.current) {
-      return;
-    }
     wrapSelection(bodyRef.current, before, after);
   };
 
@@ -77,8 +64,8 @@ export default function ProjectUpdateForm({ projectId, allowImageUploads = true,
             </span>
           ) : null}
         </div>
-        <textarea
-          ref={bodyRef}
+        <MentionableTextarea
+          innerRef={bodyRef}
           name="body"
           placeholder="Share progress, changes, or notes..."
           required

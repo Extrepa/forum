@@ -2,51 +2,26 @@
 
 import { useRef, useState } from 'react';
 import MarkdownUploader from './MarkdownUploader';
-
-function wrapSelection(textarea, before, after = '') {
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const value = textarea.value;
-  const selected = value.slice(start, end);
-  const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
-  textarea.value = nextValue;
-  const cursor = start + before.length + selected.length + after.length;
-  textarea.focus();
-  textarea.setSelectionRange(cursor, cursor);
-}
-
-function insertAtCursor(textarea, text) {
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const value = textarea.value;
-  const nextValue = value.slice(0, start) + text + value.slice(end);
-  textarea.value = nextValue;
-  const cursor = start + text.length;
-  textarea.focus();
-  textarea.setSelectionRange(cursor, cursor);
-}
+import MentionableTextarea from './MentionableTextarea';
+import { wrapSelection, insertAtCursor } from '../lib/formatting';
 
 export default function DevLogForm({ logId, initialData, allowImageUploads = true }) {
   const bodyRef = useRef(null);
+  const bodyComponentRef = useRef(null);
   const [quickUpdate, setQuickUpdate] = useState(false);
   const [colorsOpen, setColorsOpen] = useState(false);
 
   const apply = (before, after) => {
-    if (!bodyRef.current) {
-      return;
-    }
     wrapSelection(bodyRef.current, before, after);
   };
 
   const insert = (text) => {
-    if (!bodyRef.current) return;
     insertAtCursor(bodyRef.current, text);
   };
 
   const getBody = () => String(bodyRef.current?.value || '').trim();
   const setBody = (text) => {
-    if (!bodyRef.current) return;
-    bodyRef.current.value = text;
+    bodyComponentRef.current?.setValue?.(text);
   };
 
   const updateTemplate = `### Update
@@ -164,8 +139,9 @@ export default function DevLogForm({ logId, initialData, allowImageUploads = tru
             </span>
           ) : null}
         </div>
-        <textarea
-          ref={bodyRef}
+        <MentionableTextarea
+          ref={bodyComponentRef}
+          innerRef={bodyRef}
           name="body"
           placeholder="Write your post... (Markdown supported)"
           required

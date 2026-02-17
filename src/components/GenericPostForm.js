@@ -2,18 +2,8 @@
 
 import { useRef, useState } from 'react';
 import MarkdownUploader from './MarkdownUploader';
-
-function wrapSelection(textarea, before, after = '') {
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const value = textarea.value;
-  const selected = value.slice(start, end);
-  const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
-  textarea.value = nextValue;
-  const cursor = start + before.length + selected.length + after.length;
-  textarea.focus();
-  textarea.setSelectionRange(cursor, cursor);
-}
+import MentionableTextarea from './MentionableTextarea';
+import { wrapSelection } from '../lib/formatting';
 
 export default function GenericPostForm({
   action,
@@ -41,7 +31,6 @@ export default function GenericPostForm({
   const [nomadOnly, setNomadOnly] = useState(false);
 
   const apply = (before, after) => {
-    if (!bodyRef.current) return;
     wrapSelection(bodyRef.current, before, after);
   };
 
@@ -212,8 +201,8 @@ export default function GenericPostForm({
             </span>
           ) : null}
         </div>
-        <textarea
-          ref={bodyRef}
+        <MentionableTextarea
+          innerRef={bodyRef}
           name="body"
           placeholder={dynamicBodyPlaceholder}
           required={bodyRequired}

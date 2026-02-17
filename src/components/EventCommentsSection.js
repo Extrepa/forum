@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Username from './Username';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { formatDateTimeShort } from '../lib/dates';
+import MentionableTextarea from './MentionableTextarea';
 import ReplyButton from './ReplyButton';
 import DeleteCommentButton from './DeleteCommentButton';
 import LikeButton from './LikeButton';
@@ -20,6 +21,7 @@ export default function EventCommentsSection({
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const textareaRef = useRef(null);
+  const bodyComponentRef = useRef(null);
   const hiddenReplyToRef = useRef(null);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function EventCommentsSection({
       const { replyId, replyAuthor } = event.detail;
       setReplyingTo({ id: replyId, author_name: replyAuthor, body: '' });
       if (hiddenReplyToRef.current) hiddenReplyToRef.current.value = replyId;
-      if (textareaRef.current) textareaRef.current.value = '';
+      bodyComponentRef.current?.setValue?.('');
       setShowCommentBox(true);
     };
 
@@ -144,8 +146,9 @@ export default function EventCommentsSection({
               <div className="muted">
                 {replyingTo ? `Replying to ${replyingTo.author_name}` : 'What would you like to say?'}
               </div>
-              <textarea
-                ref={textareaRef}
+              <MentionableTextarea
+                ref={bodyComponentRef}
+                innerRef={textareaRef}
                 name="body"
                 placeholder={replyingTo ? 'Write your reply…' : 'Drop your thoughts into the goo...'}
                 required

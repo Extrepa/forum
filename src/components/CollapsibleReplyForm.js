@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import MentionableTextarea from './MentionableTextarea';
 
 export default function CollapsibleReplyForm({ 
   action, 
@@ -18,6 +19,7 @@ export default function CollapsibleReplyForm({
   const [currentReplyingTo, setCurrentReplyingTo] = useState(replyingTo);
   const [currentPrefill, setCurrentPrefill] = useState(replyPrefill);
   const textareaRef = useRef(null);
+  const bodyComponentRef = useRef(null);
   const hiddenReplyToRef = useRef(null);
   
   // Show form if replyingTo is set (user clicked "Reply" on a specific comment)
@@ -43,10 +45,7 @@ export default function CollapsibleReplyForm({
         hiddenReplyToRef.current.value = replyId;
       }
       
-      // Clear textarea; threaded replies should not auto-quote parent content.
-      if (textareaRef.current) {
-        textareaRef.current.value = '';
-      }
+      bodyComponentRef.current?.setValue?.('');
       
       // Show form if it's hidden
       setShowForm(true);
@@ -106,10 +105,11 @@ export default function CollapsibleReplyForm({
         <div className="muted" style={{ marginBottom: '8px' }}>
           {currentReplyingTo ? `Replying to ${currentReplyingTo.author_name}` : labelText}
         </div>
-        <textarea 
-          ref={textareaRef}
-          name="body" 
-          placeholder={currentReplyingTo ? 'Write your reply…' : placeholder} 
+        <MentionableTextarea
+          ref={bodyComponentRef}
+          innerRef={textareaRef}
+          name="body"
+          placeholder={currentReplyingTo ? 'Write your reply…' : placeholder}
           required={!enableImageUploads}
           defaultValue={currentPrefill}
           style={{ marginBottom: '0' }}

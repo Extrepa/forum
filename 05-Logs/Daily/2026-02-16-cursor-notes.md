@@ -1,5 +1,105 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Development Post #11 (2026-02-16)
+
+Created `05-Logs/Development/2026-02-16-development-post-11.md` using this cursor notes file as source. Covers: private messaging (DMs), Errl Boombox, threaded replies (events/timeline/music/sections), music URL auto-detect, notification controls (per-section, admin events, private/conversation prefs), Custom Neon picker, feed/home/section layout polish, keyboard controls, account/profile updates, notification cleanup on undo. Styled like posts 9 and 10 (user-friendly top, technical bottom).
+
+---
+
+## @mention autocomplete across forum (2026-02-16)
+
+**Request:** Enable `@` mention autocomplete in posts, comments, and messaging everywhere.
+
+**Changes:**
+
+1. **API** (`src/app/api/messages/users/route.js`):
+   - `list=all` returns up to 50 users for autocomplete
+   - `for=mentions` returns all forum users (no messageability filter) for posts/comments
+   - Search supports 1-character `q` for autocomplete
+
+2. **MentionableTextarea** (`src/components/MentionableTextarea.js`):
+   - Detects `@` trigger, fetches users (empty query -> `list=all`, otherwise `q=query`), shows popover above textarea
+   - Supports controlled/uncontrolled usage; `forMentions` prop (default true) for forum-wide users
+   - `forwardRef` exposes `setValue` and `focus` for programmatic updates
+   - Uses `.messages-compose-userlist` and `.messages-compose-user-option` for styling
+
+3. **Formatting lib** (`src/lib/formatting.js`):
+   - `wrapSelection(textarea, before, after)` and `insertAtCursor(textarea, text)` both dispatch `input` so MentionableTextarea stays in sync
+
+4. **Integration:**
+   - **Messages**: Compose modal and inline reply use MentionableTextarea
+   - **Posts**: GenericPostForm, PostForm, MusicPostForm, ProjectForm, ProjectUpdateForm, DevLogForm, PostEditForm, EditThreadForm
+   - **Comments**: CollapsibleReplyForm, CollapsibleCommentForm
+   - **Threaded/Event comments**: ThreadedCommentsSection, EventCommentsSection
+   - **Replies**: ReplyForm (with `bodyComponentRef` for quote/clear)
+
+### Verification (double-check)
+
+| Component | Has MentionableTextarea | Notes |
+|-----------|-------------------------|-------|
+| MessagesClient (compose) | Yes | Line ~557 |
+| MessagesClient (inline reply) | Yes | Line ~734 |
+| GenericPostForm | Yes | Body field |
+| PostForm | Yes | Body field |
+| MusicPostForm | Yes | Body field, innerRef=bodyRef |
+| ProjectForm | Yes | Body field |
+| ProjectUpdateForm | Yes | Body field |
+| DevLogForm | Yes | Body field; `name="links"` is plain textarea (URL list, not post body) |
+| PostEditForm | Yes | Body field |
+| EditThreadForm | Yes | Body field |
+| ReplyForm | Yes | bodyComponentRef for quote/clear |
+| CollapsibleReplyForm | Yes | bodyComponentRef for clear on replyToChanged |
+| CollapsibleCommentForm | Yes | |
+| ThreadedCommentsSection | Yes | bodyComponentRef for clear on replyToChanged |
+| EventCommentsSection | Yes | bodyComponentRef for clear on replyToChanged |
+
+**Intentionally not integrated:** ProfileTabsClient guestbook, AdminConsole broadcast/drawer post edit (admin-only tools; could add later if desired).
+
+**Files touched:** `MentionableTextarea.js`, `formatting.js`, `MessagesClient.js`, post forms, reply/comment forms, `users/route.js`, `globals.css` (user list classes reused).
+
+### Manual test suggestions
+
+- [ ] Type `@` in compose modal body -> user list appears
+- [ ] Type `@` in inline reply (Messages) -> user list appears
+- [ ] Type `@` in new post (Generic/Post/Music/Project/DevLog) -> user list appears
+- [ ] Type `@` in post edit, thread edit -> user list appears
+- [ ] Type `@` in reply form, collapsible reply, collapsible comment -> user list appears
+- [ ] Type `@` in ThreadedCommentsSection / EventCommentsSection -> user list appears
+- [ ] Select user from list -> `@username ` inserted
+- [ ] ReplyForm: quote, then type `@` -> works; clear -> body clears
+- [ ] Formatting toolbar (B/I/etc) -> MentionableTextarea stays in sync after wrapSelection
+
+### Double-check audit (2026-02-16)
+
+**Ref usage:**
+
+| Component | bodyComponentRef | innerRef | Purpose |
+|-----------|------------------|----------|---------|
+| ReplyForm | Yes | bodyRef | setValue for quote/clear; bodyRef for wrapSelection |
+| CollapsibleReplyForm | Yes | textareaRef | setValue on replyToChanged |
+| ThreadedCommentsSection | Yes | textareaRef | setValue on replyToChanged |
+| EventCommentsSection | Yes | textareaRef | setValue on replyToChanged |
+| DevLogForm | Yes | bodyRef | setValue for quick-update template; bodyRef for wrapSelection/insertAtCursor |
+| MessagesClient (compose) | No | composeBodyRef | Controlled (value/onChange); applyFormatting uses setComposeBody directly |
+| MessagesClient (inline reply) | No | replyBodyRef | Same as compose |
+| GenericPostForm, PostForm, MusicPostForm, ProjectForm, ProjectUpdateForm | No | bodyRef/descriptionRef | wrapSelection only; no programmatic clear |
+| PostEditForm, EditThreadForm | No | bodyRef | wrapSelection only |
+| CollapsibleCommentForm | No | No | No formatting toolbar, no programmatic clear |
+
+**Formatting integration:**
+
+- Forms using `wrapSelection` / `insertAtCursor` from `formatting.js`: GenericPostForm, PostForm, MusicPostForm, ProjectForm, ProjectUpdateForm, DevLogForm, PostEditForm, EditThreadForm, ReplyForm. All pass `innerRef` so the textarea DOM node is available; formatting lib dispatches `input` for sync.
+- MessagesClient uses its own `applyFormatting(textareaRef, setBody, before, after)` which calls `setBody` directly (controlled state), so no `input` dispatch needed.
+
+**API / component behavior:**
+
+- `forMentions` default true -> forum-wide users (posts, comments). MessagesClient does not pass `forMentions`, so default applies (forum-wide in DMs too).
+- MentionableTextarea: `@` at start or after whitespace; query cannot contain spaces; 150ms debounce; ArrowUp/Down, Enter/Tab, Escape, click outside to dismiss.
+
+**Intentionally not integrated:** ProfileTabsClient guestbook, AdminConsole broadcast/drawer (admin-only). DevLogForm `name="links"` is plain textarea (URL list, not post body).
+
+---
+
 ## Mobile: remove pink tap highlight on section cards (2026-02-16)
 
 **Request:** Remove pink highlighting that appears when tapping a section on mobile.
@@ -79,6 +179,32 @@
 ### Supersedes
 
 Earlier "Messages page" work (same day) described compose modal as using `card` + `messages-compose-modal`. That structure is superseded: compose now uses CreatePostModal (no inner `.card`).
+
+---
+
+## Messages: @mention autocomplete in message body (2026-02-16)
+
+**Request:** @mentions should pull up a list of users when typing in the message body (like the To field).
+
+**Changes:**
+
+1. **API** (`src/app/api/messages/users/route.js`): Added `list=all`—returns up to 50 messageable users for when user types just `@`. Relaxed search to allow 1-character `q` (was 2+ chars) for @mention autocomplete.
+
+2. **MentionableTextarea** (`src/components/MentionableTextarea.js`): New component that wraps a textarea and detects `@` trigger. When user types `@` (or `@` + partial query), fetches users (list=all when empty, q=query when typing), shows a popover above the textarea. User can click or use ArrowUp/Down + Enter/Tab to select. Inserts `@username ` at cursor. Reuses `.messages-compose-userlist` and `.messages-compose-user-option` styling.
+
+3. **MessagesClient**: Replaced Message textareas (compose modal + inline reply) with `MentionableTextarea`. Placeholder updated to "Write a message... (Markdown supported, @ to mention)".
+
+**Result:** Typing `@` in the message body shows a list of users; `@` alone shows all messageable users (up to 50); `@j` filters by "j". Select via click or keyboard.
+
+---
+
+## Messages sidebar: compact New message button on mobile (2026-02-16)
+
+**Request:** "New message" button too large on mobile; page purpose not clear.
+
+**Changes** (`src/components/MessagesClient.js`):
+- On mobile: header stacks (column layout); "New message" uses smaller padding (6px 12px), font (12px), and `alignSelf: 'flex-start'` so it sizes to content instead of stretching
+- Empty state: "No conversations yet. Tap New message above to start." for clearer next step
 
 ---
 

@@ -11,8 +11,9 @@ const MESSAGEABLE_ROLES = {
   [ROLE_ADMIN]: [ROLE_DRIPLET, ROLE_DRIP_NOMAD, ROLE_MOD, ROLE_ADMIN],
 };
 
-/** GET /api/messages/users?q= - Search users for composing a message. Only returns users the sender can message by role. */
+/** GET /api/messages/users?q= - Search users (1+ chars). For DMs: messageable only. Add for=mentions for forum-wide. */
 /** GET /api/messages/users?list=recent - Return recent conversation participants (for quick picker). */
+/** GET /api/messages/users?list=all - For @mentions: all users. For DMs: messageable only. Add for=mentions for forum-wide. */
 export async function GET(request) {
   const user = await getSessionUser();
   if (!user) {
@@ -22,6 +23,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const q = String(searchParams.get('q') || '').trim();
   const list = searchParams.get('list');
+  const forMentions = searchParams.get('for') === 'mentions'; // Forum-wide @mentions (posts, comments): all users
 
   const db = await getDb();
   const senderRole = user.role || ROLE_DRIPLET;
@@ -29,6 +31,30 @@ export async function GET(request) {
   const rolePlaceholders = allowedRoles.map(() => '?').join(',');
 
   try {
+    // list=all: return users for @mention autocomplete (no search query)
+    if (list === 'all') {
+      const roleFilter = forMentions ? '' : `AND role IN (${rolePlaceholders})`;
+      const bindArgs = forMentions ? [user.id] : [user.id, ...allowedRoles];
+      const { results } = await db
+        .prepare(
+          `SELECT id, username, preferred_username_color_index
+           FROM users
+           WHERE id != ? AND (is_deleted = 0 OR is_deleted IS NULL) ${roleFilter}
+           ORDER BY username ASC
+           LIMIT 50`
+        )
+        .bind(...bindArgs)
+        .all();
+
+      return NextResponse.json({
+        users: (results || []).map((u) => ({
+          id: u.id,
+          username: u.username,
+          preferred_username_color_index: u.preferred_username_color_index,
+        })),
+      });
+    }
+
     // list=recent: return users from recent conversations (for quick picker without typing)
     if (list === 'recent') {
       const { results } = await db
@@ -57,12 +83,14 @@ export async function GET(request) {
       });
     }
 
-    if (!q || q.length < 2) {
+    if (!q) {
       return NextResponse.json({ users: [] });
     }
 
     const term = `%${q}%`;
     const normTerm = `%${q.toLowerCase()}%`;
+    const roleFilter = forMentions ? '' : `AND role IN (${rolePlaceholders})`;
+    const bindArgs = forMentions ? [term, normTerm, user.id] : [term, normTerm, user.id, ...allowedRoles];
 
     const { results } = await db
       .prepare(
@@ -71,11 +99,11 @@ export async function GET(request) {
          WHERE (username LIKE ? OR username_norm LIKE ?)
            AND id != ?
            AND (is_deleted = 0 OR is_deleted IS NULL)
-           AND role IN (${rolePlaceholders})
+           ${roleFilter}
          ORDER BY username ASC
          LIMIT 30`
       )
-      .bind(term, normTerm, user.id, ...allowedRoles)
+      .bind(...bindArgs)
       .all();
 
     return NextResponse.json({

@@ -1,34 +1,23 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { quoteMarkdown, combineQuotes } from '../lib/quotes';
+import { combineQuotes } from '../lib/quotes';
+import MentionableTextarea from './MentionableTextarea';
+import { wrapSelection } from '../lib/formatting';
 
 export default function ReplyForm({ threadId, initialQuotes = [], action }) {
   const [selectedQuotes, setSelectedQuotes] = useState(initialQuotes);
   const [colorsOpen, setColorsOpen] = useState(false);
   const bodyRef = useRef(null);
+  const bodyComponentRef = useRef(null);
 
   useEffect(() => {
-    if (selectedQuotes.length > 0 && bodyRef.current) {
-      const combinedQuotes = combineQuotes(selectedQuotes);
-      bodyRef.current.value = combinedQuotes;
+    if (selectedQuotes.length > 0) {
+      bodyComponentRef.current?.setValue?.(combineQuotes(selectedQuotes));
     }
   }, [selectedQuotes]);
 
-  function wrapSelection(textarea, before, after = '') {
-    const start = textarea.selectionStart || 0;
-    const end = textarea.selectionEnd || 0;
-    const value = textarea.value;
-    const selected = value.slice(start, end);
-    const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
-    textarea.value = nextValue;
-    const cursor = start + before.length + selected.length + after.length;
-    textarea.focus();
-    textarea.setSelectionRange(cursor, cursor);
-  }
-
   const apply = (before, after) => {
-    if (!bodyRef.current) return;
     wrapSelection(bodyRef.current, before, after);
   };
 
@@ -38,9 +27,7 @@ export default function ReplyForm({ threadId, initialQuotes = [], action }) {
 
   const clearAllQuotes = () => {
     setSelectedQuotes([]);
-    if (bodyRef.current) {
-      bodyRef.current.value = '';
-    }
+    bodyComponentRef.current?.setValue?.('');
   };
 
   return (
@@ -105,11 +92,12 @@ export default function ReplyForm({ threadId, initialQuotes = [], action }) {
             </span>
           ) : null}
         </div>
-        <textarea 
-          ref={bodyRef}
-          name="body" 
-          placeholder="Write your reply..." 
-          required 
+        <MentionableTextarea
+          ref={bodyComponentRef}
+          innerRef={bodyRef}
+          name="body"
+          placeholder="Write your reply..."
+          required
         />
       </label>
       <button type="submit">Post reply</button>

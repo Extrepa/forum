@@ -8,6 +8,7 @@ import { formatTimeAgo, formatDateTimeShort } from '../lib/dates';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { renderMarkdown } from '../lib/markdown';
 import CreatePostModal from './CreatePostModal';
+import MentionableTextarea from './MentionableTextarea';
 
 const MOBILE_BREAKPOINT = 720;
 /* Shared with sidebar/conversation UI (compose modal uses CreatePostModal + global form styles) */
@@ -293,7 +294,16 @@ export default function MessagesClient({ user, isAdmin }) {
           display: showSidebar ? undefined : 'none',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'stretch' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 8 : 0,
+            marginBottom: 12,
+          }}
+        >
           <h2 style={{ margin: 0, fontSize: '16px' }}>Inbox</h2>
           <button
             type="button"
@@ -302,6 +312,11 @@ export default function MessagesClient({ user, isAdmin }) {
               ...BUTTON_STYLE,
               borderColor: 'rgba(255, 52, 245, 0.4)',
               color: 'var(--errl-accent-2)',
+              ...(isMobile && {
+                padding: '6px 12px',
+                fontSize: '12px',
+                alignSelf: 'flex-start',
+              }),
             }}
           >
             New message
@@ -311,7 +326,9 @@ export default function MessagesClient({ user, isAdmin }) {
         {loading ? (
           <p className="muted" style={{ fontSize: 13 }}>Loading...</p>
         ) : conversations.length === 0 ? (
-          <p className="muted" style={{ fontSize: 13 }}>No conversations yet.</p>
+          <p className="muted" style={{ fontSize: 13 }}>
+            No conversations yet. Tap New message above to start.
+          </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {conversations.map((c) => (
@@ -537,11 +554,11 @@ export default function MessagesClient({ user, isAdmin }) {
                 <button type="button" title="Link" onClick={() => applyFormatting(replyBodyRef, setComposeBody, '[text](', ')')}>[]</button>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                <textarea
-                  ref={replyBodyRef}
+                <MentionableTextarea
+                  innerRef={replyBodyRef}
                   value={composeBody}
-                  onChange={(e) => setComposeBody(e.target.value)}
-                  placeholder="Write a message... (Markdown supported)"
+                  onChange={setComposeBody}
+                  placeholder="Write a message... (Markdown supported, @ to mention)"
                   rows={2}
                   style={{
                     ...INPUT_STYLE,
@@ -714,11 +731,11 @@ export default function MessagesClient({ user, isAdmin }) {
               <button type="button" title="Code" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '`', '`')}>`</button>
               <button type="button" title="Link" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '[text](', ')')}>[]</button>
             </div>
-            <textarea
-              ref={composeBodyRef}
+            <MentionableTextarea
+              innerRef={composeBodyRef}
               value={composeBody}
-              onChange={(e) => setComposeBody(e.target.value)}
-              placeholder="Write your message... (Markdown supported)"
+              onChange={setComposeBody}
+              placeholder="Write your message... (Markdown supported). Type @ to mention users."
               rows={4}
               style={{ resize: 'vertical' }}
             />

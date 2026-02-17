@@ -2,22 +2,12 @@
 
 import { useRef, useState } from 'react';
 import MarkdownUploader from './MarkdownUploader';
+import MentionableTextarea from './MentionableTextarea';
+import { wrapSelection } from '../lib/formatting';
 import {
   formatDateTimeLocalInputInForumTime,
   getCurrentDateTimeLocalInputInForumTime
 } from '../lib/dates';
-
-function wrapSelection(textarea, before, after = '') {
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const value = textarea.value;
-  const selected = value.slice(start, end);
-  const nextValue = value.slice(0, start) + before + selected + after + value.slice(end);
-  textarea.value = nextValue;
-  const cursor = start + before.length + selected.length + after.length;
-  textarea.focus();
-  textarea.setSelectionRange(cursor, cursor);
-}
 
 export default function PostForm({
   action,
@@ -41,9 +31,6 @@ export default function PostForm({
   const [nomadOnly, setNomadOnly] = useState(Boolean(initialData?.visibility_scope === 'nomads'));
 
   const apply = (before, after) => {
-    if (!bodyRef.current) {
-      return;
-    }
     wrapSelection(bodyRef.current, before, after);
   };
 
@@ -146,8 +133,8 @@ export default function PostForm({
             </span>
           ) : null}
         </div>
-        <textarea
-          ref={bodyRef}
+        <MentionableTextarea
+          innerRef={bodyRef}
           name="body"
           placeholder={bodyLabel || 'Share the details...'}
           required={bodyRequired}

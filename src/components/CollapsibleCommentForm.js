@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import MentionableTextarea from './MentionableTextarea';
 
 export default function CollapsibleCommentForm({ 
   action, 
@@ -30,7 +31,7 @@ export default function CollapsibleCommentForm({
       ))}
       <label>
         <div className="muted">{labelText}</div>
-        <textarea name="body" placeholder={placeholder} required />
+        <MentionableTextarea name="body" placeholder={placeholder} required />
       </label>
       <div style={{ display: 'flex', gap: '10px' }}>
         <button type="submit">{buttonLabel}</button>
