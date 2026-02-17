@@ -7,19 +7,10 @@ import Username from './Username';
 import { formatTimeAgo, formatDateTimeShort } from '../lib/dates';
 import { getUsernameColorIndex } from '../lib/usernameColor';
 import { renderMarkdown } from '../lib/markdown';
+import CreatePostModal from './CreatePostModal';
 
 const MOBILE_BREAKPOINT = 720;
-/* Match forum design: softer radii (12–14px), pill shapes for chips */
-const INPUT_STYLE = {
-  width: '100%',
-  padding: '10px 14px',
-  borderRadius: '12px',
-  border: '1px solid rgba(52, 225, 255, 0.3)',
-  background: 'rgba(2, 7, 10, 0.6)',
-  color: 'var(--ink)',
-  fontSize: '14px',
-};
-
+/* Shared with sidebar/conversation UI (compose modal uses CreatePostModal + global form styles) */
 const BUTTON_STYLE = {
   padding: '8px 16px',
   borderRadius: '999px',
@@ -29,6 +20,15 @@ const BUTTON_STYLE = {
   fontWeight: 600,
   fontSize: '13px',
   cursor: 'pointer',
+};
+const INPUT_STYLE = {
+  width: '100%',
+  padding: '10px 14px',
+  borderRadius: '12px',
+  border: '1px solid rgba(52, 225, 255, 0.3)',
+  background: 'rgba(2, 7, 10, 0.6)',
+  color: 'var(--ink)',
+  fontSize: '14px',
 };
 
 function truncate(str, max = 60) {
@@ -212,15 +212,6 @@ export default function MessagesClient({ user, isAdmin }) {
       setSending(false);
     }
   };
-
-  useEffect(() => {
-    if (!composeOpen) return;
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') setComposeOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [composeOpen]);
 
   useEffect(() => {
     if (composeOpen) {
@@ -575,241 +566,183 @@ export default function MessagesClient({ user, isAdmin }) {
         ) : null}
       </div>
 
-      {composeOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Compose message"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1200,
-            background: 'rgba(0,0,0,0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
-          onClick={(e) => e.target === e.currentTarget && setComposeOpen(false)}
-        >
-          <div
-            className="card messages-compose-modal"
-            style={{
-              width: 'min(440px, 100%)',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: '20px 24px',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: '0 0 16px' }}>New message</h3>
-
-            {isAdmin && (
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Admin: Send to role</label>
-                <select
-                  value={broadcastRole}
-                  onChange={(e) => setBroadcastRole(e.target.value)}
-                  style={{ ...INPUT_STYLE }}
-                >
-                  <option value="">-- Select role (optional) --</option>
-                  <option value="all">All users</option>
-                  <option value="user">Driplets (user)</option>
-                  <option value="drip_nomad">Drip Nomads</option>
-                  <option value="mod">Moderators</option>
-                  <option value="admin">Admins</option>
-                </select>
-              </div>
-            )}
-
-            {!broadcastRole && (
-              <>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>To</label>
-                  <input
-                    type="text"
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    placeholder="Search users or choose from list below..."
-                    style={INPUT_STYLE}
-                  />
-                  {selectedUsers.length >= 2 && (
-                    <div
-                  style={{
-                    marginTop: 8,
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                        background: 'rgba(255, 52, 245, 0.12)',
-                        border: '1px solid rgba(255, 52, 245, 0.3)',
-                        fontSize: 12,
-                        color: 'var(--errl-accent-2)',
-                      }}
-                    >
-                      Group conversation ({selectedUsers.length} recipients). Add a subject below to name the group.
-                    </div>
-                  )}
-                  {userSearch.length >= 2 && userResults.length > 0 && (
-                    <div
-                      style={{
-                        marginTop: 4,
-                        border: '1px solid rgba(52, 225, 255, 0.25)',
-                        borderRadius: '12px',
-                        maxHeight: 140,
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Search results</div>
-                      {userResults.map((u) => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          onClick={() => addUser(u)}
-                          disabled={selectedUsers.some((x) => x.id === u.id)}
-                          style={{
-                            display: 'block',
-                            width: '100%',
-                            padding: '8px 12px',
-                            textAlign: 'left',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--ink)',
-                            cursor: 'pointer',
-                            fontSize: 13,
-                            opacity: selectedUsers.some((x) => x.id === u.id) ? 0.5 : 1,
-                          }}
-                        >
-                          <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {userSearch.length < 2 && recentUsers.length > 0 && (
-                    <div
-                      style={{
-                        marginTop: 4,
-                        border: '1px solid rgba(52, 225, 255, 0.25)',
-                        borderRadius: '12px',
-                        maxHeight: 140,
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Recent conversations</div>
-                      {recentUsers.map((u) => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          onClick={() => addUser(u)}
-                          disabled={selectedUsers.some((x) => x.id === u.id)}
-                          style={{
-                            display: 'block',
-                            width: '100%',
-                            padding: '8px 12px',
-                            textAlign: 'left',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--ink)',
-                            cursor: 'pointer',
-                            fontSize: 13,
-                            opacity: selectedUsers.some((x) => x.id === u.id) ? 0.5 : 1,
-                          }}
-                        >
-                          <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {selectedUsers.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                      {selectedUsers.map((u) => (
-                        <span
-                          key={u.id}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '4px 10px',
-                            borderRadius: 999,
-                            background: 'rgba(52, 225, 255, 0.2)',
-                            fontSize: 12,
-                          }}
-                        >
-                          {u.username}
-                          <button
-                            type="button"
-                            onClick={() => removeUser(u.id)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: 'var(--muted)',
-                              cursor: 'pointer',
-                              padding: 0,
-                              fontSize: 14,
-                            }}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-                    {selectedUsers.length >= 2 ? 'Group name (recommended)' : 'Subject (optional, for groups)'}
-                  </label>
-                  <input
-                    type="text"
-                    value={composeSubject}
-                    onChange={(e) => setComposeSubject(e.target.value)}
-                    placeholder={selectedUsers.length >= 2 ? 'e.g. Trip planning, Project team' : 'Group subject'}
-                    style={INPUT_STYLE}
-                  />
-                </div>
-              </>
-            )}
-
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Message</label>
-              <div className="formatting-toolbar" style={{ marginBottom: 6 }}>
-                <button type="button" title="Bold" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '**', '**')}>B</button>
-                <button type="button" title="Italic" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '*', '*')}>I</button>
-                <button type="button" title="Code" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '`', '`')}>`</button>
-                <button type="button" title="Link" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '[text](', ')')}>[]</button>
-              </div>
-              <textarea
-                ref={composeBodyRef}
-                value={composeBody}
-                onChange={(e) => setComposeBody(e.target.value)}
-                placeholder="Write your message... (Markdown supported)"
-                rows={4}
-                style={{ ...INPUT_STYLE, resize: 'vertical' }}
-              />
-            </div>
-
-            {error && (
-              <p style={{ color: '#ff6b6b', fontSize: 13, marginBottom: 12 }}>{error}</p>
-            )}
-
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setComposeOpen(false)} style={BUTTON_STYLE}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleComposeSubmit}
-                disabled={sending}
-                style={{
-                  ...BUTTON_STYLE,
-                  borderColor: 'rgba(255, 52, 245, 0.5)',
-                  color: 'var(--errl-accent-2)',
-                }}
+      <CreatePostModal
+        isOpen={composeOpen}
+        onClose={() => setComposeOpen(false)}
+        title="New message"
+        className="messages-compose-modal"
+        maxWidth="440px"
+        maxHeight="90vh"
+        confirmOnUnsavedChanges={false}
+      >
+        <form onSubmit={handleComposeSubmit} className="stack" style={{ gap: 16 }}>
+          {isAdmin && (
+            <label className="text-field">
+              <div className="muted">Admin: Send to role</div>
+              <select
+                value={broadcastRole}
+                onChange={(e) => setBroadcastRole(e.target.value)}
               >
-                {sending ? 'Sending...' : 'Send'}
-              </button>
+                <option value="">-- Select role (optional) --</option>
+                <option value="all">All users</option>
+                <option value="user">Driplets (user)</option>
+                <option value="drip_nomad">Drip Nomads</option>
+                <option value="mod">Moderators</option>
+                <option value="admin">Admins</option>
+              </select>
+            </label>
+          )}
+
+          {!broadcastRole && (
+            <>
+              <label className="text-field">
+                <div className="muted">To</div>
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder={recentUsers.length > 0 ? 'Search users or pick from recent below' : 'Type 2+ characters to search users'}
+                  autoComplete="off"
+                />
+                {recentUsers.length > 0 && userSearch.length < 2 && (
+                  <p className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                    Recent conversations shown below. Or type to search.
+                  </p>
+                )}
+                {selectedUsers.length >= 2 && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      padding: '8px 12px',
+                      borderRadius: '12px',
+                      background: 'rgba(255, 52, 245, 0.12)',
+                      border: '1px solid rgba(255, 52, 245, 0.3)',
+                      fontSize: 12,
+                      color: 'var(--errl-accent-2)',
+                    }}
+                  >
+                    Group conversation ({selectedUsers.length} recipients). Add a subject below to name the group.
+                  </div>
+                )}
+                {userSearch.length >= 2 && userResults.length > 0 && (
+                  <div className="messages-compose-userlist">
+                    <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Search results</div>
+                    {userResults.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => addUser(u)}
+                        disabled={selectedUsers.some((x) => x.id === u.id)}
+                        className="messages-compose-user-option"
+                      >
+                        <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {userSearch.length < 2 && recentUsers.length > 0 && (
+                  <div className="messages-compose-userlist">
+                    <div className="muted" style={{ padding: '6px 10px', fontSize: 11 }}>Recent conversations</div>
+                    {recentUsers.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => addUser(u)}
+                        disabled={selectedUsers.some((x) => x.id === u.id)}
+                        className="messages-compose-user-option"
+                      >
+                        <Username name={u.username} preferredColorIndex={u.preferred_username_color_index} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {selectedUsers.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                    {selectedUsers.map((u) => (
+                      <span
+                        key={u.id}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '4px 10px',
+                          borderRadius: 999,
+                          background: 'rgba(52, 225, 255, 0.2)',
+                          fontSize: 12,
+                        }}
+                      >
+                        {u.username}
+                        <button
+                          type="button"
+                          onClick={() => removeUser(u.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--muted)',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: 14,
+                          }}
+                          aria-label={`Remove ${u.username}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </label>
+              <label className="text-field">
+                <div className="muted">
+                  {selectedUsers.length >= 2 ? 'Group name (recommended)' : 'Subject (optional, for groups)'}
+                </div>
+                <input
+                  type="text"
+                  value={composeSubject}
+                  onChange={(e) => setComposeSubject(e.target.value)}
+                  placeholder={selectedUsers.length >= 2 ? 'e.g. Trip planning, Project team' : 'Group subject'}
+                />
+              </label>
+            </>
+          )}
+
+          <label className="text-field">
+            <div className="muted">Message</div>
+            <div className="formatting-toolbar" style={{ marginBottom: 6 }}>
+              <button type="button" title="Bold" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '**', '**')}>B</button>
+              <button type="button" title="Italic" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '*', '*')}>I</button>
+              <button type="button" title="Code" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '`', '`')}>`</button>
+              <button type="button" title="Link" onClick={() => applyFormatting(composeBodyRef, setComposeBody, '[text](', ')')}>[]</button>
             </div>
+            <textarea
+              ref={composeBodyRef}
+              value={composeBody}
+              onChange={(e) => setComposeBody(e.target.value)}
+              placeholder="Write your message... (Markdown supported)"
+              rows={4}
+              style={{ resize: 'vertical' }}
+            />
+          </label>
+
+          {error && (
+            <p style={{ color: '#ff6b6b', fontSize: 13 }}>{error}</p>
+          )}
+
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => setComposeOpen(false)} className="button" style={{ background: 'rgba(2, 7, 10, 0.6)', color: 'var(--ink)', border: '1px solid rgba(52, 225, 255, 0.3)' }}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={sending}
+              className="button"
+              style={sending ? { opacity: 0.7 } : {}}
+            >
+              {sending ? 'Sending...' : 'Send'}
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </CreatePostModal>
     </div>
   );
 }

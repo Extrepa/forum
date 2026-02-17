@@ -106,6 +106,7 @@ body {
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -631,17 +632,7 @@ a {
   }
 }
 
-/* Compose modal - match forum modal styling */
-.messages-compose-modal {
-  border-radius: var(--radius);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-}
-
-.messages-compose-modal input,
-.messages-compose-modal textarea,
-.messages-compose-modal select {
-  border-radius: 12px;
-}
+/* Compose modal styling: see shared modal block (.edit-post-modal, .create-post-modal, .messages-compose-modal) for gradient border, form, formatting-toolbar. User picker: .messages-compose-userlist, .messages-compose-user-option. */
 
 /* DM message bodies use same markdown styling as post-body */
 .dm-message-body.post-body,
@@ -9172,10 +9163,11 @@ header::before {
   box-shadow: 0 0 16px rgba(255, 52, 245, 0.55) !important;
 }
 
-/* Edit/create/account modal: single gradient border, no neon pseudo-elements (avoids mobile compositing glitches). */
+/* Edit/create/account/messages-compose modal: single gradient border, no neon pseudo-elements (avoids mobile compositing glitches). */
 .edit-post-modal,
 .create-post-modal,
-.account-edit-modal {
+.account-edit-modal,
+.messages-compose-modal {
   border: 1px solid transparent;
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
@@ -9199,7 +9191,9 @@ header::before {
 .create-post-modal::before,
 .create-post-modal::after,
 .account-edit-modal::before,
-.account-edit-modal::after {
+.account-edit-modal::after,
+.messages-compose-modal::before,
+.messages-compose-modal::after {
   content: none !important;
   display: none !important;
 }
@@ -9248,15 +9242,53 @@ header::before {
 .create-post-modal .text-field,
 .create-post-modal input,
 .create-post-modal textarea,
-.create-post-modal select {
+.create-post-modal select,
+.messages-compose-modal form,
+.messages-compose-modal label,
+.messages-compose-modal .text-field,
+.messages-compose-modal input,
+.messages-compose-modal textarea,
+.messages-compose-modal select {
   max-width: 100%;
   min-width: 0;
 }
 
 .edit-post-modal .formatting-toolbar,
-.create-post-modal .formatting-toolbar {
+.create-post-modal .formatting-toolbar,
+.messages-compose-modal .formatting-toolbar {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+}
+
+.messages-compose-userlist {
+  margin-top: 4px;
+  border: 1px solid rgba(52, 225, 255, 0.25);
+  border-radius: 12px;
+  max-height: 140px;
+  overflow-y: auto;
+  background: rgba(2, 7, 10, 0.4);
+}
+
+.messages-compose-user-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.messages-compose-user-option:hover:not(:disabled) {
+  background: rgba(52, 225, 255, 0.1);
+}
+
+.messages-compose-user-option:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .modal-content .card {

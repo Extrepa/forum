@@ -1,5 +1,87 @@
 # Daily Log - 2026-02-16 - Cursor Notes
 
+## Mobile: remove pink tap highlight on section cards (2026-02-16)
+
+**Request:** Remove pink highlighting that appears when tapping a section on mobile.
+
+**Change:** Added `-webkit-tap-highlight-color: transparent` to the universal `*` selector in `src/app/globals.css` to disable the default WebKit tap highlight overlay on mobile Safari/Chrome.
+
+**Scope:** Applies globally; eliminates the pink/gray tap flash on all tappable elements (section cards, links, buttons, etc.).
+
+**Files touched:**
+
+| File | Change |
+|------|--------|
+| `src/app/globals.css` | Added `-webkit-tap-highlight-color: transparent` to `*` selector (line 109) |
+
+---
+
+## Messages compose modal: align with forum modals, shared CSS (2026-02-16)
+
+**Request:** Make the Messages compose modal match other pop-out modals; share CSS and code; fix button styling, borders; ensure dropdown/list for To field works and matches on-screen instructions.
+
+**Changes:**
+
+1. **CreatePostModal** (`src/components/MessagesClient.js`): Replaced custom overlay + card with `CreatePostModal`. Compose now uses `className="messages-compose-modal"` and shares overlay, close (X) button, title, escape, body scroll lock, focus trap with edit/create/account modals.
+
+2. **Shared modal CSS** (`src/app/globals.css`): Added `.messages-compose-modal` to the same rules as `.edit-post-modal`, `.create-post-modal`, `.account-edit-modal`:
+   - Gradient border, no neon pseudo-elements (avoids mobile compositing glitches)
+   - `form`, `label`, `.text-field`, `input`, `textarea`, `select` max-width/min-width
+   - `.formatting-toolbar` overflow
+
+3. **Form structure**: Switched to shared patterns—`label className="text-field"` with `<div className="muted">` for labels; global `input`/`textarea`/`select` styling; `formatting-toolbar` for B/I/code/link; `.button` for Cancel/Send. Cancel uses secondary style (border, muted background); Send uses primary `.button`.
+
+4. **To field and list**:
+   - Placeholder: Dynamic—"Search users or pick from recent below" when `recentUsers.length > 0`, else "Type 2+ characters to search users"
+   - Hint: When recent users exist and search is empty, show "Recent conversations shown below. Or type to search."
+   - User lists (search results, recent) use `.messages-compose-userlist` and `.messages-compose-user-option` CSS classes for consistent styling
+
+5. **User picker CSS**: New `.messages-compose-userlist` (bordered, scrollable, max-height 140px) and `.messages-compose-user-option` (block buttons with hover/disabled states).
+
+6. **CSS cleanup**: Removed redundant `.messages-compose-modal` block (border-radius, box-shadow, input border-radius) from earlier Messages work—these are now covered by the shared modal block and global form styles.
+
+7. **Escape handler**: Removed duplicate Escape key listener in MessagesClient; CreatePostModal already handles Escape to close.
+
+**Result:** Compose modal matches forum modal patterns; shared border/button/form styling; To field instructions and dropdown list are consistent and functional on small viewports.
+
+### Requirements coverage checklist
+
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Match pop-out modals (CreatePostModal) | Done | Uses CreatePostModal; same overlay, close, escape, focus trap, body scroll lock |
+| Share CSS / reduce duplicate code | Done | `.messages-compose-modal` in shared block; `.text-field`, `.formatting-toolbar`, `.button` reused; redundant block removed |
+| Button styling consistent | Done | Cancel: `.button` + secondary overrides; Send: `.button` |
+| Borders consistent | Done | Same gradient border as edit/create/account modals |
+| Admin dropdown (role select) | Done | Uses global `select` styling via `.text-field` |
+| To field dropdown/list | Done | Search results and recent users in `.messages-compose-userlist`; rendered directly under To input |
+| Placeholder matches behavior | Done | Dynamic: "pick from recent below" when recent users exist; "Type 2+ chars" when none |
+| Small viewport / list discoverability | Done | Hint text when recent users exist; list appears below To field (scrollable) |
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `src/components/MessagesClient.js` | Import CreatePostModal; replace custom compose overlay with CreatePostModal; form uses text-field, formatting-toolbar, .button; dynamic placeholder + hint; userlist classes; remove duplicate Escape handler |
+| `src/app/globals.css` | `.messages-compose-modal` in shared modal block (gradient, pseudo-elements, form, formatting-toolbar); `.messages-compose-userlist`, `.messages-compose-user-option`; removed redundant compose block |
+
+### Manual verification (suggested)
+
+- [ ] Open /messages, click "New message": modal opens with CreatePostModal shell (gradient border, X close, title "New message")
+- [ ] Escape closes modal; X closes modal; clicking overlay closes modal
+- [ ] Admin: "Send to role" dropdown visible and styled; other users: To field visible
+- [ ] To field: placeholder shows "Type 2+ characters..." when no recent users; "Search users or pick from recent below" when recent users exist
+- [ ] With recent users: list appears below To field; tap user to add; selected users show as pills
+- [ ] Type 2+ chars: search results appear; tap to add
+- [ ] Formatting toolbar (B, I, `, []) works on Message textarea
+- [ ] Cancel and Send buttons: styled; Send submits form
+- [ ] Mobile viewport: modal scrollable; user list scrollable
+
+### Supersedes
+
+Earlier "Messages page" work (same day) described compose modal as using `card` + `messages-compose-modal`. That structure is superseded: compose now uses CreatePostModal (no inner `.card`).
+
+---
+
 ## Section intro: remove blue divider line (2026-02-16)
 
 **Request:** Remove the blue line divider below section headers (Art & Nostalgia, Bugs & Rants, etc.).
@@ -95,9 +177,9 @@ Existing keyboard support kept/unchanged: NotificationsMenu items (Enter/Space),
    - **Layout**: Removed heavy nested card styling; sidebar and main are sub-regions of the page card with a subtle divider and light background tint on sidebar
    - **Message bubbles**: 14px radius (was 12px)
    - **Dropdowns**: User picker lists use 12px radius
-   - **Compose modal**: Uses `card` class and `messages-compose-modal` for forum-consistent modal styling
+   - **Compose modal**: *Superseded*—see "Messages compose modal: align with forum modals" section. Now uses CreatePostModal (no inner `.card`).
 
-5. **CSS** (`src/app/globals.css`): `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; `.messages-compose-modal` for modal radius and input styling.
+5. **CSS** (`src/app/globals.css`): `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; compose modal styling moved to shared modal block.
 
 ### Additional polish (2026-02-16)
 
@@ -142,9 +224,9 @@ Existing keyboard support kept/unchanged: NotificationsMenu items (Enter/Space),
 
 | File | Changes |
 |------|---------|
-| `src/components/MessagesClient.js` | Mobile layout (mobileView, isMobile, showSidebar/showMain); user picker (recent + search); group UI (badge, subject label); applyFormatting + formatting toolbar (replyBodyRef, composeBodyRef); Escape key listener; error display in conversation view; design constants (INPUT_STYLE, BUTTON_STYLE); refactored layout (no nested CARD_STYLE) |
+| `src/components/MessagesClient.js` | Mobile layout (mobileView, isMobile, showSidebar/showMain); user picker (recent + search); group UI (badge, subject label); applyFormatting + formatting toolbar; error display in conversation view; design constants (INPUT_STYLE, BUTTON_STYLE); *later*: compose refactored to CreatePostModal |
 | `src/app/api/messages/users/route.js` | `?list=recent` param; query for recent conversation participants; role-based filtering |
-| `src/app/globals.css` | `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; `.messages-compose-modal`; `.dm-message-body` (links, blockquote, pre, code styling) |
+| `src/app/globals.css` | `.messages-layout`, `.messages-sidebar`, `.messages-main`; `@media (max-width: 719px)`; `.dm-message-body`; *later*: `.messages-compose-modal` moved to shared modal block; redundant compose block removed |
 
 ### Implementation notes
 
