@@ -314,6 +314,15 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
   const [systemLogArchives, setSystemLogArchives] = useState([]);
   const [imageUploadsEnabled, setImageUploadsEnabled] = useState(stats.imageUploadsEnabled !== false);
   const archiveUrlsRef = useRef([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const onChange = () => setIsMobile(mq.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
   const userKey = (member) => `${member.id}`;
@@ -1228,6 +1237,19 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
 
         {activeTab === 'System Log' && (
           <section className="card stack admin-system-tab">
+            {isMobile ? (
+              <div className="admin-log-metrics-unified">
+                <p className="admin-log-metrics-unified-title muted">Low {minTrafficValue} · Avg {avgTrafficValue} · High {maxTrafficValue}</p>
+                <div className="admin-log-metrics-unified-grid" role="list" aria-label="Activity and operational metrics">
+                  {[...activitySeries.map(({ label, value }) => ({ label, value })), ...operationalTotals].map((item) => (
+                    <div key={item.label} className="admin-log-metrics-unified-cell" role="listitem">
+                      <span className="admin-log-metrics-unified-label">{item.label}</span>
+                      <strong className="admin-log-metrics-unified-value">{item.value}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
             <div className="admin-traffic-card">
               <div className="admin-traffic-header-row">
                 <h3 className="section-title">Network activity</h3>
@@ -1282,6 +1304,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </div>
               </div>
             </div>
+            )}
             <div className="admin-system-log-window admin-system-log-window--expanded">
               <div className="admin-system-log-titlebar">
                 <span>system.log</span>

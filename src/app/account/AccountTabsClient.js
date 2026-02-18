@@ -1071,7 +1071,7 @@ export default function AccountTabsClient({ activeTab, user, stats: initialStats
       {activeTab === 'profile' && user && stats && (
         <div style={{ minWidth: 0, maxWidth: '100%' }}>
           <div className="account-page-title-wrap">
-            <h2 className="section-title">Edit Profile</h2>
+            <h2 className="section-title">Profile Settings</h2>
           </div>
           <hr style={{ marginTop: 0, marginBottom: '10px', border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
           <div className="account-edit-card account-edit-card--tabs-bottom neon-outline-card">

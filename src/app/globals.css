@@ -3185,6 +3185,32 @@ main {
     min-width: 0;
   }
 
+  /* Reduce scroll jank on mobile: backdrop-filter can cause repaint/position glitches */
+  .list-item {
+    backdrop-filter: none;
+  }
+
+  /* Tighter post-meta and list spacing for condensed cards on small viewports */
+  .post-meta {
+    gap: 0;
+  }
+  .post-meta-row1.post-meta-title-row {
+    gap: 4px;
+  }
+  .post-meta-row2 {
+    gap: 2px 8px;
+  }
+  .post-meta-row3 {
+    margin-top: 0;
+  }
+  .list.list--tight {
+    gap: 1px;
+  }
+  .list.list--tight .list-item,
+  .list .list-item {
+    padding: 3px 8px 4px;
+  }
+
   .forum-title {
     font-size: clamp(28px, 12vw, 52px);
   }
@@ -4151,6 +4177,48 @@ textarea {
   color: #dff6ff;
 }
 
+/* Log tab mobile: single at-a-glance grid (rendered only on small viewport via JS) */
+.admin-log-metrics-unified {
+  border-radius: 14px;
+  border: 1px solid rgba(100, 180, 255, 0.24);
+  background: linear-gradient(140deg, rgba(4, 8, 20, 0.96), rgba(6, 15, 28, 0.94));
+  padding: 10px 12px;
+}
+
+.admin-log-metrics-unified-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.admin-log-metrics-unified-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.admin-log-metrics-unified-cell {
+  border: 1px solid rgba(92, 149, 199, 0.28);
+  border-radius: 8px;
+  background: rgba(11, 20, 33, 0.66);
+  padding: 6px 8px;
+  display: grid;
+  gap: 2px;
+}
+
+.admin-log-metrics-unified-label {
+  font-size: 10px;
+  color: rgba(205, 229, 247, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-log-metrics-unified-value {
+  font-size: 13px;
+  color: #dff6ff;
+}
+
 .admin-system-log-window {
   border-radius: 14px;
   border: 1px solid rgba(90, 120, 185, 0.35);
@@ -4283,16 +4351,68 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  /* Overview: single horizontal scroll row for stats so they don't consume vertical space */
+  .admin-stat-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .admin-stat-grid .admin-stat-card {
+    min-width: 88px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 8px 10px;
+  }
+  .admin-stat-grid .admin-stat-value {
+    font-size: 18px;
+  }
+  .admin-stat-grid .admin-stat-label {
+    font-size: 11px;
+  }
+  .admin-stat-grid .admin-stat-helper {
+    font-size: 10px;
+    margin-top: 2px;
+  }
   .admin-overview-layout {
     grid-template-columns: 1fr;
   }
+  /* Feed: Recent actions + Latest threads side-by-side on one row to reduce vertical scroll */
   .admin-overview-feed-scroll {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 10px;
     max-height: none;
-    overflow: visible;
+    padding-right: 0;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .admin-overview-feed-scroll .admin-panel--scroll-list {
+    min-width: min(48%, 200px);
+    flex: 0 0 min(48%, 200px);
+    scroll-snap-align: start;
+  }
+  .admin-overview-feed-scroll .admin-panel-list-scroll {
+    max-height: 160px;
     padding-right: 0;
   }
+  /* Overview system log preview: compact on mobile (fewer lines, hide filters/export) */
+  .admin-overview .admin-panel--system-wide .admin-system-log-controls {
+    display: none;
+  }
+  .admin-overview .admin-panel--system-wide .admin-system-log-list {
+    max-height: 72px;
+  }
+  .admin-overview .admin-panel--system-wide .admin-system-log-archives {
+    display: none;
+  }
   .admin-panel-list-scroll {
-    max-height: 220px;
+    max-height: 160px;
     padding-right: 0;
   }
   .admin-header-bar {
@@ -4340,31 +4460,6 @@ textarea {
   .admin-posts-table th,
   .admin-posts-table td {
     font-size: 12px;
-  }
-  .admin-traffic-bars {
-    height: 150px;
-    gap: 6px;
-    padding: 8px;
-  }
-  .admin-traffic-chart {
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 6px;
-  }
-  .admin-traffic-summary {
-    font-size: 11px;
-    gap: 8px;
-  }
-  .admin-traffic-legend {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .admin-operational-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .admin-traffic-legend-item {
-    padding: 5px 6px;
-    gap: 6px;
   }
   .admin-tab-label-full {
     display: none;
@@ -4756,10 +4851,27 @@ button.ghost:hover,
   gap: 2px;
 }
 
-/* PostMetaBar: single top row (title + stats), then by-line; stats one line, no wrap */
-.post-meta-inline-date {
-  display: inline-block;
-  white-space: nowrap;
+/* PostMetaBar: row 1 = title + stats (top right), row 2 = by/custom, row 3 = last activity (bottom right)
+   Layout lives here only (not inline in JS) so one source of truth and mobile overrides apply. */
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.post-meta-row1.post-meta-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Title grows when stats are present so stats can sit top-right */
+.post-meta-title-row:has(.post-meta-stats-top-right) > *:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .post-meta-title-wrap,
@@ -4781,13 +4893,17 @@ button.ghost:hover,
   font-size: 12px;
 }
 
-.post-meta-row2-with-activity {
-  justify-content: space-between;
+/* Row 1: stats stay top right; when they wrap to second line, margin-left: auto keeps them right-aligned */
+.post-meta-stats-top-right {
+  flex: 0 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .post-meta-last-activity-inline {
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .post-meta-row3 {
@@ -4797,7 +4913,11 @@ button.ghost:hover,
   font-size: 12px;
 }
 
-/* Event row 2: by user (left) + event info (centered in middle) + last activity (right); full width so middle can center */
+.post-meta-last-activity-row {
+  margin-top: 0;
+}
+
+/* Event row 2: by user (left) + event info (centered); last activity is in PostMetaBar row 3 */
 .event-row2 {
   display: flex;
   flex-wrap: wrap;
@@ -4815,13 +4935,6 @@ button.ghost:hover,
   align-items: center;
   justify-content: center;
   min-width: 0;
-}
-
-/* Regular posts: last activity on row 2, wraps to second line (right-aligned) */
-.post-meta-last-activity-second-line {
-  flex-basis: 100%;
-  display: block;
-  text-align: right;
 }
 
 /* Spacing around middot before attendee count (prevents collapse) */
@@ -4846,19 +4959,7 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
-/* Stats in row 2 (by-line): push right on same line; when wrapped to own line, take full width and align right */
-.post-meta-stats-in-row2 {
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-@media (max-width: 480px) {
-  .post-meta-stats-in-row2 {
-    flex-basis: 100%;
-    text-align: right;
-  }
-}
-
-/* Row 1: .post-meta-stats-top-right wraps stats; flex + justify-content: flex-end (inline) keeps them top right and right when wrapped */
+/* Row 1: .post-meta-stats-top-right has margin-left: auto so stats stay right on wrap */
 
 /* Feed event details: one line on large, stack on small */
 .event-details-row {
@@ -4908,20 +5009,12 @@ button.ghost:hover,
   vertical-align: middle;
 }
 
-.event-row2-with-activity .post-meta-last-activity-inline {
-  margin-left: auto;
-}
-
 @media (max-width: 640px) {
   .event-row2 {
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
     gap: 4px;
-  }
-
-  .event-row2.event-row2-with-activity .post-meta-last-activity-inline {
-    align-self: flex-end;
   }
 
   .event-row2-middle {
@@ -6473,13 +6566,11 @@ span:has(.username) + .status-badge {
   text-decoration: none;
 }
 
-/* No hover/focus glow on section cards - user preference */
-.home-section-card::after {
-  opacity: 0;
-  box-shadow: none;
-}
-.home-section-card:hover::after,
-.home-section-card:focus-within::after {
+/* No hover/focus glow on section cards - user preference (override .list-item::after neon) */
+.list-item.home-section-card::after,
+.list-item.home-section-card:hover::after,
+.list-item.home-section-card:focus-within::after,
+.list-item.home-section-card:active::after {
   opacity: 0;
   box-shadow: none;
 }
@@ -8035,6 +8126,13 @@ header::after,
   }
 }
 
+/* Reduce scroll jank: pause list-item border animation when user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .list-item::before {
+    animation: none;
+  }
+}
+
 header::before {
   --neon-outline-anim-duration: 4.3s;
   --neon-outline-anim-delay: -0.2s;
@@ -9024,7 +9122,7 @@ header::before {
 }
 
 @media (max-width: 600px) {
-  /* Title + button same row; description wraps below to reduce card height */
+  /* Title + button same row; description uses full width on bottom row (less wrapping) */
   .section-intro {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
@@ -9033,16 +9131,26 @@ header::before {
     padding-bottom: 12px;
   }
 
+  /* Meta spans full grid; subgrid lets title/desc participate so desc can span row 2 */
   .section-intro__meta {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
     grid-template-rows: auto auto;
     gap: 2px;
     min-width: 0;
   }
 
+  .section-intro__title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
   .section-intro__desc {
-    /* Let description wrap to fit; stays in same rows area as title */
+    /* Full width on row 2 so it uses space below the buttons = fewer lines */
+    grid-column: 1 / -1;
+    grid-row: 2;
     min-width: 0;
   }
 
@@ -9051,6 +9159,7 @@ header::before {
     grid-row: 1;
     justify-self: end;
     align-self: start;
+    z-index: 1;
   }
 }
 

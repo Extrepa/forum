@@ -6,11 +6,9 @@ import { formatDateTimeShort } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout: Row 1 = title (left) + stats (top right). Row 2 = "by user" / custom content / or "by user" + last activity.
- * - When customRowsAfterTitle is passed (e.g. events): row 2 is that custom content only; caller includes last activity in it. No row 3.
- * - When no custom and has last activity: row 2 = by user (line 1) + last activity in .post-meta-last-activity-second-line (line 2, right-aligned). No row 3.
- * - When no custom and no last activity: row 2 = by user only.
- * Stats stay right-aligned (wrapper with flex-end). Uses formatDateTimeShort for compact date/time.
+ * Layout (condensed on all viewports): Row 1 = title (left) + stats (top right); Row 2 = by user or custom (e.g. events); Row 3 = last activity (bottom right) when present.
+ * All layout and spacing live in CSS (globals.css .post-meta, .post-meta-row1, etc.) so one source of truth and mobile overrides apply without fighting inline styles.
+ * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
   title,
@@ -75,58 +73,37 @@ export default function PostMetaBar({
     </span>
   );
 
-  /* When custom (e.g. event): row 2 is custom only; no row 3 (custom includes last activity).
-     When not custom and has last activity: row 2 = by user + last activity (last activity wraps to second line); no row 3. */
   const hasCustomRow2 = customRowsAfterTitle != null;
-  const row2HasActivity = !hasCustomRow2 && hasLastActivity;
-  const row2Content = hasCustomRow2
-    ? customRowsAfterTitle
-    : (row2HasActivity ? (
-        <>
-          {byUserAtTime}
-          <span className="post-meta-last-activity-second-line">{lastActivityEl}</span>
-        </>
-      ) : byUserAtTime);
-
-  /* With custom rows (e.g. events): keep title + stats on row 1. Otherwise: title only on row 1, by + stats on row 2 so by sits directly under title on narrow viewports. */
-  const statsInRow1 = hasCustomRow2 && hasStats;
-  const statsInRow2 = !hasCustomRow2 && hasStats;
+  const row2Content = hasCustomRow2 ? customRowsAfterTitle : byUserAtTime;
 
   return (
-    <div className={`${className} post-meta`.trim()} style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-      {/* Row 1: Title (left); for custom/events also stats (top right). Otherwise stats go in row 2 so title and by stay adjacent when narrow. */}
-      <div
-        className="post-meta-row1 post-meta-title-row"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
-          gap: '8px',
-          minWidth: 0
-        }}
-      >
+    <div className={`${className} post-meta`.trim()}>
+      {/* Row 1: Title (left, wraps) + stats (top right). Layout in CSS so mobile overrides apply. */}
+      <div className="post-meta-row1 post-meta-title-row">
         <TitleElement
           {...titleProps}
-          style={{ ...(showTitleLink ? { textDecoration: 'none', color: 'inherit' } : {}), minWidth: 0, flex: statsInRow1 ? '1 1 auto' : undefined }}
+          style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : undefined}
         >
           <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
-        {statsInRow1 && statsInline && (
-          <div className="post-meta-stats-top-right" style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
+        {hasStats && statsInline && (
+          <div className="post-meta-stats-top-right">
             {statsInline}
           </div>
         )}
       </div>
 
-      {/* Row 2: by user (+ stats when not custom) / custom; when not custom and has last activity, last activity wraps to second line */}
-      <div className={`post-meta-row2 post-meta-by-row${row2HasActivity ? ' post-meta-row2-with-activity' : ''}`}>
+      {/* Row 2: by user only, or custom (e.g. events: by + event info). No stats, no last activity. */}
+      <div className="post-meta-row2 post-meta-by-row">
         {row2Content}
-        {statsInRow2 && statsInline && (
-          <span className="post-meta-stats-in-row2" style={{ marginLeft: 'auto', flexShrink: 0 }}>
-            {statsInline}
-          </span>
-        )}
       </div>
+
+      {/* Row 3: Last activity only (bottom right). Event info is above this in row 2. */}
+      {hasLastActivity && (
+        <div className="post-meta-row3 post-meta-last-activity-row">
+          {lastActivityEl}
+        </div>
+      )}
     </div>
   );
 }
