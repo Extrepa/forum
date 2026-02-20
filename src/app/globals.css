@@ -3556,11 +3556,13 @@ textarea {
   max-width: 100%;
 }
 
-/* Keep post body inside list items within viewport (devlog, feed, section lists) */
+/* Keep post body inside list items within viewport; ensure markdown wraps (no mid-word clip) */
 .list-item .post-body,
 .list-item .post-body-scrollable {
   min-width: 0;
   max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .admin-console {
@@ -4922,9 +4924,10 @@ button.ghost:hover,
   gap: 2px;
 }
 
-/* Feed: contain content so no spill into next card; keep padding tight at all breakpoints */
+/* Feed: contain horizontal spill into next card; allow vertical scroll of post-body-scrollable inside */
 .list.list--tight .list-item {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   padding: 3px 10px 4px;
 }
 
@@ -5213,6 +5216,14 @@ button.ghost:hover,
   padding-right: 8px;
   scrollbar-width: thin;
   scrollbar-color: rgba(52, 225, 255, 0.3) rgba(4, 16, 23, 0.3);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Devlog/section list: taller scroll area on mobile so more content visible before inner scroll */
+@media (max-width: 640px) {
+  .list:not(.list--single-post) .list-item .post-body-scrollable {
+    max-height: min(70vh, 560px);
+  }
 }
 
 .post-body-scrollable::-webkit-scrollbar {

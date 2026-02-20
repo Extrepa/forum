@@ -147,3 +147,15 @@
 - **.post-body:** `max-width: 100%`; **.list-item .post-body, .list-item .post-body-scrollable:** `min-width: 0`, `max-width: 100%` so markdown/embeds don't push layout out.
 
 **Files touched:** `src/app/globals.css`
+
+---
+
+## Devlog vertical truncation / scroll + wrap fix
+
+**Issue:** Development page still showed content cut off (vertical truncation or mid-word clipping); possibly markdown or scroll behaviour.
+
+**Changes (globals.css):**
+- **.list.list--tight .list-item:** `overflow: hidden` → `overflow-x: hidden; overflow-y: visible` so the inner `.post-body-scrollable` can scroll on mobile without the parent clipping it.
+- **.list-item .post-body / .post-body-scrollable:** Added `overflow-wrap: break-word; word-break: break-word` so long words and markdown don’t get clipped horizontally.
+- **.post-body-scrollable:** Added `-webkit-overflow-scrolling: touch` for smoother inner scroll on iOS.
+- **Mobile (max-width: 640px):** `.list:not(.list--single-post) .list-item .post-body-scrollable` now uses `max-height: min(70vh, 560px)` so more of the latest post is visible before needing to scroll inside the card.
