@@ -4941,12 +4941,12 @@ button.ghost:hover,
   }
 }
 
-/* On large viewports, center watermark so it isn't cut off on the right */
+/* On large viewports, center watermark so it isn't cut off; gentler angle */
 @media (min-width: 641px) {
   .list-item-watermark {
     left: 50%;
     right: auto;
-    transform: translate(-50%, -50%) rotate(-5deg);
+    transform: translate(-50%, -50%) rotate(-2deg);
   }
 }
 
