@@ -5254,7 +5254,7 @@ button.ghost:hover,
 /* Devlog/section list: taller scroll area on mobile so more content visible before inner scroll */
 @media (max-width: 640px) {
   .list:not(.list--single-post) .list-item .post-body-scrollable {
-    max-height: min(70vh, 560px);
+    max-height: min(52vh, 420px);
   }
 
   /* Small vertical scrollbar on mobile, consistent with header-library-list and search-results-list */
@@ -7687,9 +7687,7 @@ footer {
 
 /* Scroll to top button */
 .scroll-to-top-button {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
+  position: relative;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -8028,8 +8026,8 @@ footer {
 /* Wrapper for button and tooltip */
 .scroll-to-top-wrapper {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  right: max(24px, calc(env(safe-area-inset-right) + 12px));
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
   z-index: 9999;
 }
 
@@ -8211,8 +8209,8 @@ footer {
 
   /* Mobile wrapper positioning */
   .scroll-to-top-wrapper {
-    bottom: 20px;
-    right: 20px;
+    right: max(20px, calc(env(safe-area-inset-right) + 10px));
+    bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px));
   }
 
   /* Mobile tooltip positioning */
