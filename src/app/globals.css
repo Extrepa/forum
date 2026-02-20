@@ -4934,6 +4934,13 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
+/* On smallest viewports, lower watermark so it's not too high on short cards */
+@media (max-width: 480px) {
+  .list-item-watermark {
+    top: 48%;
+  }
+}
+
 /* Single-post sections: shorter scrollable preview so users can see there's nothing below; preview stays scrollable */
 .list.list--single-post .list-item .post-body-scrollable {
   max-height: 200px;
