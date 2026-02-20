@@ -201,3 +201,13 @@
 **Changes:**
 - **DevLogClient.js:** Added `suppressHydrationWarning` to the `<div className="post-body post-body-scrollable">` that uses `dangerouslySetInnerHTML={{ __html: row.bodyHtml }}`. That subtree is server-generated HTML; suppressing hydration on it avoids #418 when the client’s DOM differs (e.g. whitespace, extensions, or sanitization differences).
 - **globals.css:** `.list-item .post-body` and `.list-item .post-body-scrollable` now include `width: 100%` and `box-sizing: border-box` so the scrollable block takes the list-item width and doesn’t grow from content, keeping text wrapping within the viewport.
+
+---
+
+## First-post consistency: match Lore & Memories (no inner scrollbar)
+
+**Request:** Section list pages should look like Lore & Memories — first post full-height, no inner scrollbar; page scrolls.
+
+**Change:** For the first post only on every section list, use `className="post-body"` instead of `className="post-body post-body-scrollable"`. First post body no longer has max-height or inner scroll; it flows to full height and the page scrolls.
+
+**Files updated:** DevLogClient, LoreMemoriesClient, ProjectsClient, EventsClient, TimelineClient, MusicClient, BugsClient, BugsRantClient, RantClient, LoreClient, NostalgiaClient, MemoriesClient, ArtClient, ArtNostalgiaClient. DevLogClient view-tracking selector updated to `.post-body`.

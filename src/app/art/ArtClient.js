@@ -90,7 +90,7 @@ export default function ArtClient({ posts, notice , headerActions}) {
                       style={{ marginTop: '8px' }}
                     />
                   ) : null}
-                  {!condensed && p.bodyHtml ? <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
+                  {!condensed && p.bodyHtml ? <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: p.bodyHtml }} /> : null}
                 </a>
                 );
               };
