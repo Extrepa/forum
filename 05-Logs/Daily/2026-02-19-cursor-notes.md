@@ -191,3 +191,13 @@
 **Covered:** Horizontal overflow and unwanted horizontal scrollbar; vertical truncation of devlog/section content; markdown (headings, lists, blockquotes, tables) staying within width; consistent behaviour across viewport sizes. No new scrollbars were added; only the erroneous horizontal one is removed and inner scroll remains where intended (e.g. devlog preview).
 
 **If issues return:** Check for new content (e.g. iframes, wide images, or elements with fixed `min-width`/`width`) that bypass these containers; keep using `overflow-x: hidden` and `max-width: 100%` on any new wrapper that can hold user content.
+
+---
+
+## React #418 hydration + devlog overflow (follow-up)
+
+**Observed:** Devlog at 412px still showed horizontal overflow/scrollbar in some cases; Console showed "Minified React error #418" (hydration: server-rendered HTML did not match client).
+
+**Changes:**
+- **DevLogClient.js:** Added `suppressHydrationWarning` to the `<div className="post-body post-body-scrollable">` that uses `dangerouslySetInnerHTML={{ __html: row.bodyHtml }}`. That subtree is server-generated HTML; suppressing hydration on it avoids #418 when the client’s DOM differs (e.g. whitespace, extensions, or sanitization differences).
+- **globals.css:** `.list-item .post-body` and `.list-item .post-body-scrollable` now include `width: 100%` and `box-sizing: border-box` so the scrollable block takes the list-item width and doesn’t grow from content, keeping text wrapping within the viewport.

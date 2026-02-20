@@ -3581,6 +3581,8 @@ textarea {
 .list-item .post-body-scrollable {
   min-width: 0;
   max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -5253,6 +5255,11 @@ button.ghost:hover,
 @media (max-width: 640px) {
   .list:not(.list--single-post) .list-item .post-body-scrollable {
     max-height: min(70vh, 560px);
+  }
+
+  /* Small vertical scrollbar on mobile, consistent with header-library-list and search-results-list */
+  .post-body-scrollable::-webkit-scrollbar {
+    width: 6px;
   }
 }
 
