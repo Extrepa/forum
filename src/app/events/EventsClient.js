@@ -178,7 +178,7 @@ export default function EventsClient({ events, notice , headerActions}) {
                       />
                     ) : null}
                     {!condensed && row.details ? (
-                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.detailsHtml }} />
                     ) : null}
                   </a>
                 );

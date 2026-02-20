@@ -78,7 +78,7 @@ export default function MusicClient({ posts, notice , headerActions}) {
                       showTitleLink={false}
                     />
                     {!condensed && row.bodyHtml ? (
-                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} />
                     ) : null}
                     {!condensed && row.embed ? (
                       <div style={{ marginTop: '8px', marginBottom: '8px' }}>

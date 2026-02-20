@@ -166,7 +166,7 @@ export default function DevLogClient({ logs, notice , headerActions}) {
                       />
                     ) : null}
                     {!condensed ? (
-                      <div className="post-body" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} suppressHydrationWarning />
+                      <div className="post-body post-body-scrollable" style={{ marginTop: '8px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: row.bodyHtml }} suppressHydrationWarning />
                     ) : null}
                   </a>
                 );
