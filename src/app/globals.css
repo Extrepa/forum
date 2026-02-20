@@ -4923,8 +4923,8 @@ button.ghost:hover,
 .list-item-watermark {
   position: absolute;
   right: 10px;
-  top: 50%;
-  transform: translateY(-50%) rotate(-8deg);
+  top: 38%;
+  transform: translateY(-50%) rotate(-5deg);
   font-size: 1.35rem;
   font-weight: 600;
   color: currentColor;
