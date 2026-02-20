@@ -133,7 +133,6 @@ a {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: clamp(16px, 2.8vw, 32px) clamp(8px, 2.2vw, 20px) 48px;
-  height: 100%; /* Ensure site container fills height */
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
@@ -2393,8 +2392,6 @@ main {
   gap: 10px;
   overflow-y: visible;
   overflow-x: hidden;
-  flex: 1; /* Allow main to fill remaining height in flex parent */
-  height: 100%; /* Ensure main container fills height */
   min-width: 0;
   width: 100%;
 }
@@ -2408,7 +2405,6 @@ main {
   position: relative;
   isolation: isolate;
   backdrop-filter: blur(12px);
-  height: 100%; /* Ensure card container fills height */
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden; /* prevent card content from causing page horizontal scrollbar */
@@ -3183,26 +3179,30 @@ main {
 }
 
 @media (max-width: 640px) {
-  /* Ensure mobile viewport scales content; body/html rely on viewport meta */
-  html {
-    overflow-x: hidden;
-  }
-
+  /* Contain horizontal overflow: root + layout; one place for mobile */
+  html,
   body {
     overflow-x: hidden;
     width: 100%;
+    max-width: 100%;
   }
 
   .site {
     padding: 16px 12px 32px;
     width: 100%;
     min-width: 0;
-    max-width: 100%; /* avoid 100vw: it includes scrollbar and can cause horizontal scrollbar */
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   main {
     min-width: 0;
     overflow-x: hidden;
+  }
+
+  /* Footer tagline hover can force width; cap it on small viewports */
+  .footer-tagline-bar:hover .footer-tagline-phrase-2 {
+    min-width: 0;
   }
 
   /* Feed page: prevent header row from forcing width */
@@ -5010,9 +5010,12 @@ button.ghost:hover,
 }
 
 /* Section list previews: capped height, no inner scrollbar (scroll only on full post page) */
+.list.list--tight .list-item .post-body-scrollable,
+.list.list--single-post .list-item .post-body-scrollable {
+  overflow: hidden;
+}
 .list.list--tight .list-item .post-body-scrollable {
   max-height: 400px;
-  overflow: hidden;
 }
 .list.list--single-post .list-item .post-body-scrollable {
   max-height: 200px;
@@ -7585,7 +7588,7 @@ footer {
   font-size: 0;
 }
 
-/* Maintain phrase width during transition to keep centering */
+/* Maintain phrase width during transition to keep centering (overridden on small viewports to prevent horizontal overflow) */
 .footer-tagline-bar:hover .footer-tagline-phrase-2 {
   min-width: max-content; /* Keep width stable during transition */
 }

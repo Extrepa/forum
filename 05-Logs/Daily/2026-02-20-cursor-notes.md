@@ -80,3 +80,24 @@ For the **first** (top / most recent) post only, the body/description/details bl
 | Full post body (has scrollbar when needed) | Lines ~5255–5263 | `.post-body-scrollable` (no .list parent): max-height 400px, overflow-y auto. Section list previews override with the rules above. |
 
 **Client usage:** First post body/details in section lists uses class `post-body post-body-scrollable` so the section-list overrides apply. Full post pages use `post-body-scrollable` without the .list.list--tight .list-item ancestor, so they keep the base scrollable behavior.
+
+---
+
+## Small viewport inner scrollbars removed (2026-02-20)
+
+**Request:** Fix unnecessary inner scrollbars on small viewports (e.g. 430px); overflow and consistency issues between post previews and full post; organize global CSS so the page scrolls as one document.
+
+**Root cause:** `.site` had `height: 100%` and `main` had `flex: 1` and `height: 100%`, creating a height chain. With body only having `min-height: 100vh`, the main content area could get a constrained height and show an inner scrollbar even when content didn’t need it. `.card` had `height: 100%`, stretching in the grid and contributing to the effect. List previews with `.list--single-post` used the base `.post-body-scrollable` (overflow-y: auto), so they showed inner scrollbars; only `.list--tight` had overflow: hidden.
+
+**Changes (globals.css):**
+1. **`.site`** — Removed `height: 100%`. Site no longer forces a full-height column; content dictates height and the document scrolls as one page.
+2. **`main`** — Removed `flex: 1` and `height: 100%`. Main is content-sized; no inner scrollbar on the main content area.
+3. **`.card`** — Removed `height: 100%`. Cards size to content; no stretching that could create overflow/scroll.
+4. **List previews** — `.list.list--single-post .list-item .post-body-scrollable` now gets `overflow: hidden` (same as list--tight), so single-post section previews are clipped with no inner scrollbar. Kept max-height: 200px for single-post and existing tight/single-post/mobile rules.
+
+**Result:** One document scroll on small viewports; no unnecessary inner scrollbars on the main content, section cards, or list previews (tight or single-post). Full post pages still use `post-body` without `post-body-scrollable`, so they have no max-height and scroll with the page.
+
+**Follow-up (vertical + horizontal):** User clarified focus on the vertical scrollbar and horizontal overflow. Horizontal overflow fixes (globals.css):
+- `.site`: `max-width: min(var(--max-width), 100%)` so the site never exceeds viewport.
+- Small viewports (≤640px): `html, body` get `max-width: 100%`; `.card`, `.list`, `.section-intro`, `.footer-grid`, `.footer-tagline-bar` get `max-width: 100%`, `min-width: 0`, `overflow-x: hidden`. Footer tagline hover no longer forces width: `.footer-tagline-bar:hover .footer-tagline-phrase-2 { min-width: 0 }` in that block so the "Errrrrrrrrrrrrl" hover doesn’t cause horizontal scroll.
+- **Simplified:** Reverted to minimal: .site stays `var(--max-width)`; 640px block only has html/body + .site + main + footer-tagline hover override; removed blanket .card/.list/etc. and .footer-tagline-bar base extras.
