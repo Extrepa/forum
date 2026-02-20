@@ -4919,6 +4919,21 @@ button.ghost:hover,
   line-height: 1.2;
 }
 
+/* Section watermark: angled faded text on the right, behind card content (feed only) */
+.list-item-watermark {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-14deg);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+}
+
 /* Single-post sections: shorter scrollable preview so users can see there's nothing below; preview stays scrollable */
 .list.list--single-post .list-item .post-body-scrollable {
   max-height: 200px;
@@ -4952,16 +4967,6 @@ button.ghost:hover,
   align-items: flex-start;
   gap: 8px;
   min-width: 0;
-}
-
-/* When section label is present, stack title then section below */
-.post-meta-title-row:has(.post-meta-section-label) {
-  flex-direction: column;
-  gap: 2px;
-}
-
-.post-meta-section-label {
-  flex-shrink: 0;
 }
 
 .post-meta-title-row {

@@ -565,9 +565,9 @@ export default async function FeedPage() {
                   className={`list-item ${item.is_unread ? 'thread-unread' : ''}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer', '--list-outline-anim-duration': `${outlineDuration}s` }}
                 >
+                  <span className="list-item-watermark" aria-hidden>{item.type}</span>
                   <PostMetaBar
                     title={titleContent}
-                    sectionLabel={`(${item.type})`}
                     author={item.author}
                     authorColorIndex={authorColorIndex}
                     authorPreferredColorIndex={authorPreferredColor}
