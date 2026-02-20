@@ -4941,6 +4941,15 @@ button.ghost:hover,
   }
 }
 
+/* On large viewports, center watermark so it isn't cut off on the right */
+@media (min-width: 641px) {
+  .list-item-watermark {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+}
+
 /* Single-post sections: shorter scrollable preview so users can see there's nothing below; preview stays scrollable */
 .list.list--single-post .list-item .post-body-scrollable {
   max-height: 200px;
