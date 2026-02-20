@@ -3198,6 +3198,11 @@ main {
   main {
     min-width: 0;
     overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .card {
+    overflow-y: visible;
   }
 
   /* Footer tagline hover can force width; cap it on small viewports */
@@ -3249,6 +3254,14 @@ main {
   }
   .post-meta-row1.post-meta-title-row {
     gap: 4px;
+  }
+  /* Contain list-item and post-meta so nothing forces horizontal overflow */
+  .list-item {
+    max-width: 100%;
+  }
+  .list-item .post-meta {
+    min-width: 0;
+    max-width: 100%;
   }
   /* Title one line on condensed: constrain row so ellipsis shows; smaller font + truncate */
   .list-item .post-meta-row1 {
@@ -5009,10 +5022,10 @@ button.ghost:hover,
   }
 }
 
-/* Section list previews: capped height, no inner scrollbar (scroll only on full post page) */
-.list.list--tight .list-item .post-body-scrollable,
-.list.list--single-post .list-item .post-body-scrollable {
-  overflow: hidden;
+/* Section list previews: no inner vertical scrollbar (scroll only on full post page) */
+.list .list-item .post-body-scrollable {
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 .list.list--tight .list-item .post-body-scrollable {
   max-height: 400px;

@@ -75,11 +75,12 @@ For the **first** (top / most recent) post only, the body/description/details bl
 
 | What | Where (globals.css) | What it does |
 |------|---------------------|--------------|
-| Section list preview height + no scrollbar | Lines ~5012–5032 | `.list.list--tight .list-item .post-body-scrollable`: max-height 400px (200px single-post), overflow hidden; mobile: max-height min(38vh, 260px). |
-| Section header no scrollbar | Lines ~2520–2523 | `.card:has(> .section-intro):not(:has(> .list))`: overflow hidden. |
-| Full post body (has scrollbar when needed) | Lines ~5255–5263 | `.post-body-scrollable` (no .list parent): max-height 400px, overflow-y auto. Section list previews override with the rules above. |
+| Section list preview: no inner scrollbar | ~5025–5035 | `.list .list-item .post-body-scrollable` overflow-y/x hidden; `.list.list--tight` max-height 400px; `.list.list--single-post` max-height 200px; mobile 640px: tight gets min(38vh, 260px). |
+| Section header no scrollbar | ~2517–2519 | `.card:has(> .section-intro):not(:has(> .list))`: overflow hidden. |
+| Base scrollable (full post if used) | ~5266–5274 | `.post-body-scrollable`: max-height 400px, overflow-y auto. Overridden by .list .list-item rule above for all section list previews. |
+| Small viewport overflow (horizontal + no inner vertical) | ~3181–3225 | Single 640px block: html/body/site/main/card containment; footer tagline hover; list-item and post-meta max-width/min-width; main and .card overflow-y: visible. |
 
-**Client usage:** First post body/details in section lists uses class `post-body post-body-scrollable` so the section-list overrides apply. Full post pages use `post-body-scrollable` without the .list.list--tight .list-item ancestor, so they keep the base scrollable behavior.
+**Client usage:** First post body/details in section lists use class `post-body post-body-scrollable` inside list items, so the `.list .list-item .post-body-scrollable` rule applies and no inner scrollbar is shown. Full post pages use `post-body` only (no post-body-scrollable), so they scroll with the document.
 
 ---
 
@@ -101,3 +102,42 @@ For the **first** (top / most recent) post only, the body/description/details bl
 - `.site`: `max-width: min(var(--max-width), 100%)` so the site never exceeds viewport.
 - Small viewports (≤640px): `html, body` get `max-width: 100%`; `.card`, `.list`, `.section-intro`, `.footer-grid`, `.footer-tagline-bar` get `max-width: 100%`, `min-width: 0`, `overflow-x: hidden`. Footer tagline hover no longer forces width: `.footer-tagline-bar:hover .footer-tagline-phrase-2 { min-width: 0 }` in that block so the "Errrrrrrrrrrrrl" hover doesn’t cause horizontal scroll.
 - **Simplified:** Reverted to minimal: .site stays `var(--max-width)`; 640px block only has html/body + .site + main + footer-tagline hover override; removed blanket .card/.list/etc. and .footer-tagline-bar base extras.
+
+---
+
+## Double-check and reference (2026-02-20, final)
+
+All scroll/overflow fixes live in `src/app/globals.css`. Single source for each concern.
+
+### Layout: no height chain (document scrolls as one page)
+
+| Selector | Location | What |
+|----------|----------|------|
+| `.site` | ~132 | No `height: 100%`. `max-width: var(--max-width)`; `overflow-x: hidden`. |
+| `main` | ~2389 | No `flex: 1` or `height: 100%`. `overflow-y: visible`; `overflow-x: hidden`. |
+| `.card` | ~2399 | No `height: 100%`. `overflow-x: hidden` only (vertical: visible). |
+
+### Small viewports only (media (max-width: 640px), ~3181)
+
+| Purpose | Rules in that block |
+|---------|---------------------|
+| Horizontal containment | `html, body { overflow-x: hidden; width: 100%; max-width: 100% }`. `.site` same + `max-width: 100%`. `main { min-width: 0; overflow-x: hidden; overflow-y: visible }`. `.card { overflow-y: visible }`. |
+| Footer tagline | `.footer-tagline-bar:hover .footer-tagline-phrase-2 { min-width: 0 }` so hover does not force horizontal scroll. |
+| List/post-meta containment | `.list-item { max-width: 100% }`. `.list-item .post-meta { min-width: 0; max-width: 100% }`. Title row/link/h3 truncation (min-width: 0, overflow: hidden, text-overflow: ellipsis). |
+| Feed | `.feed-header-desc { min-width: 0 !important }`. `.list, .list-item { min-width: 0 }`. |
+
+### List previews: no inner vertical scrollbar
+
+| Selector | Location | What |
+|----------|----------|------|
+| `.list .list-item .post-body-scrollable` | ~5026 | `overflow-y: hidden; overflow-x: hidden` so any section list preview never shows inner scrollbar. |
+| `.list.list--tight .list-item .post-body-scrollable` | ~5030 | `max-height: 400px` (mobile: `min(38vh, 260px)` in nested @media). |
+| `.list.list--single-post .list-item .post-body-scrollable` | ~5032 | `max-height: 200px`. |
+
+Base `.post-body-scrollable` (~5266) keeps `max-height: 400px; overflow-y: auto` for contexts outside `.list .list-item` (e.g. full post if ever used there). Section list clients use `post-body post-body-scrollable` inside list items, so the `.list .list-item` override always applies.
+
+### Verification
+
+- No `height: 100%` on .site, main, or .card.
+- 640px block: one place for mobile overflow; no duplicate or blanket rules on .card/.list/.section-intro/.footer-grid.
+- List preview scrollbar: only `.list .list-item .post-body-scrollable` and the tight/single-post max-heights; no inner vertical scroll on section pages.
