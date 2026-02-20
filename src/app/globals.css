@@ -2458,25 +2458,36 @@ main {
   text-shadow: 0 0 14px rgba(52, 225, 255, 0.22);
 }
 
+/* Section header: title + button row 1, description row 2 (full width) so text never sits under buttons */
 .section-intro {
   display: grid;
-  /* Cap meta width so description wraps; buttons stay right in same band */
-  grid-template-columns: minmax(0, min(1fr, 72ch)) auto;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
   align-items: start;
-  gap: 8px;
+  gap: 4px 10px;
+  padding-block: 6px;
 }
 
 .section-intro__meta {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   min-width: 0;
   display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: auto auto;
   gap: 2px;
 }
 
 .section-intro__title {
+  grid-column: 1;
+  grid-row: 1;
   margin: 0;
 }
 
 .section-intro__desc {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
   margin: 0;
   color: var(--muted);
   font-size: clamp(13px, 1.5vw, 16px);
@@ -2486,10 +2497,16 @@ main {
 }
 
 .section-intro__actions {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  z-index: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -3200,7 +3217,8 @@ main {
   .post-meta-row2 {
     gap: 2px 8px;
   }
-  .post-meta-row3 {
+  .post-meta-row3,
+  .post-meta-row4 {
     margin-top: 0;
   }
   .list.list--tight {
@@ -4851,8 +4869,42 @@ button.ghost:hover,
   gap: 2px;
 }
 
-/* PostMetaBar: row 1 = title + stats (top right), row 2 = by/custom, row 3 = last activity (bottom right)
-   Layout lives here only (not inline in JS) so one source of truth and mobile overrides apply. */
+/* Feed: contain content so no spill into next card; keep padding tight at all breakpoints */
+.list.list--tight .list-item {
+  overflow: hidden;
+  padding: 3px 10px 4px;
+}
+
+.list.list--tight .post-meta {
+  gap: 0;
+}
+
+.list.list--tight .post-meta-row2,
+.list.list--tight .post-meta-row3,
+.list.list--tight .post-meta-row4 {
+  line-height: 1.2;
+}
+
+/* Single-post sections: shorter scrollable preview so users can see there's nothing below; preview stays scrollable */
+.list.list--single-post .list-item .post-body-scrollable {
+  max-height: 200px;
+}
+
+.list.list--single-post .list-item .embed-frame {
+  max-height: 180px;
+  min-height: 100px;
+}
+
+@media (max-width: 640px) {
+  .list.list--single-post .list-item {
+    padding: 4px 10px 6px;
+  }
+}
+
+/* PostMetaBar: DOM order row1=title, row2=by/custom, row3=stats, row4=last activity.
+   Condensed (< 641px): flex column, 3–4 rows as needed (title, by, stats right, last activity right).
+   Wide (>= 641px): 2 rows (title+stats, by+last activity or event details+last activity).
+   Do not reorder or merge rows in JS without updating this layout. */
 .post-meta {
   display: flex;
   flex-direction: column;
@@ -4868,19 +4920,13 @@ button.ghost:hover,
   min-width: 0;
 }
 
-/* Title grows when stats are present so stats can sit top-right */
-.post-meta-title-row:has(.post-meta-stats-top-right) > *:first-child {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.post-meta-title-wrap,
 .post-meta-title-row {
   min-width: 0;
 }
 
 .post-meta-by-row,
-.post-meta-row3 {
+.post-meta-row3,
+.post-meta-row4 {
   min-width: 0;
 }
 
@@ -4893,20 +4939,20 @@ button.ghost:hover,
   font-size: 12px;
 }
 
-/* Row 1: stats stay top right; when they wrap to second line, margin-left: auto keeps them right-aligned */
-.post-meta-stats-top-right {
-  flex: 0 1 auto;
+/* Row 3 = stats; row 4 = last activity. Condensed: own row, right-aligned. */
+.post-meta-stats-row,
+.post-meta-row3 {
   display: flex;
   justify-content: flex-end;
   min-width: 0;
-  margin-left: auto;
+  font-size: 12px;
 }
 
 .post-meta-last-activity-inline {
   flex-shrink: 0;
 }
 
-.post-meta-row3 {
+.post-meta-row4 {
   display: flex;
   justify-content: flex-end;
   min-width: 0;
@@ -4917,7 +4963,38 @@ button.ghost:hover,
   margin-top: 0;
 }
 
-/* Event row 2: by user (left) + event info (centered); last activity is in PostMetaBar row 3 */
+/* Wide: 2 rows – title+stats, by+last activity (or event details+last activity) */
+@media (min-width: 641px) {
+  .post-meta {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+  }
+
+  .post-meta-row1 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .post-meta-row2 {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .post-meta-row3 {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .post-meta-row4 {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+}
+
+/* Event row 2: by user (left) + event info (centered). This is the *content* of PostMetaBar row 2 when customRowsAfterTitle is used (feed events). Last activity is in PostMetaBar row 4. Grid only positions the row; this layout is unchanged. */
 .event-row2 {
   display: flex;
   flex-wrap: wrap;
@@ -4950,6 +5027,7 @@ button.ghost:hover,
 /* Prevent overlap on narrow viewports */
 .post-meta-row2,
 .post-meta-row3,
+.post-meta-row4,
 .event-row2 {
   overflow-wrap: break-word;
   word-break: break-word;
@@ -4959,7 +5037,7 @@ button.ghost:hover,
   white-space: nowrap;
 }
 
-/* Row 1: .post-meta-stats-top-right has margin-left: auto so stats stay right on wrap */
+/* Stats (row 3) and last activity (row 4) are right-aligned via justify-content: flex-end */
 
 /* Feed event details: one line on large, stack on small */
 .event-details-row {
@@ -8461,6 +8539,10 @@ header::before {
     padding: 5px 10px;
   }
 
+  .list.list--tight .list-item {
+    padding: 3px 10px 4px;
+  }
+
   .list-item h3 {
     font-size: 16px;
   }
@@ -8731,6 +8813,10 @@ header::before {
 
   .list-item {
     padding: 6px 10px;
+  }
+
+  .list.list--tight .list-item {
+    padding: 3px 10px 4px;
   }
 }
 
@@ -9091,12 +9177,6 @@ header::before {
     width: max-content !important;
   }
 
-  .section-intro {
-    grid-template-columns: minmax(0, min(1fr, 72ch)) auto;
-    align-items: start;
-    gap: 10px;
-  }
-
   .section-intro__actions {
     width: auto;
     justify-content: flex-end;
@@ -9122,61 +9202,30 @@ header::before {
 }
 
 @media (max-width: 600px) {
-  /* Title + button same row; description uses full width on bottom row (less wrapping) */
   .section-intro {
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    align-items: start;
-    gap: 6px 10px;
-    padding-bottom: 12px;
+    gap: 4px 10px;
   }
-
-  /* Meta spans full grid; subgrid lets title/desc participate so desc can span row 2 */
-  .section-intro__meta {
-    grid-column: 1 / -1;
-    grid-row: 1 / -1;
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-template-rows: auto auto;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .section-intro__title {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .section-intro__desc {
-    /* Full width on row 2 so it uses space below the buttons = fewer lines */
-    grid-column: 1 / -1;
-    grid-row: 2;
-    min-width: 0;
-  }
-
+  /* Stack Show hidden + New Post in a column, right-aligned, so they never squeeze or block */
   .section-intro__actions {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-    align-self: start;
-    z-index: 1;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 }
 
 @media (max-width: 520px) {
   .section-intro__actions {
-    gap: 5px;
+    gap: 6px;
   }
 
   .section-intro__actions button,
   .section-intro__actions form button {
     min-height: 32px;
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 4px 10px;
+    font-size: 12px;
     line-height: 1.1;
-    white-space: normal;
-    text-wrap: balance;
-    max-width: 10ch;
+    white-space: nowrap;
+    max-width: none;
   }
 }
 

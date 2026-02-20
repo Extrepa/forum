@@ -541,7 +541,7 @@ export default async function FeedPage() {
       </section>
 
       <section className="card">
-        <div className="list list--tight">
+        <div className={`list list--tight${items.length === 1 ? ' list--single-post' : ''}`}>
           {items.length === 0 ? (
             <p className="muted">Nothing new… the goo is resting.</p>
           ) : (
@@ -641,7 +641,7 @@ export default async function FeedPage() {
                           )}
                         </span>
                       );
-                      /* Event row 2 = by + event info only. Last activity is in PostMetaBar row 3 (above-activity row). */
+                      /* Event row 2 = by + event info only. Last activity is in PostMetaBar row 4. */
                       return (
                         <div className="event-row2">
                           {byUser}

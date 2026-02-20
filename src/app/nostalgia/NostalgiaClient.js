@@ -24,7 +24,7 @@ export default function NostalgiaClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list list--tight">
+        <div className={`list list--tight${posts.length === 1 ? ' list--single-post' : ''}`}>
           {posts.length === 0 ? (
             <p className="muted">No nostalgia yet.</p>
           ) : (

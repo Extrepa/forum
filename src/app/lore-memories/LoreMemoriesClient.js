@@ -8,6 +8,8 @@ export default function LoreMemoriesClient({ posts, notice , headerActions}) {
   const title = useMemo(() => 'Lore & Memories', []);
   const description = useMemo(() => "Errl's story and history, Nomad history, documents, and the things we did together.", []);
 
+  const singlePostSection = posts.length === 1;
+
   return (
     <div className="stack">
       <section className="card">
@@ -24,7 +26,7 @@ export default function LoreMemoriesClient({ posts, notice , headerActions}) {
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list list--tight">
+        <div className={`list list--tight${singlePostSection ? ' list--single-post' : ''}`}>
           {posts.length === 0 ? (
             <p className="muted">No posts yet.</p>
           ) : (
@@ -51,7 +53,7 @@ export default function LoreMemoriesClient({ posts, notice , headerActions}) {
                 const titleWithIcons = statusIcons.length > 0 
                   ? <><span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span>{p.title || 'Untitled'}</>
                   : (p.title || 'Untitled');
-                
+
                 return (
                   <a
                     key={p.id}

@@ -35,7 +35,7 @@ export default function ProjectsClient({ projects, canCreate, notice , headerAct
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list list--tight">
+        <div className={`list list--tight${projects.length === 1 ? ' list--single-post' : ''}`}>
           {projects.length === 0 ? (
             <p className="muted">{strings.cards.projects.empty}</p>
           ) : (

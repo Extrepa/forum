@@ -26,7 +26,7 @@ export default function TimelineClient({ updates, notice, basePath = '/timeline'
 
       <section className="card">
         {notice ? <div className="notice">{notice}</div> : null}
-        <div className="list list--tight">
+        <div className={`list list--tight${updates.length === 1 ? ' list--single-post' : ''}`}>
           {updates.length === 0 ? (
             <p className="muted">{strings.cards.announcements.empty}</p>
           ) : (

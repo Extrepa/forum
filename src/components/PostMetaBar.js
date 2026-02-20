@@ -6,8 +6,9 @@ import { formatDateTimeShort } from '../lib/dates';
 /**
  * PostMetaBar - Standardized metadata bar for section pages (Latest & More)
  *
- * Layout (condensed on all viewports): Row 1 = title (left) + stats (top right); Row 2 = by user or custom (e.g. events); Row 3 = last activity (bottom right) when present.
- * All layout and spacing live in CSS (globals.css .post-meta, .post-meta-row1, etc.) so one source of truth and mobile overrides apply without fighting inline styles.
+ * DOM order: Row 1 = title; Row 2 = by user or custom (e.g. events); Row 3 = stats; Row 4 = last activity.
+ * Wide: 2 rows (title+stats, by+last activity or event details+last activity).
+ * Condensed: 3–4 stacked rows as needed, rows 3–4 right-aligned.
  * Uses formatDateTimeShort for compact date/time.
  */
 export default function PostMetaBar({
@@ -78,7 +79,7 @@ export default function PostMetaBar({
 
   return (
     <div className={`${className} post-meta`.trim()}>
-      {/* Row 1: Title (left, wraps) + stats (top right). Layout in CSS so mobile overrides apply. */}
+      {/* Row 1: Title only. Stats appear in row 3; CSS places them on same line as title on wide viewports. */}
       <div className="post-meta-row1 post-meta-title-row">
         <TitleElement
           {...titleProps}
@@ -86,21 +87,23 @@ export default function PostMetaBar({
         >
           <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
-        {hasStats && statsInline && (
-          <div className="post-meta-stats-top-right">
-            {statsInline}
-          </div>
-        )}
       </div>
 
-      {/* Row 2: by user only, or custom (e.g. events: by + event info). No stats, no last activity. */}
+      {/* Row 2: by user only, or custom (e.g. events: by + event info). */}
       <div className="post-meta-row2 post-meta-by-row">
         {row2Content}
       </div>
 
-      {/* Row 3: Last activity only (bottom right). Event info is above this in row 2. */}
+      {/* Row 3: Stats (views, replies, likes). Condensed: own row, right-aligned. Wide: CSS places next to title. */}
+      {hasStats && statsInline && (
+        <div className="post-meta-row3 post-meta-stats-row">
+          {statsInline}
+        </div>
+      )}
+
+      {/* Row 4: Last activity. Condensed: own row, right-aligned. Wide: CSS places next to by-line. */}
       {hasLastActivity && (
-        <div className="post-meta-row3 post-meta-last-activity-row">
+        <div className="post-meta-row4 post-meta-last-activity-row">
           {lastActivityEl}
         </div>
       )}
