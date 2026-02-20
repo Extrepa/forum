@@ -2,7 +2,7 @@
 
 ## Request
 - Post previews inconsistent across sections: unnecessary scrollbars, some previews too long or going outside the viewport, content "not quite in the box."
-- Ensure a **mini preview** for the top / most recent / pinned post: **on mobile**, condensed and scrollable inside the card; **on larger viewports**, normal behavior so sections that were already fine (Events, Projects, General) stay that way.
+- Ensure a **mini preview** for the top / most recent / pinned post: **on mobile**, condensed and clipped (no inner scrollbar); **on larger viewports**, normal height so sections that were already fine (Events, Projects, General) stay that way. Inner scrollbars only on the full post page, not in section title/description or list previews.
 
 ## Root cause
 - The first post on section list pages (devlog, lore-memories, events, projects, art, music, etc.) was rendering with `className="post-body"` only (no `post-body-scrollable`), so the first post body had **no max-height** and expanded to full content height. That caused:
@@ -12,12 +12,12 @@
 
 ## Changes
 
-### 1. globals.css (lines ~5007–5032)
+### 1. globals.css (lines ~5012–5032)
 - **Larger viewports (desktop):** Section list previews use normal height so sections that were already fine (Events, Projects, etc.) stay that way: `.list.list--tight .list-item .post-body-scrollable` has `max-height: 400px`. Single-post sections keep a shorter cap: `.list.list--single-post .list-item .post-body-scrollable` has `max-height: 200px` so one post doesn’t dominate and you can see there’s nothing below.
-- **Mobile only (≤640px):** Condensed mini preview that you can scroll: `.list.list--tight .list-item .post-body-scrollable` gets `max-height: min(38vh, 260px)`; single-post stays at `200px`. This fixes overflow on small viewports (e.g. Development, Lore) without changing desktop behavior for sections that were already in line.
+- **Mobile only (≤640px):** Condensed mini preview, clipped (no inner scrollbar): `.list.list--tight .list-item .post-body-scrollable` gets `max-height: min(38vh, 260px)`; single-post stays at `200px`. This fixes overflow on small viewports (e.g. Development, Lore) without changing desktop behavior for sections that were already in line.
 
 ### 2. Section clients: first post uses scrollable container
-For the **first** (top / most recent) post only, the body/description/details block was changed from `className="post-body"` to `className="post-body post-body-scrollable"`. The same CSS caps then apply (400px desktop, 200px/260px mobile); inner scroll appears when content exceeds the cap.
+For the **first** (top / most recent) post only, the body/description/details block was changed from `className="post-body"` to `className="post-body post-body-scrollable"`. The same CSS caps apply; in section lists the override uses `overflow: hidden` so the preview is **clipped with no inner scrollbar** (scroll only on full post page).
 
 **Files updated (14):**
 
@@ -47,10 +47,36 @@ For the **first** (top / most recent) post only, the body/description/details bl
 - DevLogClient, LoreClient, MemoriesClient use `latestPostWrapper?.querySelector('.post-body')`. First post body still has class `post-body`, so selectors still match.
 
 ## Result
-- **Mobile:** Condensed mini preview (min(38vh, 260px) or 200px single-post) with inner scroll; content in box; Development/Lore overflow fixed.
+- **Mobile:** Condensed mini preview (min(38vh, 260px) or 200px single-post), **clipped, no inner scrollbar**; content in box; Development/Lore overflow fixed.
 - **Larger viewports:** 400px for section lists, 200px single-post; sections that were already fine (Events, Projects) unchanged.
 - First post everywhere uses `post-body-scrollable`, so no full-height first post spilling off viewport.
+- **Follow-up:** Section list previews and section intro have no inner scrollbars; inner scroll only on full post page.
 
 ## Verification
-- Grep `post-body post-body-scrollable` in `src/app`: 14 client files.
-- Section-list caps live in `globals.css` (`.list.list--tight`, `.list.list--single-post`, and the `@media (max-width: 640px)` block).
+- Grep `post-body post-body-scrollable` in `src/app`: 14 client files (devlog, lore-memories, lore, memories, nostalgia, art, art-nostalgia, rant, bugs, bugs-rant, events, projects, music, timeline).
+- Section-list preview behavior is controlled in one place in `globals.css`; section header scrollbar in one rule.
+
+---
+
+## Follow-up: No inner scrollbars except on full post (2026-02-20)
+
+**Request:** No scrollbars in section title/description; no inner scrollbars anywhere except the large (full) post preview. Then simplify: one rule per concern.
+
+**Changes (globals.css), simplified:**
+1. **Section list previews:** `.list.list--tight .list-item .post-body-scrollable` — `max-height` + `overflow: hidden` (one block with single-post and mobile overrides). List previews are capped and clipped; no inner scrollbar.
+2. **Section header:** `.card:has(> .section-intro):not(:has(> .list))` — `overflow: hidden` only. No separate rules on section-intro children.
+3. Removed: redundant mobile single-post max-height (already 200px), redundant overflow on section-intro/__meta/__title/__desc.
+
+---
+
+## Double-check / Reference (2026-02-20)
+
+**Where things are controlled (single source each):**
+
+| What | Where (globals.css) | What it does |
+|------|---------------------|--------------|
+| Section list preview height + no scrollbar | Lines ~5012–5032 | `.list.list--tight .list-item .post-body-scrollable`: max-height 400px (200px single-post), overflow hidden; mobile: max-height min(38vh, 260px). |
+| Section header no scrollbar | Lines ~2520–2523 | `.card:has(> .section-intro):not(:has(> .list))`: overflow hidden. |
+| Full post body (has scrollbar when needed) | Lines ~5255–5263 | `.post-body-scrollable` (no .list parent): max-height 400px, overflow-y auto. Section list previews override with the rules above. |
+
+**Client usage:** First post body/details in section lists uses class `post-body post-body-scrollable` so the section-list overrides apply. Full post pages use `post-body-scrollable` without the .list.list--tight .list-item ancestor, so they keep the base scrollable behavior.

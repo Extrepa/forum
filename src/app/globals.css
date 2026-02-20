@@ -2517,6 +2517,11 @@ main {
   flex-wrap: wrap;
 }
 
+/* Section header card (title + description only): no scrollbar */
+.card:has(> .section-intro):not(:has(> .list)) {
+  overflow: hidden;
+}
+
 .muted {
   color: var(--muted);
 }
@@ -4956,7 +4961,7 @@ button.ghost:hover,
   gap: 2px;
 }
 
-/* Feed: contain horizontal spill into next card; allow vertical scroll of post-body-scrollable inside */
+/* Section list items: contain horizontal spill; no inner scroll (preview is clipped, scroll only on full post page) */
 .list.list--tight .list-item {
   overflow-x: hidden;
   overflow-y: visible;
@@ -5004,16 +5009,14 @@ button.ghost:hover,
   }
 }
 
-/* Section lists: on larger viewports use normal preview height (400px) so Events, Projects, etc. look as before */
+/* Section list previews: capped height, no inner scrollbar (scroll only on full post page) */
 .list.list--tight .list-item .post-body-scrollable {
   max-height: 400px;
+  overflow: hidden;
 }
-
-/* Single-post sections: shorter preview so users can see there's nothing below */
 .list.list--single-post .list-item .post-body-scrollable {
   max-height: 200px;
 }
-
 .list.list--single-post .list-item .embed-frame {
   max-height: 180px;
   min-height: 100px;
@@ -5023,12 +5026,8 @@ button.ghost:hover,
   .list.list--single-post .list-item {
     padding: 4px 10px 6px;
   }
-  /* Mobile only: condensed mini preview you can scroll; keeps content in the box and fixes overflow (e.g. Development, Lore) */
   .list.list--tight .list-item .post-body-scrollable {
     max-height: min(38vh, 260px);
-  }
-  .list.list--single-post .list-item .post-body-scrollable {
-    max-height: 200px;
   }
 }
 
