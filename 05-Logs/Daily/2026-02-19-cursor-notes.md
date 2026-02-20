@@ -159,3 +159,35 @@
 - **.list-item .post-body / .post-body-scrollable:** Added `overflow-wrap: break-word; word-break: break-word` so long words and markdown don’t get clipped horizontally.
 - **.post-body-scrollable:** Added `-webkit-overflow-scrolling: touch` for smoother inner scroll on iOS.
 - **Mobile (max-width: 640px):** `.list:not(.list--single-post) .list-item .post-body-scrollable` now uses `max-height: min(70vh, 560px)` so more of the latest post is visible before needing to scroll inside the card.
+
+---
+
+## Horizontal overflow and unnecessary scrollbars (devlog, lobby, lore-memories, events)
+
+**Issue:** Content still overflowed horizontally on 412px mobile viewport; horizontal scrollbar appeared when it shouldn't. Affected devlog, lobby, lore-memories, events.
+
+**Changes (globals.css):**
+- **.site (640px):** `max-width: 100vw` → `max-width: 100%` so the layout never exceeds the visible width (100vw includes scrollbar and can induce horizontal scrollbar).
+- **.card:** Added `overflow-x: hidden` so card content cannot cause page-level horizontal scroll.
+- **.stack:** Added `overflow-x: hidden` so section stacks stay within width.
+- **.post-body:** Added `overflow-x: hidden` so any wide markdown content is clipped instead of expanding the page.
+- **.post-body text nodes:** Explicit wrap for `h1–h6, p, li, blockquote, td, th` with `max-width: 100%`, `overflow-wrap: break-word`, `word-break: break-word` (fixes large headings e.g. lore "The origin (Mayday Heyday...)" and long paragraphs).
+- **.post-body table:** `max-width: 100%`, `overflow-x: auto`; `td`/`th` get `word-break: break-word` so tables scroll inside the card instead of widening the page.
+
+---
+
+## Double-check: viewport/layout/overflow work (2026-02-19)
+
+**Scope:** All layout fixes for devlog, lobby, lore-memories, events, feed, and section list pages on mobile and all host types. Single file: `src/app/globals.css`.
+
+**What’s in place (no overcomplication):**
+- **Root:** `html, body` → `overflow-x: hidden` so the document never gets a horizontal scrollbar.
+- **Layout chain:** `.site`, `main`, `.card`, `.stack`, `.section-intro`, `.list`, `.list-item` → `min-width: 0` and/or `max-width: 100%` so flex/grid children don’t force width; `.site`, `.card`, `.stack` also have `overflow-x: hidden` so wide content is clipped at the container, not the page.
+- **Mobile .site:** `max-width: 100%` (not `100vw`) so scrollbar width doesn’t induce horizontal scroll.
+- **Post content:** `.post-body` → `overflow-x: hidden`, `max-width: 100%`, wrap on text nodes (`h1–h6, p, li, blockquote, td, th`); `.list-item .post-body` / `.post-body-scrollable` → same wrap + `min-width: 0`; tables → `max-width: 100%`, `overflow-x: auto`; `pre` already had `max-width: 100%` and wrap.
+- **List items:** `.list.list--tight .list-item` → `overflow-x: hidden`, `overflow-y: visible` so horizontal spill is contained but the inner `.post-body-scrollable` can still scroll vertically.
+- **Scroll UX:** `.post-body-scrollable` → `-webkit-overflow-scrolling: touch`; on mobile (non–single-post) list, first post body uses `max-height: min(70vh, 560px)` so more content is visible before inner scroll.
+
+**Covered:** Horizontal overflow and unwanted horizontal scrollbar; vertical truncation of devlog/section content; markdown (headings, lists, blockquotes, tables) staying within width; consistent behaviour across viewport sizes. No new scrollbars were added; only the erroneous horizontal one is removed and inner scroll remains where intended (e.g. devlog preview).
+
+**If issues return:** Check for new content (e.g. iframes, wide images, or elements with fixed `min-width`/`width`) that bypass these containers; keep using `overflow-x: hidden` and `max-width: 100%` on any new wrapper that can hold user content.

@@ -2411,6 +2411,7 @@ main {
   height: 100%; /* Ensure card container fills height */
   min-width: 0;
   max-width: 100%;
+  overflow-x: hidden; /* prevent card content from causing page horizontal scrollbar */
 }
 
 /* Shared reduced bottom padding for Attending / Replies / Comments sections (all post types) */
@@ -2590,6 +2591,7 @@ main {
   gap: 10px;
   min-width: 0;
   max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Prevent grid children (e.g. profile card) from stretching layout with wide content */
@@ -3190,7 +3192,7 @@ main {
     padding: 16px 12px 32px;
     width: 100%;
     min-width: 0;
-    max-width: 100vw;
+    max-width: 100%; /* avoid 100vw: it includes scrollbar and can cause horizontal scrollbar */
   }
 
   main {
@@ -3554,6 +3556,24 @@ textarea {
   word-break: break-word;
   hyphens: auto;
   max-width: 100%;
+  overflow-x: hidden; /* clip any wide content so page never gets horizontal scrollbar */
+}
+
+/* All text containers in markdown: wrap and stay within width (devlog, lobby, lore, etc.) */
+.post-body h1,
+.post-body h2,
+.post-body h3,
+.post-body h4,
+.post-body h5,
+.post-body h6,
+.post-body p,
+.post-body li,
+.post-body blockquote,
+.post-body td,
+.post-body th {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Keep post body inside list items within viewport; ensure markdown wraps (no mid-word clip) */
@@ -4595,6 +4615,16 @@ textarea {
   overflow-y: hidden;
   max-width: 100%;
   white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.post-body table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.post-body table td,
+.post-body table th {
   word-break: break-word;
 }
 
