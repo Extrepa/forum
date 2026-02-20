@@ -87,6 +87,8 @@
 - At ≤600px: `__actions` use `flex-direction: column; align-items: flex-end` so “Show hidden” and “New Post” stack in a column, right-aligned, and don’t squeeze.
 - At ≤520px: buttons use `white-space: nowrap`, `max-width: none`, `padding: 4px 10px`, `font-size: 12px` so labels don’t wrap or get cut off when stacked. Description text remains full-width on row 2 and never overlaps buttons.
 
+**Fix for button overlapping text:** Subgrid was causing the description to overlap the button in some browsers. Switched to a layout without subgrid: `__meta` now occupies **column 1 only** (`grid-column: 1; grid-row: 1 / -1`) with an internal 2-row grid (title row 1, desc row 2). `__actions` stays in column 2 row 1. So row 1 = [title | button], row 2 = [description | empty]. The description is confined to the left column and can never overlap the button; no subgrid required.
+
 ---
 
 ## Condensed view: fixed row order (title, by, stats, last activity)
@@ -115,7 +117,7 @@
 - Lint clean on `PostMetaBar.js` and `globals.css`.
 
 **Checklist for manual check**
-- [ ] **Condensed (e.g. 360px):** Feed, Devlog, Events, Lobby, Lore – Row 1 = title only; Row 2 = by (author + date) or event by + event info; Row 3 = views · replies · likes, right-aligned; Row 4 = Last activity by X at Y, right-aligned. Nothing shares a row that shouldn’t (e.g. stats never on same line as by when condensed).
+- [ ] **Condensed (e.g. 360px):** Row 1 = title (smaller font); Row 2 = by (left) + views/replies/likes (right) on same line; Row 3 = Last activity (right). Titles 13px (feed) or 14px so more fit on one line.
 - [ ] **Wide (e.g. 1024px+):** All cards = 2 lines (title+stats, by+last activity or event details+last activity).
 - [ ] **Edge cases:** Post with 0 replies (no last activity row); post with hideStats (no stats row); event card – 4-row condensed, 2-row wide.
 - [ ] **No spill:** Feed list items don’t let “Last activity” text overflow into the next card (list-item overflow: hidden).
@@ -123,3 +125,7 @@
 **Events:**
 - **Feed:** Event cards use `customRowsAfterTitle` so PostMetaBar row 2 = `event-row2`. Wide = 2 rows (title+stats, event details+last activity). Condensed = 4 stacked rows. Event-specific CSS (`.event-row2`, `.event-details-inline`, 640px stack) unchanged.
 - **Events list page:** PostMetaBar has no custom row; `lastActivity={undefined}` so no row 4. Event date/attending live in a sibling `.event-info-row` below PostMetaBar. Layout unchanged.
+
+**Follow-up: condensed by + stats on one row; smaller titles**
+- **Condensed grid:** At max-width 640px, `.post-meta` now uses a 3-row grid: row 1 = title (full width); row 2 = by (left) + stats (right) on the same line; row 3 = last activity (full width, right-aligned). View count no longer forced to its own row when it can sit with the byline.
+- **Title font size:** In condensed view, `.list-item h3` = 14px; `.list.list--tight .list-item h3` = 13px so more host titles fit on one line and cause fewer wrapping problems.
