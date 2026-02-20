@@ -3234,12 +3234,12 @@ main {
   .post-meta-row1.post-meta-title-row {
     gap: 4px;
   }
-  /* Smaller title so more fit on one line in condensed view */
+  /* Smaller title font so more fit on one line in condensed view (no truncation) */
   .list-item h3 {
     font-size: 14px;
   }
   .list.list--tight .list-item h3 {
-    font-size: 13px;
+    font-size: 12px;
   }
   .list.list--tight {
     gap: 1px;
