@@ -2408,6 +2408,7 @@ main {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden; /* prevent card content from causing page horizontal scrollbar */
+  overflow-y: visible; /* no inner vertical scrollbar; only window scrolls */
 }
 
 /* Shared reduced bottom padding for Attending / Replies / Comments sections (all post types) */
@@ -2593,6 +2594,7 @@ main {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible; /* Single document scroll only; no section-level scrollbars */
 }
 
 /* Prevent grid children (e.g. profile card) from stretching layout with wide content */
@@ -4968,6 +4970,7 @@ button.ghost:hover,
   gap: 12px;
   min-width: 0;
   max-width: 100%;
+  overflow-y: visible; /* section lists do not create their own scroll; document scrolls */
 }
 
 .list.list--tight {

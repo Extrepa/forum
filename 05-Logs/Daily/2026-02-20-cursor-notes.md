@@ -141,3 +141,14 @@ Base `.post-body-scrollable` (~5266) keeps `max-height: 400px; overflow-y: auto`
 - No `height: 100%` on .site, main, or .card.
 - 640px block: one place for mobile overflow; no duplicate or blanket rules on .card/.list/.section-intro/.footer-grid.
 - List preview scrollbar: only `.list .list-item .post-body-scrollable` and the tight/single-post max-heights; no inner vertical scroll on section pages.
+
+---
+
+## Vertical scroll bars across all sections (2026-02-20)
+
+**Request:** Fix vertical scroll bars appearing across all sections on the forum (e.g. lobby at 430px viewport).
+
+**Change (globals.css):** Explicit single-document scroll so no section creates its own scrollbar:
+- `.stack`: added `overflow-y: visible` (only document scrolls).
+- `.card`: added `overflow-y: visible` (no inner vertical scrollbar; section header card still overridden by `.card:has(> .section-intro):not(:has(> .list))` with `overflow: hidden`).
+- `.list`: added `overflow-y: visible` so section lists do not become scroll containers.
