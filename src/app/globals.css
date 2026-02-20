@@ -4924,7 +4924,7 @@ button.ghost:hover,
   position: absolute;
   right: 10px;
   top: 50%;
-  transform: translateY(-50%) rotate(-14deg);
+  transform: translateY(-50%) rotate(-8deg);
   font-size: 1.35rem;
   font-weight: 600;
   color: currentColor;
