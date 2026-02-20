@@ -3234,11 +3234,15 @@ main {
   .post-meta-row1.post-meta-title-row {
     gap: 4px;
   }
-  /* Title one line on condensed: smaller font + truncate with ellipsis */
-  .list-item .post-meta-title-row > a,
-  .list-item .post-meta-title-row > span {
+  /* Title one line on condensed: constrain row so ellipsis shows; smaller font + truncate */
+  .list-item .post-meta-row1 {
     min-width: 0;
     overflow: hidden;
+  }
+  .list-item .post-meta-title-link {
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
   }
   .list-item h3 {
     font-size: 14px;
@@ -4948,6 +4952,16 @@ button.ghost:hover,
   align-items: flex-start;
   gap: 8px;
   min-width: 0;
+}
+
+/* When section label is present, stack title then section below */
+.post-meta-title-row:has(.post-meta-section-label) {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-meta-section-label {
+  flex-shrink: 0;
 }
 
 .post-meta-title-row {

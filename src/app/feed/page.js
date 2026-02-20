@@ -550,13 +550,10 @@ export default async function FeedPage() {
               const authorColorIndex = usernameColorMap.get(item.author) ?? getUsernameColorIndex(item.author, { preferredColorIndex: authorPreferredColor });
               const statusIcons = [];
               if (item.is_unread) statusIcons.push('🆕');
-              const titleWithType = (
+              const titleContent = (
                 <>
                   {statusIcons.length > 0 ? <span style={{ marginRight: '6px' }}>{statusIcons.join(' ')}</span> : null}
                   {item.title}
-                  <span className="muted" style={{ fontSize: '12px', marginLeft: '4px', marginRight: 0, fontWeight: 'normal' }}>
-                    ({item.type})
-                  </span>
                 </>
               );
               const outlineDuration = (outlineDurations[index % outlineDurations.length] + (index * 0.03)).toFixed(2);
@@ -569,7 +566,8 @@ export default async function FeedPage() {
                   style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer', '--list-outline-anim-duration': `${outlineDuration}s` }}
                 >
                   <PostMetaBar
-                    title={titleWithType}
+                    title={titleContent}
+                    sectionLabel={`(${item.type})`}
                     author={item.author}
                     authorColorIndex={authorColorIndex}
                     authorPreferredColorIndex={authorPreferredColor}

@@ -30,7 +30,8 @@ export default function PostMetaBar({
   hideDateOnDesktop = false,
   authorDateInline = false,
   hideStats = false,
-  customRowsAfterTitle = null
+  customRowsAfterTitle = null,
+  sectionLabel = null
 }) {
   const formatCount = (count) => {
     if (count === 0) return null;
@@ -79,14 +80,18 @@ export default function PostMetaBar({
 
   return (
     <div className={`${className} post-meta`.trim()}>
-      {/* Row 1: Title only. Stats appear in row 3; CSS places them on same line as title on wide viewports. */}
+      {/* Row 1: Title (truncates when long); optional sectionLabel below so section is always visible. */}
       <div className="post-meta-row1 post-meta-title-row">
         <TitleElement
           {...titleProps}
+          className="post-meta-title-link"
           style={showTitleLink ? { textDecoration: 'none', color: 'inherit' } : undefined}
         >
           <h3 style={{ margin: 0, display: 'inline', fontSize: 'inherit' }}>{title}</h3>
         </TitleElement>
+        {sectionLabel != null && sectionLabel !== '' ? (
+          <span className="post-meta-section-label muted" style={{ fontSize: '12px', fontWeight: 'normal' }}>{sectionLabel}</span>
+        ) : null}
       </div>
 
       {/* Row 2: by user only, or custom (e.g. events: by + event info). */}
