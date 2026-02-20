@@ -45,6 +45,7 @@
 html,
 body {
   padding: 0;
+  overflow-x: hidden;
 }
 
 @media (max-width: 640px) {
@@ -134,6 +135,8 @@ a {
   padding: clamp(16px, 2.8vw, 32px) clamp(8px, 2.2vw, 20px) 48px;
   height: 100%; /* Ensure site container fills height */
   width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .site-header {
@@ -2392,6 +2395,8 @@ main {
   overflow-x: hidden;
   flex: 1; /* Allow main to fill remaining height in flex parent */
   height: 100%; /* Ensure main container fills height */
+  min-width: 0;
+  width: 100%;
 }
 
 .card {
@@ -2404,6 +2409,8 @@ main {
   isolation: isolate;
   backdrop-filter: blur(12px);
   height: 100%; /* Ensure card container fills height */
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Shared reduced bottom padding for Attending / Replies / Comments sections (all post types) */
@@ -2466,6 +2473,8 @@ main {
   align-items: start;
   gap: 4px 10px;
   padding-block: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Meta (title + desc) in first column only so desc never flows under __actions */
@@ -3544,6 +3553,14 @@ textarea {
   overflow-wrap: anywhere;
   word-break: break-word;
   hyphens: auto;
+  max-width: 100%;
+}
+
+/* Keep post body inside list items within viewport (devlog, feed, section lists) */
+.list-item .post-body,
+.list-item .post-body-scrollable {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .admin-console {
@@ -4897,6 +4914,8 @@ button.ghost:hover,
 .list {
   display: grid;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .list.list--tight {
@@ -6212,6 +6231,8 @@ a.profile-activity-item:hover {
   isolation: isolate;
   backdrop-filter: blur(10px);
   transition: background 0.2s ease, border-color 0.15s ease;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .list-item:hover {
