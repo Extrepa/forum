@@ -42,10 +42,16 @@
   --ui-border-color: var(--border);
 }
 
-html,
+html {
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: visible; /* document scroll only; no inner scroll container */
+}
+
 body {
   padding: 0;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 @media (max-width: 640px) {
@@ -136,6 +142,7 @@ a {
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
+  overflow-y: visible; /* no inner vertical scroll; only window scrolls */
 }
 
 .site-header {
@@ -2517,6 +2524,12 @@ main {
 /* Section header card (title + description only): no scrollbar */
 .card:has(> .section-intro):not(:has(> .list)) {
   overflow: hidden;
+}
+
+/* Section cards that contain a list: never create inner vertical scroll; only document scrolls */
+.card:has(> .list) {
+  overflow-y: visible;
+  max-height: none;
 }
 
 .muted {
