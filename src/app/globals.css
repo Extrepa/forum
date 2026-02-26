@@ -2418,6 +2418,15 @@ main {
   overflow-y: visible; /* no inner vertical scrollbar; only window scrolls */
 }
 
+/* Single scroll owner for section pages: the document (window).
+   Section stacks and their list cards must never become vertical scroll containers. */
+main > .stack > .card,
+main > .stack > .card > .list {
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
 /* Shared reduced bottom padding for Attending / Replies / Comments sections (all post types) */
 .engagement-section {
   padding-bottom: 8px;
@@ -2524,12 +2533,6 @@ main {
 /* Section header card (title + description only): no scrollbar */
 .card:has(> .section-intro):not(:has(> .list)) {
   overflow: hidden;
-}
-
-/* Section cards that contain a list: never create inner vertical scroll; only document scrolls */
-.card:has(> .list) {
-  overflow-y: visible;
-  max-height: none;
 }
 
 .muted {
