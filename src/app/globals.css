@@ -2412,7 +2412,9 @@ main {
   backdrop-filter: blur(12px);
   min-width: 0;
   max-width: 100%;
-  overflow: visible;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 /* Section cards that contain a list: never create inner vertical scroll; only document scrolls */
@@ -4978,7 +4980,9 @@ button.ghost:hover,
   gap: 12px;
   min-width: 0;
   max-width: 100%;
-  overflow: visible;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 .list.list--tight {
@@ -5279,8 +5283,8 @@ button.ghost:hover,
 }
 
 .post-body-scrollable {
-  max-height: none;
-  overflow: visible;
+  max-height: none !important;
+  overflow: visible !important;
   padding-right: 0;
 }
 
