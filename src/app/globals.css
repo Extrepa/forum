@@ -5284,7 +5284,8 @@ button.ghost:hover,
 
 .post-body-scrollable {
   max-height: none !important;
-  overflow: visible !important;
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
   padding-right: 0;
 }
 
