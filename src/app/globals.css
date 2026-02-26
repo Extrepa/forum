@@ -5286,7 +5286,8 @@ button.ghost:hover,
   max-height: none !important;
   overflow-y: visible !important;
   overflow-x: hidden !important;
-  padding-right: 0;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 /* Section list mini preview height is set above in .list.list--tight .list-item .post-body-scrollable (200px / 38vh cap on mobile) */
