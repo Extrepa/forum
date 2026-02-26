@@ -141,8 +141,7 @@ a {
   padding: clamp(16px, 2.8vw, 32px) clamp(8px, 2.2vw, 20px) 48px;
   width: 100%;
   min-width: 0;
-  overflow-x: hidden;
-  overflow-y: visible; /* no inner vertical scroll; only window scrolls */
+  overflow: visible;
 }
 
 .site-header {
@@ -2397,8 +2396,7 @@ main {
   margin-top: 9px;
   display: grid;
   gap: 10px;
-  overflow-y: visible;
-  overflow-x: hidden;
+  overflow: visible;
   min-width: 0;
   width: 100%;
 }
@@ -2414,8 +2412,7 @@ main {
   backdrop-filter: blur(12px);
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden; /* prevent card content from causing page horizontal scrollbar */
-  overflow-y: visible; /* no inner vertical scrollbar; only window scrolls */
+  overflow: visible;
 }
 
 /* Section cards that contain a list: never create inner vertical scroll; only document scrolls */
@@ -2606,8 +2603,7 @@ main {
   gap: 10px;
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden;
-  overflow-y: visible; /* Single document scroll only; no section-level scrollbars */
+  overflow: visible;
 }
 
 /* Prevent grid children (e.g. profile card) from stretching layout with wide content */
@@ -3207,13 +3203,12 @@ main {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow: visible;
   }
 
   main {
     min-width: 0;
-    overflow-x: hidden;
-    overflow-y: visible;
+    overflow: visible;
   }
 
   .card {
@@ -4983,7 +4978,7 @@ button.ghost:hover,
   gap: 12px;
   min-width: 0;
   max-width: 100%;
-  overflow-y: visible; /* section lists do not create their own scroll; document scrolls */
+  overflow: visible;
 }
 
 .list.list--tight {
@@ -5038,10 +5033,9 @@ button.ghost:hover,
   }
 }
 
-/* Section list previews: no inner vertical scrollbar (scroll only on full post page) */
+/* Section list previews: full content visible; document scrolls */
 .list .list-item .post-body-scrollable {
-  overflow-y: hidden;
-  overflow-x: hidden;
+  overflow: visible;
 }
 .list.list--tight .list-item .post-body-scrollable {
   max-height: none;
@@ -5286,8 +5280,7 @@ button.ghost:hover,
 
 .post-body-scrollable {
   max-height: none;
-  overflow-y: visible;
-  overflow-x: hidden;
+  overflow: visible;
   padding-right: 0;
 }
 
