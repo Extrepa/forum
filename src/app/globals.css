@@ -5044,14 +5044,14 @@ button.ghost:hover,
   overflow-x: hidden;
 }
 .list.list--tight .list-item .post-body-scrollable {
-  max-height: 400px;
+  max-height: none;
 }
 .list.list--single-post .list-item .post-body-scrollable {
-  max-height: 200px;
+  max-height: none;
 }
 .list.list--single-post .list-item .embed-frame {
-  max-height: 180px;
-  min-height: 100px;
+  max-height: none;
+  min-height: auto;
 }
 
 @media (max-width: 640px) {
@@ -5059,7 +5059,7 @@ button.ghost:hover,
     padding: 4px 10px 6px;
   }
   .list.list--tight .list-item .post-body-scrollable {
-    max-height: min(38vh, 260px);
+    max-height: none;
   }
 }
 
@@ -5285,39 +5285,22 @@ button.ghost:hover,
 }
 
 .post-body-scrollable {
-  max-height: 400px;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   overflow-x: hidden;
-  padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(52, 225, 255, 0.3) rgba(4, 16, 23, 0.3);
-  -webkit-overflow-scrolling: touch;
+  padding-right: 0;
 }
 
 /* Section list mini preview height is set above in .list.list--tight .list-item .post-body-scrollable (200px / 38vh cap on mobile) */
 @media (max-width: 640px) {
   /* Small vertical scrollbar on mobile, consistent with header-library-list and search-results-list */
   .post-body-scrollable::-webkit-scrollbar {
-    width: 6px;
+    display: none;
   }
 }
 
 .post-body-scrollable::-webkit-scrollbar {
-  width: 8px;
-}
-
-.post-body-scrollable::-webkit-scrollbar-track {
-  background: rgba(4, 16, 23, 0.3);
-  border-radius: 4px;
-}
-
-.post-body-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(52, 225, 255, 0.3);
-  border-radius: 4px;
-}
-
-.post-body-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 225, 255, 0.5);
+  display: none;
 }
 
 .avatar-customizer-panel::-webkit-scrollbar {
@@ -5359,7 +5342,7 @@ button.ghost:hover,
   overflow: visible; /* allow avatar glow to show; tab content can clip if needed */
   position: relative;
   isolation: isolate;
-  height: 100%; /* Make card take full height */
+  height: auto;
 }
 
 .profile-card-header {
@@ -5530,7 +5513,7 @@ button.ghost:hover,
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 100%; /* Make it take full height */
+  height: auto;
   flex-grow: 1; /* Allow it to grow and fill space */
 }
 
