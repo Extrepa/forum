@@ -10410,3 +10410,29 @@ header::before {
     line-height: 0.95;
   }
 }
+
+/* NUCLEAR OPTION: Force remove scrollbars from main content areas */
+html, body, .site, main, .stack, .card, .list, .list-item, .list.list--tight, .post-body-scrollable {
+  overflow: visible !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* Allow flex/grid shrinking for inner containers, but keep body/site min-height for full background */
+main, .stack, .card, .list, .list-item, .list.list--tight, .post-body-scrollable {
+  min-height: 0 !important;
+}
+
+/* Ensure only specific scrollable areas have scroll */
+.header-library-list,
+.profile-activity-list--scrollable,
+.account-edit-panel .profile-activity-list--scrollable,
+.header-account-popover,
+.notifications-popover,
+.nav-menu-popover,
+.modal-content,
+.errl-boombox__queue {
+  overflow-y: auto !important;
+  height: auto !important;
+}
