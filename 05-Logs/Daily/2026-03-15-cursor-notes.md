@@ -11,5 +11,6 @@
 ## Double-check and deploy
 
 - **Verified**: `embeds.js` track height 80; `.embed-frame.spotify` in globals.css (base + mobile min-height); no other call sites use hardcoded 152.
-- **Commit**: Spotify music player box height fix (track 80px, CSS fallback).
-- **Deploy**: `npm run deploy` (wrangler deploy).
+- **Commit**: On branch `fix/spotify-embed-box-height` (direct commit to main not allowed): `fix: Spotify music player box height (track 80px, CSS fallback)`.
+- **Push**: Branch pushed to origin.
+- **Deploy**: `npm run deploy` — deployed to forum.errl.wtf (Version ID: 595562a2-403c-4b54-9737-bf2aaf0ff49c). To merge into main, open a PR from `fix/spotify-embed-box-height`.
