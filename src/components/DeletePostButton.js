@@ -58,18 +58,19 @@ export default function DeletePostButton({
         }
       }
       
-      const response = await fetch(url, { method: 'POST' });
-      
+      const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
       if (response.ok) {
         if (onDeleted) {
           onDeleted();
         } else {
           // Redirect or reload
           if (replyId) {
-            // Stay on same page, just reload
             router.refresh();
           } else {
-            // Redirect based on post type
             if (postType === 'thread') {
               router.push('/lobby');
             } else if (postType === 'project') {
@@ -81,7 +82,6 @@ export default function DeletePostButton({
             } else if (postType === 'devlog') {
               router.push('/devlog');
             } else if (postType === 'post') {
-              // For posts, redirect to lore-memories (covers lore, memories, and other post types)
               router.push('/lore-memories');
             } else if (postType === 'timeline') {
               router.push('/announcements');
@@ -91,11 +91,18 @@ export default function DeletePostButton({
           }
         }
       } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete');
+        let msg = `Delete failed (${response.status})`;
+        try {
+          const data = await response.json();
+          if (data?.error) msg = data.error;
+        } catch (_) {
+          // Non-JSON response (e.g. 500 HTML)
+        }
+        alert(msg);
       }
     } catch (e) {
-      alert('Error deleting post');
+      console.error('Delete error:', e);
+      alert(e?.message || 'Error deleting post');
     } finally {
       setIsDeleting(false);
       setShowModal(false);

@@ -108,7 +108,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                   COALESCE(dev_logs.is_hidden, 0) AS is_hidden,
                   COALESCE(dev_logs.is_pinned, 0) AS is_pinned,
                   COALESCE(dev_logs.is_deleted, 0) AS is_deleted,
-                  0 AS like_count
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
            FROM dev_logs
            JOIN users ON users.id = dev_logs.author_user_id
            WHERE dev_logs.id = ? AND (dev_logs.is_deleted = 0 OR dev_logs.is_deleted IS NULL)`
@@ -140,7 +140,7 @@ export default async function DevLogDetailPage({ params, searchParams }) {
                     0 AS is_hidden,
                     COALESCE(dev_logs.is_pinned, 0) AS is_pinned,
                     0 AS is_deleted,
-                    0 AS like_count
+                    (SELECT COUNT(*) FROM post_likes WHERE post_type = 'dev_log' AND post_id = dev_logs.id) AS like_count
              FROM dev_logs
              JOIN users ON users.id = dev_logs.author_user_id
              WHERE dev_logs.id = ?`

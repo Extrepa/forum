@@ -194,7 +194,7 @@ function parseSpotifyEmbed(url) {
 function spotifyEmbedHeight(spotifyType) {
   switch (spotifyType) {
     case 'track':
-      return 152;
+      return 80; // compact track player; override in CSS via .embed-frame.spotify if needed
     case 'episode':
     case 'show':
       return 232;

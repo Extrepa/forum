@@ -754,7 +754,12 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         body: JSON.stringify({ confirm: 'yes' })
       });
       if (!response.ok) {
-        throw new Error('Delete failed');
+        let msg = 'Delete failed';
+        try {
+          const body = await response.json();
+          if (body?.error) msg = body.error;
+        } catch (_) { /* ignore */ }
+        throw new Error(msg);
       }
       setUserList((prev) => prev.map((userRow) => (
         userRow.id === member.id ? { ...userRow, isDeleted: true, role: 'user' } : userRow
@@ -766,7 +771,10 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       appendSystemLog(`Account deleted: ${member.username}.`, { level: 'warn', source: 'users', actor: 'admin', actionType: 'delete' });
     } catch (error) {
       console.error(error);
-      pushNotice(`Account delete failed for ${member.username}.`, 'error');
+      const noticeMsg = error?.message && error.message !== 'Delete failed'
+        ? `${error.message} (${member.username})`
+        : `Account delete failed for ${member.username}.`;
+      pushNotice(noticeMsg, 'error');
       appendSystemLog(`Account delete failed for ${member.username}.`, { level: 'error', source: 'users', actor: 'admin', actionType: 'delete' });
     }
   };

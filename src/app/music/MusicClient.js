@@ -92,7 +92,7 @@ export default function MusicClient({ posts, notice , headerActions}) {
                           className={`embed-frame ${row.embed.aspect}`}
                           style={{
                             marginTop: '4px',
-                            ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px` } : {})
+                            ...(row.embed.height ? { height: `${row.embed.height}px`, minHeight: `${row.embed.height}px`, maxHeight: `${row.embed.height}px` } : {})
                           }}
                         >
                           <iframe
@@ -100,7 +100,8 @@ export default function MusicClient({ posts, notice , headerActions}) {
                             title={row.title}
                             allow={row.embed.allow}
                             allowFullScreen={row.embed.allowFullScreen}
-                            style={{ height: '100%' }}
+                            style={{ height: '100%', ...(row.embed.aspect === 'spotify' ? { overflow: 'hidden' } : {}) }}
+                            {...(row.embed.aspect === 'spotify' ? { scrolling: 'no' } : {})}
                           />
                         </div>
                       </div>

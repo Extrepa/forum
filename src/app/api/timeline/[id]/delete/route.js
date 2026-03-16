@@ -29,10 +29,14 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 403 });
   }
 
-  await db
-    .prepare('UPDATE timeline_updates SET is_deleted = 1, updated_at = ? WHERE id = ?')
-    .bind(Date.now(), id)
-    .run();
+  try {
+    await db
+      .prepare('UPDATE timeline_updates SET is_deleted = 1, updated_at = ? WHERE id = ?')
+      .bind(Date.now(), id)
+      .run();
+  } catch (e) {
+    return NextResponse.json({ error: 'notready' }, { status: 409 });
+  }
   await deleteNotificationsForTarget(db, 'timeline_update', id);
   if (isAdmin) {
     await logAdminAction({

@@ -34,10 +34,14 @@ export async function POST(request, { params }) {
   }
 
   const now = Date.now();
-  await db
-    .prepare('UPDATE forum_threads SET is_deleted = 1, updated_at = ? WHERE id = ?')
-    .bind(now, id)
-    .run();
+  try {
+    await db
+      .prepare('UPDATE forum_threads SET is_deleted = 1, updated_at = ? WHERE id = ?')
+      .bind(now, id)
+      .run();
+  } catch (e) {
+    return NextResponse.json({ error: 'notready' }, { status: 409 });
+  }
   await deleteNotificationsForTarget(db, 'forum_thread', id);
   await notifyAdminsOfEvent({
     db,

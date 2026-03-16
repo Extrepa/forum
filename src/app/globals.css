@@ -6993,6 +6993,16 @@ span:has(.username) + .status-badge {
   min-width: 0;
 }
 
+/* Spotify: default compact height for track; album/playlist/episode use inline height from embeds.js */
+.embed-frame.spotify {
+  min-height: 80px;
+  min-width: 0;
+  overflow: hidden;
+}
+.embed-frame.spotify iframe {
+  overflow: hidden;
+}
+
 .tag-row {
   display: flex;
   flex-wrap: wrap;
@@ -8869,6 +8879,11 @@ header::before {
   .embed-frame.soundcloud {
     height: 400px;
     min-height: 400px;
+  }
+
+  /* Spotify track stays compact on mobile */
+  .embed-frame.spotify {
+    min-height: 80px;
   }
 
   .post-image {

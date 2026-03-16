@@ -93,7 +93,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                   users.avatar_key AS author_avatar_key,
                   (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                   (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                  0 AS like_count,
+                  (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
                   COALESCE(music_posts.is_locked, 0) AS is_locked,
                   COALESCE(music_posts.is_hidden, 0) AS is_hidden,
                   COALESCE(music_posts.is_pinned, 0) AS is_pinned,
@@ -127,7 +127,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
                     users.avatar_key AS author_avatar_key,
                     (SELECT AVG(rating) FROM music_ratings WHERE post_id = music_posts.id) AS avg_rating,
                     (SELECT COUNT(*) FROM music_ratings WHERE post_id = music_posts.id) AS rating_count,
-                    0 AS like_count,
+                    (SELECT COUNT(*) FROM post_likes WHERE post_type = 'music_post' AND post_id = music_posts.id) AS like_count,
                     0 AS is_locked,
                     0 AS is_hidden,
                     COALESCE(music_posts.is_pinned, 0) AS is_pinned,
@@ -442,7 +442,7 @@ export default async function MusicDetailPage({ params, searchParams }) {
               className={`embed-frame ${embed.aspect}`}
               style={{
                 marginTop: '4px',
-                ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px` } : {})
+                ...(embed.height ? { height: `${embed.height}px`, minHeight: `${embed.height}px`, maxHeight: `${embed.height}px` } : {})
               }}
             >
               <iframe
@@ -450,7 +450,8 @@ export default async function MusicDetailPage({ params, searchParams }) {
                 title={post.title}
                 allow={embed.allow}
                 allowFullScreen={embed.allowFullScreen}
-                style={{ height: '100%' }}
+                style={{ height: '100%', ...(embed.aspect === 'spotify' ? { overflow: 'hidden' } : {}) }}
+                {...(embed.aspect === 'spotify' ? { scrolling: 'no' } : {})}
               />
             </div>
           </div>
