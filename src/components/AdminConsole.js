@@ -272,13 +272,16 @@ function currentMoveDestination(post) {
   return post.type || '';
 }
 
-export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null, clickEvents = [] }) {
+export default function AdminConsole({ stats = {}, posts = [], actions = [], users = [], reports = [], media = null, clickEvents = [], deletedUsers = [], deletedPosts = [] }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [postList, setPostList] = useState(posts);
   const [userList, setUserList] = useState(users);
+  const [deletedUsersList, setDeletedUsersList] = useState(deletedUsers);
+  const [deletedPostsList, setDeletedPostsList] = useState(deletedPosts);
   const [filter, setFilter] = useState('');
   const [userFilter, setUserFilter] = useState('');
   const [busyPost, setBusyPost] = useState(null);
+  const [busyRestoreUser, setBusyRestoreUser] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
   const [notificationBroadcastBusy, setNotificationBroadcastBusy] = useState(false);
   const [notificationBroadcastMessage, setNotificationBroadcastMessage] = useState(null);
@@ -779,6 +782,30 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     }
   };
 
+  const handleRestoreUser = async (member) => {
+    if (!confirm(`Restore account "${member.username}"? They will be able to log in again (username stays as shown).`)) {
+      return;
+    }
+    setBusyRestoreUser(member.id);
+    try {
+      const response = await fetch(`/api/admin/users/${member.id}/restore`, { method: 'POST' });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || 'Restore failed');
+      }
+      setDeletedUsersList((prev) => prev.filter((u) => u.id !== member.id));
+      setUserList((prev) => prev.some((u) => u.id === member.id) ? prev.map((u) => (u.id === member.id ? { ...u, isDeleted: false } : u)) : [...prev, { ...member, isDeleted: false }]);
+      pushNotice(`Restored account: ${member.username}`, 'success');
+      appendSystemLog(`Account restored: ${member.username}.`, { source: 'users', actor: 'admin', actionType: 'save' });
+    } catch (error) {
+      console.error(error);
+      pushNotice(error?.message || `Restore failed for ${member.username}.`, 'error');
+      appendSystemLog(`Account restore failed: ${member.username}.`, { level: 'error', source: 'users', actor: 'admin', actionType: 'save' });
+    } finally {
+      setBusyRestoreUser(null);
+    }
+  };
+
   const handleDeletePost = async (post) => {
     if (!post.deleteHref) return;
     if (!confirm(`Delete “${post.title}”? This will hide it from public views.`)) {
@@ -818,6 +845,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
         throw new Error('Restore failed');
       }
       updatePost(post, { isDeleted: false });
+      setDeletedPostsList((prev) => prev.filter((p) => postKey(p) !== key));
       setStatusMessage('Post restored.');
       pushNotice(`Restored post: ${post.title}`, 'success');
       appendSystemLog(`Post restored: ${post.title}.`, { source: 'posts', actor: 'admin', actionType: 'save' });
@@ -1585,6 +1613,52 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </tbody>
               </table>
             </div>
+            {deletedPostsList.length > 0 ? (
+              <div className="admin-deleted-section">
+                <h4 className="section-title">Deleted posts</h4>
+                <p className="muted">Recover soft-deleted content. Restore makes it visible again.</p>
+                <div className="admin-posts-table-wrapper">
+                  <table className="admin-posts-table">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Section</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deletedPostsList.map((post) => {
+                        const key = postKey(post);
+                        return (
+                          <tr key={key} className="admin-row--deleted">
+                            <td><strong>{post.title}</strong><div className="muted" style={{ fontSize: '12px' }}>{post.type === 'post' && post.subtype ? post.subtype : post.type}</div></td>
+                            <td>{post.authorName}</td>
+                            <td>{post.sectionLabel}</td>
+                            <td style={{ whiteSpace: 'nowrap' }}>{formatTime(post.createdAt)}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className="button ghost mini"
+                                onClick={() => handleRestorePost(post)}
+                                disabled={busyPost === key}
+                                title="Restore this post"
+                              >
+                                Restore
+                              </button>
+                              {post.viewHref ? (
+                                <a className="button mini ghost" href={post.viewHref} target="_blank" rel="noreferrer" style={{ marginLeft: '6px' }}>View</a>
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
           </section>
         )}
 
@@ -1713,6 +1787,46 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                 </tbody>
               </table>
             </div>
+            {deletedUsersList.length > 0 ? (
+              <div className="admin-deleted-section">
+                <h4 className="section-title">Deleted users</h4>
+                <p className="muted">Restore soft-deleted accounts. Restored users can log in again (username remains anonymized until they set a new one if you support that).</p>
+                <div className="admin-posts-table-wrapper">
+                  <table className="admin-posts-table">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Last seen</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deletedUsersList.map((member) => (
+                        <tr key={member.id} className="admin-row--deleted">
+                          <td><strong>{member.username}</strong><div className="muted" style={{ fontSize: '12px' }}>Deleted</div></td>
+                          <td>{roleDisplayLabel(member.role)}</td>
+                          <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.createdAt)}</td>
+                          <td style={{ whiteSpace: 'nowrap' }}>{formatTime(member.lastSeen)}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="button ghost mini"
+                              onClick={() => handleRestoreUser(member)}
+                              disabled={busyRestoreUser === member.id}
+                              title="Restore this account"
+                            >
+                              Restore
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
           </section>
         )}
 

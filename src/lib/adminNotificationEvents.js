@@ -11,6 +11,7 @@ export const ADMIN_EVENT_KEYS = [
   { key: 'content_pinned', label: 'Post/content pinned' },
   { key: 'content_restored', label: 'Post/content restored' },
   { key: 'user_deleted', label: 'User deleted' },
+  { key: 'user_restored', label: 'User restored' },
   { key: 'user_role_changed', label: 'User role changed' }
 ];
 

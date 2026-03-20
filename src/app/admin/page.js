@@ -300,6 +300,160 @@ async function loadRecentContent(db, limit = 30) {
   return combined.slice(0, limit);
 }
 
+async function loadDeletedContent(db, limit = 50) {
+  const forumColumns = await safeAll(db, "PRAGMA table_info('forum_threads')", []);
+  const hasShitpostColumn = forumColumns.some((column) => column.name === 'is_shitpost');
+  const forumShitpostSelect = hasShitpostColumn ? 'forum_threads.is_shitpost' : '0 as is_shitpost';
+  const sources = [
+    {
+      type: 'forum_thread',
+      sql: `SELECT forum_threads.id, forum_threads.title, forum_threads.body, forum_threads.created_at,
+                   forum_threads.is_pinned, forum_threads.is_hidden, forum_threads.is_locked, forum_threads.is_deleted,
+                   ${forumShitpostSelect},
+                   users.username AS author_name
+            FROM forum_threads
+            JOIN users ON users.id = forum_threads.author_user_id
+            WHERE (forum_threads.moved_to_id IS NULL OR forum_threads.moved_to_id = '') AND forum_threads.is_deleted = 1
+            ORDER BY forum_threads.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'timeline_update',
+      sql: `SELECT timeline_updates.id, timeline_updates.title, timeline_updates.body, timeline_updates.created_at,
+                   timeline_updates.is_pinned, timeline_updates.is_hidden, timeline_updates.is_locked, timeline_updates.is_deleted,
+                   users.username AS author_name
+            FROM timeline_updates
+            JOIN users ON users.id = timeline_updates.author_user_id
+            WHERE timeline_updates.is_deleted = 1
+            ORDER BY timeline_updates.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'post',
+      sql: `SELECT posts.id, posts.title, posts.body, posts.created_at,
+                   posts.type, posts.is_private, posts.is_pinned, posts.is_hidden, posts.is_locked, posts.is_deleted,
+                   users.username AS author_name
+            FROM posts
+            JOIN users ON users.id = posts.author_user_id
+            WHERE posts.is_deleted = 1
+            ORDER BY posts.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'event',
+      sql: `SELECT events.id, events.title, events.details AS body, events.created_at,
+                   events.is_pinned, events.is_hidden, events.is_deleted,
+                   0 AS is_locked,
+                   events.starts_at,
+                   users.username AS author_name
+            FROM events
+            JOIN users ON users.id = events.author_user_id
+            WHERE events.is_deleted = 1
+            ORDER BY events.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'music_post',
+      sql: `SELECT music_posts.id, music_posts.title, music_posts.body, music_posts.created_at,
+                   music_posts.url, music_posts.is_pinned, music_posts.is_hidden, music_posts.is_deleted,
+                   0 AS is_locked,
+                   users.username AS author_name
+            FROM music_posts
+            JOIN users ON users.id = music_posts.author_user_id
+            WHERE music_posts.is_deleted = 1
+            ORDER BY music_posts.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'project',
+      sql: `SELECT projects.id, projects.title, projects.description AS body, projects.created_at,
+                   projects.status, projects.updates_enabled, projects.is_pinned, projects.is_hidden, projects.is_deleted,
+                   0 AS is_locked,
+                   users.username AS author_name
+            FROM projects
+            JOIN users ON users.id = projects.author_user_id
+            WHERE projects.is_deleted = 1
+            ORDER BY projects.created_at DESC
+            LIMIT ?`
+    },
+    {
+      type: 'dev_log',
+      sql: `SELECT dev_logs.id, dev_logs.title, dev_logs.body, dev_logs.created_at,
+                   dev_logs.is_pinned, dev_logs.is_hidden, dev_logs.is_locked, dev_logs.is_deleted,
+                   users.username AS author_name
+            FROM dev_logs
+            JOIN users ON users.id = dev_logs.author_user_id
+            WHERE dev_logs.is_deleted = 1
+            ORDER BY dev_logs.created_at DESC
+            LIMIT ?`
+    }
+  ];
+
+  const perSource = Math.max(8, Math.ceil(limit / 7));
+  const results = await Promise.all(
+    sources.map((source) => safeAll(db, source.sql, [perSource]))
+  );
+
+  const combined = [];
+  results.forEach((rows, index) => {
+    const source = sources[index];
+    rows.forEach((row) => {
+      combined.push({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        createdAt: row.created_at,
+        authorName: row.author_name,
+        type: source.type,
+        subtype: row.type || null,
+        isShitpost: Boolean(row.is_shitpost),
+        isPinned: Boolean(row.is_pinned),
+        isHidden: Boolean(row.is_hidden),
+        isLocked: Boolean(row.is_locked),
+        isDeleted: true,
+        isPrivate: Boolean(row.is_private),
+        updatesEnabled: row.updates_enabled ? Boolean(row.updates_enabled) : false,
+        sectionLabel: labelForContentType(source.type, row),
+        viewHref: viewPathForContent(source.type, row),
+        editHref: editPathForContent(source.type, row),
+        hideHref: hidePathForContent(source.type, row),
+        lockHref: lockPathForContent(source.type, row),
+        deleteHref: deletePathForContent(source.type, row),
+        startsAt: row.starts_at || null,
+        status: row.status || null
+      });
+    });
+  });
+
+  combined.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return combined.slice(0, limit);
+}
+
+async function loadDeletedUsers(db, limit = 50) {
+  const userColumns = await safeAll(db, "PRAGMA table_info('users')", []);
+  const hasDeleted = userColumns.some((column) => column.name === 'is_deleted');
+  if (!hasDeleted) return [];
+  const rows = await safeAll(
+    db,
+    `SELECT users.id, users.username, users.role, users.created_at, users.last_seen, users.is_deleted
+     FROM users
+     WHERE users.is_deleted = 1
+     ORDER BY users.created_at DESC
+     LIMIT ?`,
+    [limit]
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    username: row.username,
+    role: row.role || 'user',
+    createdAt: row.created_at,
+    lastSeen: row.last_seen,
+    isDeleted: true,
+    postsCount: 0,
+    commentsCount: 0
+  }));
+}
+
 async function loadRecentUsers(db, limit = 16) {
   const userColumns = await safeAll(db, "PRAGMA table_info('users')", []);
   const hasDeleted = userColumns.some((column) => column.name === 'is_deleted');
@@ -600,14 +754,16 @@ export default async function AdminPage() {
   }
 
   const db = await getDb();
-  const [stats, posts, actions, users, reports, media, clickEvents] = await Promise.all([
+  const [stats, posts, actions, users, reports, media, clickEvents, deletedUsers, deletedPosts] = await Promise.all([
     gatherStats(db),
     loadRecentContent(db),
     getRecentAdminActions(db),
     loadRecentUsers(db),
     loadOpenReports(db),
     loadMediaStats(db),
-    loadRecentClickEvents(db)
+    loadRecentClickEvents(db),
+    loadDeletedUsers(db),
+    loadDeletedContent(db)
   ]);
 
   return (
@@ -620,6 +776,8 @@ export default async function AdminPage() {
         reports={reports}
         media={media}
         clickEvents={clickEvents}
+        deletedUsers={deletedUsers}
+        deletedPosts={deletedPosts}
         user={user}
       />
     </div>

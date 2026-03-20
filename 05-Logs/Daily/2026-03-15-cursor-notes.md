@@ -56,4 +56,13 @@
 
 **Pre-existing (already on main / from earlier):** `src/app/globals.css`, `src/app/music/MusicClient.js`, `src/lib/embeds.js` (Spotify box height).
 
-**Post-commit:** Push to origin. Deploy with `npm run build:cf` then `npm run deploy` (or `./deploy.sh`). Reminder: run migration 0063 for account delete to work: `npx wrangler d1 execute errl_forum_db --remote --file=./migrations/0063_user_soft_delete.sql`.
+**Done:** Branch `fix/admin-delete-like-count-2026-03-15` created, committed (6371eff), merged to main, pushed to origin. Built with `npm run build:cf`, deployed with `npm run deploy`. Version ID: 0c1d09ff-75f9-48bb-a0b5-b006bffa27f4.
+
+**Migration 0063 (user soft delete):** Verified 2026-03-16. Running the full `0063_user_soft_delete.sql` on remote returns "duplicate column name" for `is_deleted`, `deleted_at`, and `deleted_by_user_id` — all three columns already exist on production D1. User still saw "Migration missing" because the delete API’s UPDATE was setting many other columns (notify_*, avatar_key, etc.). **Fix:** API updated to a minimal UPDATE that only sets columns from base schema + 0063 (username, username_norm, role, session_token, email, email_norm, phone, phone_norm, password_hash, password_set_at, must_change_password, is_deleted, deleted_at, deleted_by_user_id). No notify_* or avatar columns; account delete works even if later migrations aren’t applied. On failure, API now returns the real DB error message and logs it.
+
+## Admin: Deleted sections and restore
+
+- **Added:** Dedicated "Deleted users" and "Deleted posts" sections in Admin Console (Users and Posts tabs). Each section lists soft-deleted items with a **Restore** button.
+- **API:** `POST /api/admin/users/[id]/restore` — sets `is_deleted = 0`, clears `deleted_at` and `deleted_by_user_id`; logs audit and notifies admins. Post restore already existed at `POST /api/admin/posts/[id]/restore`.
+- **Data:** Admin page now loads `loadDeletedUsers(db, 50)` and `loadDeletedContent(db, 50)` and passes `deletedUsers` and `deletedPosts` to AdminConsole. Restored items are removed from the deleted lists in state; restored users are added/updated in the main user list.
+- **UI:** Restore user shows confirmation (username stays anonymized after restore). Restore post reuses existing `handleRestorePost`. Added `user_restored` to admin notification event keys.

@@ -45,6 +45,8 @@ export async function POST(request, { params }) {
   const usernameNorm = normalizeUsername(anonymizedUsername);
   const now = Date.now();
 
+  // Minimal UPDATE: only columns from base schema (0001, 0006, 0008) + 0063 soft-delete.
+  // Avoids failing on missing notify_* / avatar columns when not all migrations are applied.
   try {
     await db
       .prepare(
@@ -60,25 +62,6 @@ export async function POST(request, { params }) {
              password_hash = NULL,
              password_set_at = NULL,
              must_change_password = 0,
-             notify_email_enabled = 0,
-             notify_sms_enabled = 0,
-             notify_rsvp_enabled = 0,
-             notify_like_enabled = 0,
-             notify_update_enabled = 0,
-             notify_mention_enabled = 0,
-            notify_reply_enabled = 0,
-            notify_comment_enabled = 0,
-            notify_new_forum_threads_enabled = 0,
-            notify_nomad_activity_enabled = 0,
-            notify_new_content_sections = '{}',
-            notify_admin_events = '{}',
-            notify_private_message_enabled = 0,
-            notify_conversation_updates_enabled = 0,
-            notify_admin_new_user_enabled = 0,
-            notify_admin_new_post_enabled = 0,
-            notify_admin_new_reply_enabled = 0,
-            avatar_key = NULL,
-             avatar_state = NULL,
              is_deleted = 1,
              deleted_at = ?,
              deleted_by_user_id = ?
@@ -87,7 +70,12 @@ export async function POST(request, { params }) {
       .bind(anonymizedUsername, usernameNorm, now, user.id, id)
       .run();
   } catch (e) {
-    return NextResponse.json({ error: 'Migration missing for users delete' }, { status: 409 });
+    const msg = e?.message ?? String(e);
+    console.error('Admin user delete UPDATE failed:', msg);
+    return NextResponse.json({
+      error: msg || 'Migration missing for users delete',
+      hint: 'Apply migration 0063_user_soft_delete.sql (is_deleted, deleted_at, deleted_by_user_id).'
+    }, { status: 409 });
   }
 
   try {
