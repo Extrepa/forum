@@ -32,9 +32,10 @@ If you found it by accident, this is a personal project and not a public templat
    - `cp .env.example .env.local`
 3. Setup Cloudflare tooling:
    - `npm i -D wrangler`
-4. Create D1 DB + apply migrations (see docs):
+4. Create D1 DB + apply migrations:
    - `npx wrangler d1 create errl_forum_db`
-   - `npx wrangler d1 migrations apply errl_forum_db --local`
+   - `npm run db:migrate:local` (or `npx wrangler d1 migrations apply errl_forum_db --local`)
+   - Order and ops notes: `docs/04-Migrations/MIGRATION_ORDER.md`
 5. Run:
    - `npm run dev`
 
@@ -57,3 +58,4 @@ If you found it by accident, this is a personal project and not a public templat
 
 ## Docs
 - `docs/Guide.md`
+- `docs/04-Migrations/MIGRATION_ORDER.md` — apply order, required migrations, production rename note for `0079`

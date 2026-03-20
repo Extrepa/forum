@@ -10,7 +10,10 @@
     "preview": "wrangler dev",
     "deploy:preview": "./deploy.sh --preview",
     "deploy": "wrangler deploy --env=\"\"",
-    "deploy:full": "./deploy.sh"
+    "deploy:full": "./deploy.sh",
+    "db:migrate:local": "wrangler d1 migrations apply errl_forum_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply errl_forum_db --remote",
+    "db:migrations:pending": "wrangler d1 migrations list errl_forum_db --remote"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.17",

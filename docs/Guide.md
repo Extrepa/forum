@@ -46,9 +46,10 @@ npx wrangler d1 create errl_forum_db
 
 4) Apply migrations:
 ```
-npx wrangler d1 migrations apply errl_forum_db --local
-npx wrangler d1 migrations apply errl_forum_db --remote
+npm run db:migrate:local
+npm run db:migrate:remote
 ```
+See `docs/04-Migrations/MIGRATION_ORDER.md` for file order, required migrations, and production notes.
 
 5) Set admin reset secret:
 ```
