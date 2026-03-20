@@ -25,3 +25,8 @@
 - Ran `UPDATE d1_migrations SET name = '0079_add_user_names.sql' WHERE name = '0064_add_names.sql'` so renamed file matches DB history (avoids duplicate `ALTER` on `first_name`/`last_name`).
 - `wrangler d1 migrations apply errl_forum_db --remote` — applied **`0072_noop.sql`** only.
 - `wrangler d1 migrations list errl_forum_db --remote` — **No migrations to apply.**
+
+## Admin user delete “Migration missing” (same day, follow-up)
+
+- **Cause:** `users.session_token` is **NOT NULL** (`0001_init.sql`). Delete route set `session_token = NULL` → UPDATE failed; D1 often omits `e.message`, so API fell back to the old “Migration missing” string.
+- **Fix:** Set `session_token` to a unique revoked value `revoked-{userId}-{timestamp}` instead of NULL; clearer 409 errors + 0063 hint only when `no such column … is_deleted`.
