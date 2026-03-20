@@ -66,3 +66,5 @@
 - **API:** `POST /api/admin/users/[id]/restore` — sets `is_deleted = 0`, clears `deleted_at` and `deleted_by_user_id`; logs audit and notifies admins. Post restore already existed at `POST /api/admin/posts/[id]/restore`.
 - **Data:** Admin page now loads `loadDeletedUsers(db, 50)` and `loadDeletedContent(db, 50)` and passes `deletedUsers` and `deletedPosts` to AdminConsole. Restored items are removed from the deleted lists in state; restored users are added/updated in the main user list.
 - **UI:** Restore user shows confirmation (username stays anonymized after restore). Restore post reuses existing `handleRestorePost`. Added `user_restored` to admin notification event keys.
+
+- **Merged `fix/spotify-embed-box-height` (2026-03-20):** Removed `overflow: hidden` on `.embed-frame.spotify` and nested iframe (branch had dropped these; main had re-added them during deploy follow-up). Keeps the 80px compact track box without clipping oddities.

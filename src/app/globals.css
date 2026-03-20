@@ -6997,10 +6997,6 @@ span:has(.username) + .status-badge {
 .embed-frame.spotify {
   min-height: 80px;
   min-width: 0;
-  overflow: hidden;
-}
-.embed-frame.spotify iframe {
-  overflow: hidden;
 }
 
 .tag-row {
