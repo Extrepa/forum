@@ -18,3 +18,10 @@
 - **Gap `0072`:** Added **`migrations/0072_noop.sql`** (no-op `SELECT 1`) so numbering between 0071 and 0073 is explicit.
 - **Docs:** **`docs/04-Migrations/MIGRATION_ORDER.md`** — canonical order, apply commands, feature ranges.
 - **Scripts:** `npm run db:migrate:local`, `db:migrate:remote`, `db:migrations:pending` (lists unapplied remote).
+
+## Production D1 (remote) — applied same day
+
+- Queried `d1_migrations`: had `0064_add_click_events.sql` and **`0064_add_names.sql`** (no `0072` / `0079` rows yet).
+- Ran `UPDATE d1_migrations SET name = '0079_add_user_names.sql' WHERE name = '0064_add_names.sql'` so renamed file matches DB history (avoids duplicate `ALTER` on `first_name`/`last_name`).
+- `wrangler d1 migrations apply errl_forum_db --remote` — applied **`0072_noop.sql`** only.
+- `wrangler d1 migrations list errl_forum_db --remote` — **No migrations to apply.**
