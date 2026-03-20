@@ -9,8 +9,8 @@
 
 - `git pull origin main` — already up to date; `git remote prune origin` run.
 - Removed **40 local branches** that were fully merged into `main` (including `feat/dev-post-12-admin-restore` and old feat/fix/chore/codex lines).
-- **Kept** `fix/spotify-embed-box-height` — it still has **2 commits not on `main`** (Spotify player box height + deploy notes). Merge or delete manually when you decide.
-- **Stashes**: `stash@{0}` and `stash@{1}` still hold Jan 22 notes/code (large); not dropped—review with `git stash show` / `pop` if needed.
+- **Merged `fix/spotify-embed-box-height`** into `main` (resolved conflicts: keep full `2026-03-15-cursor-notes`, Spotify CSS without `overflow: hidden` on `.embed-frame.spotify`). Local + **`origin/fix/spotify-embed-box-height` deleted**.
+- **Stashes**: `stash@{0}` and `stash@{1}` still present (large WIP); not dropped—`git stash show -p` then `drop` when obsolete.
 
 ## Migrations (same day)
 
