@@ -44,6 +44,8 @@ export async function POST(request, { params }) {
   const anonymizedUsername = `deleted-${id.slice(0, 8)}`;
   const usernameNorm = normalizeUsername(anonymizedUsername);
   const now = Date.now();
+  // session_token is NOT NULL + UNIQUE in 0001_init — cannot set NULL. Use a revoked placeholder.
+  const revokedSessionToken = `revoked-${id}-${now}`;
 
   // Minimal UPDATE: only columns from base schema (0001, 0006, 0008) + 0063 soft-delete.
   // Avoids failing on missing notify_* / avatar columns when not all migrations are applied.
@@ -54,7 +56,7 @@ export async function POST(request, { params }) {
          SET username = ?,
              username_norm = ?,
              role = 'user',
-             session_token = NULL,
+             session_token = ?,
              email = NULL,
              email_norm = NULL,
              phone = NULL,
@@ -67,15 +69,24 @@ export async function POST(request, { params }) {
              deleted_by_user_id = ?
          WHERE id = ?`
       )
-      .bind(anonymizedUsername, usernameNorm, now, user.id, id)
+      .bind(anonymizedUsername, usernameNorm, revokedSessionToken, now, user.id, id)
       .run();
   } catch (e) {
-    const msg = e?.message ?? String(e);
-    console.error('Admin user delete UPDATE failed:', msg);
-    return NextResponse.json({
-      error: msg || 'Migration missing for users delete',
-      hint: 'Apply migration 0063_user_soft_delete.sql (is_deleted, deleted_at, deleted_by_user_id).'
-    }, { status: 409 });
+    const msg =
+      (typeof e?.message === 'string' && e.message) ||
+      (typeof e?.cause?.message === 'string' && e.cause.message) ||
+      String(e);
+    console.error('Admin user delete UPDATE failed:', msg, e);
+    const looksLikeMissingSoftDelete = /no such column.*is_deleted/i.test(msg);
+    return NextResponse.json(
+      {
+        error: msg || 'User delete failed (database error)',
+        hint: looksLikeMissingSoftDelete
+          ? 'Apply migration 0063_user_soft_delete.sql (is_deleted, deleted_at, deleted_by_user_id).'
+          : undefined
+      },
+      { status: 409 }
+    );
   }
 
   try {
