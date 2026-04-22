@@ -9,6 +9,7 @@ import AvatarImage from './AvatarImage';
 import NotificationsMenu from './NotificationsMenu';
 import { useUiPrefs } from './UiPrefsProvider';
 import { getForumStrings } from '../lib/forum-texts';
+import { subscribeMediaQuery } from '../lib/mediaQueryListener';
 
 function isActivePath(pathname, href) {
   if (!pathname) return false;
@@ -183,8 +184,7 @@ export default function SiteHeader({ subtitle, isAdmin, isSignedIn, user }) {
     const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
     const update = () => setHoverEnabled(mediaQuery.matches);
     update();
-    mediaQuery.addEventListener('change', update);
-    return () => mediaQuery.removeEventListener('change', update);
+    return subscribeMediaQuery(mediaQuery, update);
   }, []);
 
   const libraryLinks = useMemo(() => {

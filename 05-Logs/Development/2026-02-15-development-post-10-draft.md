@@ -1,5 +1,7 @@
 # Errl Portal Forum - Development Update #10 (Draft)
 
+> Superseded by published updates in this folder, most recently `2026-04-21-development-post-13-wrap-up-freeze.md`. Kept for historical drafting context only.
+
 Hey everyone. This update covers everything that landed after Development Update #9, including follow-up work completed on February 15-16, 2026. The main themes were events, search quality, private-section permissions, admin tooling, mobile readability, and menu/popover reliability.
 
 ## New Features

@@ -175,12 +175,18 @@ export default function CreatePostModal({
   const overlayPaddingX = isMobile ? 12 : 20;
   const overlayPaddingY = isShortViewport ? 10 : overlayPaddingX;
   const overlayAlign = isMobile ? 'flex-start' : 'center';
+  const supportsDynamicViewport = typeof window !== 'undefined'
+    && typeof window.CSS?.supports === 'function'
+    && window.CSS.supports('height', '100dvh');
+  const viewportHeightUnit = supportsDynamicViewport
+    ? '100dvh'
+    : `${Math.max(viewport.height, 640)}px`;
   const contentMaxWidth = isMobile
     ? 'min(calc(100vw - 24px), 420px)'
     : `min(${resolvedMaxWidth}, calc(100vw - 40px))`;
   const contentMaxHeight = isMobile
-    ? `min(85vh, calc(100dvh - ${overlayPaddingY * 2}px))`
-    : `min(${resolvedMaxHeight}, calc(100dvh - ${overlayPaddingY * 2}px))`;
+    ? `min(85vh, calc(${viewportHeightUnit} - ${overlayPaddingY * 2}px))`
+    : `min(${resolvedMaxHeight}, calc(${viewportHeightUnit} - ${overlayPaddingY * 2}px))`;
 
   const modal = (
     <div

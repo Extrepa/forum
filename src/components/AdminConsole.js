@@ -10,6 +10,7 @@ import {
   formatDateTime,
   formatDateTimeLocalInputInForumTime
 } from '../lib/dates';
+import { subscribeMediaQuery } from '../lib/mediaQueryListener';
 
 const TAB_LIST = ['Overview', 'System Log', 'Posts', 'Users', 'Reports', 'Media', 'Settings'];
 const ADMIN_TABS = TAB_LIST.map((tab) => ({ id: tab, label: tab }));
@@ -323,8 +324,7 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
     const mq = window.matchMedia('(max-width: 640px)');
     const onChange = () => setIsMobile(mq.matches);
     setIsMobile(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    return subscribeMediaQuery(mq, onChange);
   }, []);
 
   const postKey = (post) => `${post.type || 'post'}:${post.id}`;
@@ -795,6 +795,9 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
       }
       setDeletedUsersList((prev) => prev.filter((u) => u.id !== member.id));
       setUserList((prev) => prev.some((u) => u.id === member.id) ? prev.map((u) => (u.id === member.id ? { ...u, isDeleted: false } : u)) : [...prev, { ...member, isDeleted: false }]);
+      if (drawerUser && drawerUser.id === member.id) {
+        setDrawerUser({ ...member, isDeleted: false });
+      }
       pushNotice(`Restored account: ${member.username}`, 'success');
       appendSystemLog(`Account restored: ${member.username}.`, { source: 'users', actor: 'admin', actionType: 'save' });
     } catch (error) {
@@ -1753,32 +1756,47 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
                             >
                               Details
                             </button>
-                            <label className="admin-menu-label">
-                              <span className="muted">Role</span>
-                              <select
-                                value={member.role}
-                                onChange={(e) => handleRoleChange(member, e.target.value)}
-                                title="Change user role"
-                                disabled={member.isDeleted}
+                            {member.isDeleted ? (
+                              <button
+                                type="button"
+                                className="admin-action-item"
+                                onClick={() => {
+                                  closeMenus();
+                                  handleRestoreUser(member);
+                                }}
+                                disabled={busyRestoreUser === member.id}
+                                title="Clear soft-delete so they can log in again"
                               >
-                                <option value="user">Driplet</option>
-                                <option value="drip_nomad">Drip Nomad</option>
-                                <option value="mod">Mod</option>
-                                <option value="admin">Admin</option>
-                              </select>
-                            </label>
-                            <button
-                              type="button"
-                              className="admin-action-item"
-                              onClick={() => {
-                                closeMenus();
-                                handleDeleteUser(member);
-                              }}
-                              disabled={member.isDeleted}
-                              title="Anonymize and delete this account"
-                            >
-                              Delete account
-                            </button>
+                                Restore account
+                              </button>
+                            ) : (
+                              <>
+                                <label className="admin-menu-label">
+                                  <span className="muted">Role</span>
+                                  <select
+                                    value={member.role}
+                                    onChange={(e) => handleRoleChange(member, e.target.value)}
+                                    title="Change user role"
+                                  >
+                                    <option value="user">Driplet</option>
+                                    <option value="drip_nomad">Drip Nomad</option>
+                                    <option value="mod">Mod</option>
+                                    <option value="admin">Admin</option>
+                                  </select>
+                                </label>
+                                <button
+                                  type="button"
+                                  className="admin-action-item"
+                                  onClick={() => {
+                                    closeMenus();
+                                    handleDeleteUser(member);
+                                  }}
+                                  title="Anonymize and delete this account"
+                                >
+                                  Delete account
+                                </button>
+                              </>
+                            )}
                           </div>
                         </details>
                       </td>
@@ -2125,6 +2143,11 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
             <div>
               <div className="muted">Username</div>
               <strong>{drawerUser.username}</strong>
+              {drawerUser.isDeleted ? (
+                <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>
+                  Soft-deleted (login disabled until restored)
+                </div>
+              ) : null}
             </div>
             <div>
               <div className="muted">Role</div>
@@ -2150,9 +2173,20 @@ export default function AdminConsole({ stats = {}, posts = [], actions = [], use
               <a className="button mini ghost" href={`/profile/${drawerUser.username}`} target="_blank" rel="noreferrer">
                 View profile
               </a>
-              <button type="button" className="button ghost" onClick={() => handleDeleteUser(drawerUser)} disabled={drawerUser.isDeleted}>
-                Delete account
-              </button>
+              {drawerUser.isDeleted ? (
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => handleRestoreUser(drawerUser)}
+                  disabled={busyRestoreUser === drawerUser.id}
+                >
+                  Restore account
+                </button>
+              ) : (
+                <button type="button" className="button ghost" onClick={() => handleDeleteUser(drawerUser)}>
+                  Delete account
+                </button>
+              )}
             </div>
             <div className="muted" style={{ fontSize: '12px' }}>
               Privacy note: email/phone/passwords are not shown here. Deleting an account anonymizes personal data.

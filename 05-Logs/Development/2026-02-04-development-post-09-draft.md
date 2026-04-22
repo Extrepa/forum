@@ -1,5 +1,7 @@
 # Errl Portal Forum - Development Update #9 (Draft)
 
+> Superseded by published updates in this folder, most recently `2026-04-21-development-post-13-wrap-up-freeze.md`. Kept for historical drafting context only.
+
 Hey everyone. This update covers the major UI and flow overhaul that landed after Update #8, with a heavy focus on the header/navigation system, signup improvements, section-page consistency, and cross-forum editing/moderation reliability.
 
 ## New Features

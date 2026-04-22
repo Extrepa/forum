@@ -30,3 +30,20 @@
 
 - **Cause:** `users.session_token` is **NOT NULL** (`0001_init.sql`). Delete route set `session_token = NULL` → UPDATE failed; D1 often omits `e.message`, so API fell back to the old “Migration missing” string.
 - **Fix:** Set `session_token` to a unique revoked value `revoked-{userId}-{timestamp}` instead of NULL; clearer 409 errors + 0063 hint only when `no such column … is_deleted`.
+
+## Deploy (same day)
+
+- **Git:** Working tree clean (nothing new to commit); `main` aligned with `origin/main`.
+- **Production:** `./deploy.sh --production` (confirmed prompt) — `npm run build` check, `opennextjs-cloudflare build`, `wrangler deploy --env=""`.
+- **Cloudflare:** Version ID **`c7574770-03d3-4caf-a188-22544622f780`**; custom domain **`forum.errl.wtf`**; workers.dev URL as in script output.
+
+## Q: Restore soft-deleted user from admin (same day)
+
+- **Yes** — `POST /api/admin/users/[id]/restore` + **Deleted users** section + per-row **Actions** / drawer **Restore account** (see section below).
+- **Backup status** is separate ops entry; not required for soft-delete restore if `0063` + restore route are deployed.
+
+## Admin Users: Actions menu + drawer for deleted accounts (same day)
+
+- **Actions** menu for soft-deleted rows: **View profile**, **Details**, **Restore account** (no disabled Role/Delete clutter).
+- Active rows unchanged: Role + Delete account.
+- **User details** drawer: shows soft-delete note + **Restore account** primary button instead of disabled Delete; `handleRestoreUser` updates `drawerUser` on success.
